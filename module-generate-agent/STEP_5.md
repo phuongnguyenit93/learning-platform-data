@@ -4,14 +4,14 @@
 
 **STEP 5 là file-first cho cả Knowledge review và Summary/Difficulty.** PREPARE/PUBLISH là Gradle **100% code-only, không AI**. Worker QA/refactor nội dung **trong từng file local `rowXX.md` của STEP 4**, không đọc/sửa Knowledge C:N trên Sheet. Worker ghi `GroupX/summary.yml` gồm Summary chương, `markdownSummary` từng bài và `difficult` từng bài. **Prime là người duy nhất gọi task PUBLISH** để đồng bộ file Knowledge → C:N, `difficult` → O, Summary → AC trên Sheet.
 
-STEP 3 đã cấp B-parent filename/C-parent base slug/A-child IDs. STEP 4 đã tạo `module-generate-agent/temp/<SHEET_NAME>/manifest.yml`, `rowXX-info.yml` và `rowXX.md`, **VERIFY local thành công rồi checkpoint mà KHÔNG ghi Knowledge C:N**. STEP 5 mới là bước đầu tiên PUBLISH Knowledge lên Sheet; **không** cấp/đổi identity A/B/C, cũng không viết lại Knowledge từ đầu khi không cần refactor. Các `rowXX-info.yml` mới của STEP 4 không chứa field Summary; field `summary` legacy nếu đã có thì giữ nguyên, không dùng làm nguồn STEP 5.
+STEP 3 đã cấp B-parent filename/C-parent base slug/A-child IDs. STEP 4 đã tạo `learning-platform-data/module-generate-agent/temp/<SHEET_NAME>/manifest.yml`, `rowXX-info.yml` và `rowXX.md`, **VERIFY local thành công rồi checkpoint mà KHÔNG ghi Knowledge C:N**. STEP 5 mới là bước đầu tiên PUBLISH Knowledge lên Sheet; **không** cấp/đổi identity A/B/C, cũng không viết lại Knowledge từ đầu khi không cần refactor. Các `rowXX-info.yml` mới của STEP 4 không chứa field Summary; field `summary` legacy nếu đã có thì giữ nguyên, không dùng làm nguồn STEP 5.
 
 **Mỗi Menu Cấp 1 = một folder `GroupX/` theo thứ tự chapter thực trên Sheet**, không liên quan `groupID` Interview/Quiz/Case Study của STEP 6. Không tạo file assessment trong STEP 5. **Knowledge chỉ tồn tại trong `rowXX.md`**, không sao chép Knowledge vào `summary.yml`.
 
 ## 1. Cấu trúc local và ownership
 
 ```text
-module-generate-agent/temp/<SHEET_NAME>/
+learning-platform-data/module-generate-agent/temp/<SHEET_NAME>/
   manifest.yml
   row21-info.yml
   row21.md                 # Worker STEP 5 review/refactor trực tiếp

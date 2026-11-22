@@ -42,15 +42,15 @@ Chạy từ repository root với module Gradle path đã xác minh:
 
 Đổi `-PtranslationLanguage=en` thành `ja`, `fr`, ... nếu cây đích đã tồn tại, **dù nội dung đã được dịch trước đó**. Mỗi RUN_ID chỉ có một ngôn ngữ đích; dịch lại sau một run đã hoàn tất phải dùng RUN_ID mới để không ghi đè manifest/temp cũ. SPECIAL cần `-PtranslationWorkerMode=SPECIAL -PtranslationWorkerCount=<N>` ở cả hai lệnh; N phải do user xác nhận.
 
-**Quy tắc bất biến của PREPARE:** DRY_RUN chỉ kiểm kê; APPLY lấy **đúng bytes hiện tại** của mỗi file `<LANG>` (bản VI clone, bản tiếng Anh/Nhật đã dịch, v.v.), ghi checksum và snapshot `baseline/`, rồi copy nguyên byte vào `module-generate-agent/temp/step11/files/<MODULE_PATH>/<RUN_ID>/<RELATIVE_TARGET_PATH>`. Không yêu cầu checksum hay nội dung file đích giống VI; **không đánh giá đã dịch/chưa dịch, không bắt nội dung phải qua QA mới được copy**. Vẫn kiểm cây file, đường dẫn, quyền sở hữu RUN_ID và tránh đè temp/manifest đã tồn tại. Tạo `build/step11/<RUN_ID>/manifest.json` với `baselinePhase=TARGET_SNAPSHOT`, mỗi job một file; Prime khởi tạo journal dựa trên SHA của baseline **chính RUN_ID đó**, không dùng VI làm tiêu chí PENDING. Kiểm tra cấu trúc và giá trị technical là việc của publish/VALIDATE, không chặn bước copy.
+**Quy tắc bất biến của PREPARE:** DRY_RUN chỉ kiểm kê; APPLY lấy **đúng bytes hiện tại** của mỗi file `<LANG>` (bản VI clone, bản tiếng Anh/Nhật đã dịch, v.v.), ghi checksum và snapshot `baseline/`, rồi copy nguyên byte vào `learning-platform-data/module-generate-agent/temp/step11/files/<MODULE_PATH>/<RUN_ID>/<RELATIVE_TARGET_PATH>`. Không yêu cầu checksum hay nội dung file đích giống VI; **không đánh giá đã dịch/chưa dịch, không bắt nội dung phải qua QA mới được copy**. Vẫn kiểm cây file, đường dẫn, quyền sở hữu RUN_ID và tránh đè temp/manifest đã tồn tại. Tạo `build/step11/<RUN_ID>/manifest.json` với `baselinePhase=TARGET_SNAPSHOT`, mỗi job một file; Prime khởi tạo journal dựa trên SHA của baseline **chính RUN_ID đó**, không dùng VI làm tiêu chí PENDING. Kiểm tra cấu trúc và giá trị technical là việc của publish/VALIDATE, không chặn bước copy.
 
 ### 2A. Checkpoint tạm để Prime khôi phục nếu GPT bị gián đoạn (BẮT BUỘC)
 
 Đường dẫn duy nhất theo module và RUN_ID:
 
 ```text
-module-generate-agent/temp/step11/<MODULE_ROOT_RELATIVE_PATH>/<RUN_ID>.json
-# Ví dụ: module-generate-agent/temp/step11/module/platform/development/programming/paradigm/object-oriented/run-01.json
+learning-platform-data/module-generate-agent/temp/step11/<MODULE_ROOT_RELATIVE_PATH>/<RUN_ID>.json
+# Ví dụ: learning-platform-data/module-generate-agent/temp/step11/module/platform/development/programming/paradigm/object-oriented/run-01.json
 ```
 
 Journal nằm trong Git-ignored temp, **chỉ Prime** đọc/sửa/xóa; worker không được truy cập. Manifest/baseline nằm trong `build/step11/<RUN_ID>/`; `targetLanguage`, jobs và checksum trong manifest là bằng chứng bất biến. Mỗi journal job chỉ chứa **một đường dẫn MODULE_FILE** và owner, trạng thái, SHA tại ASSIGN/REPORT, QA note, revision. Ghi atomic, không lưu nội dung dịch.
@@ -73,7 +73,7 @@ Prime dùng task module-local `trackModuleTranslation`, với `-PtranslationRunI
 .\gradlew.bat :<MODULE_GRADLE_PATH>:trackModuleTranslation -PtranslationRunId=<RUN_ID> -PtranslationProgressAction=QA_PASS -PtranslationProgressJobId="<JOB_ID>" -PtranslationProgressNote="Prime reviewed meaning and technical integrity" -PtranslationProgressRevision=2
 ```
 
-Revision lấy từ SHOW thực tế; 0/1/2 chỉ minh họa. Tên rule và MODULE_FILE lấy từ manifest; TEMP_FILE tính từ `module-generate-agent/temp/step11/files/<MODULE_PATH>/<RUN_ID>/<MODULE_FILE>`. Prime lấy EXPECTED_TEMP_SHA256 từ checksum file temp trước ASSIGN và EXPECTED_TARGET_SHA256 từ assignedHashes; không tự bịa hash.
+Revision lấy từ SHOW thực tế; 0/1/2 chỉ minh họa. Tên rule và MODULE_FILE lấy từ manifest; TEMP_FILE tính từ `learning-platform-data/module-generate-agent/temp/step11/files/<MODULE_PATH>/<RUN_ID>/<MODULE_FILE>`. Prime lấy EXPECTED_TEMP_SHA256 từ checksum file temp trước ASSIGN và EXPECTED_TARGET_SHA256 từ assignedHashes; không tự bịa hash.
 
 | Hành động | Điều kiện và hiệu quả |
 | --- | --- |
@@ -98,8 +98,8 @@ Sau compaction/crash, Prime SHOW cùng RUN_ID và kiểm worker còn sống, SHA
 ```text
 MODULE: module/platform/development/programming/paradigm/object-oriented
 MODULE_FILE: content/readme/docs/en/menu/1.OOPBasic/knowledge/OOPBasic.md
-TEMP_FILE: module-generate-agent/temp/step11/files/<MODULE_PATH>/<RUN_ID>/content/readme/docs/en/menu/1.OOPBasic/knowledge/OOPBasic.md
-WORKER_RULE: module-generate-agent/worker/STEP_11_WORKER/STEP_11_WORKER_KNOWLEDGE.md
+TEMP_FILE: learning-platform-data/module-generate-agent/temp/step11/files/<MODULE_PATH>/<RUN_ID>/content/readme/docs/en/menu/1.OOPBasic/knowledge/OOPBasic.md
+WORKER_RULE: learning-platform-data/module-generate-agent/worker/STEP_11_WORKER/STEP_11_WORKER_KNOWLEDGE.md
 ```
 
 Sau khi Prime ASSIGN, worker kiểm SHA ban đầu, dịch toàn bộ TEMP_FILE, readback và QA. Worker chạy **chính task publish một file** dưới đây (task chỉ nhận đường dẫn module-relative đã nằm trong manifest/journal):

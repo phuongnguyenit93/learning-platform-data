@@ -35,7 +35,7 @@ Block Interview là YAML `groupID` + `answers: [{questionIndex, answer}]`; block
 
 ## 2. Giao việc và nghiệm thu
 
-Prime đọc `GENERAL_AGENT_RULES.md`, các tài liệu `rules/`, xác minh I3/gid/tab, và file worker phù hợp trong `module-generate-agent/worker/STEP_6_WORKER/`. **Chỉ gửi đúng ba dòng**, không kèm Phase/groupID hay giải thích:
+Prime đọc `GENERAL_AGENT_RULES.md`, các tài liệu `rules/`, xác minh I3/gid/tab, và file worker phù hợp trong `learning-platform-data/module-generate-agent/worker/STEP_6_WORKER/`. **Chỉ gửi đúng ba dòng**, không kèm Phase/groupID hay giải thích:
 
 ~~~text
 <VERIFIED_TAB_URL> | READ=A1,B1

@@ -8,7 +8,7 @@ Worker STEP 4 không dùng Google Sheets API, không gọi Gradle task, không s
 
 ## 1. Ba task (100% code, không AI)
 
-1. `prepareStep4Knowledge` (**module-scoped**) — Prime đọc đúng tab/gid/I3, `B1`, Special Note và A/B Menu đã có ID từ STEP 3; tạo `manifest.yml`, `rowXX-info.yml`, `rowXX.md` trong `module-generate-agent/temp/<SHEET_NAME>/`. File cũ có nội dung giữ nguyên, không reset status. Info mới không có Summary.
+1. `prepareStep4Knowledge` (**module-scoped**) — Prime đọc đúng tab/gid/I3, `B1`, Special Note và A/B Menu đã có ID từ STEP 3; tạo `manifest.yml`, `rowXX-info.yml`, `rowXX.md` trong `learning-platform-data/module-generate-agent/temp/<SHEET_NAME>/`. File cũ có nội dung giữ nguyên, không reset status. Info mới không có Summary.
 2. `refreshStep4KnowledgeStatus` (**root-only, local**) — sau mỗi đợt Worker hoặc restart, lấy status từ `rowXX-info.yml`/file Markdown và đồng bộ manifest. Không cần URL/gid/ADC, không truy cập Google Sheets.
 3. `verifyStep4Knowledge` (**root-only, local**) — sau khi tất cả Worker báo hoàn thành: tự refresh và **đòi hỏi mọi bài đều không PENDING**, file Markdown tồn tại, không rỗng, định dạng info/row hợp lệ, danh sách con của manifest nhất quán, nội dung Markdown vừa giới hạn kỹ thuật tối đa 12 ô × 30.000 UTF-16 units/ô. Trả `READY` hoặc fail. **Không đọc/ghi C:N, không tạo/cập nhật nội dung Knowledge.**
 
@@ -37,7 +37,7 @@ Không chạy STEP 5 hoặc commit/push nếu chưa có ủy quyền riêng.
 ## 2. File và trạng thái
 
 ```text
-module-generate-agent/temp/<SHEET_NAME>/
+learning-platform-data/module-generate-agent/temp/<SHEET_NAME>/
   manifest.yml
   row21-info.yml
   row21.md

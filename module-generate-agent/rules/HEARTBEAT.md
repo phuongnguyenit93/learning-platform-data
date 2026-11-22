@@ -24,7 +24,7 @@ HEARTBEAT.md
 → this cross-cutting liveness / waiting / recovery contract
 ```
 
-This file is one member of the mandatory `module-generate-agent/rules/` rule set. `GENERAL_AGENT_RULES.md`, `FULL_WORKFLOW.md`, and `PARENT_MODULE_STEP_WORKFLOW.md` must read **every current file in that rules folder** before execution begins, including this file.
+This file is one member of the mandatory `learning-platform-data/module-generate-agent/rules/` rule set. `GENERAL_AGENT_RULES.md`, `FULL_WORKFLOW.md`, and `PARENT_MODULE_STEP_WORKFLOW.md` must read **every current file in that rules folder** before execution begins, including this file.
 
 ---
 

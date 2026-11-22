@@ -14,7 +14,7 @@
 
 ## 1. Preflight — xác định đúng module, branch và thay đổi
 
-1. Prime đọc toàn văn `module-generate-agent/GENERAL_AGENT_RULES.md`, **mọi file** trong `module-generate-agent/rules/`, file `STEP_FINAL.md` này, `module-generate-info.txt` và các bằng chứng completion liên quan. Không có worker contract hay handoff bốn dòng trong STEP FINAL.
+1. Prime đọc toàn văn `learning-platform-data/module-generate-agent/GENERAL_AGENT_RULES.md`, **mọi file** trong `learning-platform-data/module-generate-agent/rules/`, file `STEP_FINAL.md` này, `module-generate-info.txt` và các bằng chứng completion liên quan. Không có worker contract hay handoff bốn dòng trong STEP FINAL.
 2. Dựa trên module-local Gradle project, `master.json` và `I3` đã được exact-readback từ offline XLSX của STEP 12, xác định **duy nhất** một module thật trong `java-learning/learning-platform-data/module/`. Yêu cầu `CURRENT_STEP.VALUE="12"` sau QA/export STEP 12 (hoặc `"FINAL"` khi rerun đã xác minh). **Tab online vẫn được giữ tới STEP_FINAL**, Prime sẽ cleanup ở §4. Xác minh repo/worktree, branch và remote bằng `git rev-parse --show-toplevel`, `git status --short --branch`, `git branch -vv`, `git remote -v`, `git worktree list`; không dùng nhầm worktree.
 3. **Đối chiếu STEP bắt buộc cuối đã hoàn thành theo bằng chứng thực**, gồm QA/Gradle/importer/Swagger/related và snapshot/export nếu STEP tương ứng yêu cầu. **Video optional không phải blocker của FINAL**. `CURRENT_STEP.VALUE` chỉ là chỉ báo, không thay thế bằng chứng; trạng thái lỗi hoặc còn worker đang ghi trong scope → `BLOCKER: MODULE NOT READY`. Không dùng FINAL để “che” STEP còn dở.
 4. Lập **manifest file thay đổi thuộc module** từ `git status --porcelain=v1 --untracked-files=all`, `git diff --name-status`, `git diff --cached --name-status` và so với đúng `<I3>`. Kiểm tra cả **modified, added, deleted, renamed, staged và untracked**; không bỏ quên Java/test, README, metadata, Swagger, Roadmap, Interview, Quiz, Video, cấu hình module, tài liệu module.
@@ -39,7 +39,7 @@
 
 ## 4. Ghi/readback online J3=FINAL → cleanup tab → checkpoint master FINAL → báo cáo
 
-**Sau khi toàn bộ QA và commit/push nội dung module ở §3 đã xác minh thành công**, Prime dọn tab online thuộc **đúng module đó**. STEP 12 đã đồng bộ `master.json="12"` và Sheet online `J3="STEP 12"`, nhưng không thực hiện cleanup. Đọc `module-generate-agent/module-generate-info.txt` để lấy đúng `Excel Page URL` và mapping tên module → tab `gid` (không nhầm với spreadsheet document ID). Không phỏng đoán tab từ tên gần giống hoặc xóa tab khác.
+**Sau khi toàn bộ QA và commit/push nội dung module ở §3 đã xác minh thành công**, Prime dọn tab online thuộc **đúng module đó**. STEP 12 đã đồng bộ `master.json="12"` và Sheet online `J3="STEP 12"`, nhưng không thực hiện cleanup. Đọc `learning-platform-data/module-generate-agent/module-generate-info.txt` để lấy đúng `Excel Page URL` và mapping tên module → tab `gid` (không nhầm với spreadsheet document ID). Không phỏng đoán tab từ tên gần giống hoặc xóa tab khác.
 
 ```powershell
 .\gradlew.bat :<MODULE_GRADLE_PATH>:deleteModuleOnlineSheet -PfileUrl=<VERIFIED_SHEET_URL> -PsheetID=<VERIFIED_TAB_GID> -PsheetMode=DRY_RUN --console=plain

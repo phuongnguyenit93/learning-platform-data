@@ -21,7 +21,7 @@
 
 ### Cổng context và phân tách PRIME / WORKER
 
-**File `STEP_OPTIONAL_VIDEO.md` này chỉ dành cho Prime.** Prime phải đọc đầy đủ `module-generate-agent/GENERAL_AGENT_RULES.md`, liệt kê và đọc **mọi file hiện có** trong `module-generate-agent/rules/`, toàn văn STEP_OPTIONAL_VIDEO này, **toàn văn `worker/STEP_OPTIONAL_VIDEO_WORKER.md`**, `module-generate-agent/module-generate-info.txt`. Đọc lại nếu context bị rút gọn.
+**File `STEP_OPTIONAL_VIDEO.md` này chỉ dành cho Prime.** Prime phải đọc đầy đủ `learning-platform-data/module-generate-agent/GENERAL_AGENT_RULES.md`, liệt kê và đọc **mọi file hiện có** trong `learning-platform-data/module-generate-agent/rules/`, toàn văn STEP_OPTIONAL_VIDEO này, **toàn văn `worker/STEP_OPTIONAL_VIDEO_WORKER.md`**, `learning-platform-data/module-generate-agent/module-generate-info.txt`. Đọc lại nếu context bị rút gọn.
 
 **Toàn bộ quy định thực thi của worker nằm riêng trong `/java-learning/learning-platform-data/module-generate-agent/worker/STEP_OPTIONAL_VIDEO_WORKER.md`.** Worker **chỉ đọc toàn văn file worker-only đó**. Prime gửi **4 dòng**: link tab, tọa độ nguồn `A<PARENT_ROW>` và bài con, vùng Video Script `X:AA` **trên cùng hàng cha**, đường dẫn worker-only. **Không đưa nội dung, script mẫu hoặc quy tắc vào tin giao.** Một lần giao = một chương = một Video YAML hoàn chỉnh.
 
