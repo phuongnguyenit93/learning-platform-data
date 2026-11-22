@@ -1,54 +1,54 @@
-# NotSerializableException, InvalidClassException và StreamCorruptedException trong Java Serialization
+# NotSerializableException, InvalidClassException, and StreamCorruptedException in Java Serialization
 
-## 1. Mục tiêu bài học và bối cảnh
+## 1. Lesson Goal and Context
 
-Khi dùng Java Object Serialization, ba ngoại lệ `NotSerializableException`, `InvalidClassException` và `StreamCorruptedException` thường cùng xuất hiện quanh thao tác `ObjectOutputStream.writeObject(...)` / `ObjectInputStream.readObject(...)`, nhưng chúng báo **ba loại vấn đề khác nhau**:
+When using Java Object Serialization, the three exceptions `NotSerializableException`, `InvalidClassException`, and `StreamCorruptedException` frequently appear around `ObjectOutputStream.writeObject(...)` / `ObjectInputStream.readObject(...)` operations, yet they signal **three distinct categories of problems**:
 
-- **`NotSerializableException`:** không thể ghi một đối tượng trong đồ thị đối tượng vì lớp của nó không hỗ trợ Java Serialization.
-- **`InvalidClassException`:** mô tả lớp trong luồng và lớp đang nạp không tương thích cho quá trình khôi phục đối tượng (điển hình là `serialVersionUID` không khớp).
-- **`StreamCorruptedException`:** dữ liệu đọc vào không tuân theo định dạng Java Object Serialization hoặc chứa mã định dạng không hợp lệ.
+- **`NotSerializableException`:** an object in the object graph cannot be written because its class does not support Java Serialization.
+- **`InvalidClassException`:** the class descriptor in the stream and the currently loaded class are incompatible for object restoration (typically a `serialVersionUID` mismatch).
+- **`StreamCorruptedException`:** the incoming bytes do not conform to the Java Object Serialization format or contain invalid format codes.
 
-Bài này tập trung vào Java Serialization chuẩn trong `java.io` trên **Java 17+**: nguyên nhân, thời điểm phát sinh, cách tái hiện, cách đọc thông báo lỗi, biện pháp sửa và phòng tránh. Đây là các ngoại lệ *checked* thuộc nhánh `IOException`; đừng dựa vào việc chúng cùng là `IOException` để xử lý như một lỗi duy nhất.
+This lesson focuses on standard Java Serialization in `java.io` on **Java 17+**: causes, when they occur, how to reproduce them, how to read error messages, fixes, and prevention. These are *checked* exceptions under the `IOException` hierarchy; do not treat them as a single uniform error just because they share `IOException`.
 
-## 2. Cơ chế nền tảng cần hiểu
+## 2. Foundational Mechanics to Understand
 
-`ObjectOutputStream` ghi đối tượng Java thành một **object stream**, bao gồm dữ liệu nhận dạng lớp, thông tin phiên bản và dữ liệu trạng thái của đối tượng. `ObjectInputStream` diễn giải luồng đó và tái tạo đối tượng dựa trên lớp có trong JVM đang đọc.
+`ObjectOutputStream` writes Java objects into an **object stream**, including class identity metadata, version info, and object state data. `ObjectInputStream` interprets that stream and reconstructs objects using classes present in the reading JVM.
 
-Quá trình này có những điều kiện riêng:
+This process carries specific requirements:
 
-1. **Tính serializable của cả đồ thị:** lớp muốn được tuần tự hóa thông thường triển khai marker interface `java.io.Serializable`. Khi ghi một đối tượng, Java còn duyệt các trường tham chiếu không `static`, không `transient` mà nó phải ghi. Nếu gặp đối tượng có lớp không serializable, thao tác thất bại dù lớp gốc đã triển khai `Serializable`.
-2. **Tương thích lớp khi đọc:** mô tả lớp đã lưu được so với lớp cục bộ. `serialVersionUID` (kiểu `long`) là khóa kiểm tra phiên bản tiêu biểu, nhưng UID giống nhau không tự bảo đảm mọi thay đổi cấu trúc lớp là tương thích.
-3. **Đúng định dạng luồng:** `ObjectInputStream` mong đợi dữ liệu do cơ chế object stream tạo ra. Ví dụ luồng thường bắt đầu bằng header byte `AC ED 00 05`; đưa file văn bản, JSON hoặc byte ngẫu nhiên vào `ObjectInputStream` không biến chúng thành đối tượng Java.
-4. **Vòng đời tài nguyên:** luồng phải được đóng hoặc hoàn tất ghi trước khi đọc từ byte/file đã tạo. `try-with-resources` giúp đóng luồng khi thành công hoặc có lỗi.
+1. **Serializability of the entire graph:** a class to be serialized typically implements the marker interface `java.io.Serializable`. When writing an object, Java also traverses non-`static`, non-`transient` reference fields that must be written. Encountering an object whose class is not serializable fails the operation even if the root class implements `Serializable`.
+2. **Class compatibility when reading:** the stored class descriptor is checked against the local class. `serialVersionUID` (of type `long`) is the primary version key, though matching UIDs do not automatically guarantee every structural change is compatible.
+3. **Valid stream format:** `ObjectInputStream` expects data produced by the object stream protocol. For example, streams normally begin with header bytes `AC ED 00 05`; feeding plain text, JSON, or arbitrary bytes into `ObjectInputStream` does not turn them into Java objects.
+4. **Resource lifecycle:** the stream must be closed or flushed cleanly before reading back generated bytes/files. `try-with-resources` ensures streams close on both success and failure.
 
-`Serializable` không liên quan đến `java.beans`, JSON serialization hay việc chỉ cần lớp có getter/setter. Đây là một giao thức nhị phân dành riêng cho Java Object Serialization.
+`Serializable` is unrelated to `java.beans`, JSON serialization, or merely having getters/setters. It is a dedicated binary protocol specifically for Java Object Serialization.
 
-## 3. Bảng phân biệt nhanh
+## 3. Quick Comparison Table
 
-| Ngoại lệ | Thường xuất hiện khi | Ý nghĩa trọng tâm | Hướng kiểm tra đầu tiên |
+| Exception | Usually occurs during | Core meaning | First thing to check |
 | --- | --- | --- | --- |
-| `NotSerializableException` | `ObjectOutputStream.writeObject`; cũng có thể trong custom serialization | Một đối tượng cần ghi không serializable | Tên lớp trong `getMessage()`; đường đi tới trường tham chiếu gây lỗi |
-| `InvalidClassException` | `ObjectInputStream.readObject` hoặc trong cơ chế kiểm tra lớp khi tuần tự hóa | Định nghĩa/mô tả lớp không tương thích hoặc không hợp lệ | Tên lớp, `serialVersionUID` ở hai phía, lịch sử thay đổi lớp |
-| `StreamCorruptedException` | Khởi tạo `ObjectInputStream` (header sai) hoặc lúc `readObject` | Các byte không đúng quy tắc định dạng object stream | Nguồn byte, header, việc ghép/trộn/ghi nối luồng |
+| `NotSerializableException` | `ObjectOutputStream.writeObject`; also possible in custom serialization | An object needing to be written is not serializable | Class name in `getMessage()`; path through reference fields causing the error |
+| `InvalidClassException` | `ObjectInputStream.readObject` or during class verification in serialization | Class definition/descriptor is incompatible or invalid | Class name, `serialVersionUID` on both sides, class change history |
+| `StreamCorruptedException` | `ObjectInputStream` initialization (bad header) or during `readObject` | Bytes violate object stream format rules | Byte source, header, concatenation/mixing/appending of streams |
 
-**Lưu ý:** vị trí phát sinh ở bảng là tình huống thường gặp, không phải danh sách mọi đường đi nội bộ. Khi chẩn đoán, ưu tiên exception type, message, stack trace và thao tác I/O đang chạy.
+**Note:** the occurrence sites in this table are common cases, not an exhaustive list of every internal code path. When diagnosing, prioritize exception type, message, stack trace, and the active I/O operation.
 
-## 4. `NotSerializableException` — có đối tượng không được phép ghi
+## 4. `NotSerializableException` — An Object Is Not Eligible to Be Written
 
-### 4.1. Nguyên nhân và đối tượng gây lỗi
+### 4.1. Causes and Offending Objects
 
-Java ném `java.io.NotSerializableException` nếu một đối tượng phải được ghi nhưng lớp của nó không triển khai `Serializable` hoặc `Externalizable` theo cách hợp lệ. Nguyên nhân phổ biến:
+Java throws `java.io.NotSerializableException` when an object must be written but its class does not validly implement `Serializable` or `Externalizable`. Common causes:
 
-- Lớp gốc chưa triển khai `Serializable`.
-- Lớp gốc triển khai `Serializable` nhưng một trường giữ đối tượng không serializable, ví dụ `Thread`, kết nối DB, stream, socket hay một `Object` thuần.
-- Một collection serializable như `ArrayList` chứa phần tử không serializable; phải kiểm tra **phần tử thực tế**, không chỉ kiểu của collection.
-- Custom `writeObject` / `writeExternal` chủ động ghi một đối tượng không serializable.
+- The root class does not implement `Serializable`.
+- The root class implements `Serializable`, yet a field holds a non-serializable object such as `Thread`, a DB connection, stream, socket, or plain `Object`.
+- A serializable collection like `ArrayList` contains a non-serializable element; check **actual runtime elements**, not just the collection's declared type.
+- Custom `writeObject` / `writeExternal` explicitly writes a non-serializable object.
 
-Các trường `static` không nằm trong trạng thái đối tượng được serialization mặc định ghi. Trường `transient` được bỏ qua theo cơ chế mặc định, nhưng nếu custom `writeObject` tự gọi `writeObject` trên trường đó thì lỗi vẫn có thể xảy ra.
+`static` fields are not part of object state saved by default serialization. `transient` fields are skipped by default mechanics, though if custom `writeObject` explicitly calls `writeObject` on such a field, the error can still occur.
 
-### 4.2. Ví dụ tái hiện được trên Java 17+
+### 4.2. Reproducible Example on Java 17+
 
-Tạo file `NotSerializableDemo.java`:
+Create file `NotSerializableDemo.java`:
 
 ~~~java
 import java.io.*;
@@ -77,26 +77,26 @@ public class NotSerializableDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac NotSerializableDemo.java
 java NotSerializableDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 NotSerializableException: java.lang.Object
 ~~~
 
-`Job` đã implements `Serializable`, nhưng trường `runtimeState` chứa đối tượng `java.lang.Object`, vốn không triển khai interface đó. Tên lớp trong message là **lớp của đối tượng gây lỗi**, không nhất thiết là lớp được truyền trực tiếp vào `writeObject`. `code` là `String` nên không gây lỗi.
+`Job` implements `Serializable`, yet its `runtimeState` field holds a `java.lang.Object` instance, which does not implement that interface. The class name in the message is **the class of the offending object**, not necessarily the root class passed directly to `writeObject`. `code` is a `String`, so it causes no error.
 
-### 4.3. Sửa đúng theo ý nghĩa dữ liệu
+### 4.3. Fix According to Data Semantics
 
-Nếu `runtimeState` là cache hoặc tài nguyên chỉ dùng lúc chạy, đánh dấu `transient` và tạo lại khi cần. Nếu dữ liệu đó *phải tồn tại sau khi khôi phục*, đừng chỉ đánh dấu `transient` để loại bỏ lỗi: hãy chuyển nó thành trạng thái có thể ghi, hoặc thiết kế DTO riêng chỉ chứa dữ liệu cần lưu.
+If `runtimeState` is a cache or runtime-only resource, mark it `transient` and recreate it when needed. If that data *must survive restoration*, do not just mark it `transient` to silence the error: convert it into serializable state, or design a separate DTO holding only the data to persist.
 
-Ví dụ file độc lập `TransientDemo.java`:
+Standalone example `TransientDemo.java`:
 
 ~~~java
 import java.io.*;
@@ -141,26 +141,26 @@ J-01
 true
 ~~~
 
-Trường `transient` nhận giá trị mặc định (`null` với kiểu tham chiếu) khi đối tượng serializable được khôi phục theo cơ chế mặc định; initializer `= new Object()` của chính lớp serializable **không chạy lại** trong quá trình đó. Nếu muốn tái tạo cache sau khi đọc, có thể bổ sung custom `readObject` phù hợp hoặc khởi tạo lười ở phương thức truy cập. Chỉ thêm `implements Serializable` cho mọi lớp gặp lỗi cũng không an toàn: nhiều tài nguyên runtime không có ý nghĩa khi lưu ra đĩa.
+The `transient` field receives its default value (`null` for reference types) when a serializable object is restored via default mechanics; the `= new Object()` initializer on the `Serializable` class **does not re-run** during that process. To rebuild a cache after reading, add an appropriate custom `readObject` or lazy initialization in an accessor. Blindly adding `implements Serializable` to every offending class is also unsafe: many runtime resources have no meaningful disk representation.
 
-## 5. `InvalidClassException` — lớp trong stream và lớp hiện tại không tương thích
+## 5. `InvalidClassException` — Class in Stream and Current Class Are Incompatible
 
-### 5.1. Vai trò của `serialVersionUID`
+### 5.1. Role of `serialVersionUID`
 
-`java.io.InvalidClassException` thường gặp khi ứng dụng ghi đối tượng bằng một bản class, sau đó đọc bằng bản class khác có `serialVersionUID` không khớp. Khi class triển khai `Serializable`, nên khai báo UID cố định và có chủ đích:
+`java.io.InvalidClassException` commonly occurs when an application writes an object with one class version and later reads it with another version whose `serialVersionUID` does not match. When a class implements `Serializable`, declare a fixed, intentional UID:
 
 ~~~java
 @Serial
 private static final long serialVersionUID = 1L;
 ~~~
 
-`@Serial` là annotation có từ Java 14, hữu ích cho compiler kiểm tra khai báo/điểm mở rộng serialization; nó không làm class tự serializable. Nếu không khai báo UID, JVM tính giá trị mặc định từ các đặc điểm của lớp; nhiều chỉnh sửa source có thể làm UID tự tính đổi, tạo lỗi khó đoán. UID cố định cho phép chủ động quản lý tương thích nhưng **không phải cơ chế chuyển đổi schema**.
+`@Serial` is an annotation available since Java 14, useful for compiler checks on serialization declarations/hooks; it does not make a class serializable by itself. When UID is omitted, the JVM computes a default value from class details; ordinary source edits can change the computed UID and produce unpredictable failures. A fixed UID enables intentional compatibility management, though it is **not a schema migration mechanism**.
 
-Các nguyên nhân khác có thể là class không hợp lệ theo quy tắc serialization, ví dụ thiếu constructor không tham số có thể truy cập của lớp cha đầu tiên không serializable, hoặc thay đổi cấu trúc không tương thích trong lớp. Đừng khẳng định mọi `InvalidClassException` đều do UID.
+Other causes include classes violating serialization rules, such as lacking an accessible no-argument constructor on the first non-serializable superclass, or incompatible structural edits to the class. Do not assume every `InvalidClassException` is caused by the UID.
 
-### 5.2. Tái hiện lỗi bằng hai bản của cùng một class
+### 5.2. Reproducing the Error with Two Versions of the Same Class
 
-Ví dụ này cần **hai lần biên dịch riêng biệt** vì hai file `SavedItem.java` mang cùng tên class nhưng khác UID. Tạo cấu trúc:
+This example requires **two separate compilations** because both `SavedItem.java` files share the same class name with different UIDs. Create the structure:
 
 ~~~text
 demo/
@@ -170,7 +170,7 @@ demo/
   v2/ReadItem.java
 ~~~
 
-Nội dung `v1/SavedItem.java`:
+Contents of `v1/SavedItem.java`:
 
 ~~~java
 import java.io.Serial;
@@ -188,7 +188,7 @@ public class SavedItem implements Serializable {
 }
 ~~~
 
-Nội dung `v1/WriteItem.java`:
+Contents of `v1/WriteItem.java`:
 
 ~~~java
 import java.io.*;
@@ -204,7 +204,7 @@ public class WriteItem {
 }
 ~~~
 
-Nội dung `v2/SavedItem.java` (cùng tên class, UID đổi thành 2):
+Contents of `v2/SavedItem.java` (same class name, UID changed to 2):
 
 ~~~java
 import java.io.Serial;
@@ -222,7 +222,7 @@ public class SavedItem implements Serializable {
 }
 ~~~
 
-Nội dung `v2/ReadItem.java`:
+Contents of `v2/ReadItem.java`:
 
 ~~~java
 import java.io.*;
@@ -240,7 +240,7 @@ public class ReadItem {
 }
 ~~~
 
-Từ thư mục `demo` chứa sẵn `v1` và `v2`, chạy lần lượt:
+From the `demo` directory containing `v1` and `v2`, run sequentially:
 
 ~~~bash
 javac -d v1 v1/SavedItem.java v1/WriteItem.java
@@ -249,42 +249,42 @@ javac -d v2 v2/SavedItem.java v2/ReadItem.java
 java -cp v2 ReadItem
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Wrote v1
 InvalidClassException
 ~~~
 
-Bản v1 ghi mô tả `SavedItem` có UID `1L`. Bản v2 đang nạp class cùng tên với UID `2L`, nên `readObject` không thể khôi phục đối tượng. Nếu in `e.getMessage()`, thông báo thường cho biết tên class và hai giá trị `serialVersionUID`; không nên phụ thuộc vào toàn bộ câu chữ message giữa các bản JDK.
+Version v1 wrote a `SavedItem` descriptor with UID `1L`. Version v2 loads a class of the same name with UID `2L`, so `readObject` cannot restore the object. If you print `e.getMessage()`, it normally shows the class name and both `serialVersionUID` values; do not depend on exact wording across JDK versions.
 
-### 5.3. Xử lý đúng khi class tiến hóa
+### 5.3. Handling Class Evolution Properly
 
-1. Xác định **bản ứng dụng nào đã ghi** dữ liệu và **bản nào đang đọc**; lưu lại stack trace và message.
-2. Kiểm tra `serialVersionUID`, class name/package, thay đổi các trường và class hierarchy. Công cụ `serialver -classpath ... TenClass` có thể tra cứu UID của class đã biên dịch, nhưng đối chiếu với UID trong dữ liệu/phiên bản đã triển khai mới là điều cần thiết.
-3. Với các thay đổi tương thích (ví dụ thêm trường thông thường), giữ UID chủ đích nếu đã xác minh hợp đồng dữ liệu; trường mới thường nhận giá trị mặc định khi đọc dữ liệu cũ.
-4. Với thay đổi không tương thích hoặc có biến đổi ngữ nghĩa, tạo **quy trình migration**, đọc bằng phiên bản cũ rồi xuất định dạng mới, hoặc duy trì reader cho dữ liệu cũ. Không tùy tiện sửa UID của v2 về 1 chỉ để tắt exception.
-5. Nếu phải duy trì dữ liệu lâu dài hoặc trao đổi giữa hệ thống, cân nhắc định dạng có schema/version và migration rõ ràng thay cho serialization nhị phân của Java.
+1. Identify **which application version wrote** the data and **which version is reading** it; record full stack traces and messages.
+2. Check `serialVersionUID`, class name/package, field changes, and class hierarchy. The `serialver -classpath ... ClassName` tool can inspect the UID of compiled classes, though comparing against the UID in persisted data/deployed versions is what matters.
+3. For compatible edits (such as adding an ordinary field), keep the UID intentionally once the data contract is verified; new fields normally receive default values when reading old data.
+4. For incompatible edits or semantic shifts, build a **migration workflow**, read using the older version and export to a new format, or keep a legacy reader. Never arbitrarily reset v2's UID back to 1 just to silence the exception.
+5. If data must live long-term or cross system boundaries, consider formats with explicit schemas/versions and migrations instead of Java binary serialization.
 
-UID bằng nhau **không** đảm bảo dữ liệu hợp lệ về mặt nghiệp vụ. Ví dụ chuyển tên thuộc tính sang ý nghĩa khác có thể dẫn đến giá trị mặc định hoặc dữ liệu sai mà không ném lỗi. Ngược lại, không phải mọi thay đổi trường đều bất tương thích; quy tắc tương thích serialization cụ thể quyết định.
+Matching UIDs **do not** guarantee business-valid data. For instance, repurposing an attribute name to mean something else can produce default values or invalid state without throwing an error. Conversely, not every field change is incompatible; specific serialization compatibility rules govern each case.
 
-## 6. `StreamCorruptedException` — byte stream không đúng định dạng
+## 6. `StreamCorruptedException` — Byte Stream Is Malformed
 
-### 6.1. Nguyên nhân phổ biến
+### 6.1. Common Causes
 
-`java.io.StreamCorruptedException` báo rằng object stream có phần điều khiển/định dạng không hợp lệ. Một số tình huống:
+`java.io.StreamCorruptedException` reports that the object stream contains invalid control/format metadata. Common scenarios:
 
-- Tạo `ObjectInputStream` trên văn bản UTF-8, JSON, CSV, ảnh hoặc dữ liệu từ `DataOutputStream` thay vì luồng đã ghi bằng `ObjectOutputStream`.
-- Bỏ sót hoặc đọc sai byte đầu luồng; truyền vào dữ liệu bắt đầu từ một offset không đúng.
-- Trộn việc ghi `ObjectOutputStream` với ghi byte thủ công vào **cùng protocol** mà phía đọc không biết cách xử lý.
-- Nối tiếp nhiều lần ghi bằng **những `ObjectOutputStream` mới** vào cùng file; mỗi lần tạo object stream mới viết thêm header, khiến một `ObjectInputStream` đang đọc liên tục có thể gặp header giữa luồng như một mã dữ liệu bất hợp lệ.
-- Dữ liệu bị thay đổi/hỏng ở phần cấu trúc định dạng.
+- Constructing `ObjectInputStream` over UTF-8 text, JSON, CSV, images, or `DataOutputStream` data rather than a stream written by `ObjectOutputStream`.
+- Skipping or misreading initial stream bytes; passing data starting at the wrong offset.
+- Mixing `ObjectOutputStream` writes with manual raw byte writes in the **same protocol** without the reader handling framing properly.
+- Appending multiple writes using **brand-new `ObjectOutputStream` instances** onto the same file; each new object stream emits a fresh header, causing a continuous `ObjectInputStream` reader to encounter a mid-stream header as invalid data codes.
+- Corruption or modification in structural format bytes.
 
-Không có quy tắc “file hỏng luôn là `StreamCorruptedException`”: file rỗng/thiếu byte có thể gây `EOFException`; luồng sai định dạng hoặc bị cắt ở vị trí khác có thể cho những ngoại lệ khác.
+There is no rule that "a corrupted file always throws `StreamCorruptedException`": an empty or truncated file can throw `EOFException`, while malformed or truncated streams elsewhere may raise other exceptions.
 
-### 6.2. Ví dụ sai header, kết quả ổn định
+### 6.2. Bad Header Example with Deterministic Output
 
-Tạo file `StreamCorruptedDemo.java`:
+Create file `StreamCorruptedDemo.java`:
 
 ~~~java
 import java.io.*;
@@ -312,11 +312,11 @@ java StreamCorruptedDemo
 StreamCorruptedException
 ~~~
 
-Lỗi phát sinh **ngay trong constructor `ObjectInputStream`** khi đọc header, trước cả lệnh `readObject()`. Nếu in message, trường hợp trên thường có `invalid stream header: 00010203`; mã hex hữu ích để nhận biết loại dữ liệu thực sự.
+The failure happens **immediately inside the `ObjectInputStream` constructor** while reading the header, even before `readObject()`. Printing the message here typically includes `invalid stream header: 00010203`; the hex bytes help identify what kind of data was actually provided.
 
-### 6.3. Ghi và đọc đúng cặp luồng
+### 6.3. Writing and Reading with a Proper Stream Pair
 
-Một cặp tuần tự hóa tối thiểu, file `RoundTripDemo.java`:
+Minimal round-trip example, file `RoundTripDemo.java`:
 
 ~~~java
 import java.io.*;
@@ -347,65 +347,65 @@ java RoundTripDemo
 hello
 ~~~
 
-Phía ghi và đọc phải thống nhất thứ tự đối tượng, ranh giới thông điệp và cách mở/đóng luồng. Khi muốn ghi nhiều đối tượng trong một file, dùng **một `ObjectOutputStream` cho cả phiên ghi** và một `ObjectInputStream` tương ứng cho phiên đọc, với số lượng/ranh giới bản ghi được xác định rõ. `flush()` đẩy dữ liệu đệm xuống lớp dưới; nó không chữa lỗi định dạng hoặc việc ghi nhiều header.
+Writer and reader must agree on object order, message boundaries, and stream lifecycle. When writing multiple objects to a file, use **one `ObjectOutputStream` for the entire write session** and one matching `ObjectInputStream` for reading, with explicit record counts or boundaries. `flush()` pushes buffered bytes downward; it does not fix format mismatches or duplicate headers.
 
-Nếu giao thức có tiền tố là độ dài, version hay byte metadata tự định nghĩa, cần tách/đọc đúng phần đó trước khi tạo `ObjectInputStream` trên **đúng đoạn payload object stream**; không thể dùng `readObject()` để đọc byte tùy ý.
+If a protocol prefixes length, version, or custom metadata bytes, separate and read that prefix cleanly before creating `ObjectInputStream` on the **exact object-stream payload segment**; `readObject()` cannot be used to read arbitrary raw bytes.
 
-## 7. Tình huống dễ nhầm với ba ngoại lệ này
+## 7. Situations Easily Confused with These Three Exceptions
 
-| Triệu chứng | Có thể là gì | Cách xác minh |
+| Symptom | What it could be | How to verify |
 | --- | --- | --- |
-| `writeObject(list)` báo `NotSerializableException: com.example.X` | Một phần tử hoặc trường con kiểu `X` không serializable | Dò object graph từ list xuống các phần tử và trường |
-| `readObject()` báo `InvalidClassException` sau khi nâng phiên bản | Class đã đổi UID hoặc có thay đổi không tương thích | So bản class ghi/đọc và UID; thử đọc bằng bản cũ |
-| `new ObjectInputStream(...)` báo `StreamCorruptedException` | Header sai hoặc đọc nhầm định dạng/offset | Kiểm tra nguồn, 4 byte đầu và code tạo file |
-| `readObject()` báo `EOFException` | Kết thúc luồng, thiếu dữ liệu hoặc số lần đọc vượt số lần ghi | Đếm bản ghi, kiểm tra kích thước file và vòng lặp đọc |
-| `readObject()` báo `ClassNotFoundException` | Class được ghi không có trong classpath/class loader phía đọc | Kiểm tra tên class/package/JAR và môi trường triển khai |
-| `readObject()` báo `OptionalDataException` | Reader yêu cầu object tại vị trí đang có primitive data trong protocol | So thứ tự `writeObject`, `writeInt` và các lệnh đọc tương ứng |
-| `readObject()` báo `WriteAbortedException` | Bên ghi từng abort quá trình ghi object sau lỗi và stream có dấu vết đó | Xem `getCause()` và log lỗi gốc bên ghi |
+| `writeObject(list)` throws `NotSerializableException: com.example.X` | An element or nested field of type `X` is non-serializable | Trace the object graph from the list down to elements and fields |
+| `readObject()` throws `InvalidClassException` after an upgrade | Class changed UID or had an incompatible edit | Compare writer/reader classes and UIDs; test reading with old version |
+| `new ObjectInputStream(...)` throws `StreamCorruptedException` | Wrong header or reading wrong format/offset | Inspect data source, first 4 bytes, and file-producing code |
+| `readObject()` throws `EOFException` | End of stream, truncated data, or reading more times than written | Count records, check file size and read loop |
+| `readObject()` throws `ClassNotFoundException` | Written class is missing from reader's classpath/class loader | Check class/package names, JARs, and deployment environment |
+| `readObject()` throws `OptionalDataException` | Reader expects an object where primitive data sits in the protocol | Compare order of `writeObject`, `writeInt`, and corresponding reads |
+| `readObject()` throws `WriteAbortedException` | Writer aborted mid-write after an error and left an exception marker | Check `getCause()` and writer-side error logs |
 
-`ClassNotFoundException` không phải một trong ba loại chính và thuộc nhánh ngoại lệ khác `IOException`. `IOException`/`EOFException` mang thông tin riêng; không nên đổi mọi lỗi đọc dữ liệu thành `StreamCorruptedException` trong catch.
+`ClassNotFoundException` is not one of the three main types and sits outside the `IOException` branch. `IOException`/`EOFException` carry distinct meanings; do not convert every read failure into `StreamCorruptedException` inside a `catch` block.
 
-## 8. Quy trình chẩn đoán và sửa lỗi theo thứ tự
+## 8. Step-by-Step Diagnostic and Fix Workflow
 
-1. **Xác định thao tác thất bại.** Ghi (`writeObject`), tạo reader (`new ObjectInputStream`), hay đọc (`readObject`)? Ghi stack trace đầy đủ và message, bao gồm lỗi gốc nếu có `cause`.
-2. **Đối với `NotSerializableException`:** lấy tên class gây lỗi từ message, tìm trường/collection giữ instance của class đó. Phân loại dữ liệu cần lưu và tài nguyên runtime. Chuyển thành DTO serializable, thay đổi cấu trúc hoặc đánh dấu `transient` với kế hoạch tái tạo dữ liệu phù hợp.
-3. **Đối với `InvalidClassException`:** xác định class từ stream, class đang nạp và UID hai bên. Kiểm tra tương thích schema, constructor của lớp cha không serializable và các thay đổi class. Thực hiện migration khi cần.
-4. **Đối với `StreamCorruptedException`:** xác minh bytes nguồn có thực sự do `ObjectOutputStream` sinh ra, không bị trộn text/JSON/metadata hoặc append header lặp. Đọc/ghi vào đúng vị trí và đúng protocol.
-5. **Thử trên dữ liệu tối thiểu có thể lặp lại.** Tạo test ghi → đọc với **cùng phiên bản** để kiểm tra code cơ bản, rồi dùng dữ liệu/phiên bản gây lỗi để phân biệt lỗi protocol và lỗi tương thích.
-6. **Sửa nguyên nhân và thêm regression test.** Lưu fixture stream của một phiên bản cũ nếu vẫn cam kết đọc được; kiểm thử object graph có collection, null, transient, dữ liệu thiếu và luồng không hợp lệ.
+1. **Pinpoint the failing operation.** Writing (`writeObject`), constructing the reader (`new ObjectInputStream`), or reading (`readObject`)? Capture the full stack trace and message, including any root `cause`.
+2. **For `NotSerializableException`:** extract the offending class name from the message and locate the field/collection holding an instance of it. Separate persisted data from runtime resources. Convert to a serializable DTO, adjust the structure, or mark `transient` with a proper rebuild plan.
+3. **For `InvalidClassException`:** identify the stream class, loaded class, and both UIDs. Check schema compatibility, non-serializable superclass constructors, and class edits. Perform data migration when needed.
+4. **For `StreamCorruptedException`:** verify the source bytes genuinely came from `ObjectOutputStream`, free of mixed text/JSON/metadata or repeated append headers. Align read/write positions and protocol framing.
+5. **Reproduce on minimal repeatable data.** Run a same-version write → read test to verify baseline code, then test the failing payload/version to separate protocol bugs from compatibility bugs.
+6. **Fix the root cause and add regression tests.** Retain stream fixtures from prior versions if backward readability is promised; test object graphs with collections, nulls, transients, missing data, and invalid streams.
 
-Khi xử lý trong ứng dụng thật, thường nên bắt ngoại lệ ở ranh giới I/O để log đủ ngữ cảnh và trả lỗi có ý nghĩa. Không nuốt exception rồi xem đối tượng khôi phục thất bại như dữ liệu thành công; cũng không xóa file serialized ngay khi lần đầu đọc lỗi nếu chưa xác định nguyên nhân và chính sách lưu trữ.
+In production applications, catch exceptions at the I/O boundary to log sufficient context and return meaningful errors. Never swallow exceptions and treat a failed restoration as valid data; likewise, never delete serialized files immediately on the first read error before determining the root cause and retention policy.
 
-## 9. Ngăn lỗi từ khâu thiết kế
+## 9. Preventing Errors at Design Time
 
-- **Thu gọn dữ liệu lưu:** tách model trao đổi/lưu trữ khỏi entity có socket, executor, thread, connection, logger, cache; serializable không đồng nghĩa phù hợp để lưu lâu dài.
-- **Quản lý phiên bản:** khai báo `serialVersionUID` có chủ đích cho class serializable, kiểm thử đọc dữ liệu cũ khi phát hành bản mới và thiết kế migration khi thay đổi bất tương thích.
-- **Thống nhất protocol:** xác định rõ phiên ghi/đọc, thứ tự dữ liệu, cấu trúc thông điệp và quản lý buffer/file. Đừng dùng serialization stream như một container chung cho dữ liệu bất kỳ.
-- **Quan sát lỗi:** ghi tên class, version ứng dụng, vị trí I/O, tên file/tên message và cause. Với dữ liệu nhạy cảm, không dump nguyên object/stream vào log.
-- **An toàn:** Java deserialization của dữ liệu không tin cậy có thể nguy hiểm vì hành vi trong quá trình tái tạo object graph. Tránh `ObjectInputStream` trên input không tin cậy; khi bắt buộc dùng, cân nhắc `ObjectInputFilter` theo JEP 290 cùng giới hạn class, độ sâu, số tham chiếu/kích thước. Bộ lọc **không thay thế** kiểm soát nguồn dữ liệu và thiết kế protocol an toàn.
+- **Minimize persisted data:** separate exchange/storage models from entities holding sockets, executors, threads, connections, loggers, or caches; being serializable does not make something fit for long-term storage.
+- **Manage versioning:** declare `serialVersionUID` intentionally on serializable classes, test reading old data on new releases, and design migrations for incompatible changes.
+- **Standardize the protocol:** explicitly define write/read sessions, data ordering, message framing, and buffer/file handling. Never treat a serialization stream as a generic bag for arbitrary bytes.
+- **Improve observability:** log class names, application version, I/O stage, file/message name, and cause. For sensitive data, never dump whole objects or raw streams into logs.
+- **Safety:** Java deserialization of untrusted data is hazardous due to behavior triggered while reconstructing object graphs. Avoid `ObjectInputStream` on untrusted input; when unavoidable, consider `ObjectInputFilter` per JEP 290 with limits on classes, depth, reference counts, and size. Filters **do not replace** source verification and safe protocol design.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Câu 1.** Class `Order` triển khai `Serializable` và chứa `List<PaymentConnector>`. `ArrayList` có thể serialize nhưng `PaymentConnector` không triển khai `Serializable`. Ghi một list có phần tử loại đó sẽ ra sao?
+**Question 1.** Class `Order` implements `Serializable` and holds `List<PaymentConnector>`. `ArrayList` is serializable, yet `PaymentConnector` does not implement `Serializable`. What happens when writing a list containing such an element?
 
-**Đáp án:** Có khả năng ném `NotSerializableException` khi Java đi đến phần tử `PaymentConnector`. Phải sửa dữ liệu đồ thị được ghi, không chỉ kiểu khai báo của field list.
+**Answer:** It will likely throw `NotSerializableException` when Java reaches the `PaymentConnector` element. You must fix the serialized graph data, not merely the declared type of the list field.
 
-**Câu 2.** Một class thêm field `int retries` và vẫn giữ UID. Dữ liệu cũ chắc chắn gây `InvalidClassException`?
+**Question 2.** A class adds an `int retries` field while keeping the same UID. Will old data definitely throw `InvalidClassException`?
 
-**Đáp án:** Không. Thêm field thông thường thường là thay đổi tương thích; khi đọc dữ liệu cũ, trường mới có thể nhận giá trị mặc định `0`. Vẫn phải kiểm thử logic nghiệp vụ và các điều kiện tương thích liên quan.
+**Answer:** No. Adding an ordinary field is normally a compatible change; when reading older data, the new field receives default value `0`. You must still test business logic and related compatibility rules.
 
-**Câu 3.** Đọc file JSON qua `ObjectInputStream` báo lỗi header. Có thể sửa bằng cách ép class JSON implements `Serializable`?
+**Question 3.** Reading a JSON file through `ObjectInputStream` fails with a header error. Can you fix it by making the JSON DTO class implement `Serializable`?
 
-**Đáp án:** Không. Dạng byte JSON không phải Java Object Serialization stream. Dùng JSON parser cho JSON, hoặc đổi bên ghi sang `ObjectOutputStream` và thống nhất định dạng ở cả hai phía.
+**Answer:** No. JSON bytes are not a Java Object Serialization stream. Use a JSON parser for JSON, or switch the writer to `ObjectOutputStream` and align the format on both sides.
 
-**Câu 4.** Tại sao một file chỉ có một nửa dữ liệu không nhất thiết ném `StreamCorruptedException`?
+**Question 4.** Why does a file containing only half its data not necessarily throw `StreamCorruptedException`?
 
-**Đáp án:** Nếu reader cần thêm byte nhưng đã tới cuối file, `EOFException` có thể là tín hiệu trực tiếp. Ngoại lệ cụ thể phụ thuộc vị trí dữ liệu thiếu và giai đoạn giải mã.
+**Answer:** If the reader expects more bytes and hits end-of-file first, `EOFException` can be thrown directly. The exact exception depends on where truncation occurs and the decoding stage.
 
-## 11. Ghi nhớ
+## 11. Takeaways
 
-- `NotSerializableException` → **vấn đề object graph khi ghi**: kiểm tra lớp thật và các trường/phần tử cần serialize.
-- `InvalidClassException` → **vấn đề tương thích/định nghĩa class**: kiểm tra UID, phiên bản class và lịch sử tiến hóa dữ liệu.
-- `StreamCorruptedException` → **vấn đề cấu trúc object stream**: kiểm tra nguồn byte, header, offset và cách phối hợp writer/reader.
+- `NotSerializableException` → **object graph issue during write**: inspect runtime classes and fields/elements being serialized.
+- `InvalidClassException` → **class compatibility/definition issue**: inspect UIDs, class versions, and data evolution history.
+- `StreamCorruptedException` → **object stream structure issue**: inspect byte source, header, offsets, and writer/reader coordination.
 
-Bắt đúng loại ngoại lệ giúp khoanh vùng lỗi nhanh, nhưng giải pháp đúng phải dựa vào dữ liệu cần lưu, hợp đồng tương thích và định dạng luồng đã thiết kế.
+Catching the right exception quickly narrows down the problem, but a proper fix depends on the data being persisted, compatibility contracts, and the designed stream format.

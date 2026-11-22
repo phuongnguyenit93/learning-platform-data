@@ -1,53 +1,53 @@
-# Thực hành Java NIO: xây dựng vòng Selector cho giao tiếp TCP đơn giản
+# Java NIO Practice: Building a Selector Loop for Simple TCP Communication
 
-Mục tiêu của bài thực hành là **tạo một TCP echo server sử dụng `Selector`**, không dùng một thread riêng cho từng kết nối. Máy chủ lắng nghe TCP bằng `ServerSocketChannel`; mỗi client được đại diện bởi một `SocketChannel` ở chế độ non-blocking. Một **event-loop thread** gọi `selector.select()` để lần lượt xử lý `OP_ACCEPT`, `OP_READ` và `OP_WRITE`. Khi đọc được một dòng kết thúc bằng `\n`, máy chủ trả về dòng `echo:<nội dung>\n`.
+The goal of this exercise is to **build a TCP echo server using `Selector`**, without spawning a dedicated thread per connection. The server listens for TCP via `ServerSocketChannel`; each client is represented by a `SocketChannel` in non-blocking mode. One **event-loop thread** calls `selector.select()` to handle `OP_ACCEPT`, `OP_READ`, and `OP_WRITE` in turn. Once a line ending in `\n` is read, the server replies with `echo:<content>\n`.
 
-Phần thực hành dùng **Java 17+**, chạy hoàn toàn trên địa chỉ loopback, tự chọn cổng trống, có một TCP client nhỏ ngay trong chương trình để kiểm tra đường đi của dữ liệu. Code minh họa có chủ đích **xử lý một request rồi dừng** để người học thấy rõ vòng đời của selector, socket, key và buffer; các phần mở rộng sau đó giải thích cách chuyển thành server nhiều client phục vụ lâu dài.
+The exercise uses **Java 17+**, runs completely on the loopback address, picks an ephemeral free port automatically, and includes a small TCP client right inside the program to verify the data path. The illustrative code intentionally **handles one request and stops** so learners clearly see the lifecycle of selector, sockets, keys, and buffers; later extensions explain how to evolve it into a long-running multi-client server.
 
-Điều cần nhớ trước khi bắt đầu: **readiness không phải completion**. `OP_READ` không đảm bảo đủ một dòng; `OP_WRITE` không đảm bảo gửi hết response. Chúng ta phải giữ trạng thái trên từng kết nối, kiểm tra số byte thực sự chuyển, cập nhật `interestOps` và dọn resource đúng thời điểm.
+Keep in mind before starting: **readiness is not completion**. `OP_READ` does not guarantee a full line is ready; `OP_WRITE` does not guarantee the full response will be sent. We must maintain per-connection state, check actual bytes transferred, update `interestOps`, and clean up resources at the right time.
 
-## 1. Mục tiêu học tập và kết quả cần đạt
+## 1. Learning Objectives and Expected Results
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Mở `Selector`, `ServerSocketChannel`, bind TCP loopback và đăng ký `OP_ACCEPT`.
-2. Chấp nhận kết nối bằng `accept()`, đặt `SocketChannel.configureBlocking(false)` rồi đăng ký `OP_READ`.
-3. Viết vòng event loop `select() → selectedKeys() → iterator.remove() → handle event`.
-4. Lưu `ByteBuffer`, dữ liệu đọc dở và buffer ghi chờ trong `SelectionKey.attachment()`.
-5. Tích lũy bytes cho đến delimiter `\n`; không nhầm một TCP `read` với một message.
-6. Bật `OP_WRITE` khi thực sự có response; giữ buffer với `hasRemaining()` và tắt quan tâm write khi hết dữ liệu.
-7. Xử lý `read()==0`, `read()==-1`, `accept()==null`, `IOException`, key invalid và đóng channel.
-8. Chạy test end-to-end qua loopback, kiểm tra stdout và sửa lỗi thường gặp.
-9. Phân biệt mô hình server một vòng selector với một thread-per-connection, và xác định giới hạn của ví dụ.
+1. Open a `Selector` and `ServerSocketChannel`, bind to TCP loopback, and register `OP_ACCEPT`.
+2. Accept connections via `accept()`, call `SocketChannel.configureBlocking(false)`, and register `OP_READ`.
+3. Write the event loop `select() → selectedKeys() → iterator.remove() → handle event`.
+4. Store `ByteBuffer`, partial read data, and pending write buffers inside `SelectionKey.attachment()`.
+5. Accumulate bytes up to the `\n` delimiter; never confuse one TCP `read` with one message.
+6. Enable `OP_WRITE` only when a response actually exists; retain the buffer via `hasRemaining()` and clear write interest once drained.
+7. Handle `read()==0`, `read()==-1`, `accept()==null`, `IOException`, invalid keys, and channel closing.
+8. Run an end-to-end loopback test, verify stdout, and troubleshoot common mistakes.
+9. Contrast a single selector-loop server with thread-per-connection, and identify the example's limits.
 
-**Đầu ra mong đợi:** chương trình in `reply=echo:ping`, chứng minh ít nhất hai lượt đọc và ba lượt ghi nhờ buffer nhỏ có chủ ý, và xác nhận `roundtrip=true`.
+**Expected output:** the program prints `reply=echo:ping`, proves at least two read calls and three write calls thanks to intentionally small buffers, and confirms `roundtrip=true`.
 
-## 2. Chuẩn bị môi trường
+## 2. Environment Setup
 
-Yêu cầu:
+Requirements:
 
-- JDK **17 trở lên**, với `java.nio.channels` và `java.net` của Java SE.
-- Terminal có lệnh `javac` và `java` trên `PATH`, có quyền mở kết nối loopback nội bộ.
-- Không cần thư viện bên ngoài, Maven, Gradle hay cơ sở dữ liệu.
-- File nguồn nên được lưu dưới UTF-8; tên file trùng với public class `SelectorTcpEchoDemo.java`.
+- JDK **17 or newer**, with standard Java SE `java.nio.channels` and `java.net`.
+- Terminal with `javac` and `java` on `PATH`, permitted to open local loopback connections.
+- No external libraries, Maven, Gradle, or database needed.
+- Save the source file in UTF-8; filename must match the public class `SelectorTcpEchoDemo.java`.
 
-Kiểm tra:
+Check:
 
 ```bash
 java -version
 javac -version
 ```
 
-Các lệnh trên là lệnh môi trường; phiên bản in ra phụ thuộc JDK bạn cài. Với máy không cho phép loopback hoặc bị chặn bởi policy bảo mật, chương trình có thể ném `IOException`, không phải lỗi của API Selector.
+These are environment checks; printed versions depend on your installed JDK. On machines disallowing loopback or blocked by security policy, the program may throw `IOException`, which is not a Selector API bug.
 
-Để tránh xung đột cổng, chương trình **bind cổng 0**. Hệ điều hành sẽ cấp một cổng TCP khả dụng. Client lấy địa chỉ thật qua `listener.getLocalAddress()`, nên không cần ghi cứng số cổng 8080 và không cần mở port trên mạng công cộng.
+To avoid port conflicts, the program **binds port 0**. The OS assigns an available TCP port. The client retrieves the real address via `listener.getLocalAddress()`, so there is no hardcoded port 8080 and no public network exposure.
 
-## 3. Bức tranh kiến trúc
+## 3. Architectural Overview
 
 ```text
-                  Java process: hai luồng trong bản demo
+                  Java process: two threads in the demo
 ┌──────────────────────────────────────────────────────────────┐
-│ Main thread (client thử nghiệm)                               │
+│ Main thread (test client)                                    │
 │                                                              │
 │   Socket.connect(loopback, ephemeralPort)                     │
 │        │                                                     │
@@ -69,22 +69,22 @@ Các lệnh trên là lệnh môi trường; phiên bản in ra phụ thuộc JD
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**Phân biệt số luồng:** chương trình hoàn chỉnh có một *main thread* làm TCP client kiểm thử và một *event-loop thread* làm server. **Phía server không tạo một thread cho mỗi client**. Nó sử dụng đúng một selector để quan sát các channel đã đăng ký. Không nên mô tả demo này là “toàn chương trình chỉ có một thread”.
+**Distinguish thread counts:** the complete program has one *main thread* acting as the TCP test client and one *event-loop thread* acting as the server. **The server side does not spawn a thread per client**. It uses a single selector to monitor all registered channels. Do not describe this demo as "the whole program runs on a single thread".
 
-**Phân biệt handle:**
+**Distinguish handles:**
 
-| Thành phần | Thực hiện việc gì? | Trạng thái quan trọng |
+| Component | What Does It Do? | Key State |
 | --- | --- | --- |
-| `ServerSocketChannel` | Bind và chấp nhận TCP clients. | `OP_ACCEPT`; socket server không trực tiếp đọc payload client. |
-| `SocketChannel` | Kết nối TCP đã được accept; đọc/ghi bytes. | `OP_READ`, `OP_WRITE`; `ByteBuffer` ứng với client. |
-| `Selector` | Đợi và chọn các thao tác I/O có khả năng tiến triển. | `keys()` và `selectedKeys()`. |
-| `SelectionKey` | Quan hệ đăng ký giữa channel và selector. | `interestOps()`, `readyOps()`, `attachment()`, `isValid()`. |
-| `State` | Dữ liệu dở dang của từng TCP peer. | `input`, `request` và `output`. |
-| `ByteBuffer` | Buffer bytes với `position/limit/remaining`. | Phải `flip/clear` đúng pha. |
+| `ServerSocketChannel` | Binds and accepts TCP clients. | `OP_ACCEPT`; server socket does not read client payloads directly. |
+| `SocketChannel` | Accepted TCP connection; reads/writes bytes. | `OP_READ`, `OP_WRITE`; per-client `ByteBuffer`. |
+| `Selector` | Waits for and selects I/O operations ready to progress. | `keys()` and `selectedKeys()`. |
+| `SelectionKey` | Registration link between a channel and a selector. | `interestOps()`, `readyOps()`, `attachment()`, `isValid()`. |
+| `State` | In-flight data for each TCP peer. | `input`, `request`, and `output`. |
+| `ByteBuffer` | Byte buffer with `position/limit/remaining`. | Must `flip/clear` in the right phase. |
 
-## 4. Chuỗi sự kiện và interest ops
+## 4. Event Flow and Interest Ops
 
-Vòng đời một request:
+Lifecycle of a single request:
 
 ```text
    server.bind(...)
@@ -127,18 +127,18 @@ Vòng đời một request:
                                    stop demo
 ```
 
-`interestOps` là **điều ứng dụng muốn theo dõi**; `readyOps` là **readiness đã quan sát được** ở một lần selection. Chúng không phải số lượng byte đã truyền. Phải kiểm tra kết quả `read/write/accept` thực tế.
+`interestOps` is **what the application wants to monitor**; `readyOps` is **the readiness observed** in one selection pass. They are not byte counts transferred. Always inspect the actual `read/write/accept` return values.
 
-Ví dụ server không quan tâm `OP_WRITE` trước khi có response. Nếu bật `OP_WRITE` ngay từ đầu và giữ liên tục, socket thường luôn “có thể ghi” dù queue trống, dẫn đến vòng chọn được kích hoạt liên tục và tốn CPU.
+For example, the server does not watch `OP_WRITE` before having a response. Enabling `OP_WRITE` from the start and keeping it on causes the socket to stay almost always "writable" even with an empty queue, waking up the select loop continuously and burning CPU.
 
-## 5. Chương trình Java 17+ đầy đủ, biên dịch và chạy được
+## 5. Complete Java 17+ Program, Compilable and Runnable
 
-Lưu toàn bộ thành **`SelectorTcpEchoDemo.java`**. Chương trình gồm:
+Save the whole listing as **`SelectorTcpEchoDemo.java`**. The program includes:
 
-- `State`: một input `ByteBuffer` nhỏ (3 byte), một vùng tích lũy request và một output `ByteBuffer`.
-- `serve`: server event loop với `OP_ACCEPT/READ/WRITE`, tự loại selected key sau xử lý.
-- `main`: mở selector/server, bind loopback, tạo đúng một event-loop thread, sử dụng blocking `Socket` làm client thử nghiệm, đợi thread kết thúc và assert kết quả.
-- Bộ đếm nhằm chứng minh **ít nhất** hai lượt read và ba lượt write; trong demo, giới hạn buffer được đặt rõ để làm hiệu ứng partial I/O có thể tái hiện.
+- `State`: a small input `ByteBuffer` (3 bytes), a request accumulator, and an output `ByteBuffer`.
+- `serve`: the server event loop handling `OP_ACCEPT/READ/WRITE` and removing selected keys as processed.
+- `main`: opens selector/server, binds loopback, starts exactly one event-loop thread, uses a blocking `Socket` test client, waits for the thread to finish, and asserts the results.
+- Counters proving **at least** two read calls and three write calls; in the demo, buffer limits are set intentionally small to make partial I/O reproducible.
 
 ```java
 import java.io.ByteArrayOutputStream;
@@ -293,14 +293,14 @@ public class SelectorTcpEchoDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 SelectorTcpEchoDemo.java
 java SelectorTcpEchoDemo
 ```
 
-Stdout đã được xác nhận bằng biên dịch và chạy thực tế trên JDK 17+ trong môi trường cho phép TCP loopback:
+Stdout verified by compiling and running on JDK 17+ in an environment allowing TCP loopback:
 
 ```text
 reply=echo:ping
@@ -309,13 +309,13 @@ write-calls>=3=true
 roundtrip=true
 ```
 
-**Vì sao test không in số lần đọc/ghi chính xác?** Với mạng và selector, lịch trình của OS có thể khác nhau. Demo cố ý đặt input buffer chỉ 3 byte, trong khi request `"ping\n"` dài 5 byte, nên cần **ít nhất hai lời gọi read thành công**. Response `"echo:ping\n"` có 10 byte, còn mỗi lần ghi bị tạm hạn chế tối đa 4 byte, nên cần **ít nhất ba lời gọi write thành công**. Số lời gọi thực tế có thể lớn hơn; kiểm tra cận dưới là assertion đúng và ổn định hơn.
+**Why doesn't the test print exact read/write counts?** With networking and selectors, OS scheduling can vary. The demo deliberately sets the input buffer to just 3 bytes while the `"ping\n"` request is 5 bytes, so **at least two successful read calls** are needed. The response `"echo:ping\n"` is 10 bytes and each write is temporarily capped at 4 bytes, so **at least three successful write calls** are needed. Actual call counts may be higher; checking a lower bound is a more accurate and stable assertion.
 
-Lưu ý đoạn này thực hiện **một request đơn, một lần kết nối**. Nó không phải echo server production, không giữ trạng thái cho nhiều request trên cùng socket, không giải quyết graceful half-close, TLS, authentication hoặc chính sách tổng bộ nhớ. Các bước mở rộng cuối bài chỉ ra nơi cần thay đổi.
+Note that this program executes **a single request on a single connection**. It is not a production echo server; it does not keep state for multiple requests on the same socket, nor handle graceful half-close, TLS, authentication, or total memory policies. Extension sections at the end point out where changes belong.
 
-## 6. Phân tích phần khởi tạo TCP listener
+## 6. Analyzing TCP Listener Initialization
 
-Đoạn trong `main`:
+Snippet in `main`:
 
 ```java
 try (Selector selector = Selector.open();
@@ -327,21 +327,21 @@ try (Selector selector = Selector.open();
 }
 ```
 
-Đây là đoạn trích từ chương trình mẫu. Các điểm kỹ thuật:
+This is an excerpt from the sample program. Technical points:
 
-1. `Selector.open()` tạo selector của provider hiện tại. Ứng dụng không cần điều khiển trực tiếp `epoll/kqueue/poll`.
-2. `ServerSocketChannel.open()` tạo channel phục vụ `accept`; trước khi bind nó chưa lắng nghe một cổng tùy chọn của bạn.
-3. `InetAddress.getLoopbackAddress()` chỉ phục vụ kết nối nội bộ. Không bind `0.0.0.0` cho bài demo nếu không muốn máy khác có thể thử kết nối.
-4. Cổng `0` yêu cầu OS chọn port đang khả dụng. `listener.getLocalAddress()` sau bind là địa chỉ/port đã có thật.
-5. `configureBlocking(false)` **bắt buộc** trước khi `register` một channel với selector.
-6. `OP_ACCEPT` là thao tác hợp lệ của `ServerSocketChannel`; nó không phải `OP_READ`. Đọc payload sẽ do `SocketChannel` được accept thực hiện.
-7. `try-with-resources` đóng selector và listener khi rời scope, bao gồm khi exception xảy ra.
+1. `Selector.open()` creates a selector for the current provider. The application need not control `epoll/kqueue/poll` directly.
+2. `ServerSocketChannel.open()` creates an accepting channel; before binding, it is not listening on your chosen port.
+3. `InetAddress.getLoopbackAddress()` serves local connections only. Do not bind `0.0.0.0` in a demo unless you want external machines attempting to connect.
+4. Port `0` asks the OS to pick an available port. `listener.getLocalAddress()` after binding yields the actual address/port.
+5. `configureBlocking(false)` is **mandatory** before calling `register` on a channel with a selector.
+6. `OP_ACCEPT` is the valid operation for `ServerSocketChannel`; it is not `OP_READ`. Payload reading is handled by the accepted `SocketChannel`.
+7. `try-with-resources` closes the selector and listener upon leaving scope, including when exceptions occur.
 
-**Sai lầm thường gặp:** viết `listener.register(selector, OP_ACCEPT)` khi channel vẫn ở chế độ blocking, gây `IllegalBlockingModeException`. Hoặc đăng ký `OP_READ` cho `ServerSocketChannel`, không thuộc `validOps()` của loại channel đó.
+**Common mistake:** calling `listener.register(selector, OP_ACCEPT)` while the channel is still in blocking mode, causing `IllegalBlockingModeException`. Or registering `OP_READ` on a `ServerSocketChannel`, which is outside that channel type's `validOps()`.
 
-## 7. OP_ACCEPT: từ server socket sang client SocketChannel
+## 7. `OP_ACCEPT`: From Server Socket to Client `SocketChannel`
 
-Handler của một selected key có `isAcceptable()`:
+Handler for a selected key with `isAcceptable()`:
 
 ```java
 ServerSocketChannel listener =
@@ -353,19 +353,19 @@ while ((peer = listener.accept()) != null) {
 }
 ```
 
-Đây là đoạn chạy trong event loop của chương trình đầy đủ.
+This snippet runs inside the full program's event loop.
 
-**Vì sao `while (accept() != null)`?** Với server channel non-blocking, một `OP_ACCEPT` có thể tương ứng nhiều kết nối chờ được xử lý. Sau khi nhận hết những kết nối hiện sẵn, `accept()` trả `null`, khi ấy quay về vòng chọn. Không giả định có đúng một kết nối cho mỗi ready key.
+**Why `while (accept() != null)`?** On a non-blocking server channel, one `OP_ACCEPT` readiness event can correspond to multiple queued connections waiting to be accepted. Once all currently ready connections are accepted, `accept()` returns `null`, at which point control returns to the select loop. Never assume one ready key equals one connection.
 
-**Vì sao `peer.configureBlocking(false)`?** Socket mới được accept không tự đảm bảo đang non-blocking theo cấu hình mong muốn; phải đặt rõ chế độ trước khi đăng ký với selector.
+**Why `peer.configureBlocking(false)`?** Newly accepted sockets are not guaranteed to be non-blocking under your desired setup; you must set the mode explicitly before registering with the selector.
 
-**Vì sao `new State()` được attach cho từng peer?** Mỗi client cần input buffer và dữ liệu chờ riêng; nếu các peer cùng chia sẻ một `ByteBuffer` mutable mà không có protocol ownership, bytes từ những kết nối khác nhau có thể lẫn vào nhau.
+**Why attach `new State()` per peer?** Each client needs its own input buffer and pending data; if peers share a mutable `ByteBuffer` without protocol ownership, bytes from different connections can interleave.
 
-Trong server thực, một đợt kết nối dồn dập có thể cần giới hạn **số lần accept mỗi vòng**, quota clients, timeout, backpressure và xử lý lỗi khi register thất bại. Demo giữ vòng đơn giản vì chỉ có một client thử nghiệm.
+In a real server, a connection burst may require limiting **accepts per loop iteration**, client quotas, timeouts, backpressure, and error handling if registration fails. The demo keeps the loop simple since there is only one test client.
 
-## 8. OP_READ: một request có thể đến thành nhiều phần
+## 8. `OP_READ`: A Request Can Arrive in Multiple Parts
 
-TCP cung cấp **luồng byte**, không giữ nguyên ranh giới `write` của phía gửi. Client gửi `"ping\n"` trong một lệnh `Socket.getOutputStream().write(...)`, nhưng server có thể đọc nhiều chunk:
+TCP provides a **byte stream**, preserving none of the sender's `write` boundaries. The client sends `"ping\n"` in a single `Socket.getOutputStream().write(...)` call, yet the server may read multiple chunks:
 
 ```text
 Client sends five UTF-8 bytes:
@@ -379,23 +379,23 @@ Accumulated bytes before newline: 70 69 6e 67 = "ping"
 Only after 0A is found: frame complete.
 ```
 
-Với non-blocking `SocketChannel.read(ByteBuffer)`:
+With non-blocking `SocketChannel.read(ByteBuffer)`:
 
-| Kết quả | Nghĩa | Hướng xử lý |
+| Result | Meaning | Handling |
 | --- | --- | --- |
-| `n > 0` | Đã đọc đúng `n` byte và cập nhật `ByteBuffer.position()`. | Parse các bytes vừa đọc, giữ state nếu frame chưa đủ. |
-| `n == 0` | Hiện chưa chuyển bytes. | Không quay CPU spin; đợi `OP_READ` khác. |
-| `n == -1` | EOF ở phía input (peer đóng phía gửi). | Quyết định đóng, xử lý half-close hoặc phản hồi theo protocol. |
+| `n > 0` | Read `n` bytes and advanced `ByteBuffer.position()`. | Parse the bytes just read, preserving state if frame is incomplete. |
+| `n == 0` | No bytes transferred right now. | Do not spin CPU; wait for another `OP_READ`. |
+| `n == -1` | EOF on input side (peer closed its send side). | Decide to close, handle half-close, or respond per protocol. |
 
-Demo dùng `ByteBuffer.allocate(3)`, gọi `flip()` sau khi đọc để tiêu thụ tất cả byte vừa nhận, rồi `clear()`. Do mỗi byte đã được đưa sang `ByteArrayOutputStream request`, nó **không cần `compact()` trong thiết kế này**. Nếu dùng parser trực tiếp trên input buffer có frame dở mà chưa được copy sang state khác, phải `compact()` để giữ bytes chưa xử lý.
+The demo uses `ByteBuffer.allocate(3)`, calls `flip()` after reading to consume every received byte, and then `clear()`. Because every byte is copied into `ByteArrayOutputStream request`, it **does not need `compact()` in this design**. If running a parser directly on an input buffer holding an incomplete frame without copying elsewhere, you must call `compact()` to preserve unprocessed bytes.
 
-Khi gặp `\n`, chương trình chuyển bytes đã tích lũy thành `String` UTF-8. Đây là điểm đúng để decode vì một ký tự UTF-8 có thể bị tách giữa hai lần đọc, đặc biệt nếu request chứa tiếng Việt hoặc emoji. **Không** gọi `new String(chunkBytes, UTF_8)` riêng cho mỗi chunk rồi nối kết quả; cách đó có thể làm hỏng ký tự đa byte bị cắt.
+Upon seeing `\n`, the program converts accumulated bytes into a UTF-8 `String`. This is the right moment to decode because a UTF-8 character can be split across two reads, especially when requests contain accented text or emojis. **Never** call `new String(chunkBytes, UTF_8)` on each chunk separately and concatenate strings; that corrupts split multi-byte characters.
 
-Giới hạn `4096` byte trước newline giúp tránh một client gửi mãi không có delimiter làm bộ nhớ tăng vô hạn. Đây chỉ là giới hạn **một request**; server thật còn cần giới hạn thời gian gửi từng dòng và tổng bộ nhớ của mọi peer.
+The `4096`-byte limit before newline prevents a client sending endless bytes without a delimiter from growing memory unboundedly. That caps only **a single request**; real servers also need per-line send timeouts and global memory limits across all peers.
 
-## 9. OP_WRITE: giữ tiến độ và chỉ kích hoạt khi cần
+## 9. `OP_WRITE`: Keeping Progress and Enabling Only When Needed
 
-Khi đã thấy newline, server chuẩn bị:
+Once a newline is observed, the server prepares:
 
 ```java
 state.output = ByteBuffer.wrap(
@@ -403,28 +403,28 @@ state.output = ByteBuffer.wrap(
 key.interestOps(SelectionKey.OP_WRITE);
 ```
 
-Mẫu này chọn chuyển hẳn interest từ `OP_READ` sang `OP_WRITE` vì **demo chỉ nhận đúng một dòng**, sau đó gửi response và đóng socket. Một echo server nhiều request thường giữ `OP_READ` cùng lúc với `OP_WRITE` khi có outbound pending, hoặc tạm dừng đọc có kiểm soát khi cần backpressure.
+This pattern switches interest outright from `OP_READ` to `OP_WRITE` because **the demo accepts only one line**, then sends the reply and closes the socket. A multi-request echo server usually keeps `OP_READ` alongside `OP_WRITE` when outbound data is pending, or pauses reading in a controlled manner for backpressure.
 
-Với non-blocking socket, một lần `write(ByteBuffer)` có thể:
+On a non-blocking socket, a single `write(ByteBuffer)` call can:
 
-- Ghi toàn bộ bytes còn lại.
-- Chỉ ghi **một phần**.
-- Ghi **0 byte**, ngay cả khi trước đó key được báo writable.
+- Write all remaining bytes.
+- Write only **a portion**.
+- Write **0 bytes**, even when the key just reported writable.
 
-Do vậy phải giữ `ByteBuffer.position()` qua nhiều lần ghi, chỉ coi response được viết hết khi `!state.output.hasRemaining()`:
+Hence `ByteBuffer.position()` must be preserved across multiple writes, considering the response completely written only when `!state.output.hasRemaining()`:
 
 ```java
-// Snippet: output đã chuẩn bị (pha đọc), peer non-blocking.
+// Snippet: output already prepared (read phase), peer is non-blocking.
 int n = peer.write(state.output);
 if (n == 0) {
-    // Không bận quay vòng; đợi readiness khác.
+    // Do not busy-spin; wait for next readiness.
 }
 if (!state.output.hasRemaining()) {
-    // Toàn bộ buffer đã được peer.write tiêu thụ.
+    // Entire buffer has been consumed by peer.write.
 }
 ```
 
-Trong demo, để luôn quan sát partial writes, ta **tạm giảm `limit` của output** trước mỗi lời gọi:
+In the demo, to ensure partial writes are always observable, we **temporarily lower output's `limit`** before each call:
 
 ```java
 int oldLimit = state.output.limit();
@@ -437,29 +437,29 @@ try {
 }
 ```
 
-Đây là snippet rút từ demo. Việc thu hẹp `limit` không yêu cầu OS thực tế chỉ ghi đúng 4 byte: nó chỉ đặt một **cận trên** cho phép ghi của lời gọi ấy. `FileChannel/SocketChannel.write` vẫn có thể ghi ít hơn. `finally` khôi phục limit cũ, và position đã tăng giữ nguyên.
+This snippet comes from the demo. Narrowing `limit` does not ask the OS to write literally 4 bytes: it only sets an **upper bound** on what that call is allowed to write. `FileChannel/SocketChannel.write` may still write fewer. `finally` restores the old limit, while the advanced position stays intact.
 
-Khi pending đã hết, demo hủy key/đóng peer và dừng; server phục vụ lâu dài thường **gỡ `OP_WRITE`**:
+Once pending data drains, the demo cancels the key / closes the peer and stops; long-lived servers instead **clear `OP_WRITE`**:
 
 ```java
-// Bật khi queue có dữ liệu:
+// Enable when queue has data:
 key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
 
-// Gỡ khi queue trống, giữ OP_READ hoặc flag khác:
+// Clear when queue is empty, keeping OP_READ or other flags:
 key.interestOps(key.interestOps() & ~SelectionKey.OP_WRITE);
 ```
 
-Đây là snippet mở rộng cho server thường trực. **Không giữ `OP_WRITE` bật khi không có data**: socket thường writable dẫn tới các vòng `select` được đánh thức liên tục, làm CPU tăng dù không có request.
+This is an extension snippet for persistent servers. **Never leave `OP_WRITE` enabled with no data to send**: sockets are normally writable, causing `select` loops to wake up continuously and spike CPU even with zero requests.
 
-## 10. selectedKeys(): đọc đúng, xóa đúng
+## 10. `selectedKeys()`: Reading and Removing Properly
 
-Mẫu cốt lõi của event loop:
+Core event-loop pattern:
 
 ```java
 while (!finished) {
     int selected = selector.select(3000);
     if (selected == 0) {
-        // Demo: timeout. Server thật cần policy timers/tasks.
+        // Demo: timeout. Real servers need timer/task policies.
         continue;
     }
 
@@ -470,25 +470,25 @@ while (!finished) {
         iterator.remove();
 
         if (!key.isValid()) continue;
-        // Kiểm tra isAcceptable/isReadable/isWritable và xử lý.
+        // Check isAcceptable/isReadable/isWritable and handle.
     }
 }
 ```
 
-Đoạn này là **snippet minh họa cách duyệt**, không phải phần thay thế nguyên xi của hàm `serve`: demo đầy đủ cố ý ném lỗi nếu quá thời gian 3 giây mà không có sự kiện.
+This is an **illustrative iteration snippet**, not a drop-in replacement for `serve`: the full demo intentionally throws on a 3-second timeout with no events.
 
-- `selector.keys()` là tập key đăng ký; `selectedKeys()` là tập key đã được chọn có readiness.
-- `iterator.remove()` xóa **key khỏi selected-key set** sau khi lấy ra. Tập này không được runtime tự xóa chỉ vì code đã gọi handler.
-- Không giữ một key cũ rồi cho rằng `readyOps` luôn còn đúng ở thời điểm tương lai; sau thao tác I/O readiness có thể thay đổi.
-- `key.cancel()` đánh dấu hủy đăng ký nhưng **không thay cho `SocketChannel.close()`** khi bạn sở hữu socket.
-- `key.isValid()` cần được kiểm tra trước các thao tác dễ ném `CancelledKeyException`. Handler có thể cancel/close key ngay trong một sự kiện.
-- Một key có thể ready nhiều ops cùng lúc; code demo dùng `if (key.isReadable())` rồi `if (key.isValid() && key.isWritable())` để không giả định chỉ một bit ready.
+- `selector.keys()` is the registered key set; `selectedKeys()` is the subset selected for readiness.
+- `iterator.remove()` removes **the key from the selected-key set** after retrieving it. The runtime does not automatically remove keys just because your handler ran.
+- Never cache an old key and assume `readyOps` remains accurate later; after I/O operations, readiness can change.
+- `key.cancel()` schedules deregistration, but **does not replace `SocketChannel.close()`** when you own the socket.
+- `key.isValid()` must be checked before operations that can throw `CancelledKeyException`. A handler may cancel/close a key mid-event.
+- A single key can be ready for multiple ops simultaneously; the demo uses `if (key.isReadable())` followed by `if (key.isValid() && key.isWritable())` rather than assuming only one bit is set.
 
-`Selector.select()` có thể trả 0 vì timeout, wakeup hoặc những điều kiện khác được API cho phép; trong ứng dụng thật không coi mọi lần 0 là lỗi disconnect. Một timeout cấp ứng dụng phải tính theo thời điểm deadline, không nên reset vô hạn mỗi khi có bất kỳ event không liên quan.
+`Selector.select()` can return 0 due to timeout, wakeup, or other API-permitted conditions; in real applications, never treat every 0 return as a disconnect error. Application-level timeouts must track absolute deadlines rather than resetting endlessly on unrelated events.
 
-## 11. Thử nghiệm client: blocking để kiểm tra server non-blocking
+## 11. Client Test: Blocking Client Testing a Non-Blocking Server
 
-Đoạn client test nằm trong `main`:
+The test client in `main`:
 
 ```java
 try (Socket client = new Socket()) {
@@ -501,51 +501,51 @@ try (Socket client = new Socket()) {
 }
 ```
 
-Đây là snippet lấy từ chương trình. Client dùng `java.net.Socket` blocking **có chủ đích** để giữ bài đơn giản: mục tiêu là viết **server event loop sử dụng Selector**, không yêu cầu cả client cũng non-blocking.
+This snippet is taken from the program. The client uses blocking `java.net.Socket` **deliberately** to keep the exercise focused: the goal is writing a **Selector-based server event loop**, not making the client non-blocking too.
 
-Phương thức `readAllBytes()` trên socket có thể chờ tới EOF, vì TCP là stream. Demo **đóng peer phía server sau khi ghi hết response**, nên client đạt EOF và phép đọc trả về toàn bộ response. Trong giao thức keep-alive/multi-request, không dùng `readAllBytes()` để chờ một dòng phản hồi nếu server giữ socket mở; client phải đọc đến delimiter `\n` hoặc theo length-prefix.
+`readAllBytes()` on a socket blocks until EOF, because TCP is a stream. The demo **closes the server-side peer after finishing the response**, so the client sees EOF and receives the whole reply. In keep-alive/multi-request protocols, never call `readAllBytes()` to wait for a single reply line if the server keeps the socket open; the client must read up to `\n` or a length prefix.
 
-`setSoTimeout(3000)` giới hạn thời gian chờ đọc trên socket blocking để demo không treo vô hạn khi lỗi, nhưng timeout ở môi trường CI quá chậm có thể cần tăng theo chính sách test. Cổng chỉ mở trên loopback, không có authentication và không nên đưa nguyên demo ra internet.
+`setSoTimeout(3000)` bounds blocking read waits so the demo does not hang indefinitely on errors, though slow CI environments may need a higher test timeout. The port listens only on loopback, has no authentication, and must not be exposed verbatim to the internet.
 
-Biến `AtomicReference<Throwable>` chuyển lỗi từ event-loop thread về main thread sau `join()`. Đây là lựa chọn đơn giản cho demo; ứng dụng lớn hơn thường có lifecycle service, futures hoặc cơ chế giám sát exception có cấu trúc.
+`AtomicReference<Throwable>` carries any error from the event-loop thread back to the main thread after `join()`. This is simple for a demo; larger applications use service lifecycles, futures, or structured exception monitoring.
 
-## 12. Quản lý vòng đời và giải phóng tài nguyên
+## 12. Lifecycle Management and Resource Cleanup
 
-Bốn nhóm tài nguyên cần chú ý:
+Four resource groups need attention:
 
-| Tài nguyên | Ai sở hữu? | Đóng khi nào? |
+| Resource | Who Owns It? | When to Close? |
 | --- | --- | --- |
-| `Selector` | Thành phần server/event loop. | Sau khi event loop dừng hoặc bị điều phối shutdown. |
-| `ServerSocketChannel` | Thành phần listener. | Khi ngừng nhận kết nối mới, hoặc khi server dừng hoàn toàn. |
-| `SocketChannel` của client | Handler/connection manager. | Khi request hoàn tất theo demo, EOF, lỗi, timeout hoặc chính sách đóng. |
-| `Socket` blocking client | Phần test. | Sau khi nhận đủ response và kiểm tra, hoặc khi xảy ra exception. |
+| `Selector` | Server/event-loop component. | After the event loop stops or is shut down. |
+| `ServerSocketChannel` | Listener component. | When stopping new accepts or shutting down the server completely. |
+| Client `SocketChannel` | Handler/connection manager. | When the demo request finishes, EOF, error, timeout, or close policy triggers. |
+| Blocking client `Socket` | Test harness. | After receiving and checking the full reply, or on exception. |
 
-Demo dùng `try-with-resources` cho selector, listener và blocking client. Ở server, `peer.close()` đóng socket sau khi output buffer đã được tiêu thụ hết.
+The demo uses `try-with-resources` for the selector, listener, and blocking client. On the server side, `peer.close()` closes the socket once the output buffer is completely drained.
 
-**Quan trọng:** `ByteBuffer.hasRemaining() == false` chỉ có nghĩa các byte từ buffer được lời gọi `write` chấp nhận theo hợp đồng, **không** chứng minh ứng dụng phía bên kia đã xử lý response thành công. Với protocol cần xác nhận nghiệp vụ, cần ACK ở tầng ứng dụng.
+**Important:** `ByteBuffer.hasRemaining() == false` only means the bytes from the buffer were accepted by `write` per API contract; it **does not** prove the remote application processed the response successfully. Protocols needing business confirmation require an application-layer ACK.
 
-Trong server nhiều client, khi dừng cần đóng **tất cả** accepted channels còn mở, không chỉ listener và selector. Đóng selector làm key invalid nhưng không nên dựa vào nó như cơ chế tự đóng mọi socket đang đăng ký. Duy trì danh sách/ownership rõ ràng, hoặc đóng peer khi xử lý key và bảo đảm cleanup ở một khối `finally`.
+In a multi-client server, shutting down must close **all** open accepted channels, not just the listener and selector. Closing the selector invalidates keys, yet you should not rely on it as an automatic close mechanism for all registered sockets. Maintain explicit tracking/ownership, or close peers via key handling and guarantee cleanup in a `finally` block.
 
-## 13. Những giới hạn có chủ ý của chương trình mẫu
+## 13. Intentional Limitations of the Sample Program
 
-Chương trình minh họa hoạt động thật, nhưng một số lựa chọn chỉ phục vụ việc học:
+The illustrative program runs for real, yet several choices serve learning purposes only:
 
-1. **Một request, một response, rồi đóng:** khi gửi xong một dòng, `finished=true`. Để phục vụ nhiều client, bỏ điều kiện stop toàn server; chỉ đóng peer tương ứng.
-2. **Không xử lý nhiều frame trong cùng một lượt đọc:** nếu client gửi hai dòng cùng một chunk, demo chỉ xử lý dòng đầu và có thể bỏ phần sau. Production phải giữ bytes còn lại và lặp parser.
-3. **Không có queue outbound nhiều buffer:** một connection chỉ cần một `output`; server nhiều request phải có `Deque<ByteBuffer>` và xử lý từng buffer cho đến khi queue trống.
-4. **Gửi tối đa 4 byte mỗi lần** là cách kiểm thử partial write, không phải tối ưu hiệu năng.
-5. **Input buffer 3 byte** để ép partial read; production thường dùng buffer lớn hơn, memory pooling và quota theo load.
-6. **Đọc UTF-8 qua `new String(bytes, UTF_8)` sau newline:** với dữ liệu không tin cậy cần strict decoder khi giao thức bắt buộc UTF-8 hợp lệ, và quy tắc CRLF nếu hỗ trợ.
-7. **Giới hạn 4096 byte** chỉ cho request trước delimiter. Không có timeout cho client gửi quá chậm từng byte ngoài timeout `select` chung.
-8. **Một thread client blocking** để kiểm tra server; nhiều client thật cần load test riêng.
-9. **Lỗi I/O làm dừng toàn server:** demo để người học dễ nhìn thấy lỗi. Production nên đóng kết nối lỗi và tiếp tục phục vụ client khác, trừ lỗi hệ thống không thể phục hồi.
-10. **Không có TLS, authentication, metrics, logging hoặc graceful shutdown thực thụ:** không đưa thẳng ra production.
+1. **One request, one response, then close:** after sending one line, `finished=true`. To serve multiple clients, remove the server-wide stop flag and close only the corresponding peer.
+2. **No multi-frame parsing per read:** if a client sends two lines in one chunk, the demo processes only the first and may drop the rest. Production code must retain leftover bytes and loop the parser.
+3. **No multi-buffer outbound queue:** one connection holds just one `output`; a multi-request server needs a `Deque<ByteBuffer>` processed until empty.
+4. **Sending at most 4 bytes per call** is for testing partial writes, not optimizing performance.
+5. **3-byte input buffer** forces partial reads; production uses larger buffers, memory pooling, and load-based quotas.
+6. **Decoding UTF-8 via `new String(bytes, UTF_8)` after newline:** for untrusted inputs, use a strict decoder when valid UTF-8 is required, plus CRLF rules if supported.
+7. **4096-byte cap** covers only the request before the delimiter. There is no per-byte trickle timeout beyond the overall `select` timeout.
+8. **Single blocking client thread** tests the server; real multi-client behavior needs dedicated load tests.
+9. **Any I/O error stops the whole server:** helpful in a demo so learners see failures clearly. Production servers close the offending connection and keep serving other clients unless facing an unrecoverable system error.
+10. **No TLS, authentication, metrics, logging, or real graceful shutdown:** do not deploy directly to production.
 
-Những giới hạn này không làm ví dụ không chính xác; chúng xác định rõ **phạm vi lab** để bạn không nhầm minh họa event loop tối thiểu với máy chủ chịu tải lớn.
+These limitations do not make the example wrong; they define a clear **lab scope** so you do not mistake a minimal event-loop demo for a high-load production server.
 
-## 14. Mở rộng bài lab thành server nhiều kết nối
+## 14. Scaling the Lab into a Multi-Connection Server
 
-Mô hình duy trì nhiều connections:
+Model for maintaining multiple connections:
 
 ```text
 Selector server
@@ -554,18 +554,18 @@ Selector server
   ├─ SocketChannel #2 => State(input, parser, outbound queue)
   └─ SocketChannel #N => State(input, parser, outbound queue)
 
-Với mỗi key:
-  ACCEPT: accept tối đa quota rồi register OP_READ
-  READ: đọc tối đa byte budget, decode nhiều frame, enqueue responses
-        nếu queue có data => bật OP_WRITE
-  WRITE: write từng buffer, giữ partial, gỡ OP_WRITE khi queue trống
-  EOF/ERROR: flush theo protocol nếu cần, sau đó close socket
+For each key:
+  ACCEPT: accept up to quota then register OP_READ
+  READ: read up to byte budget, decode multiple frames, enqueue responses
+        if queue has data => enable OP_WRITE
+  WRITE: write buffers one by one, preserve partials, clear OP_WRITE when empty
+  EOF/ERROR: flush per protocol if needed, then close socket
 ```
 
-Một `State` nhiều request có thể trông như:
+A multi-request `State` might look like:
 
 ```java
-// Snippet thiết kế, không phải bản demo chạy độc lập.
+// Design snippet, not a standalone runnable demo.
 final class ConnectionState {
     ByteBuffer inbound = ByteBuffer.allocate(8192);
     ArrayDeque<ByteBuffer> outbound = new ArrayDeque<>();
@@ -574,197 +574,197 @@ final class ConnectionState {
 }
 ```
 
-Cần import `ArrayDeque` và `ByteBuffer`. Event loop thường **sở hữu** các state này trên một thread. Nếu thread khác muốn gửi dữ liệu vào queue, phải dùng cơ chế đồng bộ và wakeup phù hợp.
+Imports for `ArrayDeque` and `ByteBuffer` are required. The event loop typically **owns** these state objects on a single thread. If another thread wants to push data into the queue, use proper synchronization and `wakeup()`.
 
-### Bước đổi từ single request sang multiple requests
+### Steps from Single Request to Multiple Requests
 
-- Thay `finished=true` bằng logic đóng **riêng** `SocketChannel` hoàn tất, còn server event loop chạy.
-- Sau khi output queue trống, giữ/re-enable `OP_READ` cho connection nếu protocol cho phép request mới.
-- Dùng parser xử lý nhiều newline trong cùng chunk; không bỏ bytes sau newline thứ nhất.
-- Giữ một buffer/tập byte dở dang cho request chưa kết thúc, tránh decode UTF-8 theo từng chunk.
-- Khi nhận được một frame, enqueue response nhưng tiếp tục tôn trọng hạn mức memory/outbound queue.
-- Dùng deadline cho idle connection, request incomplete và shutdown.
-- Đóng tất cả accepted channels khi stop service.
+- Replace `finished=true` with logic closing **only** the finished `SocketChannel` while the server event loop keeps running.
+- After the output queue empties, keep/re-enable `OP_READ` on the connection if the protocol permits more requests.
+- Use a parser that handles multiple newlines in one chunk; never discard bytes after the first newline.
+- Retain an incomplete-request byte buffer/accumulator instead of decoding UTF-8 per chunk.
+- When a frame arrives, enqueue the response while still enforcing memory and outbound-queue caps.
+- Enforce deadlines for idle connections, incomplete requests, and shutdown.
+- Close all accepted channels when stopping the service.
 
-**Không lấy cùng một `State` gắn cho mọi key**. Buffer và parser phải gắn với đúng connection để không lẫn request từ hai client.
+**Never attach the same `State` instance to multiple keys.** Buffers and parsers must be bound to their specific connection so requests from two clients never mix.
 
-## 15. Backpressure và tránh vòng quay CPU bận
+## 15. Backpressure and Avoiding Busy CPU Loops
 
-Một server non-blocking có thể bị client đọc chậm. Khi output queue còn byte nhưng `socket.write` trả 0, không quay vòng:
+A non-blocking server can encounter a slow-reading client. When the outbound queue still has bytes yet `socket.write` returns 0, do not spin:
 
 ```java
-// Snippet cho SocketChannel non-blocking.
+// Snippet for non-blocking SocketChannel.
 while (!out.hasRemaining()) {
-    // Không nên dùng vòng này để giả lập chờ.
+    // Do not use a loop like this to simulate waiting.
 }
 ```
 
-Đoạn trên là **phản ví dụ**: có thể bận CPU hoặc không có ý nghĩa khi output còn bytes. Thay bằng:
+The snippet above is an **anti-pattern**: it can burn CPU or make no sense while output still has bytes. Replace with:
 
 ```java
-// Snippet: key còn valid, out là ByteBuffer đang chờ.
+// Snippet: key is still valid, out is the pending ByteBuffer.
 if (out.hasRemaining()) {
     int n = peer.write(out);
     if (n == 0) {
         key.interestOps(key.interestOps() | SelectionKey.OP_WRITE);
-        // Trở lại vòng select, không retry vô hạn tại đây.
+        // Return to select loop; do not retry endlessly here.
     }
 }
 ```
 
-Mẫu cho queue:
+Pattern for the queue:
 
-1. Khi có response, đưa `ByteBuffer` đã `flip()` (hoặc `wrap`) vào `outbound`.
-2. Bật `OP_WRITE`.
-3. Khi ready, cố ghi buffer đầu. Nếu ghi chưa hết, giữ lại `position`. Nếu hết, bỏ buffer đó khỏi queue và tiếp tục buffer sau trong giới hạn workload.
-4. Nếu queue trống, **gỡ `OP_WRITE`**. Nếu còn bytes, giữ interest.
-5. Giới hạn tổng bytes pending trên từng client và toàn server. Nếu vượt, tạm ngừng đọc từ client đó, báo quá tải hoặc đóng kết nối theo chính sách.
+1. When a response is ready, push a flipped (or wrapped) `ByteBuffer` onto `outbound`.
+2. Enable `OP_WRITE`.
+3. When writable, try writing the head buffer. If partially written, keep its `position`. If fully written, pop it and continue to the next buffer within workload limits.
+4. When the queue is empty, **clear `OP_WRITE`**. While bytes remain, keep the interest bit.
+5. Cap pending bytes per client and server-wide. When exceeded, pause reading from that client, signal overload, or close the connection per policy.
 
-Backpressure không chỉ là vấn đề hiệu năng: không có hạn mức, hàng nghìn client đọc chậm có thể giữ lượng lớn bytes đã encode trong heap cho đến khi ứng dụng hết bộ nhớ.
+Backpressure is not just about performance: without caps, thousands of slow-reading clients can accumulate gigabytes of encoded responses on the heap until the application runs out of memory.
 
-## 16. select(), selectNow(), wakeup() và thread ownership
+## 16. `select()`, `selectNow()`, `wakeup()`, and Thread Ownership
 
-Các phương thức:
+Methods:
 
-| API | Tác dụng | Ghi chú |
+| API | Effect | Notes |
 | --- | --- | --- |
-| `selector.select()` | Chờ selection sẵn sàng hoặc cơ chế đánh thức/đóng. | Phù hợp vòng server liên tục, cần cơ chế shutdown và task queue. |
-| `selector.select(timeoutMs)` | Chờ tối đa khoảng timeout dương, `0` nghĩa chờ không giới hạn theo hợp đồng API. | Demo dùng 3000 ms để fail-fast. |
-| `selector.selectNow()` | Kiểm tra trạng thái selection không blocking. | Không nên spin liên tục khi không có việc. |
-| `selector.wakeup()` | Báo thức một vòng select đang hoặc sắp chặn. | Không tự làm socket read/write sẵn sàng. |
-| `key.interestOps(mask)` | Cập nhật bitmask interest. | Đừng vô tình tắt `OP_READ` khi bật `OP_WRITE`. |
+| `selector.select()` | Blocks until selection is ready or woken up/closed. | Fits continuous server loops; needs shutdown mechanism and task queue. |
+| `selector.select(timeoutMs)` | Waits at most a positive timeout; `0` waits indefinitely per API contract. | Demo uses 3000 ms to fail fast. |
+| `selector.selectNow()` | Non-blocking check for selection readiness. | Do not spin continuously when idle. |
+| `selector.wakeup()` | Wakes up a blocked or soon-to-block `select` call. | Does not itself make sockets readable or writable. |
+| `key.interestOps(mask)` | Updates interest bitmask. | Do not accidentally clear `OP_READ` when setting `OP_WRITE`. |
 
-Khi event loop có thread riêng và producer muốn gửi thêm bytes:
+When the event loop has its own thread and a producer wants to send more bytes:
 
 ```java
-// Snippet: từ thread producer; tasks là queue thread-safe.
+// Snippet: from producer thread; tasks is a thread-safe queue.
 tasks.add(() -> enqueueOutbound(connectionId, bytes));
 selector.wakeup();
 ```
 
-Event loop khi thức dậy lấy tasks rồi cập nhật trạng thái của những connection mà nó sở hữu. `wakeup()` chỉ đánh thức lựa chọn, **không gửi byte** thay application. Nếu producer thao tác trực tiếp `ByteBuffer` hoặc `ArrayDeque` thuộc event loop từ một thread khác, cần đồng bộ rõ để tránh race.
+Upon waking up, the event loop drains `tasks` and updates the state of connections it owns. `wakeup()` only unblocks selection; it **does not send bytes** on the application's behalf. If producers mutate event-loop `ByteBuffer`s or `ArrayDeque`s directly from another thread, explicit synchronization is required to avoid races.
 
-**Thread safety của Selector/Channel không thay được tính nhất quán của protocol state.** Một chiến lược dễ giải thích là mọi register, cancel, queue mutation và parse/write của một connection đều do một event-loop thread sở hữu; những thread khác gửi message/task qua queue.
+**Thread safety of `Selector`/`Channel` does not replace protocol-state consistency.** An easy-to-reason-about strategy is letting a single event-loop thread own all registrations, cancellations, queue mutations, and parsing/writing for a connection, while other threads submit messages/tasks via a queue.
 
-## 17. Lỗi thường gặp khi làm bài thực hành
+## 17. Common Pitfalls During Practice
 
-| Triệu chứng | Nguyên nhân | Cách khắc phục |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| `IllegalBlockingModeException` khi register | Quên `configureBlocking(false)` trước `register`. | Cấu hình non-blocking cho listener và accepted socket. |
-| `IllegalArgumentException` ở interest mask | `OP_READ` trên `ServerSocketChannel` hoặc flag không thuộc `validOps()`. | Register `OP_ACCEPT` cho listener, `OP_READ/WRITE` cho peer. |
-| Server không nhận request sau accept | Quên register `SocketChannel` mới. | `peer.register(selector, OP_READ, new State())`. |
-| Handler cứ chạy lại key cũ | Không `iterator.remove()` selected key. | Xóa key khỏi selected set trong vòng duyệt. |
-| CPU cao khi không có dữ liệu | Luôn giữ `OP_WRITE` hoặc quay vòng khi `read/write==0`. | Chỉ bật OP_WRITE khi có pending, quay về `select`. |
-| Client nhận thiếu response | `write` chỉ chuyển được một phần; buffer bị reset/clear. | Giữ position, lặp qua nhiều readiness đến `!hasRemaining()`. |
-| Server coi một chunk là một dòng | TCP không bảo toàn ranh giới request. | Tích lũy bytes đến newline/length-prefix. |
-| Tiếng Việt/emoji thành `�` | Decode UTF-8 khi còn thiếu byte giữa các chunk. | Giữ bytes và decode sau đủ frame hoặc dùng decoder incremental. |
-| Server gửi response quá sớm | Chưa gặp newline, nhưng tưởng OP_READ là full request. | Parser giữ state đến delimiter. |
-| Client `readAllBytes()` chờ mãi | Server giữ socket open kiểu keep-alive, không gửi EOF. | Client đọc theo framing, hoặc server đóng sau response theo protocol. |
-| `CancelledKeyException` | Key đã cancel nhưng handler tiếp tục truy cập ready/interest ops. | Kiểm tra `isValid()` và dừng handler khi close/cancel. |
-| `ClosedChannelException` | Dùng channel sau `close()` hoặc chọn sai vòng đời. | Quản lý ownership và cleanup. |
-| Cổng cố định báo `BindException` | Một process khác đang chiếm port. | Với lab dùng bind port 0 và `getLocalAddress()`. |
-| Server chỉ chạy trong máy mình | Loopback không cho máy khác kết nối. | Đây là chính sách an toàn chủ đích; production cần bind theo yêu cầu và bảo vệ mạng. |
-| Một client chậm làm server đơ | Handler blocking hoặc xử lý không giới hạn. | Budget mỗi key; offload công việc blocking/CPU nặng. |
-| Server tiếp tục mở sockets sau stop | Chỉ đóng selector mà không quản lý accepted channels. | Đóng từng peer, listener, selector theo lifecycle. |
+| `IllegalBlockingModeException` on register | Forgot `configureBlocking(false)` before `register`. | Configure non-blocking on listener and accepted sockets. |
+| `IllegalArgumentException` on interest mask | `OP_READ` on `ServerSocketChannel` or flag outside `validOps()`. | Register `OP_ACCEPT` for listener, `OP_READ/WRITE` for peers. |
+| Server receives no requests after accept | Forgot to register the new `SocketChannel`. | `peer.register(selector, OP_READ, new State())`. |
+| Handler keeps firing on the same old key | Missing `iterator.remove()` on selected key. | Remove key from selected set during iteration. |
+| High CPU when idle | Keeping `OP_WRITE` always enabled or spinning on `read/write==0`. | Enable `OP_WRITE` only with pending data; return to `select`. |
+| Client receives truncated reply | `write` sent only a portion; buffer was reset/cleared. | Keep `position`, loop across readiness events until `!hasRemaining()`. |
+| Server treats one chunk as one line | TCP does not preserve request boundaries. | Accumulate bytes until newline/length-prefix. |
+| Vietnamese/emoji turns into `�` | Decoding UTF-8 while bytes are missing across chunks. | Buffer bytes and decode after full frame, or use an incremental decoder. |
+| Server replies too early | Assumed `OP_READ` meant full request before newline. | Keep parser state until delimiter. |
+| Client `readAllBytes()` hangs forever | Server keeps socket open (keep-alive), sends no EOF. | Client reads by framing, or server closes after reply per protocol. |
+| `CancelledKeyException` | Key cancelled yet handler keeps reading ready/interest ops. | Check `isValid()` and stop handler on close/cancel. |
+| `ClosedChannelException` | Using channel after `close()` or wrong lifecycle order. | Manage ownership and cleanup cleanly. |
+| Fixed port fails with `BindException` | Another process holds the port. | In labs, bind port 0 and read `getLocalAddress()`. |
+| Server reachable only locally | Loopback blocks remote hosts. | Intentional safety policy; production binds per config and network security. |
+| One slow client stalls the server | Blocking handler or unbounded work. | Budget work per key; offload heavy blocking/CPU work. |
+| Server leaves sockets open after stop | Closed selector without tracking accepted channels. | Close each peer, listener, and selector per lifecycle. |
 
-Để debug, log thời điểm, ID kết nối, số bytes `read/write`, `position/limit/remaining`, ready ops, interest ops, số bytes outbound pending và nguyên nhân close. Không log raw payload chứa dữ liệu nhạy cảm hoặc tạo logging blocking nặng trong event loop.
+For debugging, log timestamps, connection IDs, `read/write` byte counts, `position/limit/remaining`, ready ops, interest ops, pending outbound bytes, and close reasons. Never log raw payloads holding sensitive data or perform heavy blocking logging inside the event loop.
 
-## 18. Quy trình kiểm thử thực tế
+## 18. Practical Testing Procedure
 
-### Kiểm thử A — chạy demo và đọc stdout
+### Test A — Run Demo and Verify Stdout
 
-1. Lưu file theo UTF-8 đúng tên.
-2. Chạy `javac -encoding UTF-8 SelectorTcpEchoDemo.java`, kiểm tra exit code.
-3. Chạy `java SelectorTcpEchoDemo`.
-4. Xác minh `reply=echo:ping` và `roundtrip=true`.
-5. Xác minh `read-calls>=2=true`, `write-calls>=3=true`.
-6. Nếu timeout, kiểm tra chính sách TCP loopback/antivirus, JVM và cổng; không tự đổi mục tiêu test thành “chạy không exception” mà bỏ qua round-trip.
+1. Save the file in UTF-8 with the exact name.
+2. Run `javac -encoding UTF-8 SelectorTcpEchoDemo.java` and verify exit code.
+3. Run `java SelectorTcpEchoDemo`.
+4. Verify `reply=echo:ping` and `roundtrip=true`.
+5. Verify `read-calls>=2=true`, `write-calls>=3=true`.
+6. On timeout, inspect TCP loopback/antivirus policy, JVM, and ports; do not weaken the test goal to "runs without exception" while ignoring the round-trip.
 
-### Kiểm thử B — payload thay đổi
+### Test B — Changing Payload
 
-Đổi lời gửi client từ `"ping\n"` thành `"hello\n"`; đồng thời cập nhật expected reply thành `"echo:hello\n"`. Bảo đảm parser đợi newline và response không bị mất byte. Nếu muốn đo ít nhất ba lượt write, giữ giới hạn 4 byte từ demo.
+Change the client's message from `"ping\n"` to `"hello\n"`; update the expected reply to `"echo:hello\n"`. Ensure the parser waits for newline and the response loses no bytes. To keep testing at least three write calls, retain the demo's 4-byte cap.
 
-### Kiểm thử C — không có newline
+### Test C — Missing Newline
 
-Cho client gửi `"partial"` mà không đóng hoặc không gửi newline, rồi áp dụng timeout. Server không được tuyên bố frame hoàn tất; test phải có deadline. Khi peer đóng trước newline, demo báo `EOF before request completed`.
+Have the client send `"partial"` without closing or sending a newline, then apply a timeout. The server must not declare the frame complete; the test must have a deadline. When the peer closes before newline, the demo reports `EOF before request completed`.
 
-### Kiểm thử D — quá dài
+### Test D — Oversized Request
 
-Gửi hơn 4096 byte không có delimiter. Server demo sẽ ném `IOException("Request is too long")`. Trong server production, nên đóng **connection vi phạm** và tiếp tục phục vụ các connections khác thay vì dừng toàn service.
+Send more than 4096 bytes without a delimiter. The demo server throws `IOException("Request is too long")`. In a production server, close **the offending connection** and keep serving other connections instead of stopping the entire service.
 
-### Kiểm thử E — Unicode/UTF-8
+### Test E — Unicode/UTF-8
 
-Gửi `"Việt 😀\n"` dưới dạng UTF-8, giữ input buffer ba byte. Bên nhận phải tích lũy đủ bytes rồi mới decode. Đầu ra logic `"echo:Việt 😀\n"`. Nếu dùng strict decoder, lỗi malformed phải được từ chối có kiểm soát.
+Send `"Việt 😀\n"` as UTF-8, keeping the 3-byte input buffer. The receiver must accumulate all bytes before decoding. Logical output is `"echo:Việt 😀\n"`. With a strict decoder, malformed byte errors must be rejected cleanly.
 
-### Kiểm thử F — nhiều client đồng thời
+### Test F — Multiple Concurrent Clients
 
-Sau khi mở rộng server để không dừng sau client đầu, chạy 10–100 client thử nghiệm trên loopback, mỗi client gửi nhiều dòng với nhịp khác nhau. Kiểm tra không lẫn state/response, không starvation, không leak sockets và không bị busy loop khi tất cả idle. Thêm quota và timeouts trước khi tăng tải lớn.
+After extending the server so it does not exit after the first client, run 10–100 test clients on loopback, each sending multiple lines at varying paces. Verify no mixed state/responses, no starvation, no socket leaks, and no busy-looping when all are idle. Add quotas and timeouts before ramping up heavy load.
 
-### Kiểm thử G — graceful shutdown
+### Test G — Graceful Shutdown
 
-Khi đang có connections, đặt cờ stop và `selector.wakeup()`; ngừng accept, xả queue có deadline, đóng accepted peers, đóng listener, rồi đóng selector. Kiểm tra thread sự kiện không kẹt, không bỏ task ngoài chính sách và đóng tất cả resource.
+With active connections, set a stop flag and call `selector.wakeup()`; stop accepting, drain queues with a deadline, close accepted peers, close listener, then close selector. Verify the event-loop thread does not hang, drops no tasks outside policy, and closes all resources.
 
-## 19. Bài tập nâng cao sau lab
+## 19. Advanced Post-Lab Exercises
 
-**Bài 1 — Bật/tắt OP_WRITE thay vì đóng connection.** Giữ kết nối sau một response để nhận dòng tiếp. Khi queue empty, thay vì đóng peer hãy chuyển về `OP_READ` hoặc giữ `OP_READ` liên tục, gỡ `OP_WRITE` bằng bitmask. Chứng minh CPU không cao khi client idle.
+**Exercise 1 — Toggle `OP_WRITE` instead of closing the connection.** Keep connections open after a reply to accept subsequent lines. When the queue empties, rather than closing the peer, return to `OP_READ` (or keep `OP_READ` continuously) and clear `OP_WRITE` via bitmask. Prove CPU stays near zero while clients are idle.
 
-**Bài 2 — Xử lý nhiều dòng trong một read.** Cho client gửi `"one\ntwo\n"` cùng một lần write. Thay logic `break` sau newline bằng parser có thể tạo hai responses. Giữ bytes sau newline thay vì bỏ qua; test đúng thứ tự `echo:one`, `echo:two`.
+**Exercise 2 — Handle multiple lines in a single read.** Have the client send `"one\ntwo\n"` in one write. Replace the post-newline `break` with a parser that emits two responses. Retain bytes after the first newline instead of dropping them; verify order `echo:one`, `echo:two`.
 
-**Bài 3 — Outbound queue và partial write.** Thay `State.output` bằng `ArrayDeque<ByteBuffer>`. Gửi ba response nhỏ và giới hạn mỗi write tối đa hai byte. Kiểm tra dữ liệu cuối không bị mất/trùng dù response được chia thành nhiều lần ghi.
+**Exercise 3 — Outbound queue and partial writes.** Replace `State.output` with `ArrayDeque<ByteBuffer>`. Send three small replies and cap each write at 2 bytes. Verify final output loses/duplicates zero bytes across split writes.
 
-**Bài 4 — Header length-prefix.** Thay framing newline bằng 4 byte đầu chứa chiều dài payload theo `ByteOrder.BIG_ENDIAN`. Tích lũy đủ header, kiểm tra length không âm/không quá 4096, rồi đọc đúng số bytes; test trường hợp header bị cắt giữa hai read.
+**Exercise 4 — Length-prefix header.** Replace newline framing with a 4-byte `ByteOrder.BIG_ENDIAN` payload length header. Accumulate the full header, validate length is non-negative and `<= 4096`, then read the exact byte count; test a header split across two reads.
 
-**Bài 5 — Non-blocking client.** Viết client dùng `SocketChannel` với `OP_CONNECT`. Khi `isConnectable()`, gọi `finishConnect()`; chỉ bật `OP_READ/WRITE` cho application protocol sau khi connect thành công. Xử lý exception khi connect thất bại.
+**Exercise 5 — Non-blocking client.** Write a client using `SocketChannel` with `OP_CONNECT`. On `isConnectable()`, call `finishConnect()`; enable `OP_READ/WRITE` for the application protocol only after connection succeeds. Handle connection failures.
 
-**Bài 6 — Worker pool.** Khi gặp frame hoàn chỉnh, gửi công việc CPU tốn thời gian qua executor, rồi trả response về event loop bằng queue thread-safe + `selector.wakeup()`. Không cho worker mutate `ByteBuffer` thuộc event-loop thread trực tiếp.
+**Exercise 6 — Worker pool.** When a complete frame arrives, offload CPU-intensive work to an executor, then send the response back to the event loop via a thread-safe queue + `selector.wakeup()`. Never let workers mutate event-loop `ByteBuffer`s directly.
 
-**Bài 7 — Backpressure.** Giới hạn 64 KiB outbound pending mỗi connection. Khi client đọc quá chậm, tạm gỡ `OP_READ` hoặc reject/quarantine theo protocol; phục hồi đọc khi queue giảm dưới ngưỡng thấp hơn để tránh bật/tắt liên tục.
+**Exercise 7 — Backpressure.** Cap outbound pending data at 64 KiB per connection. When a client reads too slowly, temporarily clear `OP_READ` or reject/quarantine per protocol; resume reading only below a lower watermark to avoid rapid toggling.
 
-**Bài 8 — Protocol error và timeout.** Thêm deadline cho idle connection, frame chưa đầy đủ và thời gian xả response. Client gửi bytes không kết thúc dòng hoặc malformed UTF-8 phải nhận xử lý lỗi rõ, không giữ socket vô hạn.
+**Exercise 8 — Protocol errors and timeouts.** Add deadlines for idle connections, incomplete frames, and response draining. Clients sending unterminated streams or malformed UTF-8 must trigger explicit error handling instead of holding sockets forever.
 
-**Bài 9 — Metrics và load test.** Đo số active clients, bytes read/write, pending buffers, số vòng `select` trả 0 và p95 response latency. Phân biệt throughput, readiness và số request hoàn tất; không suy diễn thành công chỉ từ số event.
+**Exercise 9 — Metrics and load testing.** Track active clients, bytes read/written, pending buffers, zero-result `select` cycles, and p95 response latency. Distinguish throughput, readiness, and completed requests; never infer success from event counts alone.
 
-**Bài 10 — Dừng server có kiểm soát.** Tạo điều khiển stop thread-safe, gọi `selector.wakeup()`, hủy keys, đóng channels trong thread sở hữu selector rồi `join` với deadline. Kiểm tra không rò file descriptors và không block shutdown.
+**Exercise 10 — Controlled server shutdown.** Build a thread-safe stop trigger, call `selector.wakeup()`, cancel keys, close channels on the selector's owning thread, and `join` with a deadline. Verify zero file-descriptor leaks and non-blocking shutdown.
 
-## 20. Những câu hỏi cần trả lời sau khi chạy
+## 20. Questions to Answer After Running
 
-1. `ServerSocketChannel` và `SocketChannel` khác vai trò gì? Tại sao listener dùng `OP_ACCEPT` thay vì `OP_READ`?
-2. Vì sao phải gọi `configureBlocking(false)` trước `register()`?
-3. Khi `selector.select()` trả về, số key ready có nói được tổng số bytes sẽ đọc/ghi không?
-4. Vì sao `iterator.remove()` phải xuất hiện trong vòng duyệt `selectedKeys()`?
-5. Vì sao handler đọc từng byte đến newline thay vì coi một `read` là một request?
-6. Vì sao input buffer ba byte vẫn đọc được request năm byte?
-7. Vì sao thay `key.interestOps(OP_WRITE)` chỉ đúng với single-request demo, nhưng có thể làm mất OP_READ trong server nhiều request?
-8. Khi `write(output)` trả 0, tại sao không lặp liên tục cho đến khi nó ghi được?
-9. `ByteBuffer.flip()` và `clear()` thay đổi position/limit thế nào? Khi nào phải dùng `compact()`?
-10. `key.cancel()` có tự đóng `SocketChannel` và giải phóng mọi memory state không?
-11. Nếu client giữ kết nối mở sau response, `readAllBytes()` có thể chờ gì và giao thức nên xử lý ra sao?
-12. Tại sao phần server của demo dùng **một event-loop thread**, dù chương trình vẫn có main thread đóng vai client?
-13. Khi server gửi xong bytes, nó có biết ứng dụng client đã xử lý response và commit nghiệp vụ chưa?
-14. Khi chuyển sang production, cần bổ sung những gì cho nhiều client, backpressure, timeouts, TLS và graceful shutdown?
+1. How do `ServerSocketChannel` and `SocketChannel` differ in role? Why does the listener use `OP_ACCEPT` instead of `OP_READ`?
+2. Why must `configureBlocking(false)` be called before `register()`?
+3. When `selector.select()` returns, does the ready key count tell you how many bytes will be read/written?
+4. Why must `iterator.remove()` appear in the `selectedKeys()` loop?
+5. Why does the handler inspect bytes up to newline instead of treating one `read` as one request?
+6. How can a 3-byte input buffer still read a 5-byte request?
+7. Why does `key.interestOps(OP_WRITE)` work only for the single-request demo, yet risk losing `OP_READ` in a multi-request server?
+8. When `write(output)` returns 0, why shouldn't you loop immediately until it succeeds?
+9. How do `ByteBuffer.flip()` and `clear()` change `position`/`limit`? When is `compact()` required?
+10. Does `key.cancel()` automatically close the `SocketChannel` and release all memory state?
+11. If a client keeps the connection open after a reply, what does `readAllBytes()` wait for and how should the protocol handle it?
+12. Why does the demo's server side use **one event-loop thread**, even though the program also has a main thread acting as the client?
+13. Once the server finishes writing bytes, does it know the client application processed the reply and committed business state?
+14. When moving to production, what must be added for multiple clients, backpressure, timeouts, TLS, and graceful shutdown?
 
-## 21. Checklist trước khi coi thực hành thành công
+## 21. Completion Checklist
 
-- `javac` báo thành công, chạy `java SelectorTcpEchoDemo` không ném exception trong môi trường loopback hỗ trợ.
-- Server bind địa chỉ loopback và port OS cấp, không tự mở listener công cộng.
-- Listener non-blocking được đăng ký `OP_ACCEPT`.
-- Accepted `SocketChannel` non-blocking được đăng ký `OP_READ` với `State` riêng.
-- Mỗi selected key được xóa bằng `iterator.remove()`.
-- Request chỉ được coi hoàn tất khi gặp delimiter `\n` và không vượt quota.
-- Output được gửi theo `ByteBuffer.position()/remaining()` qua nhiều lần write.
-- Server không giữ `OP_WRITE` bật khi không có pending response trong kiến trúc server nhiều request.
-- Client nhận chính xác `echo:ping\n`, bộ test xác nhận `roundtrip=true`.
-- Mỗi socket, listener và selector đều có owner và lộ trình close.
-- Hiểu rằng demo một request chưa phải server nhiều client production.
-- Biết cách mở rộng parser/queue, xử lý `read==0/-1`, timeouts, lỗi kết nối và shutdown.
+- `javac` succeeds and `java SelectorTcpEchoDemo` throws no exceptions in a loopback-enabled environment.
+- Server binds loopback and an OS-assigned port without opening a public listener.
+- Non-blocking listener is registered with `OP_ACCEPT`.
+- Accepted non-blocking `SocketChannel` is registered with `OP_READ` and its own `State`.
+- Every selected key is removed via `iterator.remove()`.
+- Requests are treated as complete only upon `\n` within quota.
+- Output is sent using `ByteBuffer.position()/remaining()` across multiple writes.
+- Server never keeps `OP_WRITE` enabled without pending responses in multi-request architectures.
+- Client receives exact `echo:ping\n`, and checks confirm `roundtrip=true`.
+- Every socket, listener, and selector has a clear owner and close path.
+- You understand that a single-request demo is not a production multi-client server.
+- You know how to extend parsers/queues and handle `read==0/-1`, timeouts, connection errors, and shutdown.
 
-## 22. Tài liệu tham khảo
+## 22. References
 
 - [Java SE 21 — Selector](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/Selector.html): selected-key set, selection, `selectNow`, `wakeup`, close.
 - [Java SE 21 — SelectionKey](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/SelectionKey.html): interest/ready ops, attachments, cancellation.
-- [Java SE 21 — ServerSocketChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/ServerSocketChannel.html): bind và accept non-blocking.
+- [Java SE 21 — ServerSocketChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/ServerSocketChannel.html): binding and non-blocking accept.
 - [Java SE 21 — SocketChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/SocketChannel.html): read/write, blocking mode, connection lifecycle.
-- [Java SE 21 — ByteBuffer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/ByteBuffer.html): `flip/clear/compact`, `hasRemaining` và semantics của buffer.
-- [Java SE 21 — StandardCharsets](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/StandardCharsets.html): UTF-8 và charset tường minh.
+- [Java SE 21 — ByteBuffer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/ByteBuffer.html): `flip/clear/compact`, `hasRemaining`, and buffer semantics.
+- [Java SE 21 — StandardCharsets](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/StandardCharsets.html): UTF-8 and explicit charsets.
 
-**Ghi nhớ:** Vòng Selector dùng một event-loop thread để điều phối nhiều TCP channels theo **readiness**, không tự truyền dữ liệu hay hoàn tất request. Xây server đúng bằng cách `register` channel non-blocking, `select`, xóa selected keys đã xử lý, giữ per-connection state cho bytes dở dang, bật `OP_WRITE` đúng lúc, xử lý partial I/O và đóng tài nguyên theo lifecycle. Sau khi lab chạy đúng, bước quan trọng tiếp theo là nhiều request, queue có quota, timeouts và graceful shutdown.
+**Remember:** A Selector loop uses a single event-loop thread to coordinate multiple TCP channels by **readiness**; it does not transfer data or complete requests by itself. Build servers cleanly by registering non-blocking channels, calling `select`, removing processed selected keys, retaining per-connection state for partial bytes, enabling `OP_WRITE` only when needed, handling partial I/O, and closing resources per lifecycle. Once the lab passes, the key next steps are multi-request framing, bounded queues, timeouts, and graceful shutdown.

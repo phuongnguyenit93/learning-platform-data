@@ -1,21 +1,21 @@
-# Bảng OpenOption, CopyOption, LinkOption và FileVisitOption trong Java NIO.2
+# OpenOption, CopyOption, LinkOption, and FileVisitOption Reference Table in Java NIO.2
 
-## 1. Mục tiêu và bản đồ các nhóm option
+## 1. Purpose and Map of the Option Groups
 
-Trong `java.nio.file` (NIO.2), cùng một đối tượng `Path` có thể được **mở để đọc/ghi**, **sao chép/di chuyển**, **kiểm tra symbolic link** hoặc **duyệt cây thư mục**. Mỗi thao tác nhận một họ option khác nhau. Đọc đúng chữ ký API quan trọng hơn việc nhớ tên một enum.
+In `java.nio.file` (NIO.2), the same `Path` object can be **opened for reading/writing**, **copied/moved**, **inspected for symbolic links**, or **traversed as a directory tree**. Each operation takes a different option family. Reading the API signature accurately matters more than memorizing an enum name.
 
-| Nhóm | Kiểu Java | Tác dụng chính | API điển hình |
+| Group | Java type | Primary purpose | Typical APIs |
 | --- | --- | --- | --- |
-| `OpenOption` | **Interface** | Quy định cách mở/tạo tệp hoặc channel | `Files.newOutputStream`, `Files.newByteChannel`, `FileChannel.open`, `Files.writeString` |
-| `StandardOpenOption` | **Enum implements OpenOption** | `READ`, `WRITE`, `APPEND`, `CREATE`, ... | Các API nhận `OpenOption` tương ứng |
-| `CopyOption` | **Interface** | Quy định cách copy/move | `Files.copy(Path, Path, CopyOption...)`, `Files.move` |
-| `StandardCopyOption` | **Enum implements CopyOption** | `REPLACE_EXISTING`, `COPY_ATTRIBUTES`, `ATOMIC_MOVE` | `Files.copy` / `Files.move` tùy option |
-| `LinkOption` | **Enum implements OpenOption, CopyOption** | `NOFOLLOW_LINKS`: không dereference symbolic link ở API hỗ trợ | `Files.exists`, `Files.readAttributes`, `Files.copy`, `Files.newByteChannel` |
-| `FileVisitOption` | **Enum riêng** | `FOLLOW_LINKS`: đi qua symlink khi duyệt cây | `Files.walkFileTree`, `Files.walk` |
+| `OpenOption` | **Interface** | Specifies how to open/create a file or channel | `Files.newOutputStream`, `Files.newByteChannel`, `FileChannel.open`, `Files.writeString` |
+| `StandardOpenOption` | **Enum implements OpenOption** | `READ`, `WRITE`, `APPEND`, `CREATE`, ... | Corresponding APIs accepting `OpenOption` |
+| `CopyOption` | **Interface** | Specifies how to copy/move | `Files.copy(Path, Path, CopyOption...)`, `Files.move` |
+| `StandardCopyOption` | **Enum implements CopyOption** | `REPLACE_EXISTING`, `COPY_ATTRIBUTES`, `ATOMIC_MOVE` | `Files.copy` / `Files.move` depending on the option |
+| `LinkOption` | **Enum implements OpenOption, CopyOption** | `NOFOLLOW_LINKS`: do not dereference symbolic links in supported APIs | `Files.exists`, `Files.readAttributes`, `Files.copy`, `Files.newByteChannel` |
+| `FileVisitOption` | **Separate enum** | `FOLLOW_LINKS`: traverse through symlinks when walking a tree | `Files.walkFileTree`, `Files.walk` |
 
-**Chú ý:** `OpenOption` và `CopyOption` *không phải enum*; không tồn tại `OpenOption.READ` hay `CopyOption.REPLACE_EXISTING`. Hằng số nằm trong `StandardOpenOption` và `StandardCopyOption`. `FileVisitOption` cũng không phải tham số cho `Files.copy`, còn `LinkOption.NOFOLLOW_LINKS` không phải tùy chọn cho `Files.walkFileTree`.
+**Note:** `OpenOption` and `CopyOption` are *not enums*; neither `OpenOption.READ` nor `CopyOption.REPLACE_EXISTING` exists. The constants live in `StandardOpenOption` and `StandardCopyOption`. Likewise, `FileVisitOption` is not a parameter for `Files.copy`, and `LinkOption.NOFOLLOW_LINKS` is not an option for `Files.walkFileTree`.
 
-Các import thường gặp:
+Common imports:
 
 ```java
 import java.nio.file.Path;
@@ -28,124 +28,124 @@ import java.nio.file.LinkOption;
 import java.nio.file.FileVisitOption;
 ```
 
-## 2. Bảng tra cứu OpenOption / StandardOpenOption
+## 2. OpenOption / StandardOpenOption Reference Table
 
-`OpenOption` là kiểu tham số; `StandardOpenOption` cung cấp 10 giá trị chuẩn. Các provider có thể hỗ trợ option bổ sung, và từng phương thức có thể cho phép tập con khác nhau.
+`OpenOption` is the parameter type; `StandardOpenOption` provides 10 standard values. Providers may support additional options, and individual methods may allow different subsets.
 
-| `StandardOpenOption` | Ý nghĩa | Khi nào dùng / lưu ý |
+| `StandardOpenOption` | Meaning | When to use / notes |
 | --- | --- | --- |
-| `READ` | Mở tệp để đọc | Mặc định của `Files.newInputStream(path)` và `Files.newByteChannel(path)` nếu không chỉ định quyền ghi; tệp cần tồn tại. |
-| `WRITE` | Mở tệp để ghi | Không tự hàm ý ghi nối cuối hoặc cắt nội dung; thường kết hợp `CREATE`, `TRUNCATE_EXISTING`. |
-| `APPEND` | Mỗi lần ghi vào cuối tệp | Hàm ý quyền ghi ở các channel chuẩn; với `newByteChannel` không kết hợp `READ` hoặc `TRUNCATE_EXISTING`. Ghi nối cuối đồng thời không được bảo đảm atomic trên mọi hệ tệp. |
-| `TRUNCATE_EXISTING` | Cắt tệp hiện có về độ dài 0 khi mở để ghi | Chỉ có tác dụng với quyền ghi; **nguy cơ mất dữ liệu** nếu dùng nhầm. |
-| `CREATE` | Tạo tệp nếu chưa tồn tại, nếu đã có thì mở tệp đó | Hữu ích với ghi có thể tạo mới; bị bỏ qua khi đồng thời dùng `CREATE_NEW`, hoặc chỉ mở đọc. |
-| `CREATE_NEW` | Chỉ tạo tệp mới, thất bại nếu đường dẫn đã có | Kiểm tra tồn tại và tạo tệp được thực hiện atomic đối với thao tác hệ tệp; hữu ích để tránh ghi đè ngoài ý muốn. |
-| `DELETE_ON_CLOSE` | Nỗ lực xóa tệp lúc đóng handle | Là *best effort*, không phải lời hứa xóa an toàn; tránh dùng cho dữ liệu phải lưu. Có thể không cho mở symlink tùy provider. |
-| `SPARSE` | Gợi ý tạo sparse file khi tạo tệp mới | Chỉ là hint; provider/hệ tệp không hỗ trợ có thể bỏ qua, không phải cách bảo đảm tiết kiệm dung lượng. |
-| `SYNC` | Yêu cầu cập nhật nội dung **và metadata** đồng bộ xuống thiết bị lưu trữ | Có thể tốn chi phí I/O; khác với bảo đảm giao dịch hoặc ghi nguyên tử. |
-| `DSYNC` | Yêu cầu đồng bộ các cập nhật **nội dung** xuống thiết bị lưu trữ | Phạm vi bảo đảm hẹp hơn `SYNC`; hiệu năng và hỗ trợ phụ thuộc hệ thống. |
+| `READ` | Open a file for reading | Default for `Files.newInputStream(path)` and `Files.newByteChannel(path)` when no write option is specified; the file must exist. |
+| `WRITE` | Open a file for writing | Does not by itself imply appending or truncating content; commonly combined with `CREATE`, `TRUNCATE_EXISTING`. |
+| `APPEND` | Each write goes to the end of the file | Implies write access on standard channels; with `newByteChannel` it cannot be combined with `READ` or `TRUNCATE_EXISTING`. Concurrent appending is not guaranteed to be atomic across all file systems. |
+| `TRUNCATE_EXISTING` | Truncate an existing file to length 0 when opening for writing | Takes effect only with write access; **risk of data loss** if used by mistake. |
+| `CREATE` | Create the file if it does not exist, or open the existing file if it does | Useful for writes that may create a new file; ignored when used together with `CREATE_NEW`, or when opening read-only. |
+| `CREATE_NEW` | Create a new file only, failing if the path already exists | Existence check and file creation are performed atomically with respect to file system operations; useful to prevent unintended overwrites. |
+| `DELETE_ON_CLOSE` | Best-effort attempt to delete the file when the handle closes | *Best effort*, not a guaranteed secure delete; avoid using it for data that must be persisted. May disallow opening symlinks depending on the provider. |
+| `SPARSE` | Hint to create a sparse file when creating a new file | Only a hint; unsupported providers/file systems may ignore it, not a guarantee of space savings. |
+| `SYNC` | Require synchronous updates of content **and metadata** to the storage device | Can incur I/O cost; different from transactional guarantees or atomic writes. |
+| `DSYNC` | Require synchronous updates of **content** to the storage device | Narrower guarantee scope than `SYNC`; performance and support depend on the system. |
 
-### 2.1. Mặc định tùy theo phương thức
+### 2.1. Defaults by method
 
-| Gọi API | Mặc định khi không truyền option | Hệ quả |
+| API call | Default when no options are passed | Effect |
 | --- | --- | --- |
-| `Files.newInputStream(path)` | `READ` | Mở luồng đọc; lỗi nếu không đọc được. |
-| `Files.newOutputStream(path)` | `CREATE + TRUNCATE_EXISTING + WRITE` | Ghi đè nội dung tệp cũ hoặc tạo tệp mới. |
-| `Files.newByteChannel(path)` | `READ` | Channel chỉ đọc nếu không truyền option. |
-| `Files.writeString(path, text)` | `CREATE + TRUNCATE_EXISTING + WRITE` | Lời gọi lần sau mặc định thay nội dung trước. |
-| `Files.write(path, bytes)` | `CREATE + TRUNCATE_EXISTING + WRITE` | Hành vi tương tự khi ghi mảng byte. |
+| `Files.newInputStream(path)` | `READ` | Opens a read stream; fails if unreadable. |
+| `Files.newOutputStream(path)` | `CREATE + TRUNCATE_EXISTING + WRITE` | Overwrites the old file's content or creates a new file. |
+| `Files.newByteChannel(path)` | `READ` | Read-only channel if no options are passed. |
+| `Files.writeString(path, text)` | `CREATE + TRUNCATE_EXISTING + WRITE` | Subsequent calls replace previous content by default. |
+| `Files.write(path, bytes)` | `CREATE + TRUNCATE_EXISTING + WRITE` | Same behavior when writing a byte array. |
 
-Hãy nhìn **chữ ký của API** khi áp dụng: `newByteChannel(Path, OpenOption...)` và `FileChannel.open` hỗ trợ tổ hợp quyền đọc/ghi, còn `newOutputStream` không nhận `READ`; `Files.newInputStream` không phải công cụ để tạo/ghi file. Tập option bổ sung không đồng nhất cho mọi overload.
+Check the **API signature** when applying them: `newByteChannel(Path, OpenOption...)` and `FileChannel.open` support combinations of read/write access, whereas `newOutputStream` does not accept `READ`; `Files.newInputStream` is not a tool for creating/writing files. Supported additional options vary across overloads.
 
-### 2.2. Các tổ hợp điển hình
+### 2.2. Typical combinations
 
 ```java
 Path path = Path.of("data.txt");
 
-// Tạo mới duy nhất, lỗi nếu data.txt đã tồn tại:
+// Create exclusively new, fail if data.txt already exists:
 Files.writeString(path, "first\n",
         StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
 
-// Ghi nối cuối tệp hiện có, không tự tạo mới:
+// Append to an existing file, do not create automatically:
 Files.writeString(path, "next\n", StandardOpenOption.APPEND);
 
-// Mở nối cuối, tạo mới nếu chưa có:
+// Open for append, create if missing:
 try (var out = Files.newOutputStream(path,
         StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
     out.write("tail\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
 }
 
-// Chủ động thay toàn bộ nội dung:
+// Intentionally replace all content:
 Files.writeString(path, "replaced\n",
         StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 ```
 
-Đoạn trên là *snippet* minh họa, với `path` nằm trong thư mục được phép ghi. Lệnh cuối đòi tệp đã tồn tại; để đồng thời cho phép tạo mới thì thêm `CREATE`. Dùng `try-with-resources` khi trực tiếp mở stream/channel để đóng tài nguyên kể cả khi có exception.
+The code above is an illustrative *snippet*, with `path` in a writable directory. The last statement requires the file to already exist; to also allow creating a new file, add `CREATE`. Use `try-with-resources` when opening a stream/channel directly so the resource is closed even when an exception occurs.
 
-**So sánh `CREATE` và `CREATE_NEW`:** `CREATE` không ngăn việc mở tệp cũ; `CREATE_NEW` báo thất bại ngay khi đường dẫn đã tồn tại (kể cả symlink). `CREATE_NEW` hữu ích hơn chuỗi `if (!Files.exists(path)) Files.writeString(...)` vì phép kiểm tra rồi hành động tách rời có race condition (TOCTOU).
+**Comparing `CREATE` and `CREATE_NEW`:** `CREATE` does not prevent opening an existing file; `CREATE_NEW` fails immediately if the path already exists (including a symlink). `CREATE_NEW` is safer than `if (!Files.exists(path)) Files.writeString(...)` because separate check-then-act steps have a race condition (TOCTOU).
 
-**So sánh `APPEND` và `TRUNCATE_EXISTING`:** `APPEND` bảo toàn byte hiện có và thêm byte vào cuối; `TRUNCATE_EXISTING` xóa byte hiện có ngay khi mở để ghi. Đừng kết hợp hai option này. `APPEND` không đồng nghĩa khóa tệp hoặc ghi một bản ghi log nguyên tử giữa nhiều process.
+**Comparing `APPEND` and `TRUNCATE_EXISTING`:** `APPEND` preserves existing bytes and adds bytes at the end; `TRUNCATE_EXISTING` erases existing bytes immediately upon opening for writing. Do not combine these two options. `APPEND` does not mean file locking or atomic log record writes across multiple processes.
 
-## 3. Bảng tra cứu CopyOption / StandardCopyOption
+## 3. CopyOption / StandardCopyOption Reference Table
 
-`CopyOption` là interface. `StandardCopyOption` chỉ có **ba** hằng số chuẩn:
+`CopyOption` is an interface. `StandardCopyOption` has only **three** standard constants:
 
-| `StandardCopyOption` | Đối với `Files.copy` | Đối với `Files.move` |
+| `StandardCopyOption` | For `Files.copy` | For `Files.move` |
 | --- | --- | --- |
-| `REPLACE_EXISTING` | Cho phép thay target đã có; target là thư mục không rỗng có thể không thay được. | Cho phép thay target đã có với giới hạn hệ tệp/tệp đích. |
-| `COPY_ATTRIBUTES` | Thử sao chép thuộc tính của source (ví dụ last-modified time); nhóm thuộc tính và độ chính xác phụ thuộc hệ tệp/provider. | **Không phải** option chuẩn được `Files.move` liệt kê để cấu hình move; move có quy tắc giữ thuộc tính riêng. |
-| `ATOMIC_MOVE` | **Không dùng cho `Files.copy`**; đây là option của move. | Yêu cầu move như một thao tác hệ tệp nguyên tử; nếu không hỗ trợ sẽ ném `AtomicMoveNotSupportedException`. Các option khác bị bỏ qua khi dùng `ATOMIC_MOVE`. |
+| `REPLACE_EXISTING` | Allows replacing an existing target; a non-empty target directory may fail to be replaced. | Allows replacing an existing target within file system/target file constraints. |
+| `COPY_ATTRIBUTES` | Attempts to copy the source's attributes (e.g., last-modified time); attribute sets and precision depend on the file system/provider. | **Not** a standard option listed by `Files.move` to configure moving; move has its own attribute-preservation rules. |
+| `ATOMIC_MOVE` | **Not used for `Files.copy`**; this is a move option. | Requests moving as an atomic file system operation; if unsupported, throws `AtomicMoveNotSupportedException`. Other options are ignored when `ATOMIC_MOVE` is used. |
 
-Ví dụ:
+Example:
 
 ```java
 Path source = Path.of("source.txt");
 Path target = Path.of("backup.txt");
 
-// Sao chép, cho phép thay thế và cố gắng giữ metadata:
+// Copy, allowing replacement and attempting to preserve metadata:
 Files.copy(source, target,
         StandardCopyOption.REPLACE_EXISTING,
         StandardCopyOption.COPY_ATTRIBUTES);
 
-// Đổi tên hoặc chuyển sang vị trí khác:
+// Rename or move to another location:
 Files.move(target, Path.of("archive.txt"),
         StandardCopyOption.REPLACE_EXISTING);
 
-// Chỉ yêu cầu chuyển nguyên tử khi hệ tệp cho phép:
+// Request an atomic move only when the file system permits it:
 Files.move(Path.of("draft.txt"), Path.of("published.txt"),
         StandardCopyOption.ATOMIC_MOVE);
 ```
 
-Đây là *snippet*, yêu cầu các đường dẫn nguồn tồn tại. Khi dùng `ATOMIC_MOVE`, đừng giả định rằng ghép thêm `REPLACE_EXISTING` sẽ bắt buộc thay thế target: tài liệu JDK quy định các option khác bị bỏ qua, và nếu target đã tồn tại thì provider có thể thay hoặc báo lỗi. Với ứng dụng cần chính sách ghi đè rõ ràng, hãy thiết kế xử lý ngoại lệ và xác minh hành vi trên hệ tệp triển khai.
+This is a *snippet*, requiring the source paths to exist. When using `ATOMIC_MOVE`, do not assume adding `REPLACE_EXISTING` forces target replacement: JDK documentation specifies that other options are ignored, and if the target already exists, the provider may replace it or throw an error. For applications needing a strict overwrite policy, design exception handling and verify behavior on the target file system.
 
-### 3.1. Ba ngộ nhận thường gặp với copy/move
+### 3.1. Three common misconceptions with copy/move
 
-1. **Copy tệp khác với copy thư mục đệ quy.** `Files.copy(sourceDir, targetDir)` tạo thư mục đích rỗng, không tự sao chép toàn bộ con. Muốn copy cây thì kết hợp `walkFileTree` với xử lý tạo thư mục và copy từng file.
-2. **`REPLACE_EXISTING` không biến copy thành một giao dịch atomic.** Nếu I/O thất bại giữa chừng, target có thể dở dang. Bảo đảm cần đến quy trình ghi file tạm + xác nhận + move thích hợp, và chỉ dựa vào `ATOMIC_MOVE` khi provider thực sự hỗ trợ.
-3. **`Files.move` không phải lúc nào cũng là rename đơn giản.** Trong cùng file store có thể rename trực tiếp; qua file store khác có thể cần copy-xóa và có thể thất bại hoặc không nguyên tử. Không suy ra thao tác là atomic chỉ vì một lệnh Java trả về.
+1. **Copying a file is different from recursively copying a directory.** `Files.copy(sourceDir, targetDir)` creates an empty target directory and does not copy its children automatically. To copy a directory tree, combine `walkFileTree` with creating directories and copying each file.
+2. **`REPLACE_EXISTING` does not make a copy an atomic transaction.** If I/O fails midway, the target may be left incomplete. Reliability requires a temporary-file write + verification + appropriate move workflow, and relying on `ATOMIC_MOVE` only when the provider actually supports it.
+3. **`Files.move` is not always a simple rename.** Within the same file store it may rename directly; across different file stores it may require copy-then-delete and can fail or be non-atomic. Do not infer atomicity just because a single Java call returned.
 
-### 3.2. Symbolic link khi copy và move
+### 3.2. Symbolic links when copying and moving
 
-Theo mặc định, `Files.copy(Path, Path, ...)` **đi theo symlink ở source** và copy nội dung *đối tượng mà link trỏ tới*. Thêm `LinkOption.NOFOLLOW_LINKS` để copy **chính đối tượng symbolic link** (nếu hệ thống hỗ trợ). Nếu target đã là symlink và dùng `REPLACE_EXISTING`, chính link ở target bị thay, không tự động đi theo link target.
+By default, `Files.copy(Path, Path, ...)` **follows symlinks at the source** and copies the contents of *the target the link points to*. Add `LinkOption.NOFOLLOW_LINKS` to copy **the symbolic link object itself** (if supported by the system). If the target is already a symlink and `REPLACE_EXISTING` is used, the link at the target itself is replaced; the target link is not followed automatically.
 
-`Files.move` di chuyển **chính symbolic link** nếu source là link. Không mặc nhiên giải tham chiếu link và di chuyển file mà link trỏ tới. Vì vậy dùng `NOFOLLOW_LINKS` cho thao tác copy có ý nghĩa khác hoàn toàn `FOLLOW_LINKS` khi duyệt cây.
+`Files.move` moves **the symbolic link itself** if the source is a link. It does not dereference the link by default to move the file the link points to. Therefore, using `NOFOLLOW_LINKS` for a copy operation has a completely different meaning from `FOLLOW_LINKS` when walking a tree.
 
-## 4. LinkOption: NOFOLLOW_LINKS và ý nghĩa từng API
+## 4. LinkOption: NOFOLLOW_LINKS and Per-API Semantics
 
-`LinkOption` chỉ có **`NOFOLLOW_LINKS`**. Nó implements *cả* `OpenOption` và `CopyOption`, nhưng khả năng chấp nhận option vẫn do từng API quyết định.
+`LinkOption` has only **`NOFOLLOW_LINKS`**. It implements *both* `OpenOption` and `CopyOption`, though whether the option is accepted still depends on each API.
 
-| Tác vụ | Mặc định | Khi truyền `LinkOption.NOFOLLOW_LINKS` |
+| Task | Default | When passing `LinkOption.NOFOLLOW_LINKS` |
 | --- | --- | --- |
-| `Files.exists(link)` / `notExists(link)` | Theo link đến target | Kiểm tra sự tồn tại của **link**; dangling symlink vẫn có thể là một link đang tồn tại. |
-| `Files.isDirectory(link)` / `isRegularFile(link)` | Xét loại của target | Xét chính link; symlink không được coi là thư mục hoặc regular file do target thuộc loại đó. |
-| `Files.readAttributes(link, BasicFileAttributes.class)` | Đọc thuộc tính target | Đọc thuộc tính chính symlink. |
-| `Files.getLastModifiedTime(link)` | Thời điểm của target | Thời điểm của chính symlink khi provider hỗ trợ. |
-| `Files.copy(link, target, NOFOLLOW_LINKS)` | Mặc định copy target mà link trỏ tới | Copy bản thân symlink, nếu hỗ trợ. |
-| `Files.newByteChannel(link, ..., NOFOLLOW_LINKS)` | Có thể theo symlink khi mở | Chỉ mở khi đối tượng được mở đáp ứng quy tắc không theo link; có thể thất bại khi path là symlink. |
+| `Files.exists(link)` / `notExists(link)` | Follows link to target | Checks the existence of the **link itself**; a dangling symlink can still count as an existing link. |
+| `Files.isDirectory(link)` / `isRegularFile(link)` | Inspects the target's type | Inspects the link itself; a symlink is not treated as a directory or regular file based on its target's type. |
+| `Files.readAttributes(link, BasicFileAttributes.class)` | Reads target attributes | Reads the attributes of the symlink itself. |
+| `Files.getLastModifiedTime(link)` | Target's timestamp | Timestamp of the symlink itself when supported by the provider. |
+| `Files.copy(link, target, NOFOLLOW_LINKS)` | By default copies the target the link points to | Copies the symlink itself, if supported. |
+| `Files.newByteChannel(link, ..., NOFOLLOW_LINKS)` | May follow symlinks when opening | Opens only if the opened object satisfies the no-follow rule; may fail when the path is a symlink. |
 
-Phân biệt **symlink** với **hard link**: symlink là một entry trỏ tới path khác và có thể bị đứt; hard link là một tên khác của cùng file trong cùng file system. `NOFOLLOW_LINKS` nhắm vào symbolic link, không biến hard link thành một đối tượng đặc biệt để bỏ qua.
+Distinguish a **symlink** from a **hard link**: a symlink is an entry pointing to another path and can dangle; a hard link is another name for the same file within the same file system. `NOFOLLOW_LINKS` targets symbolic links; it does not turn a hard link into a special object to skip.
 
-Ví dụ kiểm tra bản thân link:
+Example checking the link itself:
 
 ```java
 Path candidate = Path.of("alias");
@@ -155,19 +155,19 @@ System.out.println("entry exists: " + entryExists);
 System.out.println("symbolic link: " + isLink);
 ```
 
-Kết quả hai dòng trên **phụ thuộc hệ tệp thực tế**, nên không gán stdout cố định. `Files.exists` và `Files.notExists` đều có thể trả `false` khi không xác định được trạng thái; chúng không phải hai phép phủ định logic hoàn hảo. Đừng dùng check-then-open để bảo đảm tuyệt đối chống thay thế link trong thao tác nhạy cảm; hãy cân nhắc API thao tác tương đối với directory handle (`SecureDirectoryStream` khi được hỗ trợ), quyền truy cập và xử lý ngoại lệ.
+The output of the two lines above **depends on the actual file system**, so no fixed stdout is assumed. Both `Files.exists` and `Files.notExists` can return `false` when the state cannot be determined; they are not exact logical negations of each other. Do not rely on check-then-open for absolute protection against link replacement in sensitive operations; consider APIs operating relative to a directory handle (`SecureDirectoryStream` where supported), permissions, and exception handling.
 
-## 5. FileVisitOption: FOLLOW_LINKS khi duyệt cây
+## 5. FileVisitOption: FOLLOW_LINKS When Walking a Tree
 
-`FileVisitOption` chỉ có **`FOLLOW_LINKS`** trong Java 17/21.
+`FileVisitOption` has only **`FOLLOW_LINKS`** in Java 17/21.
 
-| Gọi API | Không truyền `FOLLOW_LINKS` | Có `FOLLOW_LINKS` |
+| API call | Without `FOLLOW_LINKS` | With `FOLLOW_LINKS` |
 | --- | --- | --- |
-| `Files.walkFileTree(start, visitor)` | Duyệt sâu nhưng **không đi vào thư mục mà symlink trỏ tới**. | Overload 4 tham số mới nhận tập option; có thể đi qua thư mục đích của symlink. |
-| `Files.walkFileTree(start, options, maxDepth, visitor)` | `EnumSet.noneOf(FileVisitOption.class)`: không theo symlink. | `EnumSet.of(FileVisitOption.FOLLOW_LINKS)`: theo symlink đến mức sâu cho phép. |
-| `Files.walk(start, maxDepth, options...)` | Không theo symlink, trả `Stream<Path>`. | Theo symlink, vẫn cần đóng stream sau khi dùng. |
+| `Files.walkFileTree(start, visitor)` | Traverses deeply but **does not enter directories pointed to by symlinks**. | The 4-parameter overload accepts an option set; can traverse into symlink target directories. |
+| `Files.walkFileTree(start, options, maxDepth, visitor)` | `EnumSet.noneOf(FileVisitOption.class)`: does not follow symlinks. | `EnumSet.of(FileVisitOption.FOLLOW_LINKS)`: follows symlinks up to the allowed depth. |
+| `Files.walk(start, maxDepth, options...)` | Does not follow symlinks, returns `Stream<Path>`. | Follows symlinks; still requires closing the stream after use. |
 
-Ví dụ cú pháp chuẩn:
+Standard syntax example:
 
 ```java
 Files.walkFileTree(
@@ -178,33 +178,33 @@ Files.walkFileTree(
 );
 ```
 
-`root` và `visitor` là các biến đã được khai báo ở ngữ cảnh gọi; snippet này không phải chương trình độc lập. Tham số `3` là độ sâu tối đa: root ở độ sâu `0`, con trực tiếp ở `1`. `Integer.MAX_VALUE` thực tế có nghĩa không chủ động giới hạn độ sâu.
+`root` and `visitor` are variables already declared in the calling context; this snippet is not a standalone program. Parameter `3` is the maximum depth: `root` is at depth `0`, direct children at `1`. `Integer.MAX_VALUE` effectively means no active depth limit.
 
-### 5.1. Callback của FileVisitor và kết quả điều khiển
+### 5.1. FileVisitor callbacks and control results
 
-Đây là kiến thức đi cùng `FileVisitOption`: option chọn cách duyệt, còn `FileVisitor` quyết định cách phản ứng với từng entry.
+This topic pairs naturally with `FileVisitOption`: the option controls traversal behavior, while `FileVisitor` decides how to react to each entry.
 
-| Callback | Khi nào được gọi | Điểm cần nhớ |
+| Callback | When it is called | Key points to remember |
 | --- | --- | --- |
-| `preVisitDirectory(dir, attrs)` | Trước khi duyệt con của một thư mục | Trả `SKIP_SUBTREE` để không xuống subtree. |
-| `visitFile(file, attrs)` | Khi gặp file thường hoặc entry được xử lý như file | Hữu ích cho tìm kiếm hoặc copy từng file. |
-| `visitFileFailed(file, exc)` | Khi không đọc được thuộc tính/mở thư mục hoặc phát hiện vòng lặp symlink | Có thể nhận `FileSystemLoopException` khi bật `FOLLOW_LINKS`. |
-| `postVisitDirectory(dir, exc)` | Sau khi duyệt xong directory hoặc lỗi khi duyệt các entry | Phù hợp để xóa thư mục sau khi đã xử lý con; kiểm tra `exc`. |
+| `preVisitDirectory(dir, attrs)` | Before visiting the children of a directory | Return `SKIP_SUBTREE` to avoid descending into the subtree. |
+| `visitFile(file, attrs)` | When encountering a regular file or an entry treated as a file | Useful for searching or copying individual files. |
+| `visitFileFailed(file, exc)` | When attributes cannot be read, a directory cannot be opened, or a symlink cycle is detected | May receive `FileSystemLoopException` when `FOLLOW_LINKS` is enabled. |
+| `postVisitDirectory(dir, exc)` | After finishing a directory or when an error occurs while visiting entries | Suitable for deleting a directory after its children are processed; inspect `exc`. |
 
-| `FileVisitResult` | Ý nghĩa |
+| `FileVisitResult` | Meaning |
 | --- | --- |
-| `CONTINUE` | Tiếp tục duyệt. |
-| `SKIP_SUBTREE` | Bỏ qua descendants của thư mục hiện tại (có ý nghĩa khi trả ở `preVisitDirectory`). |
-| `SKIP_SIBLINGS` | Bỏ qua các entry anh em tiếp theo. |
-| `TERMINATE` | Kết thúc duyệt ngay. |
+| `CONTINUE` | Continue traversal. |
+| `SKIP_SUBTREE` | Skip descendants of the current directory (meaningful when returned from `preVisitDirectory`). |
+| `SKIP_SIBLINGS` | Skip remaining sibling entries. |
+| `TERMINATE` | Terminate traversal immediately. |
 
-Nếu return `null` từ visitor thì `walkFileTree` ném `NullPointerException`. Thứ tự các anh em trong directory **không được bảo đảm**; nếu cần thứ tự ổn định cho báo cáo, cần tự thiết kế cách sắp xếp.
+Returning `null` from a visitor causes `walkFileTree` to throw `NullPointerException`. The order of sibling entries in a directory is **not guaranteed**; if deterministic ordering is needed for reports, implement sorting yourself.
 
-### 5.2. Lý do FOLLOW_LINKS cần cẩn thận
+### 5.2. Why FOLLOW_LINKS requires caution
 
-Nếu trong cây có symlink trỏ ngược lên một thư mục tổ tiên, `FOLLOW_LINKS` có thể tạo vòng lặp. `walkFileTree` nhận diện chu trình và gọi `visitFileFailed` với `FileSystemLoopException`; đừng giả định nó sẽ đi vô hạn hoặc mọi symlink đều duyệt thành công. Với tác vụ xóa, sao lưu hoặc scan dữ liệu không đáng tin cậy, mặc định **không follow** thường giúp tránh đi ra ngoài cây mong muốn. Ngay cả với `maxDepth` hữu hạn, vẫn phải xử lý lỗi quyền truy cập và symlink thay đổi trong khi duyệt.
+If the tree contains a symlink pointing back up to an ancestor directory, `FOLLOW_LINKS` can create a cycle. `walkFileTree` detects cycles and invokes `visitFileFailed` with `FileSystemLoopException`; do not assume it will loop infinitely or that every symlink will traverse cleanly. For deletion, backup, or scanning untrusted data, **not following** by default helps avoid escaping the intended tree. Even with a finite `maxDepth`, you must still handle access permission errors and symlinks modified during traversal.
 
-`Files.walk` trả về stream có thể giữ directory handles; luôn dùng `try-with-resources`:
+`Files.walk` returns a stream that may hold directory handles; always use `try-with-resources`:
 
 ```java
 try (var paths = Files.walk(root, 2)) {
@@ -213,11 +213,11 @@ try (var paths = Files.walk(root, 2)) {
 }
 ```
 
-Đây là snippet phụ thuộc thư mục `root`. Với `FOLLOW_LINKS`, lỗi I/O trong lúc stream đang tiêu thụ có thể bọc thành `UncheckedIOException`, khác với callback báo lỗi của `walkFileTree`. Lưu ý `Files.isRegularFile` mặc định theo symbolic link ở entry đang xét; nếu muốn chính symlink không được tính là file thường, truyền `LinkOption.NOFOLLOW_LINKS`.
+This snippet depends on the `root` directory. With `FOLLOW_LINKS`, an I/O error while consuming the stream may be wrapped in `UncheckedIOException`, unlike the error callback in `walkFileTree`. Note that `Files.isRegularFile` follows symbolic links by default on the inspected entry; if symlinks themselves must not be counted as regular files, pass `LinkOption.NOFOLLOW_LINKS`.
 
-## 6. Ví dụ Java 17+ chạy độc lập: mở, copy, move
+## 6. Standalone Java 17+ Example: Open, Copy, Move
 
-Tạo tệp `OptionDemo.java`:
+Create the file `OptionDemo.java`:
 
 ```java
 import java.io.IOException;
@@ -261,14 +261,14 @@ public class OptionDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa `OptionDemo.java`:
+Compile and run inside the directory containing `OptionDemo.java`:
 
 ```bash
 javac -encoding UTF-8 OptionDemo.java
 java OptionDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 alpha|beta|
@@ -276,11 +276,11 @@ gamma
 false
 ```
 
-Giải thích: `CREATE_NEW` tạo source và bảo vệ khỏi mở nhầm tệp cũ; `APPEND` thêm `beta` sau `alpha`; `COPY_ATTRIBUTES` yêu cầu giữ thuộc tính khi copy; `TRUNCATE_EXISTING` thay nội dung bản copy bằng `gamma`; `move` đổi tên tệp copy thành moved, khiến đường dẫn `copy` không còn tồn tại. Ví dụ tự dọn các tệp/tên thư mục tạm khi kết thúc bình thường; nếu có can thiệp từ tiến trình khác hoặc lỗi dọn dẹp, `IOException` vẫn có thể xuất hiện.
+Explanation: `CREATE_NEW` creates `source` and guards against accidentally opening an existing file; `APPEND` adds `beta` after `alpha`; `COPY_ATTRIBUTES` requests preserving attributes during copy; `TRUNCATE_EXISTING` replaces the copy's content with `gamma`; `move` renames the copied file to `moved`, so the `copy` path no longer exists. The example cleans up the temporary files and directory upon normal completion; if another process interferes or cleanup fails, an `IOException` may still occur.
 
-## 7. Ví dụ Java 17+ chạy độc lập: walkFileTree không theo symlink
+## 7. Standalone Java 17+ Example: walkFileTree Without Following Symlinks
 
-Tạo `WalkDemo.java`:
+Create `WalkDemo.java`:
 
 ```java
 import java.io.IOException;
@@ -341,63 +341,63 @@ javac -encoding UTF-8 WalkDemo.java
 java WalkDemo
 ```
 
-Kết quả chính xác trên cấu trúc mà chương trình tự tạo:
+Exact output on the structure created by the program:
 
 ```text
 dirs=2, files=2
 ```
 
-Tệp gốc và một thư mục con tạo ra `2` lượt `preVisitDirectory`; hai tệp tạo ra `2` lượt `visitFile`. Chuyển `EnumSet.noneOf(FileVisitOption.class)` thành `EnumSet.of(FileVisitOption.FOLLOW_LINKS)` sẽ cho phép theo symlink, nhưng ví dụ không tạo symlink nên số đếm không thay đổi.
+The root directory and one subdirectory produce `2` `preVisitDirectory` calls; two files produce `2` `visitFile` calls. Changing `EnumSet.noneOf(FileVisitOption.class)` to `EnumSet.of(FileVisitOption.FOLLOW_LINKS)` would enable following symlinks, though the example creates no symlinks so the counts stay unchanged.
 
-## 8. Chọn option theo tình huống
+## 8. Choosing Options by Scenario
 
-| Yêu cầu thực tế | Lựa chọn gợi ý | Vì sao |
+| Practical requirement | Recommended choice | Why |
 | --- | --- | --- |
-| Đọc tệp hiện có | `Files.readString(path)` hoặc mở `READ` | Không tạo/ghi file. |
-| Ghi đè bằng nội dung hoàn toàn mới | `Files.writeString(path, text)` hoặc `WRITE + CREATE + TRUNCATE_EXISTING` | Cắt nội dung cũ trước khi ghi. |
-| Ghi nối log, tự tạo nếu cần | `CREATE + APPEND` | Không cắt dữ liệu đã có, nhưng không bảo đảm bản ghi atomic liên tiến trình. |
-| Chỉ tạo khi chưa có | `CREATE_NEW + WRITE` | Tránh cuộc đua “check rồi create”. |
-| Sao lưu một tệp, ghi đè bản sao | `Files.copy(a, b, REPLACE_EXISTING, COPY_ATTRIBUTES)` | Sao chép nội dung cùng các thuộc tính được hỗ trợ. |
-| Copy chính symbolic link | `Files.copy(link, dst, LinkOption.NOFOLLOW_LINKS)` | Không dereference link ở source. |
-| Kiểm tra một entry là symlink | `Files.isSymbolicLink(path)` | Xem loại entry của path, không phụ thuộc target tồn tại. |
-| Xem thuộc tính **chính link** | `Files.readAttributes(path, BasicFileAttributes.class, NOFOLLOW_LINKS)` | Tránh đọc nhầm metadata của target. |
-| Rename/move yêu cầu atomic | `Files.move(src, dst, ATOMIC_MOVE)`, bắt `AtomicMoveNotSupportedException` | Không giả định provider hỗ trợ. |
-| Duyệt directory mặc định | `Files.walkFileTree(root, visitor)` | Không follow symlink. |
-| Duyệt cả thư mục qua symlink | `Files.walkFileTree(root, EnumSet.of(FOLLOW_LINKS), maxDepth, visitor)` | Có thể đi ngoài cây logic và phải xử lý vòng lặp. |
+| Read an existing file | `Files.readString(path)` or open with `READ` | Does not create or write the file. |
+| Overwrite with completely new content | `Files.writeString(path, text)` or `WRITE + CREATE + TRUNCATE_EXISTING` | Truncates old content before writing. |
+| Append to a log, creating if needed | `CREATE + APPEND` | Does not truncate existing data, though it does not guarantee cross-process atomic records. |
+| Create only if absent | `CREATE_NEW + WRITE` | Avoids the "check then create" race condition. |
+| Back up a file, overwriting the backup | `Files.copy(a, b, REPLACE_EXISTING, COPY_ATTRIBUTES)` | Copies content along with supported attributes. |
+| Copy the symbolic link itself | `Files.copy(link, dst, LinkOption.NOFOLLOW_LINKS)` | Does not dereference the link at the source. |
+| Check whether an entry is a symlink | `Files.isSymbolicLink(path)` | Checks the path's entry type regardless of whether the target exists. |
+| Inspect attributes of **the link itself** | `Files.readAttributes(path, BasicFileAttributes.class, NOFOLLOW_LINKS)` | Avoids accidentally reading the target's metadata. |
+| Rename/move requiring atomicity | `Files.move(src, dst, ATOMIC_MOVE)`, catch `AtomicMoveNotSupportedException` | Do not assume the provider supports it. |
+| Default directory traversal | `Files.walkFileTree(root, visitor)` | Does not follow symlinks. |
+| Traverse directories through symlinks too | `Files.walkFileTree(root, EnumSet.of(FOLLOW_LINKS), maxDepth, visitor)` | May step outside the logical tree and must handle cycles. |
 
-### Các cặp dễ nhầm
+### Easily confused pairs
 
-- `NOFOLLOW_LINKS` và `FOLLOW_LINKS` **không phải hai hằng số đối xứng trong một enum**: cái đầu thuộc `LinkOption` cho API làm việc với link/thuộc tính/copy; cái sau thuộc `FileVisitOption` cho duyệt cây. Không truyền `FOLLOW_LINKS` cho `Files.copy`.
-- `REPLACE_EXISTING` là thao tác **với đường dẫn đích khi copy/move**; `TRUNCATE_EXISTING` là thao tác **với nội dung của file đang mở để ghi**. Không thể hoán đổi.
-- `CREATE`/**`CREATE_NEW`** dùng khi **mở để ghi/tạo file**; `COPY_ATTRIBUTES` dùng khi **copy file**; `ATOMIC_MOVE` chỉ dùng khi **move**.
-- `FileVisitOption` chỉ thay cách duyệt cây. Nó không tự quyết định sẽ copy/xóa file nào, không thay cho `FileVisitor`, và không thay đổi cách hoạt động của `Files.exists`.
+- `NOFOLLOW_LINKS` and `FOLLOW_LINKS` are **not two symmetric constants in one enum**: the first belongs to `LinkOption` for link/attribute/copy APIs; the second belongs to `FileVisitOption` for tree traversal. Do not pass `FOLLOW_LINKS` to `Files.copy`.
+- `REPLACE_EXISTING` operates **on the target path during copy/move**; `TRUNCATE_EXISTING` operates **on the contents of the file being opened for writing**. They are not interchangeable.
+- `CREATE`/**`CREATE_NEW`** are used when **opening to write/create a file**; `COPY_ATTRIBUTES` is used when **copying a file**; `ATOMIC_MOVE` is used only when **moving**.
+- `FileVisitOption` only changes how the tree is traversed. It does not decide which files to copy/delete, does not replace `FileVisitor`, and does not change how `Files.exists` works.
 
-## 9. Lỗi phổ biến và cách xử lý
+## 9. Common Errors and How to Handle Them
 
-| Hiện tượng | Nguyên nhân khả dĩ | Hướng xử lý |
+| Symptom | Possible cause | Resolution |
 | --- | --- | --- |
-| `FileAlreadyExistsException` | `CREATE_NEW` tạo file đã có hoặc `Files.copy` gặp target đã tồn tại | Đổi tên, kiểm tra yêu cầu nghiệp vụ, hoặc sử dụng `REPLACE_EXISTING` chỉ khi thực sự muốn ghi đè. |
-| `NoSuchFileException` | Source không tồn tại, parent directory chưa có, hoặc dùng `APPEND` mà file chưa có | Chuẩn bị parent; với mục tiêu tạo nếu thiếu, cân nhắc `CREATE + APPEND`. |
-| `IllegalArgumentException` khi mở channel | Option không hợp lệ, ví dụ `READ + APPEND` hoặc `APPEND + TRUNCATE_EXISTING` | Chọn tổ hợp hợp lệ theo API và hành vi mong muốn. |
-| `UnsupportedOperationException` | Provider không hỗ trợ option cụ thể | Chọn cách hỗ trợ bởi provider, có nhánh xử lý phù hợp. |
-| `AtomicMoveNotSupportedException` | `ATOMIC_MOVE` không được hệ tệp/provider hỗ trợ | Quyết định rõ có cho phép fallback không nguyên tử hay báo lỗi. |
-| `FileSystemLoopException` khi walk | Bật `FOLLOW_LINKS` và gặp chu trình symlink | Xử lý trong `visitFileFailed`; cân nhắc không follow link hoặc giới hạn độ sâu. |
-| Dữ liệu cũ biến mất | Mặc định `writeString`/`newOutputStream` cắt file cũ | Chỉ dùng `APPEND` khi muốn nối; dùng `TRUNCATE_EXISTING` một cách có chủ ý. |
-| `Files.exists` là `false` dù nghi ngờ path tồn tại | Dangling symlink, quyền truy cập hoặc trạng thái không xác định | Dùng `NOFOLLOW_LINKS` nếu cần xét link, và vẫn xử lý lỗi tại thao tác thực tế. |
+| `FileAlreadyExistsException` | `CREATE_NEW` on an existing file or `Files.copy` encountering an existing target | Rename, verify business rules, or use `REPLACE_EXISTING` only when overwriting is truly intended. |
+| `NoSuchFileException` | Source does not exist, parent directory is missing, or `APPEND` used when the file does not yet exist | Prepare parent directories; to create if missing, consider `CREATE + APPEND`. |
+| `IllegalArgumentException` when opening a channel | Invalid option combination, e.g., `READ + APPEND` or `APPEND + TRUNCATE_EXISTING` | Pick a valid combination matching the API and intended behavior. |
+| `UnsupportedOperationException` | Provider does not support the specific option | Choose an approach supported by the provider with proper fallback/handling. |
+| `AtomicMoveNotSupportedException` | `ATOMIC_MOVE` is unsupported by the file system/provider | Decide explicitly whether a non-atomic fallback is acceptable or fail with an error. |
+| `FileSystemLoopException` during walk | `FOLLOW_LINKS` enabled and a symlink cycle was encountered | Handle in `visitFileFailed`; consider not following links or limiting depth. |
+| Old data disappears | Default `writeString`/`newOutputStream` truncates the existing file | Use `APPEND` only when appending; use `TRUNCATE_EXISTING` deliberately. |
+| `Files.exists` returns `false` even though the path seems to exist | Dangling symlink, access permissions, or indeterminate state | Use `NOFOLLOW_LINKS` if checking the link itself, and still handle errors during the actual operation. |
 
-Khi thao tác I/O thật, ngoài option còn phải tính tới quyền hệ điều hành, file system provider, symbolic link có thể thay đổi đồng thời, độ bền ghi xuống thiết bị, đóng tài nguyên và cách khôi phục sau lỗi. Tránh dùng option như một thay thế cho transaction, locking hoặc kiểm tra bảo mật.
+When performing real I/O, beyond options you must also account for OS permissions, file system providers, concurrently changing symlinks, durability of writes to storage, closing resources, and error recovery. Avoid using options as a substitute for transactions, locking, or security checks.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-1. Vì sao `OpenOption.READ` không biên dịch? **Vì `OpenOption` là interface; dùng `StandardOpenOption.READ`.**
-2. Muốn vừa tạo log khi chưa có, vừa nối khi đã có? **Dùng `CREATE + APPEND`.**
-3. `Files.copy(dirA, dirB)` có sao chép mọi file con không? **Không; cần duyệt cây và copy từng entry.**
-4. Muốn copy chính symbolic link? **Dùng `Files.copy(link, target, LinkOption.NOFOLLOW_LINKS)` nếu provider hỗ trợ.**
-5. Muốn walk qua link đến thư mục? **Dùng `FileVisitOption.FOLLOW_LINKS` trong overload cho phép option.**
-6. Có được chắc chắn một lệnh `Files.move(..., ATOMIC_MOVE, REPLACE_EXISTING)` sẽ luôn ghi đè đích? **Không; với `ATOMIC_MOVE`, option khác bị bỏ qua và chính sách target tồn tại phụ thuộc implementation.**
-7. `SYNC` có đồng nghĩa `ATOMIC_MOVE`? **Không; `SYNC` liên quan đồng bộ cập nhật file xuống storage, `ATOMIC_MOVE` liên quan tính nguyên tử khi đổi vị trí file.**
+1. Why does `OpenOption.READ` fail to compile? **Because `OpenOption` is an interface; use `StandardOpenOption.READ`.**
+2. Want to create a log if missing and append if it already exists? **Use `CREATE + APPEND`.**
+3. Does `Files.copy(dirA, dirB)` copy all child files? **No; you must walk the tree and copy each entry.**
+4. Want to copy the symbolic link itself? **Use `Files.copy(link, target, LinkOption.NOFOLLOW_LINKS)` if supported by the provider.**
+5. Want to walk across a link to a directory? **Use `FileVisitOption.FOLLOW_LINKS` in an overload that accepts options.**
+6. Is a call to `Files.move(..., ATOMIC_MOVE, REPLACE_EXISTING)` guaranteed to always overwrite the target? **No; with `ATOMIC_MOVE`, other options are ignored and behavior for an existing target depends on the implementation.**
+7. Does `SYNC` mean the same thing as `ATOMIC_MOVE`? **No; `SYNC` concerns flushing file updates to storage, whereas `ATOMIC_MOVE` concerns atomicity when changing a file's location.**
 
-## Tài liệu đối chiếu (JDK 21)
+## Reference Documentation (JDK 21)
 
 - [OpenOption](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/OpenOption.html)
 - [StandardOpenOption](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/StandardOpenOption.html)

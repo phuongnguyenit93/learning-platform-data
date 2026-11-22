@@ -1,50 +1,50 @@
-# Kiểm tra tài nguyên được đóng khi có lỗi trong Java I/O
+# Verifying Resources Are Closed on Failure in Java I/O
 
-## 1. Vì sao một chương trình đúng kết quả vẫn có thể bị rò rỉ tài nguyên?
+## 1. Why Can a Program That Produces Correct Results Still Leak Resources?
 
-Chương trình Java I/O thường mở **file stream, reader/writer, channel, socket, ZIP archive, directory stream** hoặc các tài nguyên giữ file descriptor/handle của hệ điều hành. Nếu một exception xảy ra giữa chừng mà tài nguyên không được giải phóng, hệ quả có thể là:
+Java I/O programs commonly open **file streams, readers/writers, channels, sockets, ZIP archives, directory streams**, or other resources holding OS file descriptors/handles. If an exception occurs mid-operation and a resource is not released, the consequences can include:
 
-- File descriptor/socket handle không được trả lại; hệ thống xuất hiện lỗi như “Too many open files”.
-- File bị giữ mở, gây khó khăn cho đổi tên/xóa trên một số hệ điều hành.
-- Buffer đầu ra chưa được flush/finalize; dữ liệu ZIP/GZIP thiếu trailer hoặc metadata.
-- Kết nối mạng vẫn mở, giữ tài nguyên phía client và server.
-- Directory stream hoặc stream đọc file tiếp tục giữ handle dù business logic đã ngừng dùng.
-- Trong hệ thống xử lý nhiều request, lỗi hiếm có thể tích lũy thành leak nghiêm trọng.
+- File descriptors or socket handles are never returned; the system fails with errors like "Too many open files."
+- Files remain open, preventing renaming or deletion on certain operating systems.
+- Output buffers are not flushed or finalized; ZIP/GZIP data lacks trailers or metadata.
+- Network connections stay open, tying up client and server resources.
+- Directory streams or file input streams continue holding handles even after business logic stops using them.
+- In high-throughput request systems, rare errors accumulate into severe leaks.
 
-**Kiểm tra tài nguyên được đóng khi có lỗi** nghĩa là viết test buộc chương trình đi qua các nhánh lỗi, sau đó quan sát **ai chịu trách nhiệm close, close được gọi mấy lần, theo thứ tự nào, và exception nào được giữ lại**.
+**Verifying resources are closed on failure** means writing tests that force code down error paths, then observing **who is responsible for closing, how many times `close` is called, in what order, and which exceptions are preserved**.
 
-Đây không chỉ là “thêm `finally`”. Java hiện đại ưu tiên **`try-with-resources`** cho các đối tượng `AutoCloseable`, nhưng ta vẫn cần kiểm thử hợp đồng sở hữu và xử lý những tình huống phức tạp.
+This is not just "add a `finally` block." Modern Java favors **`try-with-resources`** for `AutoCloseable` objects, yet we still must test ownership contracts and handle subtle edge cases.
 
-Mục tiêu sau bài:
+Goals after this lesson:
 
-1. Nắm đúng semantics của `try-with-resources` với normal exit, exception, `return`, `break` và lỗi khi mở tài nguyên.
-2. Kiểm tra tài nguyên được close kể cả khi `read`/`write` ném `IOException`.
-3. Hiểu primary exception và **suppressed exceptions** phát sinh từ `close()`.
-4. Xây test double/fault injection đo lệnh đóng và thứ tự đóng, không phụ thuộc lỗi I/O ngẫu nhiên.
-5. Nhận diện giới hạn của test double: `close()` được gọi không tự chứng minh OS handle thực sự đã được giải phóng.
-6. Áp dụng cho stream wrappers, `FileChannel`, `ZipFile`, `DirectoryStream` và `Files.lines()/walk()/list()`.
+1. Master `try-with-resources` semantics on normal exit, exceptions, `return`, `break`, and acquisition failures.
+2. Verify resources are closed even when `read`/`write` throws `IOException`.
+3. Understand primary exceptions and **suppressed exceptions** raised by `close()`.
+4. Build test doubles and fault injection to measure close calls and ordering without relying on random I/O failures.
+5. Recognize the limits of test doubles: calling `close()` does not by itself prove an OS handle was actually released.
+6. Apply these checks to stream wrappers, `FileChannel`, `ZipFile`, `DirectoryStream`, and `Files.lines()`/`walk()`/`list()`.
 
-## 2. Phân biệt close, flush và giải phóng thật sự
+## 2. Distinguishing `close`, `flush`, and Actual Resource Release
 
-Ba khái niệm thường bị trộn:
+Three concepts are often conflated:
 
-| Khái niệm | Hợp đồng chính | Cách quan sát/test |
+| Concept | Core Contract | How to Observe / Test |
 |---|---|---|
-| `flush()` | Đẩy dữ liệu được buffer sang tầng tiếp theo theo hợp đồng của stream/writer | Fake output ghi nhận `flush`, kiểm tra dữ liệu đã tới underlying stream |
-| `close()` | Kết thúc vòng đời tài nguyên; tùy API có thể flush/finalize trước khi giải phóng | Spy/tracker đánh dấu close, integration test kiểm tra trạng thái tài nguyên |
-| Độ bền dữ liệu (durability) | Byte đã được đảm bảo lưu ổn định theo hợp đồng ứng dụng | Dùng API tương ứng như `FileChannel.force(...)`, chính sách filesystem và kiểm thử riêng |
+| `flush()` | Pushes buffered data to the next layer per the stream/writer contract | Fake output records `flush`; verify data reached the underlying stream |
+| `close()` | Ends the resource lifecycle; depending on API, may flush/finalize before releasing | Spy/tracker records `close`; integration test checks resource state |
+| Data durability | Bytes are guaranteed persisted per the application contract | Use appropriate APIs like `FileChannel.force(...)`, filesystem policy, and dedicated tests |
 
-`OutputStream.close()`/`Writer.close()` thường hoàn tất xử lý buffer của lớp đó trước khi đóng stream bên dưới. Nhưng **đóng không đồng nghĩa tất cả dữ liệu chắc chắn đã durable trên thiết bị**, cũng không đồng nghĩa peer mạng đã xác nhận xử lý.
+`OutputStream.close()`/`Writer.close()` usually finishes flushing that layer's buffer before closing the underlying stream. However, **closing does not guarantee all data is durable on the storage device**, nor does it mean a network peer confirmed processing.
 
-Đối với kiểm thử close, nên xác định chính xác bất biến:
+For close testing, define the exact invariant:
 
-> Nếu một phương thức **sở hữu** một tài nguyên đã mở thành công, thì trên mọi đường thoát của phương thức — kể cả khi phát sinh lỗi — tài nguyên đó phải được yêu cầu đóng đúng hợp đồng.
+> If a method **owns** a successfully opened resource, then on every exit path from that method—including when an error is thrown—that resource must be closed per contract.
 
-“Đã yêu cầu đóng” là mức kiểm thử unit với spy. “Handle không còn giữ mở” có thể cần integration test theo OS/API. “Lưu dữ liệu bền” lại là yêu cầu khác.
+"Requested to close" is the unit-test level using a spy. "Handle no longer held open" may require OS/API-level integration tests. "Durably persisted data" is a separate requirement altogether.
 
-## 3. \`AutoCloseable\`, \`Closeable\` và chủ sở hữu tài nguyên
+## 3. \`AutoCloseable\`, \`Closeable\`, and Resource Ownership
 
-`AutoCloseable` khai báo:
+`AutoCloseable` declares:
 
 ~~~java
 public interface AutoCloseable {
@@ -52,31 +52,31 @@ public interface AutoCloseable {
 }
 ~~~
 
-`java.io.Closeable` mở rộng `AutoCloseable`, khai báo `close() throws IOException` và theo hợp đồng `Closeable`, gọi close trên đối tượng đã đóng không gây hiệu ứng mới. Nhưng **`AutoCloseable` thuần không bắt buộc close phải idempotent**; Javadoc khuyến khích implementer làm vậy nếu có thể.
+`java.io.Closeable` extends `AutoCloseable`, declares `close() throws IOException`, and by the `Closeable` contract, calling `close` on an already-closed object has no further effect. However, **plain `AutoCloseable` does not mandate idempotent `close()`**; Javadoc recommends implementers make it idempotent if possible.
 
-Một số tài nguyên thường gặp:
+Common resources:
 
-| API | Tài nguyên | Ai nên đóng? |
+| API | Resource | Who Should Close? |
 |---|---|---|
-| `FileInputStream`, `FileOutputStream` | File stream | Code tạo/mượn theo hợp đồng ownership |
-| `BufferedInputStream`, `BufferedReader` | Wrapper và nguồn bên dưới | Thông thường đóng outer wrapper, nguồn bên dưới cũng được đóng |
-| `InputStreamReader`, `OutputStreamWriter` | Bridge byte ↔ char và stream bên dưới | Thông thường chủ sở hữu của outer bridge |
-| `FileChannel`, `SocketChannel`, `ServerSocketChannel` | File/socket channel | Thành phần đang sở hữu channel |
-| `ZipFile`, `ZipInputStream` | ZIP container/stream | Thành phần mở ZIP |
-| `DirectoryStream<Path>` | Directory handle | Thành phần gọi `Files.newDirectoryStream` |
-| `Stream<String>` từ `Files.lines` | Open file stream | Code gọi `Files.lines` |
-| `Stream<Path>` từ `Files.list`/`Files.walk` | Directory handles | Code tạo file-based stream |
+| `FileInputStream`, `FileOutputStream` | File stream | The code that created or took ownership per contract |
+| `BufferedInputStream`, `BufferedReader` | Wrapper and underlying source | Usually close the outer wrapper, which closes the underlying source |
+| `InputStreamReader`, `OutputStreamWriter` | Byte ↔ char bridge and underlying stream | Usually the owner of the outer bridge |
+| `FileChannel`, `SocketChannel`, `ServerSocketChannel` | File/socket channel | The component owning the channel |
+| `ZipFile`, `ZipInputStream` | ZIP container/stream | The component opening the ZIP |
+| `DirectoryStream<Path>` | Directory handle | The component calling `Files.newDirectoryStream` |
+| `Stream<String>` from `Files.lines` | Open file stream | The code calling `Files.lines` |
+| `Stream<Path>` from `Files.list`/`Files.walk` | Directory handles | The code creating the file-backed stream |
 
-**Ownership phải rõ ràng.** Nếu phương thức nhận một `InputStream` do caller truyền vào, có hai thiết kế hợp lệ nhưng không tương đương:
+**Ownership must be explicit.** When a method receives an `InputStream` from a caller, there are two valid but non-equivalent designs:
 
-- **Callee owns:** phương thức nhận trách nhiệm đóng stream kể cả khi lỗi, phải nêu trong API contract.
-- **Caller owns:** phương thức chỉ đọc/ghi và không đóng stream; caller sẽ đóng ở scope lớn hơn.
+- **Callee owns:** the method assumes responsibility for closing the stream even on failure; this must be stated in the API contract.
+- **Caller owns:** the method only reads/writes and does not close the stream; the caller closes it in an outer scope.
 
-Không có quy tắc “hễ có InputStream là cứ close” trong mọi hoàn cảnh. Ví dụ nhiều API không nên tự đóng `System.in` hoặc stream dùng chung.
+There is no universal rule that "if you have an `InputStream`, just close it." For example, many APIs must never close `System.in` or a shared stream.
 
-## 4. \`try-with-resources\`: nền tảng bảo vệ khi có exception
+## 4. \`try-with-resources\`: The Foundation for Exception-Safe Cleanup
 
-Cú pháp Java 17:
+Java 17 syntax:
 
 ~~~java
 try (InputStream in = Files.newInputStream(source);
@@ -85,17 +85,17 @@ try (InputStream in = Files.newInputStream(source);
 }
 ~~~
 
-Đây là mã minh họa, cần `java.io.*`, `java.nio.file.*` và `Path source, target` đã xác định. Với một resource được khởi tạo thành công trong header, Java tự gọi `close()` khi thoát khỏi `try`, dù:
+This is illustrative code requiring `java.io.*`, `java.nio.file.*`, and defined `Path source, target`. For any resource successfully initialized in the header, Java automatically calls `close()` upon exiting the `try` block, whether:
 
-- Block chạy thành công tới cuối.
-- Có `return` từ trong block.
-- Có `break`/`continue` rời khỏi scope.
-- Block ném `IOException`, `RuntimeException` hoặc `Error`.
-- `catch`/`finally` đi sau cần xử lý kết quả.
+- The block completes normally.
+- A `return` executes inside the block.
+- A `break` or `continue` leaves the scope.
+- The block throws `IOException`, `RuntimeException`, or `Error`.
+- Trailing `catch`/`finally` blocks execute afterward.
 
-### 4.1. Thứ tự tạo và đóng
+### 4.1. Creation and Closing Order
 
-Các resource trong header được **khởi tạo từ trái sang phải** và **đóng từ phải sang trái**.
+Resources in the header are **initialized left to right** and **closed right to left**.
 
 ~~~java
 try (Tracked first = open("first");
@@ -104,7 +104,7 @@ try (Tracked first = open("first");
 }
 ~~~
 
-Đây là mã mô hình, `Tracked` và hai hàm factory tự định nghĩa. Logic:
+This is illustrative structural code with custom `Tracked` and factory methods. Execution flow:
 
 ~~~text
 open first
@@ -114,28 +114,28 @@ close second
 close first
 ~~~
 
-Nếu `runBusinessLogic()` thất bại, cả hai close vẫn được gọi theo thứ tự ngược. Nếu `close second` cũng ném lỗi, Java **vẫn cố close first**.
+If `runBusinessLogic()` fails, both `close` calls still run in reverse order. If `close second` also throws an error, Java **still attempts to close `first`**.
 
-### 4.2. Nếu resource thứ hai không mở được?
+### 4.2. What If Opening the Second Resource Fails?
 
-Giả sử mở `first` thành công nhưng biểu thức khởi tạo `second` ném exception:
+Suppose opening `first` succeeds, while initializing `second` throws an exception:
 
 ~~~text
-open first   -> thành công
-open second  -> ném IOException
-close first  -> thực hiện tự động
-body         -> KHÔNG chạy
+open first   -> succeeds
+open second  -> throws IOException
+close first  -> executed automatically
+body         -> NOT executed
 ~~~
 
-Đây là một nhánh phải có trong test. Mã `try-with-resources` bảo đảm các resource **đã hoàn tất khởi tạo trước đó** được close. Nhưng nếu **constructor/factory của một resource tự nó cấp phát một native handle rồi ném trước khi trả về object**, header chưa nhận được resource đó; constructor/factory cần tự cleanup phần tài nguyên mở dở của nó.
+This is a mandatory branch to test. `try-with-resources` guarantees that resources **already initialized earlier in the header** are closed. However, if **a resource's constructor or factory itself allocates a native handle and throws before returning the object**, the `try` header never received that resource; the constructor/factory must clean up its own partially opened state.
 
-### 4.3. Resource null
+### 4.3. Null Resources
 
-Biểu thức resource có thể cho ra `null`. Java không gọi `close()` trên resource `null`; tuy nhiên, dùng null để ngụ ý không có tài nguyên thường làm contract khó hiểu hơn và cần kiểm tra rõ khi API cho phép.
+A resource expression may evaluate to `null`. Java does not call `close()` on a `null` resource; however, using `null` to signify an absent resource often makes contracts harder to reason about and must be tested explicitly when permitted by an API.
 
-### 4.4. Biến đã tồn tại trong try-with-resources
+### 4.4. Existing Variables in `try-with-resources`
 
-Từ Java 9, biến local/field `final` hoặc **effectively final** có thể được đưa vào header:
+Since Java 9, a `final` or **effectively final** local variable or field can be placed in the header:
 
 ~~~java
 InputStream opened = Files.newInputStream(source);
@@ -144,26 +144,26 @@ try (opened) {
 }
 ~~~
 
-Đây là minh họa, cần `consume` được định nghĩa. Nó phù hợp khi phải khởi tạo trước một bước nhưng vẫn trao ownership của biến cho try-with-resources. Không sử dụng resource sau scope đã đóng.
+This is illustrative and requires defining `consume`. It works when initialization must happen one step earlier while still handing ownership of the variable to `try-with-resources`. Never use the resource after the closing scope ends.
 
-## 5. Exception trong body và exception trong close: ai được ném?
+## 5. Exception in the Body vs. Exception in `close`: Which Is Thrown?
 
-Đây là điểm quan trọng nhất khi kiểm thử nhánh lỗi.
+This is the single most important detail when testing error paths.
 
-Giả sử:
+Suppose:
 
-1. `read()` ném `IOException("read-failed")`.
-2. Khi cleanup, `close()` cũng ném `IOException("close-failed")`.
+1. `read()` throws `IOException("read-failed")`.
+2. During cleanup, `close()` also throws `IOException("close-failed")`.
 
-Với `try-with-resources`:
+With `try-with-resources`:
 
-- Exception từ phần xử lý (`read-failed`) vẫn là **primary exception** được ném cho caller.
-- Exception do close (`close-failed`) được gắn vào primary dưới dạng **suppressed exception**.
-- Caller có thể xem chúng bằng `Throwable.getSuppressed()`.
+- The exception from the body (`read-failed`) remains the **primary exception** thrown to the caller.
+- The exception from `close` (`close-failed`) is attached to the primary exception as a **suppressed exception**.
+- The caller can inspect it via `Throwable.getSuppressed()`.
 
 ~~~java
 try (InputStream in = openFailingStream()) {
-    consume(in); // có thể throw IOException("read-failed")
+    consume(in); // may throw IOException("read-failed")
 } catch (IOException ex) {
     System.err.println("Primary: " + ex);
     for (Throwable suppressed : ex.getSuppressed()) {
@@ -172,77 +172,77 @@ try (InputStream in = openFailingStream()) {
 }
 ~~~
 
-Đây là **đoạn mã minh họa**, cần định nghĩa `openFailingStream()` và `consume(...)`. Không đánh đồng `Throwable.getCause()` với `getSuppressed()`:
+This is an **illustrative code snippet** requiring definitions for `openFailingStream()` and `consume(...)`. Never equate `Throwable.getCause()` with `getSuppressed()`:
 
-| API | Thể hiện |
+| API | Represents |
 |---|---|
-| `getCause()` | Nguyên nhân của một exception được bọc/chuỗi hóa bằng cause |
-| `getSuppressed()` | Những exception bổ sung bị giữ lại khi xử lý/cleanup exception chính |
-| `addSuppressed(...)` | Cho phép code tự đính exception cleanup, nhưng `try-with-resources` đã làm sẵn |
+| `getCause()` | The underlying cause of a wrapped/chained exception |
+| `getSuppressed()` | Additional exceptions captured while cleaning up after a primary exception |
+| `addSuppressed(...)` | Allows manual cleanup-exception attachment, though `try-with-resources` does this automatically |
 
-### Nếu block chạy bình thường mà close lỗi?
+### What If the Body Succeeds and `close` Fails?
 
-Trong trường hợp không có lỗi body, exception từ close là lỗi được ném ra. Nếu có **nhiều resource close đều lỗi**, exception từ resource đóng trước (resource ở bên phải header) là primary, và những close failures kế tiếp trở thành suppressed.
+When no body exception occurs, the `close` exception is thrown as the primary error. If **multiple resources fail to close**, the exception from the resource closed first (the rightmost one in the header) becomes primary, and subsequent close failures become suppressed exceptions.
 
-### Nếu cả open và close lỗi?
+### What If Both Acquisition and `close` Fail?
 
-Nếu resource B không khởi tạo được nhưng A đã mở, exception từ khởi tạo B được giữ là primary; lỗi từ việc đóng A được đưa vào suppressed. Điều này bảo tồn thông tin về **lý do ban đầu làm quy trình thất bại**, thay vì để cleanup che mất nguyên nhân.
+If resource `B` fails to initialize while `A` is already open, the initialization exception from `B` is kept as primary; any error closing `A` is attached as suppressed. This preserves **the root reason the operation failed** instead of letting cleanup mask it.
 
-### Vì sao finally tự viết dễ sai?
+### Why Hand-Written `finally` Blocks Easily Go Wrong
 
-Một cách dễ làm mất lỗi gốc:
+A pattern that loses the original error:
 
 ~~~java
 InputStream in = open();
 try {
-    doWork(in);         // ném IOException A
+    doWork(in);         // throws IOException A
 } finally {
-    in.close();         // ném IOException B
+    in.close();         // throws IOException B
 }
 ~~~
 
-Đây là phản ví dụ nếu chưa có suppressed handling: caller có thể chỉ nhận B, trong khi A đã bị che. `try-with-resources` có xử lý ưu tiên exception theo đặc tả ngôn ngữ; dùng nó thay vì viết lại logic này từ đầu.
+This is an anti-pattern without explicit suppressed-exception handling: the caller receives only `B`, while `A` is masked. `try-with-resources` implements exact language-specified exception priority; use it instead of reimplementing this logic by hand.
 
-## 6. Chiến lược kiểm thử: chủ động tiêm lỗi ở từng bước
+## 6. Testing Strategy: Proactively Inject Faults at Every Step
 
-Muốn bảo đảm close hoạt động khi lỗi, không nên chờ filesystem hoặc mạng tình cờ trục trặc. Hãy tạo **test double** hoặc fault-injection fixture mô phỏng lỗi ở từng điểm.
+To guarantee `close` works on failure, do not wait for the filesystem or network to glitch randomly. Build **test doubles** or fault-injection fixtures that simulate failures at each stage.
 
-Một ma trận kiểm thử tối thiểu:
+A minimum test matrix:
 
-| Tình huống | Điều cần xác nhận |
+| Scenario | What to Verify |
 |---|---|
-| Xử lý thành công | Resource đã mở được đóng đúng một lượt sở hữu |
-| `read` ném lỗi | Close được gọi; caller nhận lỗi read |
-| `write` ném lỗi | Close được gọi; caller nhận lỗi write |
-| `return` sớm | Close xảy ra trước khi return hoàn tất |
-| `break`/`continue` rời scope | Close xảy ra khi thoát scope |
-| Mở resource thứ hai lỗi | Resource thứ nhất vẫn được đóng |
-| Hai resource cùng hoạt động | Đóng ngược thứ tự mở |
-| `close` tự ném lỗi | Lỗi được truyền đúng; vẫn thử đóng các resource còn lại |
-| Body + `close` cùng lỗi | Body là primary, close nằm trong suppressed |
-| Wrapper gặp lỗi đọc | Đóng wrapper sẽ đóng nguồn theo ownership |
-| Một resource bị close hai lần | Không phụ thuộc may mắn; xác định hợp đồng và kiểm tra số lượt |
-| Hủy/timeout async I/O | Kiểm tra chính sách cancel và giải phóng khi mọi operation đã được giải quyết |
+| Successful execution | Opened resource is closed exactly once per ownership |
+| `read` throws an error | `close` is called; caller receives the read error |
+| `write` throws an error | `close` is called; caller receives the write error |
+| Early `return` | `close` executes before the return completes |
+| `break`/`continue` exits scope | `close` executes when leaving scope |
+| Opening second resource fails | First resource is still closed |
+| Two active resources | Closed in reverse initialization order |
+| `close` itself throws an error | Error propagates properly; remaining resources still attempt to close |
+| Both body and `close` fail | Body error is primary, close error is in `suppressed` |
+| Wrapper fails while reading | Closing wrapper closes underlying source per ownership |
+| Resource closed twice | Never rely on luck; verify contract and exact call count |
+| Async I/O cancel/timeout | Verify cancellation policy and release once all operations resolve |
 
-Nên phân biệt ba loại kiểm tra:
+Distinguish three kinds of tests:
 
-1. **Contract test tại unit level:** tài nguyên fake/spy xác nhận `close()` được gọi và ngoại lệ đúng.
-2. **Integration test:** mở file/socket/ZIP thật, chạy fault scenario, kiểm tra hoạt động đóng qua API/OS.
-3. **Diagnostic/soak test:** chạy nhiều lần lỗi để theo dõi file descriptors, memory, thread/socket count trong thời gian dài.
+1. **Unit-level contract tests:** fake/spy resources verify `close()` is called and exceptions behave properly.
+2. **Integration tests:** open real files, sockets, or ZIPs, run fault scenarios, and verify closure via API/OS checks.
+3. **Diagnostic/soak tests:** repeat failure loops many times to monitor file descriptors, memory, and thread/socket counts over time.
 
-Không cần dùng một OS-specific lỗi “file đang mở không xóa được” làm **bằng chứng duy nhất**. Linux thường cho xóa tên một file ngay cả khi handle còn mở; Windows có quy tắc share/locking khác. Test portable nên dùng spy và xác nhận trạng thái theo API phù hợp.
+Do not rely on an OS-specific "cannot delete an open file" failure as **the sole proof**. Linux commonly allows unlinking a file name even while a handle remains open; Windows has different sharing/locking rules. Portable tests should use spies and verify state through proper APIs.
 
-## 7. Chương trình Java 17+ hoàn chỉnh kiểm tra bốn nhánh lỗi
+## 7. Complete Java 17+ Program Testing Four Failure Branches
 
-Ví dụ dưới đây tự chứa tất cả fixture, không yêu cầu JUnit hoặc file thực trên đĩa. Nó mô phỏng:
+The example below contains all its own fixtures and requires no JUnit or real disk files. It demonstrates:
 
-- Lỗi trong body và lỗi `close` đồng thời.
-- Hai resource được đóng **ngược** thứ tự mở.
-- Thất bại khi mở resource thứ hai.
-- `BufferedInputStream` đang đọc ném lỗi và vẫn đóng stream bên dưới.
-- `return` sớm từ method nhưng resource vẫn được đóng.
+- Simultaneous body and `close` failures.
+- Two resources closed in **reverse** open order.
+- Failure while acquiring the second resource.
+- `BufferedInputStream` throwing mid-read while still closing its underlying stream.
+- Early `return` from a method still closing the resource.
 
-**Tên tệp: `CloseOnFailureDemo.java`**
+**File name: `CloseOnFailureDemo.java`**
 
 ~~~java
 import java.io.BufferedInputStream;
@@ -371,14 +371,14 @@ public class CloseOnFailureDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac CloseOnFailureDemo.java
 java CloseOnFailureDemo
 ~~~
 
-**Stdout đã chạy kiểm tra với JDK:**
+**Verified stdout from JDK:**
 
 ~~~text
 primary=work-failed
@@ -392,35 +392,35 @@ early-return=done
 early-return-closed=true
 ~~~
 
-### Vì sao từng dòng quan trọng?
+### Why Each Line Matters
 
-**`primary=work-failed`:** body ném IOException trước; đây là lỗi chính. `close()` lỗi không thay thế nó.
+**`primary=work-failed`:** the body threw `IOException` first; this is the primary error. The failing `close()` does not replace it.
 
-**`suppressed=close-second`:** resource `second` ném IOException khi close; Java vẫn giữ nguyên lỗi body và ghi nhận lỗi cleanup riêng.
+**`suppressed=close-second`:** resource `second` threw `IOException` during `close`; Java kept the body error and recorded the cleanup error separately.
 
-**`close-order=...`:** resource được mở theo `first` rồi `second`, nhưng đóng theo `second` rồi `first`. Cả hai close được thử dù second ném lỗi.
+**`close-order=...`:** resources opened as `first` then `second`, yet closed as `second` then `first`. Both close calls ran even though `second` threw.
 
-**`acquisition=acquire-failed`:** `failAcquire` ném lỗi ở giai đoạn header; body không chạy, lỗi khởi tạo thứ hai được giữ.
+**`acquisition=acquire-failed`:** `failAcquire` threw in the header stage; the body never ran, and the second acquisition error was preserved.
 
-**`acquisition-trace=...close:held`:** dù resource thứ hai không tạo được, `held` đã khởi tạo trước vẫn được đóng.
+**`acquisition-trace=...close:held`:** even though the second resource could not be created, the already-initialized `held` resource was still closed.
 
-**`read-failure=read-failed`:** stream fake ném lỗi từ `read`. Đây là fault injection, không phải phải gây lỗi file thật.
+**`read-failure=read-failed`:** the fake stream threw from `read`. This is fault injection, avoiding any need to break real files.
 
-**`wrapped-close-calls=1`:** `try-with-resources` đóng `BufferedInputStream`, và wrapper đóng `FailingInput` đúng một lần. Trong ví dụ, chỉ outer wrapper được khai báo là resource sở hữu để không phải close nguồn hai lần.
+**`wrapped-close-calls=1`:** `try-with-resources` closed `BufferedInputStream`, and the wrapper closed `FailingInput` once. In the example, only the outer wrapper is declared as the owned resource so the underlying source is not closed twice.
 
-**`early-return-closed=true`:** dù method `earlyReturn` return một chuỗi, `Tracked.close` vẫn được gọi trước khi hoàn tất return.
+**`early-return-closed=true`:** even though `earlyReturn` returns a string, `Tracked.close` still runs before the return finishes.
 
-### Giới hạn của test double
+### Limitations of Test Doubles
 
-Trong demo, `Tracked.close()` đặt `closed=true` *trước khi* cố ý ném IOException. Điều này chỉ mô phỏng một hợp đồng do fixture định nghĩa. Với tài nguyên thực, `close()` ném lỗi có thể làm trạng thái hậu đóng phụ thuộc API/provider. Không tự kết luận **mọi native handle đã được giải phóng** chỉ vì spy nhận được `close()`.
+In the demo, `Tracked.close()` sets `closed=true` *before* throwing its simulated `IOException`. This only models a fixture-defined contract. For real resources, a throwing `close()` can leave post-close state dependent on the API or provider. Never conclude **all native handles were freed** solely because a spy recorded `close()`.
 
-Tương tự, kết quả `wrapped-close-calls=1` kiểm tra hành vi wrapper của ví dụ. Nếu production code vô tình giữ một tham chiếu khác tới cùng resource và gọi close tiếp, unit test ở riêng scope này không thể tự phát hiện mọi owner bên ngoài. Test cần dựng đúng cấu trúc sở hữu của ứng dụng.
+Likewise, `wrapped-close-calls=1` verifies wrapper behavior in this example. If production code accidentally holds another reference to the same resource and closes it elsewhere, a unit test scoped to one method cannot automatically detect every external owner. Tests must mirror the application's actual ownership structure.
 
-## 8. Thiết kế test unit bằng spy và fault injection
+## 8. Designing Unit Tests with Spies and Fault Injection
 
-### 8.1. Spy ghi lại số lần và thứ tự close
+### 8.1. A Spy Recording Close Count and Order
 
-Một fake resource đơn giản:
+A simple fake resource:
 
 ~~~java
 final class CloseSpy implements AutoCloseable {
@@ -437,51 +437,51 @@ final class CloseSpy implements AutoCloseable {
 }
 ~~~
 
-Đây là một class minh họa với import `java.io.IOException`. Nếu class thật nhận resource từ caller, có thể inject `CloseSpy` thông qua một interface/factory thay vì dùng tài nguyên hệ điều hành thật. **Đừng chỉ assert `closeCalls >= 1` khi hợp đồng yêu cầu đúng một owner**; hãy assert đúng giá trị và kiểm tra không double-close vô ý.
+This is an illustrative class requiring `java.io.IOException`. If real code receives resources from a caller, inject `CloseSpy` via an interface or factory instead of touching real OS resources. **Do not just assert `closeCalls >= 1` when the contract demands a single owner**; assert the exact count and check against accidental double-close.
 
-### 8.2. Một hàm có hợp đồng ownership rõ ràng
+### 8.2. Methods with Explicit Ownership Contracts
 
 ~~~java
 static void processOwned(InputStream in) throws IOException {
     try (in) {
         byte[] buffer = new byte[4096];
         while (in.read(buffer) != -1) {
-            // Xử lý byte đã đọc.
+            // Process bytes read.
         }
     }
 }
 ~~~
 
-Đây là một hàm minh họa cho **callee owns**. Test có thể truyền `InputStream` fake có `read(byte[],off,len)` cố ý ném lỗi sau n byte, rồi assert close vẫn được gọi.
+This illustrates **callee owns**. A test can pass a fake `InputStream` whose `read(byte[],off,len)` throws after `n` bytes and assert `close` was still called.
 
-Nếu giao diện yêu cầu **caller owns**, hàm cần khác:
+If the interface specifies **caller owns**, the method differs:
 
 ~~~java
 static void processBorrowed(InputStream in) throws IOException {
     byte[] buffer = new byte[4096];
     while (in.read(buffer) != -1) {
-        // Chỉ dùng, KHÔNG tự đóng.
+        // Use only, DO NOT close.
     }
 }
 ~~~
 
-Trong trường hợp borrowed, unit test nên xác nhận callee **không close**, còn caller phải đóng ở scope sở hữu ngoài. Không trộn hai hợp đồng.
+For borrowed resources, unit tests should verify the callee **did not close** the stream, while the caller closes it in the owning outer scope. Never mix the two contracts.
 
-### 8.3. Inject lỗi sau khi đã xử lý một phần
+### 8.3. Injecting Faults After Partial Processing
 
-Để phát hiện leak xuất hiện khi tiến trình đã xử lý dữ liệu nhưng chưa hoàn thành, fake có thể:
+To catch leaks that occur once processing has begun but before it finishes, a fake can:
 
-- Cho phép `read()` thành công N lần rồi ném IOException ở lần N+1.
-- Cho phép `write(...)` nhận một phần dữ liệu rồi ném lỗi.
-- Gây lỗi parse sau khi stream được mở.
-- Gây lỗi trong callback xử lý record/file entry.
-- Gây lỗi khi finish ZIP/GZIP hoặc flush/close.
+- Allow `read()` to succeed `N` times and throw `IOException` on call `N+1`.
+- Allow `write(...)` to accept some data and then throw an error.
+- Trigger a parse error after the stream is opened.
+- Throw inside a record/file-entry callback.
+- Fail during ZIP/GZIP finalization or `flush`/`close`.
 
-Test nên assert **bảo toàn exception gốc, số lần close, và cleanup của mọi resource đã được khởi tạo**, không chỉ kiểm tra method có ném IOException.
+Tests should assert **preservation of the original exception, close counts, and cleanup of all initialized resources**, not merely that the method threw `IOException`.
 
-### 8.4. JUnit 5 — ví dụ assertThrows
+### 8.4. JUnit 5 — `assertThrows` Example
 
-Nếu project đã có JUnit Jupiter, một test có thể viết:
+If the project uses JUnit Jupiter, a test can be written as:
 
 ~~~java
 @Test
@@ -497,11 +497,11 @@ void closesOwnedInputAfterReadFailure() {
 }
 ~~~
 
-Đây là **mã minh họa JUnit 5, không biên dịch độc lập**: `FailingInputStream`, `service` và phương thức của nó là fixture do project cung cấp; cần dependency/import Jupiter. Khai báo rõ test nhằm tránh nhầm nó với source Java SE 17 tự chạy. Không dùng assertions giả định nếu fake có cache đặc biệt làm thay đổi số lượt `read` thực tế.
+This is a **JUnit 5 illustrative snippet and does not compile standalone**: `FailingInputStream`, `service`, and its method are project-supplied fixtures, requiring Jupiter dependencies and imports. Mark tests clearly to avoid confusing them with standalone Java SE 17 examples. Do not assert hardcoded assumptions if a fake or wrapper buffers reads and changes actual `read` call counts.
 
-## 9. Stream wrapper và đóng nguồn bên dưới
+## 9. Stream Wrappers and Closing the Underlying Source
 
-Các wrapper thường chuyển tiếp `close()` tới stream bên dưới. Ví dụ:
+Wrappers typically forward `close()` to the underlying stream. Example:
 
 ~~~java
 InputStream raw = Files.newInputStream(path);
@@ -510,9 +510,9 @@ try (BufferedInputStream buffered = new BufferedInputStream(raw)) {
 }
 ~~~
 
-Đây là mã minh họa với `Path path` và `consume(...)` được định nghĩa. Chủ sở hữu outer wrapper chịu trách nhiệm đóng; khi `BufferedInputStream.close()`, nó đóng underlying input.
+This is an illustrative snippet with defined `Path path` and `consume(...)`. The owner of the outer wrapper is responsible for closing; when `BufferedInputStream.close()` runs, it closes the underlying input.
 
-Một cách nhiều người viết:
+A style many developers write:
 
 ~~~java
 try (InputStream raw = Files.newInputStream(path);
@@ -521,9 +521,9 @@ try (InputStream raw = Files.newInputStream(path);
 }
 ~~~
 
-Điều này có thể dẫn đến **hai lần thử close raw**: đầu tiên do `buffered.close()`, sau đó TWR gọi `raw.close()` trong thứ tự ngược. Với `Closeable` implementations chuẩn, close thường idempotent, nhưng **không nên mặc định mọi wrapper/resource tùy biến chấp nhận double-close an toàn**. Trong code rõ ownership, thường chỉ cần outermost wrapper trong resource header, hoặc dùng một thiết kế chuyển ownership có kiểm soát.
+This can cause **two attempts to close `raw`**: first via `buffered.close()`, then TWR calls `raw.close()` in reverse order. Standard `Closeable` implementations make `close()` idempotent, yet **never assume every custom wrapper or resource tolerates double-close safely**. When ownership is clear, place only the outermost wrapper in the resource header, or design explicit ownership transfer.
 
-### Reader/Writer và charset bridge
+### `Reader`/`Writer` and Charset Bridges
 
 ~~~java
 try (BufferedReader reader = Files.newBufferedReader(
@@ -532,19 +532,19 @@ try (BufferedReader reader = Files.newBufferedReader(
 }
 ~~~
 
-Đây là mã minh họa bên trong method trả `String`, có `Path path`. `readLine` có thể trả null hay ném IOException; cả hai đường đi đều đóng reader.
+This is an illustrative snippet inside a method returning `String` with `Path path`. `readLine` can return `null` or throw `IOException`; both paths close the reader.
 
-`BufferedWriter` và `OutputStreamWriter` có thể tạo lỗi trong `flush/close` do bước encode và ghi byte. Vì vậy kiểm thử **write-time failure** và **close-time failure** đều quan trọng, nhất là với định dạng có trailer/finalization.
+`BufferedWriter` and `OutputStreamWriter` can raise errors during `flush`/`close` because of encoding and byte-writing steps. Testing both **write-time failures** and **close-time failures** is therefore essential, especially for formats with trailers or finalization.
 
-### Trường hợp wrapper không sở hữu underlying
+### When a Wrapper Does Not Own the Underlying Stream
 
-Không phải mọi wrapper trong framework đều tự động được phép đóng stream bên dưới. Có API xây wrapper “close shield” để chặn close tới stream dùng chung. Nếu stream được **mượn** từ caller, wrapper hoặc factory phải thể hiện rõ **close có lan xuống nguồn hay không**. Test ownership ở lớp này để tránh vừa leak vừa vô tình đóng tài nguyên mà caller còn dùng.
+Not every wrapper in a framework is allowed to close the stream beneath it. Some APIs provide a "close shield" wrapper to block `close` from reaching a shared stream. When a stream is **borrowed** from a caller, wrappers and factories must make clear **whether `close` propagates downward**. Test ownership at this boundary to avoid both leaks and prematurely closing a resource the caller still needs.
 
-## 10. Kiểm tra resource API khác nhau của Java NIO
+## 10. Testing Resource Closure Across Java NIO APIs
 
-### 10.1. FileChannel / SeekableByteChannel
+### 10.1. `FileChannel` / `SeekableByteChannel`
 
-`FileChannel` là `AutoCloseable`; khi read/write ném IOException, code phải đóng channel:
+`FileChannel` is `AutoCloseable`; when `read`/`write` throws `IOException`, code must close the channel:
 
 ~~~java
 try (FileChannel channel = FileChannel.open(
@@ -556,24 +556,24 @@ try (FileChannel channel = FileChannel.open(
 }
 ~~~
 
-Đây là mã minh họa cho cách quản lý tài nguyên, không phải parser dữ liệu; khi dùng buffer có `remaining` bằng 0, `read` có thể trả 0 và logic trong ví dụ phải bảo đảm buffer được `clear()`. Trong production, cần xử lý no-progress đúng từng loại channel, không busy loop vô hạn.
+This snippet illustrates resource management rather than data parsing; if a buffer has `remaining == 0`, `read` can return `0`, and the example ensures the buffer is cleared. In production, handle zero-progress reads properly for each channel type rather than busy-looping.
 
-Kiểm thử nên bảo đảm `channel.close()` được gọi nếu đoạn đọc/parse ném IOException. `Channel.isOpen()` cho phép kiểm tra trạng thái API sau close ở integration test. Nhưng thông tin “không còn handle trong OS” có thể cần quan sát độc lập khi vấn đề nằm ở native resources.
+Tests should ensure `channel.close()` is called if reading or parsing throws `IOException`. `Channel.isOpen()` lets integration tests check API state after closing. However, confirming "no OS handle remains" may require separate observation when debugging native resource leaks.
 
-### 10.2. SocketChannel / ServerSocketChannel
+### 10.2. `SocketChannel` / `ServerSocketChannel`
 
-Socket có thể lỗi ở `connect`, `accept`, `read`, `write` hoặc lúc close. Test cần xác định ai sở hữu accepted socket và listener:
+Sockets can fail on `connect`, `accept`, `read`, `write`, or `close`. Tests must define who owns accepted sockets and listeners:
 
-- Đóng listener **không được giả định** là tự đóng mọi socket đã được accept.
-- Khi accept thành công, mỗi accepted socket cần có cleanup path.
-- Trên lỗi xử lý một client, không vô tình đóng toàn bộ listener nếu server còn tiếp tục phục vụ.
-- Dùng loopback + port 0 cho integration test; đặt deadline để test không treo vô hạn.
+- Closing a listener **must not be assumed** to close every already-accepted socket automatically.
+- Once `accept` succeeds, each accepted socket needs its own cleanup path.
+- On an error handling one client, do not accidentally close the entire listener if the server should keep running.
+- Use loopback + port `0` for integration tests; enforce deadlines so tests cannot hang forever.
 
-Đo close với spy channel thường cần abstraction bởi các class channel có contract riêng; không nên tạo fake bằng cách override tùy tiện method final/native nếu test không phản ánh implementation thật.
+Measuring `close` with spy channels often requires an abstraction because channel classes have strict contracts; avoid building fakes by arbitrarily overriding final or native methods in ways that misrepresent the real implementation.
 
-### 10.3. ZipFile và ZipInputStream
+### 10.3. `ZipFile` and `ZipInputStream`
 
-ZIP là ví dụ quan trọng vì stream có thể lỗi **trong lúc giải nén** hoặc khi kiểm tra CRC:
+ZIP is an important case because streams can fail **mid-decompression** or during CRC verification:
 
 ~~~java
 try (ZipFile zip = new ZipFile(zipPath.toFile())) {
@@ -583,16 +583,16 @@ try (ZipFile zip = new ZipFile(zipPath.toFile())) {
     }
 
     try (InputStream content = zip.getInputStream(entry)) {
-        // Read / parse / validate content; exception có thể xảy ra.
+        // Read / parse / validate content; exceptions may occur.
     }
 }
 ~~~
 
-Đây là mã minh họa có `Path zipPath`. Khi exception xuất hiện, TWR đóng entry stream và ZipFile theo scope. Với `ZipInputStream`, đặt nó trong TWR và theo dõi việc đóng underlying stream nếu wrapper sở hữu nguồn đó. Với `ZipOutputStream` hoặc `GZIPOutputStream`, `close` có thể hoàn tất cấu trúc nén; đừng quên thử nhánh lỗi khi finalizing metadata.
+This is an illustrative snippet with `Path zipPath`. When an exception occurs, TWR closes the entry stream and `ZipFile` in scope order. With `ZipInputStream`, place it in TWR and track closing of the underlying stream if the wrapper owns it. With `ZipOutputStream` or `GZIPOutputStream`, `close` finalizes the compressed trailer; remember to test failures during metadata finalization.
 
-### 10.4. DirectoryStream, Files.list, Files.walk và Files.lines
+### 10.4. `DirectoryStream`, `Files.list`, `Files.walk`, and `Files.lines`
 
-Không phải `Stream<T>` nào cũng giữ OS resource, nhưng **Stream do những Files API này trả về có thể giữ file/directory handle**. Cần đóng rõ:
+Not every `Stream<T>` holds an OS resource, but **streams returned by these `Files` APIs can hold file or directory handles**. Close them explicitly:
 
 ~~~java
 try (Stream<Path> paths = Files.list(directory)) {
@@ -614,29 +614,29 @@ try (Stream<String> lines = Files.lines(
 }
 ~~~
 
-Đây là những đoạn minh họa, cần `java.nio.file.*`, `java.nio.charset.*`, `java.util.stream.Stream` và các biến `directory`/`logFile`. Chúng chưa phải các method độc lập và giá trị count chỉ là ví dụ sử dụng, không in output.
+These are illustrative snippets requiring `java.nio.file.*`, `java.nio.charset.*`, `java.util.stream.Stream`, and `directory`/`logFile` variables. They are not standalone methods, and `count` values are usage examples without printed output.
 
-**Lưu ý:** `Stream.count()`/`findFirst()`/`forEach()` là terminal operation, nhưng **không thay cho `close()`** của file-backed stream. Nếu pipeline ném `UncheckedIOException` trong lúc iteration, TWR vẫn đóng stream.
+**Note:** `Stream.count()`/`findFirst()`/`forEach()` are terminal operations, yet **they do not replace `close()`** on a file-backed stream. If the pipeline throws `UncheckedIOException` during iteration, TWR still closes the stream.
 
-### 10.5. Files.copy và API tự quản lý nguồn
+### 10.5. `Files.copy` and APIs That Manage Their Own Sources
 
-Nếu API nhận `InputStream` từ caller, không mặc định nó sẽ đóng stream. Ví dụ `Files.copy(InputStream, Path, ...)` không thay thế scope sở hữu của input stream; caller cần đặt input vào TWR khi mình là owner.
+If an API accepts an `InputStream` from a caller, do not assume it closes the stream. For example, `Files.copy(InputStream, Path, ...)` does not take over the input stream's ownership scope; the caller must place the input in TWR when the caller is the owner.
 
-Đừng suy luận quyền sở hữu chỉ vì phương thức đọc tới EOF; **EOF không đồng nghĩa đã close**.
+Never infer ownership just because a method reads to EOF; **EOF does not mean closed**.
 
-## 11. Thử nghiệm lỗi ở giai đoạn khởi tạo: chỗ dễ leak
+## 11. Testing Initialization Failures: Where Leaks Hide
 
-Một resource factory có thể gồm nhiều bước:
+A resource factory can involve multiple steps:
 
 ~~~java
 Resource openResource(Path path) throws IOException {
     InputStream in = Files.newInputStream(path);
-    // Bước khởi tạo khác có thể ném lỗi tại đây.
+    // Another initialization step may throw an error here.
     return new Resource(in);
 }
 ~~~
 
-Đây là mã giả, `Resource` là type ứng dụng tự định nghĩa. Nếu bước giữa hai dòng thất bại trước khi object trả về, caller không nhận được `Resource` để close. Cần thiết kế factory chịu trách nhiệm cleanup của phần đã mở:
+This is pseudocode where `Resource` is application-defined. If the step between the two lines fails before returning the object, the caller never receives a `Resource` to close. Design the factory to clean up partially opened state:
 
 ~~~java
 Resource openResource(Path path) throws IOException {
@@ -644,7 +644,7 @@ Resource openResource(Path path) throws IOException {
     boolean transferred = false;
     try {
         Resource resource = initializeOwnedResource(in);
-        transferred = true; // Ownership chuyển sang resource trả về.
+        transferred = true; // Ownership transfers to returned resource.
         return resource;
     } finally {
         if (!transferred) {
@@ -654,67 +654,67 @@ Resource openResource(Path path) throws IOException {
 }
 ~~~
 
-Đây là **mã minh họa**, không biên dịch độc lập vì `Resource` và `initializeOwnedResource(...)` do ứng dụng định nghĩa. Nó thể hiện ownership transfer, nhưng nếu cả khởi tạo và cleanup lỗi, block `finally` trên có thể **che mất lỗi khởi tạo**; production cần dùng nested try-with-resources hoặc thu thập suppressed exception để giữ nguyên nguyên nhân. Cách tốt hơn là giảm số bước manual transfer và đặt tài nguyên đã mở vào scope TWR càng sớm càng tốt.
+This is **illustrative code** and does not compile standalone because `Resource` and `initializeOwnedResource(...)` are application-defined. It demonstrates ownership transfer, though if both initialization and cleanup fail, the `finally` block above can **mask the initialization error**; production code should use nested `try-with-resources` or collect suppressed exceptions to preserve the root cause. Even better, minimize manual transfer steps and put opened resources into a TWR scope as early as possible.
 
-Ví dụ kiểu cleanup rõ hơn bằng TWR:
+Cleaner example using TWR when possible:
 
 ~~~java
 try (InputStream in = Files.newInputStream(path)) {
-    // Các bước chuẩn bị hoàn toàn tiêu thụ in trong scope này.
+    // Preparation steps completely consume in within this scope.
     return parseData(in);
 }
 ~~~
 
-Đoạn này minh họa khi `parseData` trả kết quả **không cần giữ stream**. Nếu `parseData` cần trả object sở hữu chính `in`, không thể đóng `in` trước return: phải thiết kế ownership transfer riêng.
+This illustrates the case where `parseData` returns a result **without retaining the stream**. If `parseData` must return an object owning `in` itself, you cannot close `in` before returning and must design explicit ownership transfer.
 
-### Kiểm thử khởi tạo mở dở
+### Testing Partial Initialization
 
-- Lỗi trước khi open: không có gì phải close.
-- Open A thành công, open B thất bại: A phải close.
-- Factory mở file rồi parse header lỗi: file phải close.
-- Wrapper constructor lỗi sau khi đã nhận nguồn: factory/caller phải biết ai đang sở hữu nguồn và cleanup.
-- Resource trả về thành công nhưng caller từ chối: caller phải close theo hợp đồng.
+- Failure before opening: nothing to close.
+- Open A succeeds, open B fails: A must close.
+- Factory opens file, then header parsing fails: file must close.
+- Wrapper constructor fails after receiving a source: factory/caller must agree on who owns and cleans up the source.
+- Resource returned successfully yet rejected by caller: caller must close per contract.
 
-Không nên chỉ kiểm thử exception tại một vị trí; chính **điểm xảy ra lỗi** quyết định những tài nguyên nào đã tồn tại.
+Do not test exceptions at only one point; **the exact point of failure** determines which resources already exist.
 
-## 12. Test double không đủ để xác minh handle thật
+## 12. Test Doubles Are Not Enough to Verify Real Handles
 
-Spy đo lời gọi Java rất hữu ích, nhưng có các giới hạn:
+Java call spies are very useful, but have limitations:
 
-- `closeCalls==1` xác nhận method `close` được gọi trên fake, chưa chứng minh file descriptor được kernel trả lại.
-- Spy không kiểm tra kernel buffer, delayed write, flush hoặc corruption.
-- Một wrapper của thư viện khác có thể sở hữu thêm resource ngoài phạm vi fake.
-- Lỗi đồng thời (thread khác đang đọc khi close) có thể tạo trạng thái và exception không xuất hiện ở unit test tuần tự.
+- `closeCalls==1` confirms `close` was called on the fake, not that the kernel released the file descriptor.
+- Spies do not test kernel buffers, delayed writes, flushes, or corruption.
+- A third-party library wrapper may hold extra resources outside the fake's scope.
+- Concurrency bugs (another thread reading during `close`) can produce states and exceptions unseen in sequential unit tests.
 
-### Integration test có giá trị gì?
+### Where Integration Tests Add Value
 
-Với file thực:
+With real files:
 
-1. Dùng `Files.createTempFile` hoặc `Files.createTempDirectory` để có vùng test riêng.
-2. Mở resource thật qua code production.
-3. Tiêm lỗi parse/processing thay vì dựa vào lỗi thiết bị ngẫu nhiên.
-4. Sau khi method kết thúc với exception, kiểm tra `isOpen()` (nếu API hỗ trợ), đọc/ghi lại file qua handle mới và cleanup tệp tạm.
-5. Nếu cần, dùng OS-level tools để xem số descriptor trước/sau nhiều lần test.
+1. Use `Files.createTempFile` or `Files.createTempDirectory` for an isolated test area.
+2. Open real resources through production code.
+3. Inject parsing/processing failures rather than relying on random hardware errors.
+4. After the method exits with an exception, check `isOpen()` (if supported), reopen/read/write the file via a fresh handle, and clean up temporary files.
+5. When needed, use OS-level tools to inspect descriptor counts before and after repeated test runs.
 
-**Không dùng khả năng xóa file như tiêu chí chung xuyên nền tảng**. Một số hệ điều hành cho unlink file đang mở, nên `Files.deleteIfExists` thành công **không chứng minh** handle đã close.
+**Never use file deletability as a universal cross-platform proof.** Some operating systems allow unlinking an open file, so a successful `Files.deleteIfExists` **does not prove** the handle was closed.
 
-### Stress/soak test
+### Stress / Soak Tests
 
-Lỗi leak nhỏ khó nhìn thấy trong một lần chạy. Thử 1.000–10.000 lượt “open → lỗi đọc → cleanup” trong môi trường có quota phù hợp và quan sát:
+Small leaks are hard to spot in a single run. Execute 1,000–10,000 cycles of "open → read error → cleanup" in an appropriately bounded environment and monitor:
 
-- Số file handles/sockets.
-- Số thread/task còn giữ resource.
-- Thời gian và memory qua thời gian.
-- Số request lỗi và số exception bị suppressed.
-- Tình trạng directory stream, ZIP reader còn mở.
+- File handle and socket counts.
+- Threads or tasks still holding resources.
+- Execution duration and memory over time.
+- Error counts and suppressed exception counts.
+- Open directory streams and ZIP readers.
 
-Kết luận dựa vào xu hướng ổn định và môi trường xác định, không dựa vào số cố định từ một OS/JDK khác. Mỗi test phải có cleanup riêng dù assertion thất bại.
+Draw conclusions from stability trends in a controlled environment, not hardcoded counts from another OS or JDK. Every test must clean up its own artifacts even when assertions fail.
 
-## 13. Lỗi close trong hệ thống bất đồng bộ và nhiều thread
+## 13. Close Failures in Asynchronous and Multi-Threaded Systems
 
-Với `AsynchronousFileChannel`, `AsynchronousSocketChannel` và các executor xử lý I/O, kết thúc một method chưa chắc kết thúc tất cả operation đang pending.
+With `AsynchronousFileChannel`, `AsynchronousSocketChannel`, and I/O executors, returning from a method does not necessarily finish all pending operations.
 
-Cần xác định lifecycle:
+Define the lifecycle explicitly:
 
 ~~~text
 OPEN
@@ -725,55 +725,55 @@ OPEN
   |
   +--> SHUTDOWN REQUEST
                 |
-         ngừng submit mới
+         stop new submissions
                 |
-         chờ/giải quyết pending I/O theo contract
+         wait for/resolve pending I/O per contract
                 |
              close channel
                 |
              CLOSED
 ~~~
 
-Một số API cho phép close channel trong khi operation đang pending; operation có thể kết thúc bất thường như `AsynchronousCloseException`. Unit test chỉ quan sát “close đã gọi ngay khi method throw” sẽ **không đủ** nếu trách nhiệm đóng thuộc một component chạy background; cần kiểm tra trạng thái shutdown sau khi các task/handler đã được giải quyết.
+Some APIs allow closing a channel while operations are pending, causing those operations to terminate abnormally with `AsynchronousCloseException`. A unit test checking only "close was called immediately when the method threw" is **insufficient** when a background component owns closure; check shutdown state after all tasks and handlers have resolved.
 
-### Tránh flaky test bằng Thread.sleep
+### Avoiding Flaky Tests with `Thread.sleep`
 
-Không nên viết:
+Do not write:
 
 ~~~java
 startAsyncOperation();
-Thread.sleep(200); // đoán operation đã xong
+Thread.sleep(200); // guess operation finished
 assertTrue(isClosed());
 ~~~
 
-Đây là **phản ví dụ** không tự chạy. Sử dụng `CountDownLatch`, `CompletableFuture`, `Future.get(timeout, unit)` hoặc synchronization rõ ràng với **deadline** để chờ sự kiện close. Timeout là giới hạn cho test, không phải bằng chứng operation chắc chắn đã xong khi hết thời gian.
+This is a non-runnable **anti-pattern**. Use `CountDownLatch`, `CompletableFuture`, `Future.get(timeout, unit)`, or explicit synchronization with a **deadline** to wait for the close event. The timeout bounds the test—it is not proof an operation finished simply because time elapsed.
 
-### Trường hợp thread bị interrupt
+### When a Thread Is Interrupted
 
-Java `try-with-resources` vẫn cleanup khi scope thoát vì exception do interrupt, nhưng bản thân API close có hợp đồng và ngoại lệ riêng. Với `AutoCloseable` tùy biến, Javadoc khuyến cáo không dùng `InterruptedException` làm lỗi close vì có thể gây hành vi khó dự đoán khi exception bị suppressed. Trong logic xử lý `InterruptedException`, cần quyết định có phục hồi interrupt flag và dừng theo chính sách ứng dụng hay không.
+Java `try-with-resources` still runs cleanup when exiting scope due to an interrupt-induced exception, though individual `close` APIs have their own contracts and exceptions. For custom `AutoCloseable` types, Javadoc recommends against throwing `InterruptedException` from `close`, as suppression can produce unpredictable behavior. When handling `InterruptedException`, decide explicitly whether to restore the interrupt flag and stop per application policy.
 
-## 14. Thiết kế API dễ kiểm thử việc close
+## 14. Designing APIs That Are Easy to Test for Closure
 
-Một component I/O dễ test thường có các đặc điểm:
+Testable I/O components share common traits:
 
-- **Constructor/factory inject được resource** hoặc resource factory, để mô phỏng lỗi đọc/ghi/close.
-- **Hợp đồng owner rõ ràng**: ai tạo, ai dùng, ai đóng, ai chuyển ownership.
-- **Không dùng global singleton cho stream mutable** nếu không thực sự cần chia sẻ.
-- **Có giới hạn scope**: mở resource sát lúc dùng và close sớm khi không còn cần.
-- **Không nuốt IOException**: lỗi body và lỗi cleanup được propagate/log theo chính sách.
-- **Không phụ thuộc GC/finalizer/Cleaner làm cơ chế release chính**: chúng không cho thời điểm close xác định.
-- **Không chỉ kiểm tra happy path**; thử lỗi khởi tạo, partial read/write, parser, close và return sớm.
+- **Injectable resources** or resource factories via constructors/parameters, enabling read/write/close fault simulation.
+- **Clear ownership contracts**: who creates, who uses, who closes, and who transfers ownership.
+- **No global singletons for mutable streams** unless sharing is genuinely required.
+- **Tight scopes**: open resources right before use and close them as early as possible.
+- **Never swallow `IOException`**: body and cleanup errors propagate or log per policy.
+- **Never rely on GC, finalizers, or `Cleaner` as the primary release mechanism**: they give no deterministic close timing.
+- **Test beyond the happy path**: cover initialization errors, partial reads/writes, parser errors, close errors, and early returns.
 
-Một phân tách điển hình:
+A typical separation:
 
 ~~~java
-// Core logic làm việc trên stream do caller cho mượn:
+// Core logic operating on a caller-borrowed stream:
 static Result parse(InputStream borrowed) throws IOException {
-    // Parse; không close borrowed.
+    // Parse; do not close borrowed.
     return decode(borrowed);
 }
 
-// Boundary nhận ownership của file stream:
+// Boundary taking ownership of the file stream:
 static Result parseFile(Path path) throws IOException {
     try (InputStream owned = Files.newInputStream(path)) {
         return parse(owned);
@@ -781,28 +781,28 @@ static Result parseFile(Path path) throws IOException {
 }
 ~~~
 
-Đây là **mã minh họa**, `Result` và `decode` thuộc ứng dụng. Thiết kế này cho phép unit test `parse` bằng fake input và kiểm tra `parseFile` quản lý vòng đời tài nguyên mở từ filesystem. Không cần mock API static `Files.newInputStream` cho mọi test.
+This is **illustrative code**, where `Result` and `decode` are application-defined. This design lets unit tests test `parse` with fake inputs while testing `parseFile`'s filesystem resource lifecycle separately, without needing to mock static `Files.newInputStream` for every test.
 
-### Kiểm thử với các phương thức có trách nhiệm đóng rõ
+### Testing Methods with Explicit Close Responsibilities
 
-Nếu một API có tham số `InputStream stream` và trách nhiệm **caller owns**, test nên khẳng định stream **vẫn open sau khi method kết thúc** (kể cả lỗi). Trái lại boundary `parseFile` phải khẳng định file stream được đóng khi bất kỳ lỗi nào xảy ra. Hai assertion khác nhau đều có thể đúng vì ownership khác nhau.
+If an API takes `InputStream stream` with **caller owns** semantics, tests should assert the stream **remains open after the method finishes** (even on error). Conversely, the `parseFile` boundary must assert the file stream is closed on any error. Two opposite assertions can both be right because ownership differs.
 
-## 15. Vì sao kiểm thử close cần xét cả lỗi trong finally?
+## 15. Why Close Testing Must Also Account for `finally` Failures
 
-Khi bắt buộc phải dùng `finally` thủ công vì không có `AutoCloseable` phù hợp hoặc ownership phức tạp:
+When manual `finally` is unavoidable due to non-`AutoCloseable` APIs or complex ownership:
 
-1. Giữ được exception gốc.
-2. Không bỏ sót các resource cần cleanup nếu một close thất bại.
-3. Không close tài nguyên mà method không sở hữu.
-4. Không bỏ qua phần khởi tạo chưa hoàn tất.
-5. Không giấu các suppressed exceptions trong logging/monitoring.
-6. Tránh double-close resource có semantics không idempotent.
+1. Preserve the original exception.
+2. Do not skip cleaning up remaining resources if one `close` fails.
+3. Never close resources the method does not own.
+4. Do not skip partially initialized state.
+5. Do not hide suppressed exceptions from logging and monitoring.
+6. Avoid double-closing resources with non-idempotent close semantics.
 
-Với nhiều tài nguyên, tự viết chính xác tất cả trường hợp này khá dễ sai; **ưu tiên try-with-resources** bất cứ khi nào phù hợp. Nếu phải tự tổng hợp exception, có thể đính lỗi cleanup vào primary bằng `addSuppressed`, nhưng phải cẩn thận không tự suppress chính nó hoặc nhận null.
+With multiple resources, writing every case accurately by hand is error-prone; **prefer `try-with-resources`** whenever possible. If you must aggregate exceptions manually, attach cleanup errors to the primary exception with `addSuppressed`, taking care never to suppress an exception onto itself or pass `null`.
 
-### Khi nào cần catch và khi nào không?
+### When to `catch` and When Not To
 
-**Đơn giản và thường đủ:**
+**Simple and usually sufficient:**
 
 ~~~java
 try (InputStream in = Files.newInputStream(path)) {
@@ -810,7 +810,7 @@ try (InputStream in = Files.newInputStream(path)) {
 }
 ~~~
 
-Nếu caller hiểu IOException, không cần catch chỉ để log rồi throw lại. Nếu ứng dụng cần bổ sung ngữ cảnh, hãy preserve cause:
+If the caller understands `IOException`, do not catch merely to log and rethrow. If the application needs extra context, preserve the cause:
 
 ~~~java
 try (InputStream in = Files.newInputStream(path)) {
@@ -820,93 +820,93 @@ try (InputStream in = Files.newInputStream(path)) {
 }
 ~~~
 
-Hai đoạn là **mã minh họa trong method trả giá trị parser**, `parse` cần được định nghĩa. Với exception được bọc, lỗi suppressed vẫn nằm trên exception nguyên nhân `ex`; công cụ log nên duyệt cause và suppressed để không bỏ mất lỗi close.
+Both snippets are **illustrative code inside a method returning a parser result** where `parse` must be defined. When wrapped, any suppressed close exceptions remain attached to the cause `ex`; logging tools should traverse both causes and suppressed exceptions so close failures are never lost.
 
-**Không nên:**
+**Avoid:**
 
 ~~~java
 catch (IOException ex) {
-    return null; // nuốt lỗi, caller tưởng đọc thành công
+    return null; // swallows error, caller thinks read succeeded
 }
 ~~~
 
-Đây là phản ví dụ. Nuốt IOException khiến tài nguyên có thể đã được đóng nhưng dữ liệu đầu ra/flow logic không còn đáng tin. Nếu sản phẩm có fallback hợp lệ, phải thể hiện bằng return type rõ nghĩa thay vì biến lỗi thành thành công mơ hồ.
+This is an anti-pattern. Swallowing `IOException` may still close the resource, yet leaves output data and control flow untrustworthy. If a product defines a valid fallback, express it through an explicit return type rather than turning failure into ambiguous success.
 
-## 16. Checklist cuối cùng cho test và code review
+## 16. Final Checklist for Tests and Code Reviews
 
-Trước khi coi một đường I/O đã có cleanup đúng, kiểm tra:
+Before considering an I/O path properly cleaned up, verify:
 
-- [ ] Xác định **resource owner** cho từng stream/channel/wrapper.
-- [ ] Tất cả resource mở thành công nằm trong scope `try-with-resources` hoặc cleanup tương đương.
-- [ ] Khi lỗi ở bước mở thứ hai, resource đầu vẫn đóng.
-- [ ] Khi lỗi `read`, `write`, parse hoặc callback, cleanup vẫn chạy.
-- [ ] Khi `return`/`break` hoặc early exit, cleanup chạy đúng.
-- [ ] Nhiều resource đóng **ngược thứ tự**, một close lỗi không cản close những resource khác.
-- [ ] Exception trong body là primary và lỗi close nằm ở `getSuppressed()`.
-- [ ] Wrapper đóng underlying theo đúng ownership; không double-close resource không idempotent.
-- [ ] File-backed streams từ `Files.lines/list/walk` được đóng ngay cả khi terminal operation ném lỗi.
-- [ ] Fake/spy xác nhận **đã gọi close**; integration test kiểm tra thực tế cần thiết.
-- [ ] Không suy luận đã release OS handle chỉ từ khả năng xóa file.
-- [ ] Async tasks có deadline và synchronization để kiểm tra completion/close, không dùng sleep cố định.
-- [ ] Exception và suppressed được log/propagate đủ để chẩn đoán.
-- [ ] Test fixtures tự giải phóng tài nguyên ngay cả khi assertion thất bại.
+- [ ] Identify the **resource owner** for every stream, channel, and wrapper.
+- [ ] All successfully opened resources sit inside `try-with-resources` or equivalent cleanup.
+- [ ] When opening a second resource fails, the first resource still closes.
+- [ ] When `read`, `write`, parsing, or callbacks fail, cleanup still runs.
+- [ ] On `return`, `break`, or early exit, cleanup runs properly.
+- [ ] Multiple resources close in **reverse order**, and one `close` failure does not prevent closing the others.
+- [ ] Body exceptions remain primary and `close` exceptions appear in `getSuppressed()`.
+- [ ] Wrappers close underlying sources per ownership; non-idempotent resources are never double-closed.
+- [ ] File-backed streams from `Files.lines`/`list`/`walk` close even if a terminal operation throws.
+- [ ] Fakes/spies confirm **`close` was called**; integration tests verify real behavior where needed.
+- [ ] OS handle release is never inferred solely from file deletability.
+- [ ] Async tasks use deadlines and synchronization to verify completion/closure instead of fixed sleeps.
+- [ ] Primary and suppressed exceptions are logged/propagated adequately for diagnosis.
+- [ ] Test fixtures release resources themselves even when assertions fail.
 
-## 17. Các lỗi thường gặp
+## 17. Common Mistakes
 
-1. **“Đã tới EOF là stream tự đóng.”** Sai: `read() == -1` không thay `close()`.
-2. **“GC sẽ tự thu hồi file handle kịp thời.”** Không có thời điểm xác định; phải close.
-3. **“Chỉ cần close ở happy path.”** Sai: error path còn dễ leak hơn.
-4. **“Mỗi tài nguyên khai báo TWR đóng theo thứ tự mở.”** Sai: đóng theo thứ tự **ngược**.
-5. **“Nếu open resource thứ hai thất bại thì first không được đóng.”** Sai với first đã khởi tạo thành công trong header.
-6. **“Nếu close thứ hai ném lỗi, Java bỏ close thứ nhất.”** Sai: các resource đã mở vẫn được thử đóng.
-7. **“Lỗi close luôn đè lên lỗi read.”** Sai với TWR; lỗi close được suppressed nếu đã có primary.
-8. **“getCause và getSuppressed là một.”** Sai: cause chain và lỗi bổ sung khác nhau.
-9. **“Spy.closeCalls==1 bảo đảm không còn OS descriptor.”** Sai: cần test thực/instrumentation theo mục tiêu.
-10. **“Gọi close hai lần mọi AutoCloseable đều an toàn.”** Sai: AutoCloseable không yêu cầu idempotent.
-11. **“Đóng BufferedInputStream không ảnh hưởng underlying stream.”** Thông thường wrapper đóng nguồn, cần hiểu ownership.
-12. **“Một terminal operation trên Files.lines tự close stream.”** Sai: file-backed stream cần close.
-13. **“Constructor/factory ném lỗi trước khi return sẽ luôn được TWR tự cleanup bên trong.”** Sai: phần tài nguyên mở dở chưa trao cho TWR phải do factory tự xử lý.
-14. **“File xóa được chứng minh stream đã đóng.”** Sai trên OS có unlink semantics cho file đang mở.
-15. **“Thread.sleep(100) là đủ để test close async.”** Không xác định; dùng synchronization và deadline.
-16. **“close() không thể ném IOException.”** Sai: đặc biệt output flush/finalization có thể lỗi.
-17. **“catch rồi return null là cách xử lý lỗi I/O an toàn.”** Thường làm mất ngữ cảnh và tạo thành công giả.
-18. **“Đóng listener cũng tự đóng mọi accepted channel.”** Không nên giả định, mỗi channel cần ownership riêng.
+1. **"Reaching EOF closes the stream automatically."** False: `read() == -1` does not replace `close()`.
+2. **"GC will reclaim file handles in time."** No deterministic timing exists; always close explicitly.
+3. **"Only close on the happy path."** False: error paths leak much more easily.
+4. **"Resources in TWR close in opening order."** False: they close in **reverse** order.
+5. **"If opening the second resource fails, the first isn't closed."** False for a first resource already initialized in the header.
+6. **"If the second `close` throws, Java skips closing the first."** False: remaining opened resources are still closed.
+7. **"A `close` error always overwrites a `read` error."** False in TWR; the `close` error becomes suppressed when a primary exists.
+8. **"`getCause` and `getSuppressed` are the same."** False: cause chains and suppressed cleanup errors are distinct.
+9. **"`Spy.closeCalls==1` guarantees zero OS descriptors remain."** False: use real/instrumented tests where required.
+10. **"Calling `close` twice is safe on every `AutoCloseable`."** False: `AutoCloseable` does not mandate idempotence.
+11. **"Closing `BufferedInputStream` doesn't affect the underlying stream."** Wrappers normally close their source; know ownership.
+12. **"A terminal operation on `Files.lines` closes the stream automatically."** False: file-backed streams still require `close()`.
+13. **"A constructor/factory throwing before returning is always cleaned up by TWR."** False: partially opened resources not yet handed to TWR must be cleaned up by the factory.
+14. **"Being able to delete the file proves the stream was closed."** False on OSes with unlink semantics for open files.
+15. **"`Thread.sleep(100)` is enough to test async close."** Non-deterministic; use synchronization and deadlines.
+16. **"`close()` cannot throw `IOException`."** False: output flushing and finalization especially can fail.
+17. **"Catching and returning `null` is a safe way to handle I/O errors."** Usually loses context and fakes success.
+18. **"Closing a listener automatically closes all accepted channels."** Never assume this; every channel needs explicit ownership.
 
-## 18. Câu hỏi tự kiểm tra
+## 18. Self-Check Questions
 
-**Câu 1.** Trong TWR có hai resource A, B. Body ném `IOException("read")`, còn `B.close()` ném `IOException("close")`. Exception caller thấy là gì?
+**Q1.** In TWR with two resources `A` and `B`, the body throws `IOException("read")` and `B.close()` throws `IOException("close")`. What exception does the caller see?
 
-**Đáp án:** `"read"` là primary; `"close"` nằm trong `getSuppressed()`. Java vẫn thử đóng A.
+**Answer:** `"read"` is primary; `"close"` is inside `getSuppressed()`. Java still attempts to close `A`.
 
-**Câu 2.** Resource A mở thành công nhưng khởi tạo B ném IOException. A có close không?
+**Q2.** Resource `A` opens successfully, but initializing `B` throws `IOException`. Does `A` close?
 
-**Đáp án:** Có, nếu A là resource đã khởi tạo thành công trong header TWR. Body không chạy và exception khởi tạo B là primary.
+**Answer:** Yes, if `A` was already initialized in the TWR header. The body does not run, and `B`'s initialization exception is primary.
 
-**Câu 3.** Nếu method `return` bên trong TWR, close chạy trước hay sau khi method đã hoàn tất return?
+**Q3.** If a method executes `return` inside TWR, does `close` run before or after the method finishes returning?
 
-**Đáp án:** Close chạy khi rời scope trước khi method hoàn tất trả kết quả. Nếu close ném exception, nó có thể khiến phương thức hoàn tất bằng exception thay vì return bình thường.
+**Answer:** `close` runs upon exiting scope before the method finishes returning. If `close` throws an exception, the method can complete abruptly with that exception instead of returning normally.
 
-**Câu 4.** Tại sao unit test dùng CloseSpy vẫn cần một số integration test?
+**Q4.** Why do unit tests using `CloseSpy` still need some integration tests?
 
-**Đáp án:** Spy kiểm tra lời gọi close theo contract của fake; không kiểm tra đầy đủ native handles, output finalization hay các resource bên trong implementation thật.
+**Answer:** A spy checks `close` calls against the fake's contract; it does not verify native handles, output finalization, or internal resources of real implementations.
 
-**Câu 5.** Tại sao `Files.lines(path).count()` không đủ để đảm bảo file đã đóng?
+**Q5.** Why is `Files.lines(path).count()` not enough to ensure the file is closed?
 
-**Đáp án:** Terminal operation xử lý các phần tử, không cam kết đóng file-backed stream. Dùng TWR cho stream trả về.
+**Answer:** Terminal operations process elements without guaranteeing closure of the file-backed stream. Wrap the returned stream in TWR.
 
-**Câu 6.** Một service dùng `BufferedInputStream` bọc `System.in`. Service có nên mặc định đóng wrapper khi xong không?
+**Q6.** A service wraps `System.in` in `BufferedInputStream`. Should the service close the wrapper by default when done?
 
-**Đáp án:** Không thể quyết định nếu chưa biết ownership. Đóng wrapper thường đóng nguồn bên dưới; với `System.in` dùng chung, phải thiết kế borrowed ownership hoặc close-shield rõ ràng.
+**Answer:** You cannot decide without knowing ownership. Closing the wrapper typically closes the underlying source; for shared `System.in`, design borrowed ownership or an explicit close shield.
 
-**Câu 7.** Close handler của một object có thể ném IOException. Unit test nên kiểm tra gì ngoài `closeCalls`?
+**Q7.** An object's close handler can throw `IOException`. What should unit tests check besides `closeCalls`?
 
-**Đáp án:** Kiểm tra primary/suppressed exception, thứ tự close của các resource khác và phương thức có propagate lỗi đúng contract hay không.
+**Answer:** Check primary vs. suppressed exceptions, close ordering of other resources, and whether the method propagates errors per contract.
 
-**Câu 8.** Nếu một callback I/O bất đồng bộ đang pending và code yêu cầu shutdown, khi nào có thể kết luận cleanup hoàn tất?
+**Q8.** When an async I/O callback is pending and code requests shutdown, when can you conclude cleanup is complete?
 
-**Đáp án:** Sau khi chính sách cancel/completion và đóng channel/resource đã được xác nhận bằng signal/synchronization có deadline; không thể suy luận chỉ từ việc method request shutdown trả về.
+**Answer:** Only after cancellation/completion policies and channel/resource closure are confirmed via synchronization signals with a deadline—never merely because the shutdown-request method returned.
 
-### Tài liệu chính thức Java 17
+### Official Java 17 Documentation
 
 - [JLS `14.20.3 — try-with-resources](https://docs.oracle.com/javase/specs/jls/se17/html/jls-14.html#jls-14.20.3)
 - [AutoCloseable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AutoCloseable.html)

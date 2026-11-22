@@ -2245,7 +2245,7 @@ menu:
     summary: ''
   - slug: time-series-data-007
     title: Lưu dữ liệu thô, tổng hợp nhiều mức và giảm độ phân giải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2272,7 +2272,7 @@ menu:
     summary: ''
   - slug: time-series-data-010
     title: Mô hình nhiệt độ thiết bị hoặc chỉ số vận hành theo nhu cầu đọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2284,7 +2284,7 @@ menu:
   childs:
   - slug: distribution-partitioning-001
     title: Thiết kế theo ranh giới dữ liệu thường được đọc hoặc ghi cùng nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2293,7 +2293,7 @@ menu:
     summary: ''
   - slug: distribution-partitioning-002
     title: Chọn khóa phân vùng theo phân bố dữ liệu và mẫu truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2302,7 +2302,7 @@ menu:
     summary: ''
   - slug: distribution-partitioning-003
     title: Phân vùng theo khoảng, theo hàm băm hoặc theo thư mục định tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2311,7 +2311,7 @@ menu:
     summary: ''
   - slug: distribution-partitioning-004
     title: Khóa nóng, khách hàng quá lớn và nguy cơ phân bố lệch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2320,7 +2320,7 @@ menu:
     summary: ''
   - slug: distribution-partitioning-005
     title: Định danh duy nhất khi dữ liệu được tạo tại nhiều nơi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2329,7 +2329,7 @@ menu:
     summary: ''
   - slug: distribution-partitioning-006
     title: Ràng buộc duy nhất trong một phân vùng so với toàn hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2338,7 +2338,7 @@ menu:
     summary: ''
   - slug: distribution-partitioning-007
     title: Dữ liệu nhiều tổ chức với bảng dùng chung hoặc vùng lưu trữ tách biệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2347,7 +2347,7 @@ menu:
     summary: ''
   - slug: distribution-partitioning-008
     title: Nhân bản dữ liệu và xác định nguồn chịu trách nhiệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2356,7 +2356,7 @@ menu:
     summary: ''
   - slug: distribution-partitioning-009
     title: Truy vấn xuyên phân vùng, giao dịch phân tán và chi phí phối hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2365,7 +2365,7 @@ menu:
     summary: ''
   - slug: distribution-partitioning-010
     title: Thiết kế lại ranh giới khi bất biến không thể được bảo vệ hợp lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2377,7 +2377,7 @@ menu:
   childs:
   - slug: boundaries-integration-001
     title: Mô hình dữ liệu riêng cho từng ngữ cảnh thay vì một mô hình dùng cho mọi hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2386,7 +2386,7 @@ menu:
     summary: ''
   - slug: boundaries-integration-002
     title: Quan hệ giữa mô hình miền, mô hình lưu trữ và mô hình trao đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2395,7 +2395,7 @@ menu:
     summary: ''
   - slug: boundaries-integration-003
     title: Hợp đồng API hoặc sự kiện như phép chiếu có mục đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2404,7 +2404,7 @@ menu:
     summary: ''
   - slug: boundaries-integration-004
     title: Chọn dữ liệu cần công bố và tránh lộ cấu trúc lưu trữ nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2413,7 +2413,7 @@ menu:
     summary: ''
   - slug: boundaries-integration-005
     title: Đối chiếu định danh, thuật ngữ và dữ liệu danh mục giữa các nguồn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2422,7 +2422,7 @@ menu:
     summary: ''
   - slug: boundaries-integration-006
     title: Mô hình chuẩn dùng chung và nguy cơ trở thành điểm phụ thuộc quá lớn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2431,7 +2431,7 @@ menu:
     summary: ''
   - slug: boundaries-integration-007
     title: Lớp chuyển đổi để bảo vệ mô hình khỏi cách hiểu bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2440,7 +2440,7 @@ menu:
     summary: ''
   - slug: boundaries-integration-008
     title: Tách mô hình đọc với mô hình ghi theo CQRS khi nhu cầu khác biệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2449,7 +2449,7 @@ menu:
     summary: ''
   - slug: boundaries-integration-009
     title: Quyền sở hữu dữ liệu giữa dịch vụ và tránh chia sẻ bảng ngoài kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2458,7 +2458,7 @@ menu:
     summary: ''
   - slug: boundaries-integration-010
     title: Theo dõi nguồn gốc của dữ liệu được sao chép hoặc tổng hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2470,7 +2470,7 @@ menu:
   childs:
   - slug: data-protection-001
     title: Nhận diện dữ liệu cá nhân, dữ liệu nhạy cảm và thuộc tính suy ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2479,7 +2479,7 @@ menu:
     summary: ''
   - slug: data-protection-002
     title: Chỉ mô hình hóa dữ liệu cần thiết cho mục đích đã xác định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2488,7 +2488,7 @@ menu:
     summary: ''
   - slug: data-protection-003
     title: Tách thông tin định danh khỏi dữ liệu nghiệp vụ khi phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2497,7 +2497,7 @@ menu:
     summary: ''
   - slug: data-protection-004
     title: Mã thay thế, mã hóa và ảnh hưởng đến truy vấn với ràng buộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2506,7 +2506,7 @@ menu:
     summary: ''
   - slug: data-protection-005
     title: Mô hình quyền truy cập theo chủ thể, tài nguyên, vai trò hoặc thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2515,7 +2515,7 @@ menu:
     summary: ''
   - slug: data-protection-006
     title: Ranh giới tổ chức và nguy cơ liên kết dữ liệu chéo phạm vi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2524,7 +2524,7 @@ menu:
     summary: ''
   - slug: data-protection-007
     title: Thời hạn lưu, điều kiện xóa và dữ liệu còn nằm trong bản sao hoặc lịch sử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2533,7 +2533,7 @@ menu:
     summary: ''
   - slug: data-protection-008
     title: Cân bằng truy vết nghiệp vụ với yêu cầu hạn chế dữ liệu nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2542,7 +2542,7 @@ menu:
     summary: ''
   - slug: data-protection-009
     title: Biểu diễn trạng thái đồng ý, mục đích sử dụng và thời gian hiệu lực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2554,7 +2554,7 @@ menu:
   childs:
   - slug: model-evolution-001
     title: Phân biệt đổi tên, đổi cấu trúc và đổi ý nghĩa dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2563,7 +2563,7 @@ menu:
     summary: ''
   - slug: model-evolution-002
     title: Thêm thuộc tính, đổi kiểu, siết ràng buộc và đánh giá dữ liệu hiện có
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2572,7 +2572,7 @@ menu:
     summary: ''
   - slug: model-evolution-003
     title: Phiên bản lược đồ và quản lý các trạng thái trung gian khi triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2581,7 +2581,7 @@ menu:
     summary: ''
   - slug: model-evolution-004
     title: Mở rộng trước, chuyển đổi dần rồi thu hẹp cấu trúc cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2590,7 +2590,7 @@ menu:
     summary: ''
   - slug: model-evolution-005
     title: Điền bổ sung dữ liệu lịch sử với khả năng tiếp tục và đối soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2599,7 +2599,7 @@ menu:
     summary: ''
   - slug: model-evolution-006
     title: Chuyển khóa chính, tách thực thể và hợp nhất thực thể
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2608,7 +2608,7 @@ menu:
     summary: ''
   - slug: model-evolution-007
     title: Đọc hoặc ghi nhiều phiên bản trong giai đoạn chuyển đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2617,7 +2617,7 @@ menu:
     summary: ''
   - slug: model-evolution-008
     title: Kiểm tra khả năng quay về phiên bản cũ và giới hạn khi mất thông tin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2626,7 +2626,7 @@ menu:
     summary: ''
   - slug: model-evolution-009
     title: Đồng bộ thay đổi giữa mô hình Java, lưu trữ, sự kiện và báo cáo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2635,7 +2635,7 @@ menu:
     summary: ''
   - slug: model-evolution-010
     title: Đánh giá tác động đến bên sử dụng và dữ liệu dẫn xuất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2647,7 +2647,7 @@ menu:
   childs:
   - slug: model-documentation-001
     title: Chọn mức chi tiết sơ đồ theo đối tượng đọc và mục đích trao đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2656,7 +2656,7 @@ menu:
     summary: ''
   - slug: model-documentation-002
     title: Từ điển dữ liệu cho bảng, trường, kiểu, đơn vị và miền giá trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2665,7 +2665,7 @@ menu:
     summary: ''
   - slug: model-documentation-003
     title: Định nghĩa khóa, quan hệ, bội số và hành vi vòng đời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2674,7 +2674,7 @@ menu:
     summary: ''
   - slug: model-documentation-004
     title: Tài liệu hóa độ hạt, nguồn dữ liệu và thời điểm có hiệu lực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2683,7 +2683,7 @@ menu:
     summary: ''
   - slug: model-documentation-005
     title: Quy ước đặt tên nhất quán mà vẫn giữ đúng ngôn ngữ nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2692,7 +2692,7 @@ menu:
     summary: ''
   - slug: model-documentation-006
     title: Lưu ví dụ hợp lệ, phản ví dụ và quy tắc không thể hiện hết trên sơ đồ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2701,7 +2701,7 @@ menu:
     summary: ''
   - slug: model-documentation-007
     title: Ghi quyết định kiến trúc, phương án đã cân nhắc và lý do đánh đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2710,7 +2710,7 @@ menu:
     summary: ''
   - slug: model-documentation-008
     title: Sơ đồ được sinh từ triển khai và giới hạn khi thiếu ý nghĩa nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2719,7 +2719,7 @@ menu:
     summary: ''
   - slug: model-documentation-009
     title: Quản lý mô hình trong kiểm soát phiên bản và rà soát cùng thay đổi mã
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2731,7 +2731,7 @@ menu:
   childs:
   - slug: design-validation-001
     title: Rà soát mô hình bằng tình huống nghiệp vụ từ đầu đến cuối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2740,7 +2740,7 @@ menu:
     summary: ''
   - slug: design-validation-002
     title: Kiểm tra độ hạt, định danh, tính tùy chọn và vòng đời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2749,7 +2749,7 @@ menu:
     summary: ''
   - slug: design-validation-003
     title: Kiểm tra bất biến với dữ liệu biên, dữ liệu thiếu và trạng thái không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2758,7 +2758,7 @@ menu:
     summary: ''
   - slug: design-validation-004
     title: Chứng minh phân rã không mất mát và kiểm tra phụ thuộc cần bảo toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2767,7 +2767,7 @@ menu:
     summary: ''
   - slug: design-validation-005
     title: Kiểm thử tính đúng của phép nối, tổng hợp và lịch sử theo thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2776,7 +2776,7 @@ menu:
     summary: ''
   - slug: design-validation-006
     title: Kiểm thử equals, hashCode và tính bất biến của mô hình Java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2785,7 +2785,7 @@ menu:
     summary: ''
   - slug: design-validation-007
     title: Kiểm tra ràng buộc khi có thao tác đồng thời hoặc dữ liệu đến trễ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2794,7 +2794,7 @@ menu:
     summary: ''
   - slug: design-validation-008
     title: Đo truy vấn đọc, chi phí ghi và dung lượng trên dữ liệu đại diện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2803,7 +2803,7 @@ menu:
     summary: ''
   - slug: design-validation-009
     title: Kiểm thử chuyển đổi lược đồ, đối soát và khả năng khôi phục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2812,7 +2812,7 @@ menu:
     summary: ''
   - slug: design-validation-010
     title: Rà soát quyền truy cập, phạm vi tổ chức và yêu cầu xóa dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2821,7 +2821,7 @@ menu:
     summary: ''
   - slug: design-validation-011
     title: Danh sách tiêu chí để chấp nhận một mô hình trước khi triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2833,7 +2833,7 @@ menu:
   childs:
   - slug: common-pitfalls-001
     title: Vẽ bảng trước khi thống nhất khái niệm và độ hạt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2842,7 +2842,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-002
     title: Đồng nhất lớp Java, bảng lưu trữ và DTO thành một mô hình duy nhất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2851,7 +2851,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-003
     title: Một bảng hoặc một tài liệu chứa quá nhiều khái niệm khác vòng đời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2860,7 +2860,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-004
     title: Tạo quá nhiều bảng hoặc kiểu chỉ để thể hiện khác biệt rất nhỏ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2869,7 +2869,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-005
     title: Danh sách phân cách bằng dấu phẩy và nhóm cột lặp như item1, item2
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2878,7 +2878,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-006
     title: Mô hình thực thể–thuộc tính–giá trị (EAV) và chi phí của cấu trúc quá tổng quát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2887,7 +2887,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-007
     title: Khóa ngoại đa hình không có cách kiểm soát tham chiếu rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2896,7 +2896,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-008
     title: Lạm dụng cột JSON để né xác định cấu trúc dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2905,7 +2905,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-009
     title: Dư thừa dữ liệu nhưng không có nguồn chuẩn hoặc quy tắc đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2914,7 +2914,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-010
     title: Xóa lan truyền làm mất lịch sử cần giữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2923,7 +2923,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-011
     title: Thiết kế cho mọi khả năng tương lai mà không có yêu cầu hoặc bằng chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2935,7 +2935,7 @@ menu:
   childs:
   - slug: integrated-exercises-001
     title: Khảo sát quy trình bán hàng và xây dựng bảng thuật ngữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2944,7 +2944,7 @@ menu:
     summary: ''
   - slug: integrated-exercises-002
     title: Vẽ mô hình khái niệm cho khách hàng, sản phẩm, đơn hàng và thanh toán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2953,7 +2953,7 @@ menu:
     summary: ''
   - slug: integrated-exercises-003
     title: Xác định khóa, quan hệ, thuộc tính và bất biến của từng phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2962,7 +2962,7 @@ menu:
     summary: ''
   - slug: integrated-exercises-004
     title: Chuẩn hóa mô hình quan hệ và kiểm tra các phương án phân rã
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2971,7 +2971,7 @@ menu:
     summary: ''
   - slug: integrated-exercises-005
     title: Thiết kế mô hình Java với đối tượng giá trị và ranh giới aggregate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2980,7 +2980,7 @@ menu:
     summary: ''
   - slug: integrated-exercises-006
     title: Chọn mô hình vật lý và chỉ mục từ các truy vấn thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2989,7 +2989,7 @@ menu:
     summary: ''
   - slug: integrated-exercises-007
     title: So sánh biểu diễn đơn hàng bằng bảng quan hệ với tài liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2998,7 +2998,7 @@ menu:
     summary: ''
   - slug: integrated-exercises-008
     title: Lưu giá bán tại giao dịch và lịch sử thay đổi thông tin khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3007,7 +3007,7 @@ menu:
     summary: ''
   - slug: integrated-exercises-009
     title: Thiết kế mô hình đọc, sự kiện và hợp đồng trao đổi phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3016,7 +3016,7 @@ menu:
     summary: ''
   - slug: integrated-exercises-010
     title: Xây dựng bảng dữ kiện bán hàng cùng các chiều phân tích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3025,7 +3025,7 @@ menu:
     summary: ''
   - slug: integrated-exercises-011
     title: Thực hiện một thay đổi mô hình có chuyển đổi dữ liệu và đối soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3034,7 +3034,7 @@ menu:
     summary: ''
   - slug: integrated-exercises-012
     title: Hoàn thiện sơ đồ, từ điển dữ liệu, quyết định thiết kế và bộ kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

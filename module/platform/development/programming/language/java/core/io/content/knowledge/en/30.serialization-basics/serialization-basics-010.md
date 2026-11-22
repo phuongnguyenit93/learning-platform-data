@@ -1,17 +1,17 @@
-# Stream header và lỗi khi nối tùy tiện nhiều object stream trong Java Serialization
+# Stream Headers and Errors When Arbitrarily Concatenating Multiple Object Streams in Java Serialization
 
-## 1. Vì sao ObjectOutputStream không phải cách “cứ mở thêm là ghi nối”?
+## 1. Why `ObjectOutputStream` Is Not a "Just Open Again and Append" API
 
-Java cung cấp `java.io.ObjectOutputStream` để tuần tự hóa (serialize) đồ thị đối tượng thành một **luồng byte theo giao thức Java Object Serialization**, và `java.io.ObjectInputStream` để đọc lại luồng theo cùng giao thức.
+Java provides `java.io.ObjectOutputStream` to serialize an object graph into a **byte stream following the Java Object Serialization protocol**, and `java.io.ObjectInputStream` to read that stream back under the same protocol.
 
-Một luồng đối tượng không chỉ là các byte biểu diễn từng object đặt cạnh nhau. Nó còn mang **stream header**, mô tả class, thông tin định dạng, handles dùng để tham chiếu lại object đã thấy, dấu reset và dữ liệu điều khiển khác.
+An object stream is not merely bytes representing each object placed side by side. It also carries a **stream header**, class descriptors, formatting metadata, handles used to back-reference previously seen objects, reset markers, and other control data.
 
 ~~~text
-Đúng: MỘT object stream liên tục
+Correct: ONE continuous object stream
 
-OutputStream vật lý
+Physical OutputStream
   |
-  +-- ObjectOutputStream được tạo một lần
+  +-- ObjectOutputStream created once
         |
         +-- [stream header]
         +-- [object A / class descriptors / handles]
@@ -19,37 +19,37 @@ OutputStream vật lý
         +-- [object C ...]
                  |
                  v
-       Một ObjectInputStream tương ứng
+       One corresponding ObjectInputStream
           readObject() → A
           readObject() → B
           readObject() → C
 ~~~
 
-Nếu đóng một `ObjectOutputStream` rồi tạo `ObjectOutputStream` khác để **append** vào cuối cùng file, constructor mới sẽ lại ghi **header mới**. Nhưng `ObjectInputStream` đang đọc một object stream liên tục sẽ không tự hiểu header thứ hai là điểm bắt đầu của một stream độc lập.
+If you close one `ObjectOutputStream` and then create another `ObjectOutputStream` to **append** to the end of the same file, the new constructor writes a **new header**. Yet an `ObjectInputStream` reading a continuous object stream does not automatically treat the second header as the start of an independent stream.
 
 ~~~text
-Sai: nối trực tiếp hai object stream có header riêng
+Wrong: directly concatenating two object streams each with its own header
 
 [HEADER 1][OBJECT A][HEADER 2][OBJECT B]
           |
-          +-- Một ObjectInputStream đọc A thành công
+          +-- One ObjectInputStream reads A successfully
                                   |
-                                  +-- đọc tiếp gặp HEADER 2
-                                      ở chỗ mong token object
+                                  +-- next read encounters HEADER 2
+                                      where an object token was expected
                                       → StreamCorruptedException
 ~~~
 
-**Ý chính:** phải phân biệt **nhiều object được ghi vào một object stream** với **nhiều object stream độc lập được nối byte tùy tiện**. Hai cấu trúc không có cùng giao thức đọc.
+**Key point:** distinguish between **multiple objects written to one object stream** and **multiple independent object streams whose bytes were arbitrarily concatenated**. The two structures do not share the same reading protocol.
 
-## 2. Stream header được ghi vào lúc nào?
+## 2. When Is the Stream Header Written?
 
-Khi khởi tạo:
+Upon construction:
 
 ~~~java
 ObjectOutputStream out = new ObjectOutputStream(rawOutput);
 ~~~
 
-`ObjectOutputStream` ghi **serialization stream header** vào `rawOutput` trong quá trình khởi tạo. Trong định dạng Java Serialization chuẩn, bốn byte đầu của một stream thông thường là:
+`ObjectOutputStream` writes the **serialization stream header** to `rawOutput` during initialization. In the standard Java Serialization format, the first four bytes of a normal stream are:
 
 ~~~text
 AC ED 00 05
@@ -58,24 +58,24 @@ AC ED 00 05
 └──────── STREAM_MAGIC   = 0xACED
 ~~~
 
-Các hằng số tương ứng nằm trong `java.io.ObjectStreamConstants`. Đây là magic và version của **giao thức Java Serialization**, không phải mã hóa văn bản và cũng không phải header ZIP/GZIP.
+The corresponding constants live in `java.io.ObjectStreamConstants`. These are the magic number and version of the **Java Serialization protocol**, not a text encoding and not a ZIP/GZIP header.
 
-Phía đọc:
+On the reading side:
 
 ~~~java
 ObjectInputStream in = new ObjectInputStream(rawInput);
 ~~~
 
-Constructor `ObjectInputStream` đọc/xác minh stream header. Vì vậy:
+The `ObjectInputStream` constructor reads and validates the stream header. Consequently:
 
-- Nếu input không bắt đầu bằng header hợp lệ, constructor có thể ném `StreamCorruptedException`.
-- Nếu input stream tương tác (ví dụ pipe/network) chưa có đủ byte header, constructor phía đọc **có thể chặn chờ**. Thông thường hãy tạo/phát header ở phía ghi và `flush()` đúng lúc trước khi phía nhận đợi header.
-- Nếu đã tạo `ObjectInputStream` và đọc object A thành công, các lời gọi `readObject()` tiếp theo mong **object content token** của **cùng luồng**, không mong một header thứ hai.
-- Một lần `ObjectOutputStream.flush()` đẩy byte đang đệm xuống stream bên dưới theo hợp đồng I/O, **không** tạo header mới và **không** đánh dấu một phiên serialization mới.
+- If the input does not start with a valid header, the constructor can throw `StreamCorruptedException`.
+- If an interactive input stream (such as a pipe or socket) does not yet have header bytes available, the reader constructor **can block waiting**. Typically, create/emit the header on the writer side and call `flush()` promptly before the receiver awaits the header.
+- Once `ObjectInputStream` has been created and object A has been read, subsequent `readObject()` calls expect an **object content token** within the **same stream**, not a second header.
+- Calling `ObjectOutputStream.flush()` pushes buffered bytes to the underlying stream per the I/O contract; it **does not** emit a new header and **does not** mark a new serialization session.
 
-### Header không phải dấu phân cách từng object
+### The Header Is Not a Per-Object Separator
 
-Một object stream thường có **một stream header ở đầu**, không phải một header trước mỗi object:
+An object stream normally has **one stream header at the start**, not a header before every object:
 
 ~~~java
 try (ObjectOutputStream out =
@@ -86,56 +86,56 @@ try (ObjectOutputStream out =
 }
 ~~~
 
-Đây là mảnh code minh họa; `destination` là `OutputStream` đã tạo. Cả ba lần `writeObject` dùng **cùng** object stream, vì vậy phía nhận có thể dùng một `ObjectInputStream` gọi `readObject()` ba lần tương ứng.
+This is an illustrative snippet; `destination` is an already-created `OutputStream`. All three `writeObject` calls use the **same** object stream, so the receiving side can use one `ObjectInputStream` and call `readObject()` three times.
 
-Ngược lại, tạo ba `ObjectOutputStream` độc lập trên một `OutputStream` vật lý sẽ tạo nhiều đoạn serialization có header riêng. **ObjectInputStream không tự reset parser tại điểm nối đó.**
+Conversely, creating three separate `ObjectOutputStream` instances on one physical `OutputStream` produces multiple serialization segments each with its own header. **`ObjectInputStream` does not auto-reset its parser at those boundaries.**
 
-## 3. Điều gì xảy ra khi append bằng ObjectOutputStream mới?
+## 3. What Happens When Appending with a New `ObjectOutputStream`?
 
-Mẫu sai phổ biến khi muốn bổ sung object vào file:
+A common mistake when trying to append objects to a file:
 
 ~~~java
-// Phiên đầu tiên:
+// First session:
 try (ObjectOutputStream out = new ObjectOutputStream(
         new FileOutputStream(file))) {
     out.writeObject("alpha");
 }
 
-// Phiên tiếp theo: append byte vật lý vào cuối file.
+// Next session: physically append bytes to end of file.
 try (ObjectOutputStream out = new ObjectOutputStream(
         new FileOutputStream(file, true))) {
     out.writeObject("beta");
 }
 ~~~
 
-Đây là **mảnh code minh họa lỗi**, với biến `file` kiểu `File` đã có. Hai lần dùng `FileOutputStream` khác nhau và lần thứ hai có `append=true`. Nhưng **`append=true` chỉ nói với hệ thống tệp rằng byte mới được ghi ở cuối file**; nó không nói với `ObjectOutputStream` rằng đang tiếp nối trạng thái serialization của phiên trước.
+This is an **illustrative erroneous snippet**, given a `File file` variable. Two separate `FileOutputStream` instances are used, with `append=true` on the second. Yet **`append=true` tells only the filesystem to write new bytes at the end of the file**; it does not tell `ObjectOutputStream` that it is continuing the prior session's serialization state.
 
-Nội dung vật lý về mặt ý tưởng:
+Conceptual physical file contents:
 
 ~~~text
-Lần 1:
+Run 1:
 [AC ED 00 05][serialized "alpha"]
 
-Lần 2:
+Run 2:
 [AC ED 00 05][serialized "alpha"]
 [AC ED 00 05][serialized "beta"]
                ^
-     header thứ hai ở giữa file
+     second header in the middle of the file
 ~~~
 
-Một `ObjectInputStream` mở từ đầu file có thể đọc `"alpha"`. Khi `readObject()` lần nữa, nó gặp byte magic `0xAC` ở vị trí mong đợi một serialization token hợp lệ bên trong stream, và thường ném `StreamCorruptedException` (ví dụ thông báo có thể chứa `invalid type code: AC`).
+An `ObjectInputStream` opened from the beginning of the file can read `"alpha"`. On the next `readObject()`, it hits the magic byte `0xAC` where a valid in-stream serialization token is expected, and typically throws `StreamCorruptedException` (for instance, the message may contain `invalid type code: AC`).
 
-**Không nên phụ thuộc vào nguyên văn exception message** vì chi tiết thông báo có thể khác giữa JDK/triển khai. Điểm đáng tin là cấu trúc byte đã vi phạm hợp đồng của **một stream liên tục**.
+**Do not depend on exact exception message wording**, as details can vary across JDKs/implementations. What is reliable is that the byte layout violated the contract of **one continuous stream**.
 
-### Trường hợp lỗi xuất hiện ngay trong constructor
+### When the Error Happens Right in the Constructor
 
-Nếu bạn mở một `ObjectInputStream` mới nhưng bắt đầu đọc **giữa file**, tại byte của một object thay vì header, constructor có thể ném `StreamCorruptedException` ngay khi kiểm tra header. Điều này khác với tình huống đọc object đầu thành công rồi mới lỗi ở header thứ hai.
+If you open a new `ObjectInputStream` but start reading **mid-file**, at the bytes of an object rather than a header, the constructor itself throws `StreamCorruptedException` during header verification. This differs from reading the first object cleanly and failing on the second header.
 
-Cả hai bắt nguồn từ cùng sai lầm: **không xác định đúng ranh giới một serialization stream**.
+Both trace back to the same mistake: **failing to properly delimit a serialization stream**.
 
-## 4. Mô hình đúng 1: giữ một ObjectOutputStream cho toàn bộ luồng logic
+## 4. Correct Pattern 1: Keep One `ObjectOutputStream` for the Entire Logical Stream
 
-Nếu chương trình chủ động ghi nhiều object trong cùng một phiên, cách đơn giản nhất là tạo writer một lần:
+If the program writes multiple objects within the same session, the simplest approach is creating the writer once:
 
 ~~~java
 try (ObjectOutputStream out =
@@ -146,7 +146,7 @@ try (ObjectOutputStream out =
 }
 ~~~
 
-Phía đọc:
+Reading side:
 
 ~~~java
 try (ObjectInputStream in =
@@ -157,65 +157,65 @@ try (ObjectInputStream in =
 }
 ~~~
 
-Hai đoạn là **mã minh họa**, cần `Path path`, các import tương ứng và xử lý `IOException`/`ClassNotFoundException`.
+Both snippets are **illustrative code**, requiring `Path path`, appropriate imports, and handling of `IOException`/`ClassNotFoundException`.
 
-Ưu điểm:
+Advantages:
 
-- Một header thống nhất ở đầu.
-- Parser của `ObjectInputStream` đọc đúng stream đang được tiếp nối.
-- Handles và thông tin class trong object stream được quản lý nhất quán.
-- Dễ dùng khi tạo một snapshot gồm nhiều object biết trước, hoặc khi một process duy trì writer lâu dài.
+- One consistent header at the start.
+- The `ObjectInputStream` parser reads the continuous stream smoothly.
+- Handles and class descriptors inside the object stream are managed consistently.
+- Easy to use when creating a multi-object snapshot with a known layout, or when one process keeps a writer alive long-term.
 
-Hạn chế:
+Limitations:
 
-- Nếu JVM thoát và ứng dụng khởi động lại, tạo một `ObjectOutputStream` mới không thể tự khôi phục toàn bộ **trạng thái handle table** của writer trước đó bằng cách chỉ truyền `append=true`.
-- Reader phải biết **khi nào dừng**: thường là số object được lưu trong header ứng dụng, một marker cuối có thiết kế rõ ràng, hoặc EOF **chỉ khi giao thức cho phép**.
-- Object streams không tự cho phép đọc ngẫu nhiên object thứ 100 bằng một offset tùy ý. Trạng thái handles/descriptors có thể phụ thuộc các object trước.
+- If the JVM exits and the application restarts, a newly created `ObjectOutputStream` cannot automatically restore the **handle table state** of the previous writer merely by passing `append=true`.
+- The reader must know **when to stop**: typically via an object count stored in an application header, an explicitly designed end marker, or EOF **only when the protocol permits**.
+- Object streams do not support random-access seeking to the 100th object at an arbitrary byte offset. Handle/descriptor state can depend on earlier objects.
 
-Nếu mục tiêu là lưu các bản ghi độc lập, appending xuyên nhiều lần khởi động và khôi phục khi dữ liệu cuối bị ghi dở, một định dạng có **record framing rõ ràng** thường dễ vận hành hơn.
+If the goal is storing independent records, appending across multiple restarts, and recovering from partially written trailing entries, a format with **explicit record framing** is usually far easier to operate.
 
-## 5. Mô hình đúng 2: nhiều stream độc lập nhưng có framing
+## 5. Correct Pattern 2: Multiple Independent Streams with Explicit Framing
 
-Nếu mỗi object/batch phải được serialize độc lập, bạn **có thể** tạo một `ObjectOutputStream` mới cho mỗi batch, **nhưng phải ghi kèm độ dài hoặc cấu trúc phân cách rõ ràng** để phía đọc biết chính xác mỗi segment bắt đầu/kết thúc ở đâu.
+If each object/batch must be serialized independently, you **can** create a new `ObjectOutputStream` per batch, **provided you write a length prefix or clear delimiter structure** so the reading side knows precisely where each segment starts and ends.
 
-Ví dụ định dạng tự thiết kế:
+Custom-designed format example:
 
 ~~~text
-[int32 length L1][L1 bytes của ObjectOutputStream #1]
-[int32 length L2][L2 bytes của ObjectOutputStream #2]
-[int32 length L3][L3 bytes của ObjectOutputStream #3]
+[int32 length L1][L1 bytes of ObjectOutputStream #1]
+[int32 length L2][L2 bytes of ObjectOutputStream #2]
+[int32 length L3][L3 bytes of ObjectOutputStream #3]
 ~~~
 
-Mỗi segment là **một object stream hợp lệ độc lập**: có header riêng và nội dung riêng. Reader:
+Each segment is **an independent, valid object stream**: it has its own header and its own contents. The reader:
 
-1. Đọc độ dài segment.
-2. Kiểm tra giới hạn kích thước trước khi cấp phát.
-3. Đọc **đúng số byte** của segment đó vào bộ đệm giới hạn.
-4. Tạo **một ObjectInputStream riêng** trên segment.
-5. Gọi `readObject()` theo số object/schema của segment.
-6. Đóng segment reader rồi chuyển segment tiếp theo.
+1. Reads the segment length.
+2. Checks size bounds before allocating.
+3. Reads **the exact number of bytes** for that segment into a bounded buffer.
+4. Creates **a separate `ObjectInputStream`** over that segment.
+5. Calls `readObject()` per the segment's object count/schema.
+6. Closes the segment reader and moves to the next segment.
 
-Đó là cách **nối các segment đã được định khung**, chứ không phải nối mù byte rồi đặt một `ObjectInputStream` lên toàn bộ file.
+That is how you **append framed segments**, rather than blindly concatenating bytes and pointing a single `ObjectInputStream` at the whole file.
 
-Với dữ liệu không tin cậy, chỉ độ dài segment không đủ để an toàn. Ngoài giới hạn độ dài **compressed/serialized bytes**, phải giới hạn loại class được phép deserialize, độ sâu object graph, số lượng tham chiếu và bộ nhớ theo chính sách ứng dụng.
+For untrusted data, segment length alone is insufficient for safety. Beyond limiting **compressed/serialized byte lengths**, you must restrict allowed deserialized classes, object graph depth, reference counts, and memory per application policy.
 
-### Không thể chỉ tạo ObjectInputStream thứ hai trên cùng FileInputStream rồi hy vọng
+### You Cannot Just Create a Second `ObjectInputStream` on the Same `FileInputStream` and Hope
 
-Nếu `ObjectInputStream` đầu tiên được tạo trên cùng một underlying `InputStream`, implementation có thể đệm hoặc đọc trước một số byte. Vì thế, **không có hợp đồng tổng quát rằng vị trí underlying stream sau một lần `readObject()` là ranh giới an toàn để tạo `ObjectInputStream` kế tiếp**.
+If the first `ObjectInputStream` is created over the same underlying `InputStream`, the implementation may buffer or read ahead several bytes. Hence, **there is no general contract that the underlying stream position after a `readObject()` call is a safe boundary for creating the next `ObjectInputStream`**.
 
-Framing theo độ dài với `ByteArrayInputStream`/bounded input là cách làm rõ ràng: mỗi `ObjectInputStream` chỉ nhìn thấy byte của segment thuộc về nó. Khi cần stream lớn không copy toàn bộ vào RAM, dùng bounded input stream và giới hạn dữ liệu cẩn thận.
+Length-based framing with `ByteArrayInputStream`/bounded input makes boundaries explicit: each `ObjectInputStream` sees only the bytes of its own segment. When streaming large payloads without copying everything into RAM, use bounded input streams and strict data limits.
 
-## 6. Ví dụ Java 17+ chạy độc lập: sai, đúng và framed
+## 6. Standalone Java 17+ Example: Wrong, Right, and Framed
 
-Chương trình sau minh họa ba trường hợp với cùng hai chuỗi `"alpha"` và `"beta"`:
+The following program demonstrates all three cases using the same two strings `"alpha"` and `"beta"`:
 
-- **Đúng — single stream:** một `ObjectOutputStream` ghi hai object; một `ObjectInputStream` đọc hai object.
-- **Sai — concatenated streams:** serialize từng object thành một stream riêng rồi nối raw bytes; một `ObjectInputStream` đọc được object đầu nhưng lỗi tại header thứ hai.
-- **Đúng — framed independent streams:** mỗi object được serialize thành stream riêng, được đặt sau trường độ dài; mỗi segment có một `ObjectInputStream` riêng.
+- **Correct — single stream:** one `ObjectOutputStream` writes two objects; one `ObjectInputStream` reads two objects.
+- **Wrong — concatenated streams:** serializes each object into a separate stream and concatenates raw bytes; one `ObjectInputStream` reads the first object but fails on the second header.
+- **Correct — framed independent streams:** each object is serialized into its own stream preceded by a length field; each segment gets its own `ObjectInputStream`.
 
-Chương trình dùng bộ nhớ thay vì file để không phụ thuộc đường dẫn. Lỗi được in theo **tên loại ngoại lệ**, không in thông báo phụ thuộc implementation.
+The program uses in-memory streams instead of files to avoid path dependencies. Errors are printed by **exception class name**, avoiding implementation-specific messages.
 
-Lưu file `ObjectStreamHeaderDemo.java`:
+Save file `ObjectStreamHeaderDemo.java`:
 
 ~~~java
 import java.io.ByteArrayInputStream;
@@ -296,7 +296,7 @@ public class ObjectStreamHeaderDemo {
             for (int index = 1; index <= 2; index++) {
                 int length = source.readInt();
 
-                // Chính sách giới hạn ví dụ: 1 tới 1024 byte/segment.
+                // Example limit policy: 1 to 1024 bytes/segment.
                 if (length <= 0 || length > 1024) {
                     throw new IOException("Invalid segment length");
                 }
@@ -330,14 +330,14 @@ public class ObjectStreamHeaderDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac ObjectStreamHeaderDemo.java
 java ObjectStreamHeaderDemo
 ~~~
 
-Stdout trên JDK 17+ với định dạng Java Serialization chuẩn:
+Stdout on JDK 17+ with standard Java Serialization format:
 
 ~~~text
 header=AC ED 00 05
@@ -349,47 +349,47 @@ framed 1=alpha
 framed 2=beta
 ~~~
 
-Giải thích từng phần:
+Step-by-step explanation:
 
-1. `serializeOne("x")` tạo stream mới, do đó bốn byte đầu là `AC ED 00 05`. Chương trình in hex không phụ thuộc dữ liệu string.
-2. `singleStream()` giữ một writer trong cả hai lệnh `writeObject`, cho phép một reader gọi `readObject` hai lần.
-3. `badConcatenation()` nối hai byte array, mỗi array đã có header riêng. Reader đầu tiên đọc `alpha`, nhưng lần đọc kế tiếp gặp header thứ hai ở giữa stream và ném `StreamCorruptedException`.
-4. `framedSegments()` ghi mỗi segment kèm `int` chiều dài, giới hạn dung lượng và đọc đúng `length` byte vào một mảng độc lập. Mỗi `ObjectInputStream` đọc header ở đầu segment tương ứng, vì vậy cả `alpha` và `beta` đều được giải mã.
-5. `DataInputStream.readFully(...)` đòi hỏi đủ byte của segment; nếu nguồn bị cắt cụt thì ném `EOFException`, không âm thầm xem một segment thiếu byte là hợp lệ.
-6. Mã không mở file, không yêu cầu quyền truy cập filesystem. Một triển khai lưu trữ thật cần tự thiết kế ghi append atomically theo record, checksum/commit marker nếu yêu cầu, và chính sách phục hồi record cuối đang ghi dở.
+1. `serializeOne("x")` creates a new stream, so the first four bytes are `AC ED 00 05`. The hex printout does not depend on the string content.
+2. `singleStream()` keeps one writer across both `writeObject` calls, allowing one reader to invoke `readObject` twice.
+3. `badConcatenation()` joins two byte arrays, each carrying its own header. The first read succeeds on `alpha`, yet the next read encounters the second header mid-stream and throws `StreamCorruptedException`.
+4. `framedSegments()` writes each segment prefixed by an `int` length, enforces a size bound, and reads exactly `length` bytes into an isolated array. Each `ObjectInputStream` reads the header at the start of its segment, so both `alpha` and `beta` decode cleanly.
+5. `DataInputStream.readFully(...)` requires all bytes of the segment; if the source is truncated, it throws `EOFException` instead of silently treating an incomplete segment as valid.
+6. The code opens no files and requires no filesystem permissions. A real storage implementation must design atomic record appending, checksums/commit markers if needed, and recovery policies for partially written trailing records.
 
-**Không lấy demo này làm hướng dẫn deserialize dữ liệu tùy ý từ bên ngoài.** Dữ liệu `ObjectInputStream` từ nguồn không đáng tin có thể nguy hiểm; phần an toàn được giải thích ở mục riêng bên dưới.
+**Do not treat this demo as a guide for deserializing arbitrary external data.** Reading untrusted data with `ObjectInputStream` is dangerous; safety practices are covered in a dedicated section below.
 
-## 7. Một vấn đề khác: object handles và tham chiếu lặp
+## 7. Another Issue: Object Handles and Repeated References
 
-Header không phải trạng thái duy nhất của object stream. `ObjectOutputStream` còn có **handle table** để biết object nào đã được ghi và có thể ghi tham chiếu tới cùng object thay vì serialize lại toàn bộ.
+The header is not the only stateful element of an object stream. `ObjectOutputStream` also maintains a **handle table** to track which objects have already been written and emit references to the same object rather than re-serializing everything.
 
-Ví dụ:
+Example:
 
 ~~~java
 out.writeObject(someObject);
 out.writeObject(someObject);
 ~~~
 
-Nếu là **cùng object instance**, lần thứ hai có thể ghi một **back-reference**. Khi đọc lại, hai lời gọi `readObject()` có thể trả về **chính cùng object instance** trong JVM nhận, không phải hai bản sao độc lập.
+If both refer to **the same object instance**, the second call may emit a **back-reference**. On reading back, two `readObject()` calls return **the exact same object instance** in the receiving JVM, not two independent copies.
 
-Điều này quan trọng khi nội dung object được sửa giữa hai lần ghi:
+This matters when an object's contents are mutated between two writes:
 
 ~~~text
-Object trong RAM: status = "old"
+Object in RAM: status = "old"
 writeObject(object)
 
-Object trong RAM: status = "new"
-writeObject(object)  // có thể chỉ ghi tham chiếu tới object đã serialize
+Object in RAM: status = "new"
+writeObject(object)  // may write only a reference to already-serialized object
 
-Reader có thể tiếp tục thấy status = "old" ở cả hai lần đọc!
+Reader may keep seeing status = "old" on both reads!
 ~~~
 
-Đây là hành vi theo cơ chế giữ identity, không phải bug của charset hay flush.
+This is identity-preservation behavior, not a charset or flush bug.
 
-### Dùng reset() khi cần loại bỏ lịch sử reference
+### Using `reset()` When Reference History Must Be Cleared
 
-`ObjectOutputStream.reset()` là thao tác đặc biệt: nó phát một token reset vào **cùng object stream**, đồng thời xóa trạng thái tham chiếu đối tượng đã giữ ở writer để object về sau được serialize như mới.
+`ObjectOutputStream.reset()` is a special operation: it emits a reset token into the **same object stream**, while clearing object reference history held by the writer so subsequent objects are serialized anew.
 
 ~~~java
 out.writeObject(object);
@@ -398,25 +398,25 @@ out.reset();
 out.writeObject(object);
 ~~~
 
-Đây là mảnh code minh họa với một kiểu object giả định có method `setState`. Lệnh `reset()` **không ghi lại stream header `AC ED 00 05`**. Nó tạo một điểm reset hợp lệ **bên trong** giao thức serialization, và `ObjectInputStream` tương ứng hiểu token này để reset trạng thái handle khi đọc tiếp.
+This is an illustrative snippet using a hypothetical object type with a `setState` method. Calling `reset()` **does not re-write the `AC ED 00 05` stream header**. It establishes a valid reset point **inside** the serialization protocol, and the matching `ObjectInputStream` understands the token and clears its handle state for subsequent reads.
 
-Hạn chế: không được `reset()` trong khi đang thực hiện một lời gọi serialize object lồng nhau (có thể bị từ chối theo hợp đồng). `reset()` còn làm giảm lợi ích chia sẻ class descriptor/reference, có thể tăng kích thước output; không nên reset sau mọi object nếu không cần.
+Limitation: never call `reset()` while inside a nested object serialization call (the contract forbids it). `reset()` also reduces class-descriptor/reference sharing benefits and can increase output size; avoid resetting after every object unnecessarily.
 
-### Phân biệt reset, flush và mở stream mới
+### Distinguishing `reset`, `flush`, and Opening a New Stream
 
-| Hành động | Header mới? | Handle table | Công dụng |
+| Action | New header? | Handle table | Purpose |
 | --- | --- | --- | --- |
-| `out.flush()` | Không | Giữ nguyên | Đẩy byte đang đệm |
-| `out.reset()` | Không, ghi token reset trong luồng hiện tại | Xóa trạng thái tham chiếu | Ghi lại những object đã từng được serialize |
-| `out.writeUnshared(obj)` | Không | Có ngữ nghĩa riêng về root unshared | Hạn chế chia sẻ root object theo hợp đồng |
-| `new ObjectOutputStream(raw)` | Có | Khởi tạo trạng thái mới | Bắt đầu **stream độc lập** |
-| `new ObjectInputStream(raw)` | Đòi đọc header mới tại vị trí bắt đầu | Khởi tạo bảng tham chiếu mới | Đọc **stream độc lập** |
+| `out.flush()` | No | Unchanged | Flushes buffered bytes |
+| `out.reset()` | No; writes reset token in current stream | Clears reference state | Re-serializes previously serialized objects |
+| `out.writeUnshared(obj)` | No | Special semantics for unshared root | Restricts top-level root object sharing per contract |
+| `new ObjectOutputStream(raw)` | Yes | Initializes fresh state | Starts an **independent stream** |
+| `new ObjectInputStream(raw)` | Expects fresh header at start | Initializes fresh reference table | Reads an **independent stream** |
 
-**Không dùng `reset()` như “cách tự động cứu mọi file append hỏng”** nếu file đã có header lặp. Reset là một phần của writer đã tồn tại và đang phát token đúng ngữ cảnh; nó không tự loại bỏ những header thừa đã ghi.
+**Never treat `reset()` as an "automatic cure for broken appended files"** if the file already has duplicate headers. `reset()` is an operation on an existing writer emitting a contextual token; it cannot remove extra headers already written.
 
-## 8. Ví dụ thứ hai: reset để không tái sử dụng trạng thái cũ
+## 8. Second Example: Using `reset` to Avoid Reusing Stale State
 
-Ví dụ này tách riêng khỏi chương trình trước, minh họa object reference và snapshot sau `reset()`. Lưu file `ObjectStreamResetDemo.java`:
+This example is separate from the previous program and illustrates object references and snapshots after `reset()`. Save file `ObjectStreamResetDemo.java`:
 
 ~~~java
 import java.io.ByteArrayInputStream;
@@ -444,10 +444,10 @@ public class ObjectStreamResetDemo {
             out.writeObject(box);
 
             box.value = "new";
-            out.writeObject(box); // Thường chỉ phát tham chiếu.
+            out.writeObject(box); // Usually emits only a reference.
 
-            out.reset();          // Không ghi header mới.
-            out.writeObject(box); // Ghi snapshot mới.
+            out.reset();          // Does not write a new header.
+            out.writeObject(box); // Writes a fresh snapshot.
         }
 
         try (ObjectInputStream in = new ObjectInputStream(
@@ -468,7 +468,7 @@ public class ObjectStreamResetDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac ObjectStreamResetDemo.java
@@ -485,90 +485,90 @@ same before reset=true
 same across reset=false
 ~~~
 
-Kết quả cho thấy **hai lần viết cùng instance** trước reset không đương nhiên tạo hai snapshot. Sau `reset()`, cùng đối tượng nguồn được serialize như một đối tượng mới trên stream, và reader tạo instance mới ở lần thứ ba.
+The output shows that **writing the same instance twice** before reset does not automatically produce two snapshots. After `reset()`, the same source object is serialized as a new object in the stream, and the reader creates a new instance on the third read.
 
-`serialVersionUID` trong ví dụ giúp định nghĩa phiên bản class serialization cho `Box`. Nó **không** sửa vấn đề lặp header và không bảo đảm mọi thay đổi class tương thích khi đọc dữ liệu cũ.
+`serialVersionUID` in this example defines the serialization class version for `Box`. It **does not** fix duplicate-header issues and does not guarantee all class edits remain compatible when reading older data.
 
-## 9. Vì sao sửa file append bằng cách bỏ header mới vẫn nguy hiểm?
+## 9. Why Fixing Appends by Suppressing New Headers Is Still Dangerous
 
-Một số ví dụ trên mạng tạo subclass của `ObjectOutputStream` rồi override `writeStreamHeader()` để không ghi header sau lần đầu. Cách này có thể khiến file trông như có **một header ở đầu**.
+Some online examples subclass `ObjectOutputStream` and override `writeStreamHeader()` so it skips writing a header after the first time. That may leave the file looking like it has **only one header at the start**.
 
-Tuy nhiên, **chỉ bỏ header không đủ để tái lập tính nhất quán của stream**. Một writer mới có bảng handles riêng bắt đầu từ đầu, trong khi reader của stream hiện hữu đã tích lũy handles của các object trước. Khi writer mới ghi back-reference, class descriptor và các object phụ thuộc nhau, các handle có thể không còn khớp với trạng thái mà reader mong đợi.
+However, **merely omitting the header is not enough to preserve stream consistency**. A brand-new writer starts with a fresh, empty handle table, whereas a reader scanning the existing file has already accumulated handles from earlier objects. When the new writer emits back-references, class descriptors, and dependent objects, handle indices can mismatch the state expected by the reader.
 
-Có những biến thể override phát **reset token** để tái đồng bộ handle table, nhưng đó là một thiết kế protocol tùy biến, phụ thuộc ràng buộc vòng đời và tính tương thích cụ thể. Không nên quảng bá "override writeStreamHeader rồi append" như một **công thức mặc định an toàn cho mọi object graph, mọi phiên ghi và mọi ứng dụng**.
+Some override variants also emit a **reset token** to resynchronize handle tables, yet that constitutes a custom protocol design bound to specific lifecycle and compatibility constraints. Never promote "override `writeStreamHeader` and append" as a **safe default recipe for every object graph, write session, and application**.
 
-Để lưu lịch sử nhiều phiên độc lập, ưu tiên một trong các mô hình rõ ràng:
+To persist multi-session history cleanly, prefer one of these explicit models:
 
-- **Một stream liên tục được giữ mở và quản lý bởi một owner** nếu vòng đời ghi chỉ ở trong cùng phiên.
-- **Nhiều segment có length-prefix**, mỗi segment có header và `ObjectInputStream` riêng.
-- **Một file riêng cho mỗi snapshot/batch**, kèm manifest/index nếu cần.
-- **Một định dạng record rõ ràng** không phụ thuộc handle table của Java Serialization (ví dụ protocol có schema và framing riêng) khi dữ liệu phải được append lâu dài qua nhiều phiên bản ứng dụng.
+- **One continuous stream kept open and owned by a single writer** if writing spans only one live session.
+- **Multiple length-prefixed segments**, each with its own header and `ObjectInputStream`.
+- **One separate file per snapshot/batch**, paired with a manifest/index if needed.
+- **An explicit record format** independent of Java Serialization handle tables (such as a schema-based framed protocol) when data must be appended durably across many application versions.
 
-### Append trên filesystem không phải transaction
+### Appending on a Filesystem Is Not a Transaction
 
-Ngay cả khi framing đã đúng, ghi append trong lúc process crash có thể để lại record cuối chỉ có một phần header độ dài hoặc một phần payload. Reader cần phát hiện segment thiếu, từ chối hoặc bỏ qua phần chưa hoàn chỉnh theo chính sách phục hồi; không giả định mọi `write(...)` và `close()` cùng tạo thành một commit atomically.
+Even with proper framing, appending during a process crash can leave the final record with only a partial length header or partial payload. The reader must detect incomplete trailing segments and reject or discard them per recovery policy; never assume `write(...)` and `close()` together form an atomic commit.
 
-## 10. Quản lý thứ tự khởi tạo khi truyền object qua pipe/socket
+## 10. Managing Initialization Order Over Pipes/Sockets
 
-Đối với hai đầu kết nối dùng object streams hai chiều, có một tình huống dễ deadlock:
+For two endpoints communicating over bidirectional object streams, a classic deadlock exists:
 
 ~~~text
-Peer A: tạo ObjectInputStream → đợi header từ B
-Peer B: tạo ObjectInputStream → đợi header từ A
+Peer A: creates ObjectInputStream → waits for header from B
+Peer B: creates ObjectInputStream → waits for header from A
 
-Cả hai cùng chờ, chưa ai tạo hoặc flush ObjectOutputStream.
+Both wait; neither has created or flushed ObjectOutputStream.
 ~~~
 
-Lý do là constructor `ObjectInputStream` có thể **chặn cho tới khi nhận và kiểm tra header**.
+The reason is that `ObjectInputStream`'s constructor can **block until it receives and validates the header**.
 
-Trong protocol đối xứng, một lựa chọn thông thường là:
+In symmetric protocols, a standard pattern is:
 
-1. Tạo `ObjectOutputStream` ở hai bên.
-2. `flush()` writer để header được đẩy tới transport.
-3. Tạo `ObjectInputStream` ở hai bên.
-4. Sau đó thực hiện thứ tự gửi/nhận có giao thức rõ ràng và chính sách timeout.
+1. Create `ObjectOutputStream` on both sides.
+2. Call `flush()` on each writer so headers reach the transport.
+3. Create `ObjectInputStream` on both sides.
+4. Proceed with agreed send/receive message ordering and timeout policies.
 
-Tùy stream/transport, có thể cần flush byte khi ứng dụng gửi một object mới để peer nhận được kịp thời. **Không gọi `new ObjectOutputStream` cho mỗi message gửi**: sẽ lại có header mới và làm hỏng mô hình một stream liên tục.
+Depending on the stream/transport, flushing after sending each object may also be needed so the peer receives it promptly. **Never create `new ObjectOutputStream` per message sent**: that injects new headers and breaks the single continuous stream model.
 
-Giao thức mạng cần đặt giới hạn kích thước, timeout, cách đóng và xử lý mất kết nối. Không sử dụng ObjectInputStream với byte nhận từ client tùy ý mà thiếu deserialization filter/boundaries.
+Network protocols must enforce size limits, timeouts, shutdown rules, and disconnect handling. Never feed arbitrary client bytes into `ObjectInputStream` without deserialization filters and trust boundaries.
 
-## 11. Ngoại lệ có thể xuất hiện và cách đọc nguyên nhân
+## 11. Possible Exceptions and How to Diagnose Causes
 
-| Ngoại lệ | Khi nào có thể gặp | Ý nghĩa thực tế |
+| Exception | When it can occur | Practical meaning |
 | --- | --- | --- |
-| `StreamCorruptedException` | Header sai, token serialization không hợp lệ, header thứ hai giữa luồng | Định dạng byte không đúng chỗ hoặc stream đã hỏng |
-| `EOFException` | Hết byte khi đang mong dữ liệu/hay segment | Luồng bị cắt cụt hoặc chương trình đã đọc vượt cấu trúc được thiết kế |
-| `ClassNotFoundException` | Reader không tìm thấy class cần deserialize | Phải giải quyết tương thích class/module và classpath |
-| `InvalidClassException` | Class không tương thích theo serialization rules/serialVersionUID hoặc bị filter từ chối | Thay đổi schema, version hoặc chính sách an toàn |
-| `NotSerializableException` | Writer gặp object không implements `Serializable` và không có cách serialize hợp lệ | Kiểm tra object graph và chiến lược serialization |
-| `OptionalDataException` | Reader dùng readObject/read primitive không khớp thứ tự/protocol data trong trường hợp thích hợp | Sai thứ tự đọc hoặc định dạng object/primitive |
-| `IOException` | Lỗi stream nền, file, socket hoặc protocol I/O | Phân biệt với lỗi class/schema |
+| `StreamCorruptedException` | Bad header, invalid serialization token, second header mid-stream | Wrong byte format at current position or corrupted stream |
+| `EOFException` | Ran out of bytes while expecting data or a segment | Stream truncated or program read beyond designed structure |
+| `ClassNotFoundException` | Reader cannot locate class needed for deserialization | Must resolve class/module compatibility and classpath |
+| `InvalidClassException` | Class incompatible under serialization rules/`serialVersionUID`, or rejected by filter | Schema, version, or security policy mismatch |
+| `NotSerializableException` | Writer hit an object not implementing `Serializable` with no valid serialization hook | Inspect object graph and serialization strategy |
+| `OptionalDataException` | Reader mixed `readObject`/primitive reads mismatched with protocol data ordering | Mismatched read order or object/primitive framing |
+| `IOException` | Underlying stream, file, socket, or I/O protocol error | Distinguish from class/schema errors |
 
-Đừng xử lý mọi `StreamCorruptedException` bằng cách bắt rồi bỏ qua một byte `0xAC` để "tiếp tục". Serialization là định dạng có cấu trúc và tham chiếu nội bộ; bỏ byte tùy tiện làm parser càng mất đồng bộ.
+Never handle `StreamCorruptedException` by catching it and skipping a `0xAC` byte to "keep going." Serialization is a structured format with internal references; skipping bytes arbitrarily throws the parser further out of sync.
 
-Nếu đã có file bị append sai:
+If a file was already corrupted by bad appends:
 
-1. Giữ bản gốc để phục hồi; không ghi đè trực tiếp.
-2. Xác định chính xác các **segment** hợp lệ nếu có ranh giới từ nguồn tin cậy (như manifest/length-prefix hoặc snapshot riêng).
-3. Dùng reader **trên từng segment độc lập** để trích dữ liệu.
-4. Tạo file/định dạng mới có framing rõ, sau đó đối chiếu số object và nội dung.
-5. Nếu không thể xác định boundary đáng tin, đừng giả định có thể phục hồi toàn bộ object graph chỉ bằng tìm chuỗi byte magic.
+1. Keep the original copy for recovery; do not overwrite in place.
+2. Identify valid **segments** cleanly if reliable boundaries exist (such as a manifest, length prefix, or distinct snapshots).
+3. Use a separate reader **on each independent segment** to extract data.
+4. Write a new file/format with explicit framing, then reconcile object counts and contents.
+5. If reliable boundaries cannot be identified, do not assume the whole object graph can be salvaged merely by scanning for magic byte sequences.
 
-## 12. Bảo mật: không deserialize dữ liệu không tin cậy tùy tiện
+## 12. Security: Never Arbitrarily Deserialize Untrusted Data
 
-Java Object Serialization có thể khởi tạo đồ thị class và thực thi hook deserialization của class, như `readObject`/`readResolve`, trong quá trình khôi phục object. Vì thế **không** dùng `ObjectInputStream` để đọc byte từ nguồn không tin cậy mà không có chính sách ràng buộc chặt.
+Java Object Serialization can instantiate class graphs and invoke class deserialization hooks such as `readObject`/`readResolve` during object reconstruction. Therefore **never** use `ObjectInputStream` to read bytes from untrusted sources without strict constraints.
 
-Các biện pháp thiết kế:
+Design safeguards:
 
-- Chỉ chấp nhận dữ liệu từ nguồn được xác thực và kiểm soát.
-- Cấu hình `ObjectInputFilter` hoặc cơ chế filter ở phạm vi ứng dụng để giới hạn class/type, số lượng reference, độ sâu đồ thị, số byte và kích thước mảng theo các giới hạn phù hợp.
-- Giới hạn kích thước segment/file, timeout và memory budget **trước khi deserialize**.
-- Không coi `serialVersionUID`, stream header hay checksum là xác thực chống tấn công.
-- Nếu định dạng phải công khai lâu dài hoặc cần tương thích đa ngôn ngữ, cân nhắc JSON/CBOR/Protocol Buffers/Avro (với parser và schema có giới hạn) thay vì Java native serialization.
+- Accept data only from authenticated, controlled sources.
+- Configure `ObjectInputFilter` or application-wide filtering to restrict allowed classes/types, reference counts, graph depth, byte counts, and array sizes to appropriate bounds.
+- Cap segment/file sizes, timeouts, and memory budgets **before deserializing**.
+- Never treat `serialVersionUID`, stream headers, or checksums as security authentication against attacks.
+- If the format must be public long-term or cross-language, consider JSON/CBOR/Protocol Buffers/Avro (with bounded parsers and schemas) instead of Java native serialization.
 
-### Ví dụ thiết lập ObjectInputFilter
+### `ObjectInputFilter` Setup Example
 
-Đoạn minh họa có một `ObjectInputStream in` đã tạo và chỉ mong dữ liệu `String`:
+Illustrative snippet assuming an already-created `ObjectInputStream in` expecting only `String` data:
 
 ~~~java
 import java.io.ObjectInputFilter;
@@ -578,60 +578,60 @@ ObjectInputFilter filter = ObjectInputFilter.Config.createFilter(
 in.setObjectInputFilter(filter);
 ~~~
 
-Đây là mảnh code minh họa, không phải chương trình hoàn chỉnh. Mẫu `!*` từ chối những class chưa được phép theo cú pháp filter pattern; tuy nhiên **String được biểu diễn theo token đặc biệt và không phải lúc nào cũng qua cùng nhánh kiểm tra class**. Vì vậy, không dùng đúng filter trên để kết luận mọi định dạng String đều được kiểm soát hoàn toàn chỉ bằng `!*`. Với object graph thực tế, thiết kế allowlist có chủ đích và kiểm tra đúng những class/framework cần deserialize; xác minh filter bằng test trên payload hợp lệ và không hợp lệ.
+This is an illustrative code snippet, not a complete program. The `!*` pattern rejects unlisted classes per filter syntax; however, **`String` is represented by special protocol tokens and does not always pass through the exact same class-check callback**. Thus do not use the filter above to conclude every `String` payload is fully controlled solely by `!*`. For real object graphs, design an intentional allowlist matching actual required classes/frameworks, and test the filter against both valid and invalid payloads.
 
-**Quan trọng:** filter giới hạn rủi ro, không biến dữ liệu serialization tùy ý thành an toàn. Luôn kết hợp giới hạn đầu vào, nguồn tin cậy và kiểu dữ liệu hợp đồng rõ ràng.
+**Important:** filters limit risk; they do not turn arbitrary serialized data into safe input. Always combine input bounds, trusted sources, and explicit data contracts.
 
-## 13. Checklist thiết kế lưu trữ object bền vững
+## 13. Durable Object Storage Design Checklist
 
-Khi chuẩn bị lưu nhiều object qua nhiều phiên:
+When preparing to persist multiple objects across sessions:
 
-1. **Xác định một stream hay nhiều segment:** một OOS duy trì từ đầu tới cuối hay mỗi segment có framing riêng.
-2. **Định nghĩa schema của segment:** số object, loại dữ liệu mong đợi, version, field bắt buộc.
-3. **Giới hạn kích thước:** cả payload serialized, graph depth và số đối tượng.
-4. **Quản lý ownership:** chỉ một writer theo thiết kế; tránh hai thread tự tạo OOS trên cùng file/transport.
-5. **Khả năng đọc sau crash:** kiểm tra độ dài segment, checksum/commit marker nếu cần; bỏ phần cuối bị cắt cụt theo quy tắc.
-6. **Tương thích phiên bản class:** chủ động quản lý serialVersionUID hoặc định dạng có schema độc lập.
-7. **Đóng/flush đúng lúc:** tránh đóng stream nền mà thành phần khác còn đang dùng; không lấy flush làm dấu kết thúc message nếu chưa có framing.
-8. **Khả năng khôi phục:** lưu manifest hoặc index ranh giới nếu ứng dụng cần truy cập ngẫu nhiên.
-9. **An toàn deserialization:** filter, allowlist và nguồn tin cậy.
-10. **Kiểm thử append và restart:** tạo hai batch tại hai phiên khác nhau rồi kiểm tra đọc lại toàn bộ, không chỉ đọc object đầu.
+1. **Decide single stream vs. multiple segments:** one long-lived OOS or independently framed segments.
+2. **Define segment schema:** object counts, expected types, version, required fields.
+3. **Bound sizes:** serialized payload size, graph depth, and object counts.
+4. **Manage ownership:** one writer by design; prevent two threads from creating OOS instances on the same file/transport.
+5. **Post-crash readability:** verify segment lengths, checksums/commit markers if needed; discard truncated trailing segments per policy.
+6. **Class version compatibility:** manage `serialVersionUID` intentionally or use a schema-independent format.
+7. **Flush/close timing:** avoid closing an underlying stream still needed elsewhere; never treat `flush` as a message boundary without framing.
+8. **Recoverability:** store a manifest or boundary index if random access is needed.
+9. **Deserialization safety:** filters, allowlists, and trusted sources.
+10. **Test append and restart:** produce two batches across separate sessions and test reading all objects back, not only the first one.
 
-## 14. Các lỗi thường gặp
+## 14. Common Errors
 
-**Lỗi 1 — Mở ObjectOutputStream mới với FileOutputStream(append=true).** Một header mới được ghi vào giữa file; một ObjectInputStream liên tục có thể ném `StreamCorruptedException` ở lần đọc tiếp.
+**Error 1 — Opening a new `ObjectOutputStream` with `FileOutputStream(append=true)`.** A new header gets written mid-file; a continuous `ObjectInputStream` typically throws `StreamCorruptedException` on the next read.
 
-**Lỗi 2 — Tưởng flush() tạo điểm bắt đầu stream mới.** `flush()` chỉ đẩy byte, không ghi header/reset handle table và không thay thế record framing.
+**Error 2 — Thinking `flush()` starts a fresh stream point.** `flush()` only pushes bytes; it writes no header, resets no handle table, and does not replace record framing.
 
-**Lỗi 3 — Mở ObjectInputStream mới ở một offset bất kỳ.** Constructor đòi stream header hợp lệ tại offset đầu; byte object content không phải header.
+**Error 3 — Opening a new `ObjectInputStream` at an arbitrary offset.** The constructor expects a valid stream header at the starting offset; object content bytes are not a header.
 
-**Lỗi 4 — Chỉ bỏ header khi append.** Writer mới có handle table riêng; reader cũ có thể vẫn giữ handle table trước đó, gây tham chiếu sai.
+**Error 4 — Only suppressing the header when appending.** The new writer has an empty handle table while the old reader retains accumulated handles, causing mismatched references.
 
-**Lỗi 5 — Nhầm cùng một object instance với hai snapshot độc lập.** `writeObject(obj)` lặp có thể chỉ ghi reference. Dùng `reset()` hoặc mô hình dữ liệu snapshot thích hợp khi thực sự cần serialize trạng thái mới.
+**Error 5 — Confusing one object instance with two independent snapshots.** Repeated `writeObject(obj)` calls may emit references. Use `reset()` or fresh snapshot objects when updated state must be serialized.
 
-**Lỗi 6 — Dùng EOF như giao thức không có trường hợp lỗi.** EOF cũng có thể báo dữ liệu bị cắt cụt. Với record archive/log cần length-prefix, checksum hoặc commit semantics nếu phải phát hiện ghi dở.
+**Error 6 — Using EOF as an error-free protocol terminator.** EOF can also signal truncated data. For record archives/logs, use length prefixes, checksums, or commit semantics to detect partial writes.
 
-**Lỗi 7 — Tưởng serialize object đồng nghĩa phù hợp lâu dài hoặc đa ngôn ngữ.** Dữ liệu Java native serialization phụ thuộc định dạng/class, không phải schema cross-language ổn định mặc định.
+**Error 7 — Thinking object serialization automatically suits long-term or cross-language use.** Java native serialization is tied to classes and format rules, not a default stable cross-language schema.
 
-**Lỗi 8 — Tạo ObjectInputStream ở cả hai đầu socket trước khi tạo/flush ObjectOutputStream.** Cả hai bên có thể chặn chờ header từ bên kia.
+**Error 8 — Creating `ObjectInputStream` on both socket ends before creating/flushing `ObjectOutputStream`.** Both sides block waiting for each other's header.
 
-**Lỗi 9 — Bỏ qua readObject filter.** Deserialization từ nguồn không tin cậy có nguy cơ an toàn lớn; giới hạn class và cấu trúc graph.
+**Error 9 — Omitting `readObject` filters.** Deserializing from untrusted sources poses major security risks; restrict classes and graph structure.
 
-**Lỗi 10 — Thấy StreamCorruptedException thì tự bỏ byte magic để đọc tiếp.** Không có bảo đảm rằng tìm được ranh giới hợp lệ nếu thiếu framing; cách này có thể làm hỏng dữ liệu hơn.
+**Error 10 — Catching `StreamCorruptedException` and skipping magic bytes to keep reading.** Without framing there is no guarantee of finding a valid boundary; this risks corrupting data further.
 
-## 15. Tự kiểm tra
+## 15. Self-Check
 
-1. Một `ObjectOutputStream` mới ghi gì vào raw stream khi tạo? **Serialization stream header**, thường bắt đầu bằng `AC ED 00 05`.
-2. Viết `writeObject(a)` rồi `writeObject(b)` trên **cùng OOS** có cần một header thứ hai không? **Không**.
-3. `FileOutputStream(file, true)` có bảo đảm OOS mới tiếp nối handle table cũ không? **Không**; append chỉ là thêm byte vật lý.
-4. Vì sao một OIS đọc object thứ nhất rồi lỗi với header thứ hai? Vì parser đang mong **object content token**, không mong khởi đầu stream mới ở giữa.
-5. Nếu cần nhiều object stream độc lập trong một file, hãy tổ chức thế nào? **Ghi framing rõ (ví dụ length-prefix), rồi tạo OIS riêng cho từng segment được giới hạn**.
-6. Có thể giải quyết lỗi append chỉ bằng `flush()` không? **Không**.
-7. `ObjectOutputStream.reset()` có ghi header mới không? **Không**; nó phát token reset và làm mới trạng thái tham chiếu của cùng object stream.
-8. Viết cùng object hai lần khi object bị sửa ở giữa có chắc tạo hai snapshot không? **Không**; lần hai có thể là reference tới snapshot cũ.
-9. Vì sao OIS constructor trên pipe có thể chặn? Vì cần **đọc stream header** trước khi hoạt động; phía ghi cần tạo/flush header tương ứng.
-10. Có nên deserialize bytes từ network không tin cậy với OIS mặc định không? **Không**; cần nguồn tin cậy, filter, giới hạn và cân nhắc một định dạng an toàn hơn.
-11. `serialVersionUID` có sửa được header thừa không? **Không**; nó phục vụ nhận dạng/tương thích class trong serialization.
-12. Nếu một segment length-prefix mới ghi được một phần rồi JVM crash, reader nên làm gì? **Phát hiện segment thiếu và áp dụng quy tắc phục hồi/bỏ đoạn cuối**, không ghép tùy ý với record tiếp theo.
+1. What does a new `ObjectOutputStream` write to the raw stream upon creation? **The serialization stream header**, normally starting with `AC ED 00 05`.
+2. Calling `writeObject(a)` then `writeObject(b)` on the **same OOS**: does it need a second header? **No**.
+3. Does `FileOutputStream(file, true)` make a new OOS continue the old handle table? **No**; append merely writes raw bytes at the end of the file.
+4. Why does an OIS read the first object and then fail on the second header? Because the parser expects an **object content token**, not a fresh stream header in the middle.
+5. If multiple independent object streams must live in one file, how should it be structured? **Write explicit framing (e.g., length prefixes), and create a separate bounded OIS for each segment**.
+6. Can append corruption be solved simply by calling `flush()`? **No**.
+7. Does `ObjectOutputStream.reset()` write a new header? **No**; it emits a reset token and refreshes reference state within the same object stream.
+8. Writing the same object twice with a mutation in between: does that guarantee two snapshots? **No**; the second write may emit a reference to the old snapshot.
+9. Why can an OIS constructor on a pipe block? Because it must **read the stream header** before proceeding; the writer must create and flush its header accordingly.
+10. Should untrusted network bytes be deserialized with a default OIS? **No**; require trusted sources, filters, limits, and consider a safer data format.
+11. Can `serialVersionUID` fix duplicate headers? **No**; it handles class identification/compatibility in serialization.
+12. If a length-prefixed segment is only partially written before a JVM crash, what should the reader do? **Detect the incomplete segment and apply recovery/truncation rules**, never merging it arbitrarily with another record.
 
-**Ghi nhớ:** `ObjectOutputStream` là **một serialization stream có header và trạng thái handles**, không đơn thuần là một hàm “biến object thành vài byte”. Mở writer mới để append vào cùng file sẽ tạo **header giữa stream**, khiến reader liên tục dễ gặp `StreamCorruptedException`. Hãy **giữ một OOS cho một luồng logic**, hoặc **đóng khung các stream độc lập với độ dài rõ ràng** và đọc mỗi segment bằng OIS riêng. Phân biệt `flush()`, `reset()` và stream mới; đồng thời quản lý class compatibility, bản ghi ghi dở và an toàn deserialization.
+**Remember:** `ObjectOutputStream` is **a stateful serialization stream with a header and handle table**, not merely a function that "turns an object into some bytes." Opening a new writer to append to the same file inserts a **mid-stream header**, causing continuous readers to hit `StreamCorruptedException`. Either **keep one OOS per logical stream**, or **frame independent streams with explicit lengths** and read each segment with its own OIS. Distinguish `flush()`, `reset()`, and new streams while managing class compatibility, partial writes, and deserialization safety.

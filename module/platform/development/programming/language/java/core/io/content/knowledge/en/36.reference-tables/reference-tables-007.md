@@ -1,86 +1,86 @@
-# Bảng API truyền thống, NIO, NIO.2 và các mốc phiên bản Java
+# Legacy, NIO, NIO.2 APIs and Java Version Milestones Table
 
-Java có nhiều lớp I/O cùng tồn tại vì nền tảng được mở rộng qua các phiên bản JDK. **`java.io` truyền thống**, **NIO (Java 1.4)** và **NIO.2 (Java 7)** là các nhóm API có điểm mạnh khác nhau; NIO.2 bổ sung hệ thống tệp hiện đại và một số API bất đồng bộ, **không thay thế toàn bộ `java.io` hoặc NIO**. Bảng tra cứu này giúp tìm đúng lớp, hiểu mốc phiên bản và chọn API phù hợp cho chương trình Java 17+.
+Java has multiple coexisting I/O layers because the platform expanded across JDK releases. **Traditional `java.io`**, **NIO (Java 1.4)**, and **NIO.2 (Java 7)** are API families with different strengths; NIO.2 added a modern file system API and several asynchronous APIs, **rather than replacing all of `java.io` or NIO**. This reference table helps locate the right classes, understand version milestones, and choose suitable APIs for Java 17+ programs.
 
-## 1. Bản đồ ba thế hệ API
+## 1. Map of the Three API Generations
 
-| Nhóm | Xuất hiện | Gói/lớp tiêu biểu | Mô hình chính | Bài toán phù hợp |
+| Group | Introduced | Representative packages/classes | Core model | Suitable problems |
 |---|---|---|---|---|
-| I/O truyền thống | Java 1.0; bổ sung Reader/Writer ở Java 1.1 | `java.io.InputStream`, `OutputStream`, `Reader`, `Writer`, `File`, `RandomAccessFile` | Luồng byte hoặc ký tự, xử lý tuần tự; các lệnh đọc/ghi thông thường có thể chặn | Đọc/ghi stream, protocol đơn giản, bộ lọc/đệm, API tương thích lâu đời |
-| NIO (New I/O) | Java 1.4 | `java.nio.Buffer`/`ByteBuffer`, `java.nio.channels.FileChannel`/`SocketChannel`/`Selector`, `java.nio.charset.Charset` | Buffer, channel, charset; hỗ trợ multiplexing và non-blocking cho **một số** channel | Dữ liệu nhị phân, I/O dùng buffer, nhiều kết nối mạng với selector, thao tác channel |
-| NIO.2 (thường gọi NIO.2/JSR 203) | Java 7 | `java.nio.file.Path`, `Files`, `FileSystem`, `WatchService`, `FileVisitor`; `java.nio.channels.AsynchronousFileChannel` | Hệ thống tệp giàu chức năng, thuộc tính tệp, duyệt cây, giám sát thay đổi, I/O bất đồng bộ | Quản lý file/directory, copy/move/delete, metadata, symbolic link, watch directory, async channel |
+| Traditional I/O | Java 1.0; Reader/Writer added in Java 1.1 | `java.io.InputStream`, `OutputStream`, `Reader`, `Writer`, `File`, `RandomAccessFile` | Byte or character streams, sequential processing; ordinary read/write calls may block | Stream reading/writing, simple protocols, filtering/buffering, long-standing compatible APIs |
+| NIO (New I/O) | Java 1.4 | `java.nio.Buffer`/`ByteBuffer`, `java.nio.channels.FileChannel`/`SocketChannel`/`Selector`, `java.nio.charset.Charset` | Buffers, channels, charsets; supports multiplexing and non-blocking for **certain** channels | Binary data, buffer-based I/O, many network connections with a selector, channel operations |
+| NIO.2 (often called NIO.2/JSR 203) | Java 7 | `java.nio.file.Path`, `Files`, `FileSystem`, `WatchService`, `FileVisitor`; `java.nio.channels.AsynchronousFileChannel` | Feature-rich file system, file attributes, tree walking, change watching, asynchronous I/O | Managing files/directories, copy/move/delete, metadata, symbolic links, watching directories, async channels |
 
-**Phân biệt tên:** NIO nghĩa là *New I/O*, không phải lời hứa mọi thao tác đều *non-blocking*. `FileChannel` có các thao tác đọc/ghi thường mang tính blocking; `SocketChannel` có thể cấu hình blocking hoặc non-blocking. `Selector` chỉ dùng với `SelectableChannel` phù hợp (ví dụ `SocketChannel`), không đăng ký `FileChannel` để theo dõi file thường.
+**Name distinction:** NIO stands for *New I/O*, not a promise that every operation is *non-blocking*. `FileChannel` has read/write operations that are generally blocking; `SocketChannel` can be configured as blocking or non-blocking. `Selector` works only with suitable `SelectableChannel` implementations (such as `SocketChannel`); you cannot register a `FileChannel` to monitor a regular file.
 
-**Hai thứ cùng có thể đúng:** `Files.newInputStream(path)` thuộc tiện ích NIO.2 nhưng trả về kiểu `java.io.InputStream`; một ứng dụng có thể kết hợp `Path`, `Files`, stream và channel trong cùng luồng xử lý. Cách phân loại theo *API được bổ sung ở mốc nào*, không phải các công nghệ loại trừ lẫn nhau.
+**Both things can be true at once:** `Files.newInputStream(path)` belongs to the NIO.2 utilities yet returns `java.io.InputStream`; an application can combine `Path`, `Files`, streams, and channels in the same processing flow. The classification reflects *which milestone introduced an API*, not mutually exclusive technologies.
 
-## 2. Dòng thời gian các mốc quan trọng
+## 2. Timeline of Key Milestones
 
-| Mốc Java | API/đặc điểm tiêu biểu | Ý nghĩa đối với mã nguồn |
+| Java milestone | Representative APIs/features | Significance for codebases |
 |---|---|---|
-| **JDK 1.0 (1996)** | `InputStream`, `OutputStream`, `File`, `FileInputStream`, `FileOutputStream`, `RandomAccessFile` | Nền tảng byte stream và đường dẫn file truyền thống |
-| **JDK 1.1 (1997)** | Họ `Reader`/`Writer`, `InputStreamReader`, `OutputStreamWriter` | Tầng chuyển đổi byte ↔ ký tự theo character encoding |
-| **JDK 1.4 (2002)** | `ByteBuffer`/`CharBuffer`, `Channel`, `FileChannel`, `SocketChannel`, `Selector`, `Charset` | NIO 1: buffer/channel, mã hóa ký tự, multiplexing socket |
-| **Java 7 (2011)** | `Path`, `Paths`, `Files`, `FileSystem`, `WatchService`, `FileVisitor`, `StandardOpenOption`; `AsynchronousFileChannel`/`AsynchronousSocketChannel` | NIO.2: API hệ thống tệp mới, tệp bất đồng bộ và quan sát thư mục |
-| **Java 8 (2014)** | `Files.list`, `Files.walk`, `Files.find`, `Files.lines` | Tích hợp `Stream` để liệt kê/tìm/đọc dòng theo nhu cầu; stream giữ tài nguyên cần đóng |
-| **Java 9 (2017)** | `InputStream.readAllBytes`, `readNBytes`, `transferTo` | Thêm tiện ích cho stream truyền thống; **khác** `Files.readAllBytes` vốn có từ Java 7 |
-| **Java 11 (2018)** | `Path.of`; `Files.readString`, `Files.writeString` | Thuận tiện khi đọc/ghi tệp văn bản UTF-8; `Paths.get` vẫn là lựa chọn tương thích Java 7 |
-| **Java 12 (2019)** | `Files.mismatch` | Trả chỉ số byte khác đầu tiên giữa hai file, hoặc `-1` nếu không có khác biệt |
-| **Java 21 (2023)** | Virtual threads chuẩn hóa (JEP 444), dùng được với nhiều cách viết I/O blocking | Cải thiện mô hình lập trình đồng thời; **không tạo ra một thế hệ API “NIO.3”** |
+| **JDK 1.0 (1996)** | `InputStream`, `OutputStream`, `File`, `FileInputStream`, `FileOutputStream`, `RandomAccessFile` | Foundation for byte streams and traditional file paths |
+| **JDK 1.1 (1997)** | `Reader`/`Writer` hierarchy, `InputStreamReader`, `OutputStreamWriter` | Byte ↔ character conversion layer by character encoding |
+| **JDK 1.4 (2002)** | `ByteBuffer`/`CharBuffer`, `Channel`, `FileChannel`, `SocketChannel`, `Selector`, `Charset` | NIO 1: buffers/channels, character encoding, socket multiplexing |
+| **Java 7 (2011)** | `Path`, `Paths`, `Files`, `FileSystem`, `WatchService`, `FileVisitor`, `StandardOpenOption`; `AsynchronousFileChannel`/`AsynchronousSocketChannel` | NIO.2: new file system API, async file I/O, and directory watching |
+| **Java 8 (2014)** | `Files.list`, `Files.walk`, `Files.find`, `Files.lines` | Integrates `Stream` for lazy listing/finding/line reading; streams hold resources that must be closed |
+| **Java 9 (2017)** | `InputStream.readAllBytes`, `readNBytes`, `transferTo` | Adds utilities to traditional streams; **distinct from** `Files.readAllBytes` from Java 7 |
+| **Java 11 (2018)** | `Path.of`; `Files.readString`, `Files.writeString` | Convenient for reading/writing UTF-8 text files; `Paths.get` remains the Java 7-compatible option |
+| **Java 12 (2019)** | `Files.mismatch` | Returns the index of the first differing byte between two files, or `-1` if no difference |
+| **Java 21 (2023)** | Standardized virtual threads (JEP 444), usable with many blocking I/O idioms | Improves concurrency programming model; **does not create an "NIO.3" API generation** |
 
-Ngày/phiên bản ở bảng chỉ ra **lần đầu API xuất hiện**, không phải ngày một lớp cũ ngừng hoạt động. Trong Java 17/21, `java.io`, NIO và NIO.2 vẫn được hỗ trợ. Hãy kiểm tra chính xác **phương thức** chứ không chỉ **tên lớp**: `InputStream` có từ Java 1.0 nhưng `InputStream.transferTo` phải tới Java 9; `Path` có từ Java 7 nhưng `Path.of` chỉ có từ Java 11.
+Dates/versions in the table indicate **when an API first appeared**, not when an older class stopped working. In Java 17/21, `java.io`, NIO, and NIO.2 remain supported. Check the exact **method**, not just the **class name**: `InputStream` has existed since Java 1.0, yet `InputStream.transferTo` did not arrive until Java 9; `Path` arrived in Java 7, yet `Path.of` only arrived in Java 11.
 
-## 3. Bảng tra cứu lớp/phương thức theo nhu cầu
+## 3. Class/Method Lookup Table by Need
 
-| Nhu cầu | `java.io` truyền thống | NIO (Java 1.4) | NIO.2 (Java 7+) và bổ sung sau đó |
+| Need | Traditional `java.io` | NIO (Java 1.4) | NIO.2 (Java 7+) and later additions |
 |---|---|---|---|
-| Biểu diễn một đường dẫn | `File` | — | `Path`/`Paths.get` (7), `Path.of` (11) |
-| Tạo thư mục, kiểm tra, lấy kích thước | `File.mkdir`/`mkdirs`, `exists`, `length` | — | `Files.createDirectory`/`createDirectories`, `exists`, `size` |
-| Mở luồng byte từ file | `FileInputStream`/`FileOutputStream`, đệm bằng `BufferedInputStream`/`BufferedOutputStream` | `FileChannel`, `ByteBuffer` | `Files.newInputStream`/`newOutputStream`, `Files.newByteChannel` |
-| Đọc/ghi ký tự có charset | `InputStreamReader`/`OutputStreamWriter`, `BufferedReader`/`BufferedWriter` | `Charset`, `CharsetDecoder`/`CharsetEncoder` | `Files.newBufferedReader`/`newBufferedWriter` (7); `readString`/`writeString` (11) |
-| Đọc toàn bộ file nhỏ | `FileInputStream` và vòng lặp đọc | Channel và buffer | `Files.readAllBytes` (7); `Files.readString` (11) |
-| Đọc các dòng file lớn | `BufferedReader.readLine` | `FileChannel` + decoder tự quản lý | `Files.lines` (8) tạo stream dòng; phải đóng stream |
-| Đọc/ghi dữ liệu tại vị trí bất kỳ | `RandomAccessFile.seek` | `FileChannel.position`, `read/write(ByteBuffer, position)`, `map` | `Files.newByteChannel` → `SeekableByteChannel` |
-| Sao chép/di chuyển/đổi tên file | Sao chép bằng stream; `File.renameTo` có hành vi phụ thuộc nền tảng | `FileChannel.transferTo`/`transferFrom` | `Files.copy`, `Files.move`, các `CopyOption` |
-| Xóa file và biết nguyên nhân lỗi | `File.delete` trả `boolean` | — | `Files.delete` ném lỗi cụ thể; `deleteIfExists` |
-| Liệt kê hoặc duyệt thư mục | `File.listFiles` | — | `DirectoryStream`, `Files.walkFileTree` (7); `Files.list/walk/find` (8) |
-| Đọc metadata/permission/symbolic link | `File.lastModified`, `canRead` ... giới hạn | — | `Files.readAttributes`, `BasicFileAttributes`, `PosixFileAttributes`, `FileOwnerAttributeView`, `Files.readSymbolicLink` |
-| Phát hiện file xuất hiện/thay đổi | Tự polling `File` | — | `WatchService` và `WatchKey` (7) |
-| Mạng socket truyền thống | `java.net.Socket`/`ServerSocket` + stream | `SocketChannel`, `ServerSocketChannel`, `Selector` | `AsynchronousSocketChannel`/`AsynchronousServerSocketChannel` (7) |
-| File I/O bất đồng bộ | Không có API tương ứng trực tiếp trong họ stream cổ điển | `FileChannel` thường đọc/ghi đồng bộ | `AsynchronousFileChannel` (7), `Future` hoặc `CompletionHandler` |
+| Represent a path | `File` | — | `Path`/`Paths.get` (7), `Path.of` (11) |
+| Create directories, check, get size | `File.mkdir`/`mkdirs`, `exists`, `length` | — | `Files.createDirectory`/`createDirectories`, `exists`, `size` |
+| Open a byte stream from a file | `FileInputStream`/`FileOutputStream`, buffered via `BufferedInputStream`/`BufferedOutputStream` | `FileChannel`, `ByteBuffer` | `Files.newInputStream`/`newOutputStream`, `Files.newByteChannel` |
+| Read/write characters with charset | `InputStreamReader`/`OutputStreamWriter`, `BufferedReader`/`BufferedWriter` | `Charset`, `CharsetDecoder`/`CharsetEncoder` | `Files.newBufferedReader`/`newBufferedWriter` (7); `readString`/`writeString` (11) |
+| Read an entire small file | `FileInputStream` and read loop | Channel and buffer | `Files.readAllBytes` (7); `Files.readString` (11) |
+| Read lines of a large file | `BufferedReader.readLine` | `FileChannel` + manually managed decoder | `Files.lines` (8) creates a line stream; stream must be closed |
+| Read/write data at an arbitrary position | `RandomAccessFile.seek` | `FileChannel.position`, `read/write(ByteBuffer, position)`, `map` | `Files.newByteChannel` → `SeekableByteChannel` |
+| Copy/move/rename files | Copy via streams; `File.renameTo` has platform-dependent behavior | `FileChannel.transferTo`/`transferFrom` | `Files.copy`, `Files.move`, `CopyOption` options |
+| Delete a file and learn the failure reason | `File.delete` returns `boolean` | — | `Files.delete` throws specific exceptions; `deleteIfExists` |
+| List or traverse directories | `File.listFiles` | — | `DirectoryStream`, `Files.walkFileTree` (7); `Files.list/walk/find` (8) |
+| Read metadata/permissions/symbolic links | `File.lastModified`, `canRead` ... limited | — | `Files.readAttributes`, `BasicFileAttributes`, `PosixFileAttributes`, `FileOwnerAttributeView`, `Files.readSymbolicLink` |
+| Detect file creation/changes | Manual polling with `File` | — | `WatchService` and `WatchKey` (7) |
+| Traditional socket networking | `java.net.Socket`/`ServerSocket` + streams | `SocketChannel`, `ServerSocketChannel`, `Selector` | `AsynchronousSocketChannel`/`AsynchronousServerSocketChannel` (7) |
+| Asynchronous file I/O | No direct counterpart in classic stream family | `FileChannel` generally reads/writes synchronously | `AsynchronousFileChannel` (7), `Future` or `CompletionHandler` |
 
-**Không suy ra hiệu năng chỉ từ tên API.** `Files.copy` có thể tiện và ít lỗi; `FileChannel.transferTo` có thể cho phép tối ưu ở hệ điều hành nhưng không đảm bảo zero-copy mọi nền tảng; `ByteBuffer.allocateDirect` có chi phí cấp phát và quản lý riêng. Đo theo tải thực tế, kích thước dữ liệu và hệ thống tệp.
+**Do not infer performance solely from API names.** `Files.copy` can be convenient and less error-prone; `FileChannel.transferTo` can enable OS-level optimizations without guaranteeing zero-copy on every platform; `ByteBuffer.allocateDirect` carries its own allocation and management costs. Measure against real workloads, data sizes, and file systems.
 
-## 4. Mốc phiên bản theo đúng phương thức: tránh nhầm khi build
+## 4. Exact Method Version Milestones: Avoiding Build Surprises
 
-| Câu lệnh/tính năng | Java tối thiểu | Ghi chú |
+| Statement/feature | Minimum Java | Notes |
 |---|---:|---|
-| `new File("a.txt")`, `new FileInputStream(...)` | 1.0 | `File` chỉ đại diện đường dẫn; không tự mở stream |
-| `new InputStreamReader(in, charset)` | 1.1 (họ Reader/Writer) | Luôn nên chỉ định charset thay vì mặc định nền tảng |
-| `ByteBuffer.allocate(1024)`, `FileInputStream.getChannel()` | 1.4 | `FileChannel`/`ByteBuffer` thuộc NIO 1 |
-| `Paths.get("a.txt")`, `Files.readAllBytes(path)` | 7 | Thuộc NIO.2; toàn bộ bytes có thể tốn nhiều RAM |
-| `Files.copy(source, target, ...)`, `Files.walkFileTree(root, visitor)` | 7 | Hoạt động theo `Path`; có các tùy chọn và ngoại lệ riêng |
-| `FileChannel.open(path, options...)` | 7 | Lớp `FileChannel` cũ hơn phương thức tiện ích `open` này |
-| `Files.lines(path)`, `Files.walk(root)` | 8 | Stream thường gắn với tài nguyên I/O, cần `try-with-resources` |
-| `in.transferTo(out)`, `in.readAllBytes()` trên `InputStream` | 9 | Không nhầm `InputStream.transferTo` (9) với `FileChannel.transferTo` (1.4) |
-| `Path.of("a.txt")`, `Files.readString(path)`, `Files.writeString(path, text)` | 11 | Mặc định UTF-8 nếu dùng overload không truyền charset |
-| `Files.mismatch(path1, path2)` | 12 | Kết quả là chỉ số byte đầu tiên khác, không phải boolean |
-| Virtual threads cho tác vụ I/O | 21 | Tính năng concurrency; không đổi lịch sử xuất hiện của NIO.2 |
+| `new File("a.txt")`, `new FileInputStream(...)` | 1.0 | `File` only represents a path; does not open a stream itself |
+| `new InputStreamReader(in, charset)` | 1.1 (Reader/Writer family) | Always specify the charset instead of relying on platform default |
+| `ByteBuffer.allocate(1024)`, `FileInputStream.getChannel()` | 1.4 | `FileChannel`/`ByteBuffer` belong to NIO 1 |
+| `Paths.get("a.txt")`, `Files.readAllBytes(path)` | 7 | Part of NIO.2; loading all bytes can consume significant RAM |
+| `Files.copy(source, target, ...)`, `Files.walkFileTree(root, visitor)` | 7 | Operates on `Path`; has dedicated options and exceptions |
+| `FileChannel.open(path, options...)` | 7 | The `FileChannel` class predates this `open` convenience method |
+| `Files.lines(path)`, `Files.walk(root)` | 8 | Streams generally hold I/O resources and require `try-with-resources` |
+| `in.transferTo(out)`, `in.readAllBytes()` on `InputStream` | 9 | Do not confuse `InputStream.transferTo` (9) with `FileChannel.transferTo` (1.4) |
+| `Path.of("a.txt")`, `Files.readString(path)`, `Files.writeString(path, text)` | 11 | Defaults to UTF-8 when using overloads without a charset parameter |
+| `Files.mismatch(path1, path2)` | 12 | Result is the index of the first differing byte, not a boolean |
+| Virtual threads for I/O tasks | 21 | Concurrency feature; does not alter NIO.2's introduction history |
 
-Khi xây ứng dụng cho nhiều JDK, nên dùng `javac --release 8` (hoặc cấu hình build tương đương) để compiler kiểm tra cả ngôn ngữ lẫn API có trong Java 8; chỉ đặt `-source`/`-target` bằng 8 trên JDK mới không cung cấp cùng mức kiểm tra API. Ví dụ `Files.readString` không biên dịch được với `--release 8` vì cần Java 11.
+When building applications targeting multiple JDKs, use `javac --release 8` (or equivalent build configuration) so the compiler checks both language syntax and APIs present in Java 8; merely setting `-source`/`-target` to 8 on a newer JDK does not provide the same API verification. For example, `Files.readString` will not compile with `--release 8` because it requires Java 11.
 
-## 5. Quan hệ giữa stream, channel, buffer, file system
+## 5. Relationships Among Streams, Channels, Buffers, and File Systems
 
 ~~~text
 java.io
   InputStream / OutputStream        Reader / Writer
            │                              │
-           └────────── dữ liệu ──────────┘
-                         │
-java.nio                 │
-  ByteBuffer ←→ Channel  │   Charset: giải mã/mã hóa byte ↔ ký tự
-  SelectableChannel → Selector (khi dùng socket phù hợp)
-                         │
+           └──────────── data ────────────┘
+                          │
+java.nio                  │
+  ByteBuffer ←→ Channel   │   Charset: decode/encode bytes ↔ characters
+  SelectableChannel → Selector (when using a suitable socket)
+                          │
 java.nio.file (NIO.2)
   Path → Files (copy, move, attributes, tree, stream factories)
              │
@@ -90,17 +90,17 @@ java.nio.file (NIO.2)
              └── FileSystem / WatchService / FileVisitor
 ~~~
 
-- **Stream** mô tả dòng dữ liệu tuần tự. `InputStream`/`OutputStream` xử lý **byte**; `Reader`/`Writer` xử lý **char** (ký tự UTF-16 ở mức Java). Chuyển giữa byte và text cần charset; `BufferedReader` là bộ đệm ở tầng ký tự, không thay cho decoder.
-- **Channel + Buffer** mô tả trao đổi qua một vùng bộ nhớ có `position`, `limit`, `capacity`. Sau khi ghi vào buffer để đọc lại, thường `flip()`; sau khi tiêu thụ, dùng `clear()` hoặc `compact()` tùy có cần giữ bytes chưa xử lý.
-- **Path + Files** mô tả đối tượng trong hệ thống tệp và thao tác với nó. `Path` có thể chỉ tới tệp chưa tồn tại; `Files` thực hiện các hành động có thể ném `IOException`.
-- **Bridge**: `File.toPath()` và `Path.toFile()` hỗ trợ chuyển giữa mã truyền thống và NIO.2 với file system mặc định. `Path.toFile()` không nhất thiết khả dụng cho các provider tùy biến (chẳng hạn hệ thống tệp ZIP).
-- **Blocking / non-blocking / asynchronous** là tính chất của **cơ chế thao tác cụ thể**. Không thể kết luận chỉ từ package: NIO chứa `FileChannel` thường blocking; NIO.2 chứa `Files.readAllBytes` đồng bộ; channel mạng có thể non-blocking; asynchronous channel dùng kết quả tương lai hoặc callback.
+- **Streams** model sequential data flows. `InputStream`/`OutputStream` process **bytes**; `Reader`/`Writer` process **char**s (UTF-16 units at the Java level). Converting between bytes and text requires a charset; `BufferedReader` is a character-layer buffer, not a replacement for a decoder.
+- **Channel + Buffer** model data exchange through a memory region with `position`, `limit`, and `capacity`. After writing into a buffer to read it back, call `flip()`; after consuming it, call `clear()` or `compact()` depending on whether unprocessed bytes must be kept.
+- **Path + Files** model objects in the file system and operations on them. A `Path` may refer to a non-existent file; `Files` performs actions that may throw `IOException`.
+- **Bridges:** `File.toPath()` and `Path.toFile()` convert between legacy code and NIO.2 for the default file system. `Path.toFile()` is not necessarily supported by custom providers (such as a ZIP file system).
+- **Blocking / non-blocking / asynchronous** are properties of **specific operational mechanisms**. You cannot deduce them from the package alone: NIO contains `FileChannel` which is normally blocking; NIO.2 contains synchronous `Files.readAllBytes`; network channels can be non-blocking; asynchronous channels deliver results via futures or callbacks.
 
-## 6. Ví dụ Java 17+: một file, bốn cách truy cập theo mốc API
+## 6. Java 17+ Example: One File, Four Access Ways Across API Milestones
 
-Chương trình này tạo tệp tạm và viết dữ liệu bằng `FileOutputStream`, sau đó đọc bằng (1) stream truyền thống, (2) `FileChannel` + `ByteBuffer` của NIO 1, (3) `Files.readAllBytes` của NIO.2 Java 7 và (4) `Files.readString` Java 11. Tệp và thư mục tạm được xóa trong `finally`.
+This program creates a temporary file and writes data using `FileOutputStream`, then reads it using (1) a traditional stream, (2) NIO 1's `FileChannel` + `ByteBuffer`, (3) NIO.2 Java 7's `Files.readAllBytes`, and (4) Java 11's `Files.readString`. The temporary file and directory are deleted in `finally`.
 
-Lưu file thành **`IoApiTimelineDemo.java`**:
+Save the file as **`IoApiTimelineDemo.java`**:
 
 ~~~java
 import java.io.ByteArrayOutputStream;
@@ -161,7 +161,7 @@ public class IoApiTimelineDemo {
 }
 ~~~
 
-Biên dịch và chạy trên JDK 17+:
+Compile and run on JDK 17+:
 
 ~~~bash
 javac IoApiTimelineDemo.java
@@ -177,62 +177,62 @@ NIO.2/JDK 7: Hello IO!
 Java 11+: Hello IO!
 ~~~
 
-Cùng một dữ liệu được đọc qua các API thuộc các mốc khác nhau. Chương trình **chạy trên Java 17+**: bản thân file nguồn không có nghĩa nó chạy nguyên vẹn trên Java 7, vì phương thức `Files.readString` ở ví dụ cuối đòi Java 11. Phần demo NIO tự dùng buffer bốn byte để thấy cách xử lý nhiều lần `read`; không cần buffer khi chỉ muốn đọc văn bản nhỏ bằng `Files.readString`.
+The same data is read through APIs from different milestones. The program **runs on Java 17+**: the source file itself is not meant to run unchanged on Java 7, because `Files.readString` in the final example requires Java 11. The NIO section intentionally uses a four-byte buffer to illustrate handling multiple `read` calls; no buffer is needed when you simply want to read small text with `Files.readString`.
 
-## 7. Chọn API nào trong từng tình huống?
+## 7. Which API Should You Choose in Each Scenario?
 
-| Tình huống | Ưu tiên | Lý do/quy tắc triển khai |
+| Scenario | Preferred choice | Rationale/implementation rule |
 |---|---|---|
-| Đọc một file cấu hình nhỏ dạng UTF-8 trên Java 11+ | `Files.readString(path, UTF_8)` | Ngắn, rõ charset; chỉ dùng khi kích thước đủ nhỏ để nạp vào bộ nhớ |
-| Ghi một file văn bản nhỏ trên Java 11+ | `Files.writeString(path, text, UTF_8)` | Dễ dùng; kiểm tra `OpenOption` nếu muốn append hoặc tránh ghi đè |
-| Xử lý file văn bản lớn theo dòng | `Files.newBufferedReader` hoặc `Files.lines` | Đọc tuần tự; đóng reader/stream bằng `try-with-resources` |
-| Sao chép, di chuyển, tạo thư mục | `Files.copy`, `Files.move`, `Files.createDirectories` | Lỗi có ngoại lệ cụ thể; xem xét replace, atomicity, symlink |
-| Quét cây thư mục lớn/điều khiển lỗi từng nhánh | `Files.walkFileTree` + `FileVisitor` | Chủ động xử lý lỗi, rẽ nhánh và thời điểm thăm file |
-| Theo dõi thay đổi trong thư mục | `WatchService` | Nhận sự kiện, xử lý `OVERFLOW` và đăng ký lại khi cần; không coi là log tuyệt đối chính xác |
-| Đọc file ở vị trí xác định hoặc map file | `FileChannel` / `SeekableByteChannel` | Có thao tác position và truy cập byte phù hợp |
-| Nhiều kết nối socket trên ít thread | `SocketChannel` + `Selector` | Cần cấu hình non-blocking và tự quản lý tình trạng đọc/ghi chưa xong |
-| Muốn dùng callbacks cho I/O bất đồng bộ | `AsynchronousFileChannel` / `AsynchronousSocketChannel` | Tận dụng `Future`/`CompletionHandler`; kiểm tra hỗ trợ nền tảng |
-| Ứng dụng phụ thuộc thư viện cũ nhận `InputStream`/`Reader` | Giữ `java.io` interface; tạo từ `Files` nếu thuận tiện | Không cần đổi chữ ký API chỉ để “chuyển sang NIO.2” |
+| Read a small UTF-8 configuration file on Java 11+ | `Files.readString(path, UTF_8)` | Short, explicit charset; use only when size is small enough to fit in memory |
+| Write a small text file on Java 11+ | `Files.writeString(path, text, UTF_8)` | Easy to use; check `OpenOption` if appending or avoiding overwrites |
+| Process a large text file line by line | `Files.newBufferedReader` or `Files.lines` | Reads sequentially; close reader/stream with `try-with-resources` |
+| Copy, move, create directories | `Files.copy`, `Files.move`, `Files.createDirectories` | Specific exceptions on failure; consider replacement, atomicity, symlinks |
+| Scan large directory trees / control per-branch errors | `Files.walkFileTree` + `FileVisitor` | Actively handles errors, branching, and visitation timing |
+| Monitor changes in a directory | `WatchService` | Receives events, handles `OVERFLOW`, and re-registers when needed; do not treat as an exact audit log |
+| Read a file at a specific offset or memory-map a file | `FileChannel` / `SeekableByteChannel` | Provides position operations and appropriate byte access |
+| Many socket connections on few threads | `SocketChannel` + `Selector` | Requires non-blocking configuration and manual handling of partial reads/writes |
+| Want callbacks for asynchronous I/O | `AsynchronousFileChannel` / `AsynchronousSocketChannel` | Uses `Future`/`CompletionHandler`; verify platform support |
+| Application depends on legacy libraries accepting `InputStream`/`Reader` | Keep `java.io` interfaces; create via `Files` if convenient | No need to rewrite API signatures just to "migrate to NIO.2" |
 
-**Bộ quy tắc lựa chọn:** dùng `Path`/`Files` cho phần lớn tác vụ *hệ thống tệp* mới; dùng `InputStream`/`OutputStream` hoặc `Reader`/`Writer` khi cần *luồng*; dùng channel và buffer khi cần vị trí byte hoặc đặc tính mạng/I/O cụ thể. “Mới hơn” không đồng nghĩa “nhanh hơn”, và việc nâng JDK không buộc xóa code `java.io` hợp lệ.
+**Selection rules:** use `Path`/`Files` for most new *file system* tasks; use `InputStream`/`OutputStream` or `Reader`/`Writer` when you need *streams*; use channels and buffers when you need byte positions or specific network/I/O capabilities. "Newer" does not mean "faster", and upgrading the JDK does not force deleting valid `java.io` code.
 
-## 8. Các bẫy tương thích và hành vi thường gặp
+## 8. Common Compatibility Traps and Behavioral Pitfalls
 
-1. **Đường dẫn khác với nội dung:** `new File(path)` và `Path.of(path)` không tạo tệp thật. `Files.exists(path)` còn có thể trả `false` khi không xác định được trạng thái tồn tại; đừng mặc định `false` luôn nghĩa là chắc chắn không có file. Các thao tác mở/đọc vẫn phải xử lý `IOException`.
+1. **A path is different from its content:** `new File(path)` and `Path.of(path)` do not create an actual file. `Files.exists(path)` can also return `false` when existence cannot be determined; do not assume `false` always proves no file exists. Open/read operations must still handle `IOException`.
 
-2. **Charset:** `FileInputStream` chỉ tạo byte stream, không tự “đọc UTF-8”. Khi biến bytes thành text, nêu rõ `StandardCharsets.UTF_8`. NIO `Charset` là bộ mã hóa/giải mã; mặc định charset có thể khác giữa JDK/cấu hình chạy. `Files.readString`/`writeString` không truyền charset sử dụng UTF-8.
+2. **Charsets:** `FileInputStream` only creates a byte stream; it does not automatically "read UTF-8". When turning bytes into text, specify `StandardCharsets.UTF_8`. NIO `Charset` handles encoding/decoding; the default charset can vary across JDKs/runtime configurations. `Files.readString`/`writeString` without a charset parameter use UTF-8.
 
-3. **Tài nguyên:** đóng stream, reader, channel, `DirectoryStream` và stream do `Files.list`/`walk`/`lines` trả về. `Files.readAllBytes`/`readString` tự đóng tệp sau thao tác; đổi lại toàn bộ dữ liệu được nạp vào bộ nhớ.
+3. **Resources:** close streams, readers, channels, `DirectoryStream`, and streams returned by `Files.list`/`walk`/`lines`. `Files.readAllBytes`/`readString` close the file automatically after the operation; in return, all data is loaded into memory.
 
-4. **Tùy chọn copy/move:** `Files.copy`, `Files.move` có quy tắc mặc định và `CopyOption`; `REPLACE_EXISTING` là yêu cầu cho hành vi thay thế. `ATOMIC_MOVE` chỉ là yêu cầu di chuyển nguyên tử và có thể thất bại với `AtomicMoveNotSupportedException`, nhất là khi khác file system. Đừng khẳng định các bước copy/move hoàn toàn transaction-safe.
+4. **Copy/move options:** `Files.copy` and `Files.move` have default rules and `CopyOption` options; `REPLACE_EXISTING` requests replacement behavior. `ATOMIC_MOVE` only requests an atomic move and may fail with `AtomicMoveNotSupportedException`, especially across different file systems. Never claim copy/move steps are fully transaction-safe.
 
-5. **Symbolic link và thuộc tính tệp:** nhiều thao tác `Files` đi theo liên kết tượng trưng theo mặc định, nhưng một số API hoặc option có quy tắc khác. Dùng `LinkOption.NOFOLLOW_LINKS` khi API hỗ trợ và ngữ nghĩa yêu cầu. Quyền truy cập POSIX/ACL phụ thuộc provider/hệ điều hành; không áp quy tắc POSIX cho mọi ổ đĩa Windows.
+5. **Symbolic links and file attributes:** many `Files` operations follow symbolic links by default, though certain APIs or options have different rules. Use `LinkOption.NOFOLLOW_LINKS` where supported and required by semantics. POSIX/ACL permissions depend on the provider/OS; do not apply POSIX assumptions to every Windows drive.
 
-6. **WatchService:** sự kiện có thể gộp, mất do overflow hoặc xảy ra khi writer vẫn đang cập nhật. Thường phải kiểm tra lại trạng thái thư mục khi nhận `OVERFLOW`. Không kỳ vọng WatchService tự đệ quy xuống mọi thư mục con.
+6. **WatchService:** events can be coalesced, lost due to overflow, or arrive while a writer is still updating the file. You often need to re-scan directory state upon receiving `OVERFLOW`. Do not expect WatchService to automatically recurse into all subdirectories.
 
-7. **Non-blocking không phải asynchronous:** `SocketChannel.configureBlocking(false)` yêu cầu ứng dụng tự xử lý partial read/write và `Selector`; `AsynchronousSocketChannel` đưa kết quả qua `Future`/`CompletionHandler`. Kết quả bất đồng bộ không mặc nhiên chứng minh một lời gọi kernel non-blocking trên mọi hệ điều hành.
+7. **Non-blocking is not asynchronous:** `SocketChannel.configureBlocking(false)` requires the application to handle partial reads/writes and `Selector`; `AsynchronousSocketChannel` delivers results via `Future`/`CompletionHandler`. An asynchronous API does not automatically guarantee a non-blocking kernel call on every OS.
 
-8. **Không lấy kích thước file để gọi `read` đúng một lần:** cả stream và channel có thể trả ít byte hơn số yêu cầu. Khi cần đủ byte, lặp có kiểm tra số byte đọc/EOF. Ghi qua channel cũng có thể chỉ tiêu thụ một phần buffer. Nếu xử lý mạng phân mảnh, dùng `compact()` để giữ byte chưa giải mã.
+8. **Do not use file size to issue exactly one `read`:** both streams and channels may return fewer bytes than requested. When all bytes are needed, loop while checking bytes read/EOF. Writing through a channel may also consume only part of a buffer. When handling fragmented network messages, use `compact()` to preserve undecoded bytes.
 
-9. **`File` và `Path` không có quan hệ kế thừa:** chuyển qua `file.toPath()` hoặc `path.toFile()` (với default file-system provider). Các provider khác như ZIP file system có thể không hỗ trợ `toFile()`.
+9. **`File` and `Path` share no inheritance relationship:** convert via `file.toPath()` or `path.toFile()` (with the default file-system provider). Other providers such as a ZIP file system may not support `toFile()`.
 
-10. **Khi cần build cho JDK cũ:** phân biệt API tồn tại trên **JDK biên dịch** và API tồn tại trên **JDK chạy**; xác minh mốc *phương thức*, không chỉ mốc package. Không gọi `InputStream.readAllBytes` khi target Java 8, dù chính `InputStream` đã tồn tại lâu.
+10. **When building for older JDKs:** distinguish APIs available on the **compiling JDK** from APIs available on the **runtime JDK**; verify *method* milestones, not just package milestones. Do not call `InputStream.readAllBytes` when targeting Java 8, even though `InputStream` itself has existed since the beginning.
 
-## 9. Tóm tắt để tra cứu nhanh
+## 9. Quick-Lookup Summary
 
-| Nếu nhìn thấy mã… | Nhận diện đúng |
+| If you see code like… | Correct identification |
 |---|---|
-| `new FileInputStream(file)`, `BufferedReader`, `OutputStream` | Truyền thống `java.io`; vẫn dùng tốt trong JDK mới |
-| `ByteBuffer.flip()`, `FileChannel`, `Selector` | NIO từ Java 1.4; buffer/channel, chỉ một số channel non-blocking |
-| `Path`, `Files.copy`, `Files.walkFileTree`, `WatchService` | NIO.2 từ Java 7; hệ thống tệp và API bổ sung |
-| `Files.lines`, `Files.walk` | API convenience dựa trên Stream được thêm ở Java 8 |
-| `InputStream.transferTo` | Tiện ích `java.io` bổ sung ở Java 9 |
-| `Files.readString`, `Path.of` | Tiện ích `java.nio.file` bổ sung ở Java 11 |
-| `Files.mismatch` | Bổ sung ở Java 12 |
+| `new FileInputStream(file)`, `BufferedReader`, `OutputStream` | Traditional `java.io`; still works well in modern JDKs |
+| `ByteBuffer.flip()`, `FileChannel`, `Selector` | NIO from Java 1.4; buffers/channels, only certain channels are non-blocking |
+| `Path`, `Files.copy`, `Files.walkFileTree`, `WatchService` | NIO.2 from Java 7; file system and extended APIs |
+| `Files.lines`, `Files.walk` | Stream-based convenience APIs added in Java 8 |
+| `InputStream.transferTo` | `java.io` utility added in Java 9 |
+| `Files.readString`, `Path.of` | `java.nio.file` utilities added in Java 11 |
+| `Files.mismatch` | Added in Java 12 |
 
-**Nguyên tắc mấu chốt:** tra **lớp + phương thức + phiên bản tối thiểu**; chọn theo bài toán (stream, buffer/channel, hay filesystem). Java 7 là mốc NIO.2, nhưng các API trong `java.nio.file` tiếp tục được bổ sung ở Java 8/11/12.
+**Core principle:** look up **class + method + minimum version**; choose by the problem shape (streams, buffers/channels, or filesystem). Java 7 is the NIO.2 milestone, yet APIs in `java.nio.file` continued to be added in Java 8/11/12.
 
-### Tài liệu API chính thức
+### Official API Documentation
 
 - [`java.io` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/package-summary.html)
 - [`java.nio` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/package-summary.html)

@@ -1,10 +1,10 @@
-# Tránh ghi dữ liệu nhạy cảm và đường dẫn nội bộ vào thông báo công khai trong Java I/O
+# Avoiding Sensitive Data and Internal Paths in Public Messages in Java I/O
 
-## 1. Mục tiêu và tình huống
+## 1. Objectives and Scenarios
 
-Ứng dụng Java thường đọc/ghi file bằng `Files`, `FileChannel`, `InputStream`, `OutputStream`, xử lý upload/download, tệp tạm, archive ZIP/JAR và tài nguyên của người dùng. Khi thao tác thất bại, exception có thể chứa **đường dẫn tuyệt đối trên server**, username hệ điều hành, tên tài liệu, storage key, endpoint hạ tầng, thậm chí một phần dữ liệu input. Nếu lấy nguyên `exception.getMessage()` hoặc stack trace làm nội dung HTTP response, UI, email, webhook hay message gửi khách hàng, thông tin không cần thiết có thể bị rò rỉ.
+Java applications routinely read/write files using `Files`, `FileChannel`, `InputStream`, and `OutputStream`, handling uploads/downloads, temporary files, ZIP/JAR archives, and user resources. When an operation fails, the exception may contain **absolute server paths**, OS usernames, document names, storage keys, infrastructure endpoints, or even parts of the input data. If you use raw `exception.getMessage()` or a stack trace in HTTP responses, UI, emails, webhooks, or customer-facing messages, unnecessary information can be leaked.
 
-Ví dụ phản hồi **không nên công khai**:
+Example of a response that **should not be made public**:
 
 ```text
 Could not read /srv/apps/prod/private/customers/42/tax-record.pdf
@@ -12,85 +12,85 @@ java.nio.file.AccessDeniedException:
     /srv/apps/prod/private/customers/42/tax-record.pdf
 ```
 
-Phản hồi an toàn hơn:
+Safer response:
 
 ```text
 status=404
 code=RESOURCE_UNAVAILABLE
-message=Không thể truy cập tài nguyên được yêu cầu.
+message=The requested resource cannot be accessed.
 requestId=REQ-DEMO-001
 ```
 
-Bài này giúp bạn:
+This lesson helps you:
 
-1. Nhận diện thông tin nhạy cảm trong đường dẫn, exception, request và log.
-2. Tạo lỗi công khai từ **allowlist** gồm status, mã lỗi, thông điệp ổn định và mã tương quan.
-3. Xử lý `NoSuchFileException`, `AccessDeniedException`, `IOException` mà không phơi lộ chi tiết filesystem.
-4. Tách public response với chẩn đoán/log nội bộ cũng phải được bảo vệ.
-5. Tránh phản chiếu tên file upload, URL riêng, token, thông tin cá nhân hoặc raw payload.
-6. Kiểm tra các đường rò rỉ gián tiếp qua framework error page, serializer, log/trace exporter.
-7. Viết chương trình và bài test Java 17+ có stdout xác định.
+1. Identify sensitive information in paths, exceptions, requests, and logs.
+2. Construct public errors from an **allowlist** of status, error code, stable message, and correlation ID.
+3. Handle `NoSuchFileException`, `AccessDeniedException`, and `IOException` without exposing filesystem details.
+4. Separate public responses from internal diagnostics/logs, which must also be protected.
+5. Avoid reflecting uploaded filenames, private URLs, tokens, personal data, or raw payloads.
+6. Audit indirect leak paths through framework error pages, serializers, and log/trace exporters.
+7. Write Java 17+ programs and tests with deterministic stdout.
 
-Nguyên tắc quan trọng: **mục tiêu không phải che mọi lỗi**, mà là cho người dùng thông tin hữu ích trong phạm vi họ được phép biết, trong khi người vận hành vẫn có thể tra cứu sự cố qua một kênh được kiểm soát.
+Key principle: **the goal is not hiding every error**, but giving users useful information within what they are permitted to know, while operators can still investigate incidents through a controlled channel.
 
-## 2. Thế nào là thông báo công khai?
+## 2. What Counts as a Public Message?
 
-Bất cứ nội dung nào người không có quyền vận hành nội bộ có thể đọc đều cần coi là bề mặt công khai hoặc bán công khai:
+Anything readable by someone without internal operational privileges must be treated as a public or semi-public surface:
 
-- HTTP API response body/header, GraphQL error, WebSocket message.
-- Thông báo lỗi trên web, điện thoại, CLI được phân phối cho khách hàng.
-- Email, SMS, notification, webhook gửi cho bên thứ ba.
-- File export báo lỗi và trang hỗ trợ kỹ thuật.
-- Browser console, client analytics SDK, trace/event exporter có quyền truy cập rộng.
-- Trích dẫn log hoặc stack trace được dán vào issue/ticket chia sẻ.
-- Trang lỗi mặc định của reverse proxy hoặc web framework.
+- HTTP API response bodies/headers, GraphQL errors, WebSocket messages.
+- Error messages on web, mobile, and CLI clients distributed to customers.
+- Emails, SMS, notifications, and webhooks sent to third parties.
+- Exported error files and technical support pages.
+- Browser consoles, client analytics SDKs, and trace/event exporters with broad access.
+- Log excerpts or stack traces pasted into shared issues/tickets.
+- Default error pages of reverse proxies or web frameworks.
 
-**Log nội bộ không đương nhiên an toàn**. Log có thể tập trung về dịch vụ SaaS, được sao lưu nhiều năm, xuất sang đối tác hoặc hiện trong dashboard công khai do cấu hình sai. Vì vậy cần kiểm soát quyền truy cập, thời hạn lưu, mã hóa khi phù hợp và tối thiểu hóa dữ liệu ngay từ lúc tạo log.
+**Internal logs are not automatically safe.** Logs may be centralized in a SaaS service, backed up for years, exported to partners, or exposed in a public dashboard due to misconfiguration. Therefore, control access permissions, retention periods, encryption where appropriate, and minimize data right at log-creation time.
 
-## 3. Những dữ liệu dễ bị lộ qua I/O
+## 3. Data Easily Leaked via I/O
 
-| Loại | Ví dụ | Rủi ro |
+| Category | Example | Risk |
 | --- | --- | --- |
-| Đường dẫn nội bộ | `/srv/prod/private/payroll/2026.csv` | Tiết lộ cấu trúc máy chủ, dữ liệu nghiệp vụ |
-| Đường dẫn Windows | `C:\Users\svc\AppData\Local\...` | Tiết lộ tài khoản hệ thống, môi trường |
-| UNC/network path | `\\fileserver\finance\salary.csv` | Tiết lộ tên host/share riêng |
-| Storage URI | Bucket/key riêng, object-store URL chứa token | Lộ hạ tầng hoặc quyền truy cập |
-| Secret | `Authorization`, API key, refresh token, mật khẩu | Có thể bị sử dụng truy cập trái phép |
-| PII | Email, điện thoại, ID, họ tên gắn với filename | Lộ dữ liệu cá nhân |
-| Nội dung tệp | Dòng CSV/JSON/XML gây lỗi parse | Có thể chứa cả dữ liệu nhạy cảm |
-| Stack trace | Package, class, source line, cause | Tiết lộ chi tiết triển khai và vị trí lỗi |
-| Query string/filename | Tên file upload, tham số client | Có thể chứa secret và dữ liệu do đối thủ kiểm soát |
-| Diagnostics từ provider | Tên disk/mount, endpoint, reason | Lộ cấu hình vận hành |
+| Internal path | `/srv/prod/private/payroll/2026.csv` | Reveals server layout and business data |
+| Windows path | `C:\Users\svc\AppData\Local\...` | Reveals system account and environment |
+| UNC/network path | `\\fileserver\finance\salary.csv` | Reveals private hostname/share |
+| Storage URI | Private bucket/key, object-store URL containing token | Exposes infrastructure or access credentials |
+| Secret | `Authorization`, API key, refresh token, password | Can be abused for unauthorized access |
+| PII | Email, phone, ID, full name embedded in filename | Exposes personal data |
+| File content | CSV/JSON/XML line causing a parse error | May contain sensitive data |
+| Stack trace | Package, class, source line, cause | Reveals implementation details and fault location |
+| Query string/filename | Uploaded filename, client parameter | May contain secrets and adversary-controlled data |
+| Provider diagnostics | Disk/mount name, endpoint, reason | Reveals operational configuration |
 
-Tên file chỉ là **basename** không có nghĩa vô hại: `hospital-result_Alice.pdf` vẫn có thể chứa dữ liệu cá nhân. Không hiển thị `Path.getFileName()` trừ khi thuộc tính display name đã được phê duyệt cho đúng đối tượng và đúng bối cảnh.
+A filename being just a **basename** does not make it harmless: `hospital-result_Alice.pdf` can still contain personal data. Never display `Path.getFileName()` unless a display-name attribute has been approved for the right subject and right context.
 
-## 4. Exception của Java I/O không phải dữ liệu an toàn để phản chiếu
+## 4. Java I/O Exceptions Are Not Safe Data to Echo
 
-Ví dụ các loại cần hiểu:
+Examples of types to understand:
 
-- `NoSuchFileException` khi không thấy một `Path`.
-- `AccessDeniedException` khi không đủ quyền truy cập.
-- `FileAlreadyExistsException` nếu entry đích đã tồn tại.
-- `FileSystemException` có `getFile()`, `getOtherFile()`, `getReason()`.
-- `FileNotFoundException` với message thường chứa file path/hệ thống.
-- `InvalidPathException` có thể chứa chuỗi input gây lỗi; đây là unchecked exception.
-- `IOException` chung từ file, socket, ZIP, filesystem provider, cloud storage adapter.
-- Lỗi parser khi đọc file có thể chứa đoạn nội dung sai định dạng.
+- `NoSuchFileException` when a `Path` is not found.
+- `AccessDeniedException` when access permissions are insufficient.
+- `FileAlreadyExistsException` when the target entry already exists.
+- `FileSystemException` with `getFile()`, `getOtherFile()`, and `getReason()`.
+- `FileNotFoundException` whose message typically includes the file/system path.
+- `InvalidPathException` which may contain the offending input string; this is an unchecked exception.
+- General `IOException` from files, sockets, ZIP, filesystem providers, and cloud storage adapters.
+- Parser errors when reading files may include snippets of malformed content.
 
-Không có hợp đồng nào cho rằng `Throwable.getMessage()` đã xóa secret hoặc path. Cùng một thao tác có thể tạo thông điệp khác nhau giữa các OS/provider/JDK.
+There is no contract guaranteeing that `Throwable.getMessage()` has stripped secrets or paths. The same operation can also produce different messages across OSes/providers/JDKs.
 
-Anti-pattern (đoạn minh họa không độc lập):
+Anti-pattern (non-standalone illustrative snippet):
 
 ```java
 try {
     return Files.readString(path);
 } catch (IOException ex) {
-    // SAI nếu string này được gửi cho người dùng không có quyền:
+    // WRONG if this string is sent to an unauthorized user:
     return "Không đọc được file " + path + ": " + ex.getMessage();
 }
 ```
 
-Các cách gián tiếp khác cũng có thể rò rỉ:
+Other indirect ways can also leak:
 
 ```java
 exception.toString()
@@ -100,11 +100,11 @@ path.toAbsolutePath().toString()
 exception.printStackTrace(new PrintWriter(responseWriter))
 ```
 
-Đây là biểu thức minh họa cần **tránh tại biên xuất thông tin**, không phải code độc lập. Stack trace có thể chứa nested causes và suppressed exceptions; dữ liệu lộ ra nhiều hơn message đầu tiên.
+These are illustrative expressions to **avoid at output boundaries**, not standalone code. Stack traces can contain nested causes and suppressed exceptions; far more data is exposed than just the first message.
 
-## 5. Tách public response khỏi thông tin chẩn đoán
+## 5. Separating Public Responses from Diagnostic Information
 
-Mẫu thiết kế:
+Design pattern:
 
 ```text
 Files / Channel / FileStore / Parser
@@ -122,44 +122,44 @@ Files / Channel / FileStore / Parser
  requestId              category, duration
        |                  |
        v                  v
- HTTP/UI/webhook         Log có quyền kiểm soát
- Không có Throwable      Không log raw secrets
+ HTTP/UI/webhook       Access-controlled logs
+ No Throwable          Do not log raw secrets
 ```
 
-Public DTO nên chứa **chỉ những trường được cho phép**. Không thêm các field như `Throwable cause`, `Path internalPath`, raw request hay `StackTraceElement[]` để serializer tự xử lý.
+A public DTO should contain **only allowlisted fields**. Do not add fields like `Throwable cause`, `Path internalPath`, raw request, or `StackTraceElement[]` for a serializer to process automatically.
 
-Một hợp đồng thường có:
+A typical contract has:
 
 ```text
 status:     500
 code:       STORAGE_ERROR
-message:    Không thể hoàn tất thao tác. Vui lòng thử lại.
-requestId:  e.g. một UUID riêng của request
+message:    Unable to complete the operation. Please try again.
+requestId:  e.g. a per-request UUID
 ```
 
-Message public giúp định hướng và không xác nhận thông tin ngoài quyền của người dùng. Mã lỗi phục vụ UI và support; requestId phục vụ đối chiếu với log có quyền truy cập. **Request ID không phải access token**, và người biết ID không được tự động xem log liên quan.
+The public message provides guidance without confirming information outside the user's authorization. Error codes serve the UI and support; `requestId` serves correlation with access-controlled logs. **A request ID is not an access token**, and knowing the ID must not automatically grant access to related logs.
 
-## 6. Chọn status/mã lỗi có chủ đích
+## 6. Choosing Status and Error Codes Intentionally
 
-| Điều kiện | Ví dụ status HTTP | Public code | Nội dung hiển thị |
+| Condition | Example HTTP Status | Public Code | Displayed Message |
 | --- | --- | --- | --- |
-| Resource không có/không thể truy cập theo chính sách | 404 | `RESOURCE_UNAVAILABLE` | Không thể truy cập tài nguyên. |
-| Bị cấm và chính sách cho phép tiết lộ việc cấm | 403 | `ACCESS_DENIED` | Bạn không có quyền thực hiện thao tác. |
-| Request sai schema/giá trị đầu vào | 400 | `INVALID_REQUEST` | Dữ liệu yêu cầu không hợp lệ. |
-| Upload vượt giới hạn | 413 | `UPLOAD_TOO_LARGE` | Tệp vượt giới hạn cho phép. |
-| Định dạng file không được hỗ trợ | 415/400 | `UNSUPPORTED_FILE_TYPE` | Định dạng tệp không được hỗ trợ. |
-| Lỗi I/O nội bộ bất thường | 500 | `STORAGE_ERROR` | Không thể hoàn tất thao tác. |
-| Dịch vụ lưu trữ tạm thời không hoạt động | 503 nếu phù hợp | `STORAGE_UNAVAILABLE` | Dịch vụ tạm thời không khả dụng. |
+| Resource absent/inaccessible per policy | 404 | `RESOURCE_UNAVAILABLE` | Unable to access resource. |
+| Forbidden and policy allows disclosing denial | 403 | `ACCESS_DENIED` | You do not have permission to perform this operation. |
+| Request violates schema/input values | 400 | `INVALID_REQUEST` | Request data is invalid. |
+| Upload exceeds limit | 413 | `UPLOAD_TOO_LARGE` | File exceeds the allowed limit. |
+| Unsupported file format | 415/400 | `UNSUPPORTED_FILE_TYPE` | File format is not supported. |
+| Unexpected internal I/O error | 500 | `STORAGE_ERROR` | Unable to complete the operation. |
+| Storage service temporarily down | 503 if appropriate | `STORAGE_UNAVAILABLE` | Service is temporarily unavailable. |
 
-Đây là **bảng minh họa**, không phải quy tắc status áp dụng cho mọi API.
+This is an **illustrative table**, not a status rule mandated for every API.
 
-Trong hệ thống tài nguyên riêng, đôi khi cả “không tồn tại” và “không có quyền xem” đều cần trả **404 với cùng schema/message** để không tạo kênh dò sự tồn tại. Ngược lại, một API phục vụ người dùng đã được xác thực có thể chủ động dùng 403. Lựa chọn phải theo chính sách authorization và được áp dụng nhất quán, không chỉ làm đẹp nội dung.
+In private-resource systems, sometimes both “does not exist” and “no permission to view” must return **404 with the exact same schema/message** so as not to create an existence-probing oracle. Conversely, an API serving authenticated users may deliberately use 403. The choice must follow authorization policy and be applied consistently, not merely to polish text.
 
-Cần chú ý **side channel ngoài text**: sự khác biệt quá lớn về status, kích thước body hoặc độ trễ có thể làm lộ việc resource có tồn tại hay không. Không nên hứa đã che giấu hoàn toàn chỉ nhờ thay message.
+Watch out for **non-text side channels**: large differences in status, body size, or latency can reveal whether a resource exists. Never promise complete concealment solely by changing the message text.
 
-## 7. Ví dụ chạy được: ánh xạ exception sang `PublicError` (Java 17+)
+## 7. Runnable Example: Mapping Exceptions to `PublicError` (Java 17+)
 
-Lưu thành **`SafePublicErrorDemo.java`**:
+Save as **`SafePublicErrorDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -174,7 +174,7 @@ public class SafePublicErrorDemo {
     static PublicError map(Throwable error, String requestId) {
         if (error instanceof NoSuchFileException
                 || error instanceof AccessDeniedException) {
-            // Demo: tài nguyên riêng, không xác nhận sự tồn tại.
+            // Demo: private resource, do not confirm existence.
             return new PublicError(
                     404,
                     "RESOURCE_UNAVAILABLE",
@@ -206,7 +206,7 @@ public class SafePublicErrorDemo {
     }
 
     public static void main(String[] args) {
-        String id = "REQ-DEMO-001"; // cố định CHỈ cho ví dụ
+        String id = "REQ-DEMO-001"; // fixed ONLY for example
 
         printSafe(new NoSuchFileException(
                 "/srv/private/clients/42/contract.pdf"), id);
@@ -223,14 +223,14 @@ public class SafePublicErrorDemo {
 }
 ```
 
-Chạy với JDK 17+ và terminal hỗ trợ UTF-8:
+Run with JDK 17+ and a UTF-8 capable terminal:
 
 ```bash
 javac -encoding UTF-8 SafePublicErrorDemo.java
 java SafePublicErrorDemo
 ```
 
-Stdout khi thành công:
+Stdout on success:
 
 ```text
 404 | RESOURCE_UNAVAILABLE | Không thể truy cập tài nguyên được yêu cầu. | REQ-DEMO-001
@@ -239,20 +239,20 @@ Stdout khi thành công:
 400 | INVALID_REQUEST | Dữ liệu yêu cầu không hợp lệ. | REQ-DEMO-001
 ```
 
-**Giải thích:**
+**Explanation:**
 
-1. Exception chứa path/token **chỉ ở phía bên trong** object. Mapper không gọi `getMessage()` hoặc `toString()`.
-2. Hai lỗi file riêng `NoSuchFileException` và `AccessDeniedException` được ánh xạ giống nhau, giảm nguy cơ tiết lộ trạng thái tồn tại.
-3. `IOException` bất thường nhận mã `STORAGE_ERROR`, không phát tán nguyên nhân raw.
-4. `record PublicError` có field cố định, không giữ `Throwable`.
-5. `IllegalArgumentException` chỉ được dùng minh họa đầu vào sai. Trong ứng dụng thật, không nên ánh xạ **mọi** `IllegalArgumentException` thành lỗi client; lỗi lập trình nội bộ cũng có thể phát sinh loại này. Nên phân loại tại tầng nghiệp vụ bằng exception riêng.
-6. ID cố định trong demo tạo stdout xác định; trong hệ thống thật hãy dùng ID server-generated theo từng request.
+1. Exceptions containing paths/tokens remain **strictly internal** inside the object. The mapper never calls `getMessage()` or `toString()`.
+2. The two private file errors `NoSuchFileException` and `AccessDeniedException` map identically, reducing the risk of leaking existence state.
+3. Unexpected `IOException` receives code `STORAGE_ERROR`, without broadcasting the raw cause.
+4. `record PublicError` has fixed fields and does not retain `Throwable`.
+5. `IllegalArgumentException` is used only to illustrate invalid input. In real applications, do not map **every** `IllegalArgumentException` to a client error; internal programming bugs can also throw it. Classify at the business layer with dedicated exceptions.
+6. The fixed ID in the demo yields deterministic stdout; in real systems, use a server-generated ID per request.
 
-Ví dụ là **error mapping** thuần Java, chưa phải HTTP server. Nó không thay thế kiểm tra phân quyền trước thao tác đọc file.
+The example is pure-Java **error mapping**, not an HTTP server. It does not replace authorization checks before reading files.
 
-## 8. Ví dụ chạy được: xử lý I/O thực và tách stdout/stderr
+## 8. Runnable Example: Real I/O Handling and Separating stdout/stderr
 
-Lưu **`SafeFileReadDemo.java`**:
+Save **`SafeFileReadDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -272,14 +272,14 @@ public class SafeFileReadDemo {
                 Files.readString(internalPath);
                 System.out.println("status=200");
             } catch (NoSuchFileException ex) {
-                // Diagnostic: chỉ các trường cho phép,
-                // không in ex, ex.getMessage(), ex.getFile().
+                // Diagnostic: only allowed fields,
+                // do not print ex, ex.getMessage(), ex.getFile().
                 System.err.println(
                         "event=FILE_READ_FAILED"
                         + " type=NoSuchFileException"
                         + " requestId=" + requestId);
 
-                // Public response giả lập.
+                // Simulated public response.
                 System.out.println("status=404");
                 System.out.println("code=RESOURCE_UNAVAILABLE");
                 System.out.println(
@@ -298,7 +298,7 @@ javac -encoding UTF-8 SafeFileReadDemo.java
 java SafeFileReadDemo
 ```
 
-**Stdout** khi đọc file không tồn tại:
+**Stdout** when reading a non-existent file:
 
 ```text
 status=404
@@ -307,21 +307,21 @@ message=Không thể truy cập tài nguyên được yêu cầu.
 requestId=REQ-DEMO-002
 ```
 
-**Stderr** khi cùng thao tác thất bại:
+**Stderr** when the same operation fails:
 
 ```text
 event=FILE_READ_FAILED type=NoSuchFileException requestId=REQ-DEMO-002
 ```
 
-Hai dòng output nằm trên hai luồng khác nhau; IDE/terminal có thể trộn chúng với thứ tự khác nhau nếu hiển thị chung. Nếu stderr được chuyển cho bên ngoài, nó **cũng là kênh công khai**; dùng một hệ thống log có chính sách bảo vệ, không chỉ dựa vào tên stdout/stderr.
+The two outputs reside on two different streams; IDEs/terminals may interleave them in different orders when displayed together. If `stderr` is forwarded externally, it **is also a public channel**; use a logging system with protection policies rather than relying solely on the names stdout/stderr.
 
-Ở đây chương trình tự tạo thư mục mới và cố ý đọc một file chưa tạo, nên `NoSuchFileException` là kết quả dự kiến trong môi trường bình thường. Path tuyệt đối và tên tệp không xuất hiện vì code không in object `internalPath` hoặc exception. Nếu I/O gặp lỗi khác không được bắt, `main` vẫn có thể in stack trace: **server thật bắt buộc có error boundary** chuyển lỗi chưa biết thành public response an toàn, thay vì để runtime tự gửi stack trace ra HTTP.
+Here the program creates a fresh directory and intentionally reads a file not yet created, so `NoSuchFileException` is the expected outcome in normal environments. Absolute paths and filenames do not appear because the code prints neither `internalPath` nor the exception. If another uncaught I/O error occurs, `main` can still print a stack trace: **real servers must have an error boundary** translating unknown errors into safe public responses, instead of letting the runtime emit stack traces over HTTP.
 
-## 9. Diagnostic logs cũng cần thiết kế allowlist
+## 9. Diagnostic Logs Also Need Allowlist Design
 
-Log nội bộ có thể hỗ trợ hỗ trợ kỹ thuật, nhưng điều đó không cho phép ghi mọi dữ liệu tùy ý.
+Internal logs help technical support, but that does not permit logging arbitrary data.
 
-**Cách dễ tạo rò rỉ:**
+**Pattern that easily leaks:**
 
 ```java
 logger.log(Level.SEVERE,
@@ -329,9 +329,9 @@ logger.log(Level.SEVERE,
         exception);
 ```
 
-Đây là snippet **anti-pattern trong hệ thống log truy cập rộng**. Nó có thể gửi path, message, cause và stack trace sang mọi sink do logger cấu hình. Không có nghĩa tất cả việc ghi stack trace đều bị cấm trong mọi môi trường; cần phân tầng và đánh giá chính sách thông tin.
+This snippet is an **anti-pattern in broadly accessible logging systems**. It can send the path, message, cause, and stack trace to every sink configured on the logger. That does not mean stack-trace logging is forbidden in all environments; tier logs and evaluate information policies.
 
-**Cách kiểm soát trường log hơn:**
+**More controlled log-field pattern:**
 
 ```java
 logger.log(Level.WARNING,
@@ -343,32 +343,32 @@ logger.log(Level.WARNING,
         });
 ```
 
-Snippet này giả định các biến/logger được khởi tạo. Các field đến từ danh mục cố định, không từ `exception.getMessage()`. Nếu cần stack trace trong một kênh riêng được bảo vệ, phải có quyền truy cập hạn chế, thời hạn lưu và chính sách kiểm tra secret/PII. Một logger gọi là “internal” không thay đổi bản chất dữ liệu nếu nó xuất ra dashboard công khai.
+This snippet assumes variables/logger are initialized. Fields come from a fixed catalog, not from `exception.getMessage()`. If stack traces are needed in a dedicated protected channel, enforce restricted access, retention limits, and secret/PII inspection policies. Calling a logger “internal” does not change the sensitivity of its data if it outputs to a broad-access dashboard.
 
-| Field có thể cho phép | Ví dụ | Cảnh báo |
+| Allowlisted Field | Example | Caution |
 | --- | --- | --- |
-| `eventCode` | `FILE_READ_FAILED` | Dùng danh mục cố định |
-| `requestId` | UUID kiểm tra hợp lệ | Không mã hóa ID khách hàng/path |
-| `operation` | `READ_RESOURCE` | Không ghi raw query/path |
-| `errorCategory` | `NOT_FOUND_OR_DENIED` | Không lộ chi tiết quyền riêng |
-| `serviceCode` | `DOCUMENT_SERVICE` | Chỉ dùng tên được phép |
-| `durationBucket` | `under_100ms` | Tránh dữ liệu không cần thiết |
-| `publicErrorCode` | `RESOURCE_UNAVAILABLE` | Dùng cùng mã response |
+| `eventCode` | `FILE_READ_FAILED` | Use a fixed catalog |
+| `requestId` | Validated UUID | Do not encode customer IDs/paths |
+| `operation` | `READ_RESOURCE` | Do not log raw queries/paths |
+| `errorCategory` | `NOT_FOUND_OR_DENIED` | Do not expose fine-grained private permissions |
+| `serviceCode` | `DOCUMENT_SERVICE` | Use only approved names |
+| `durationBucket` | `under_100ms` | Avoid unnecessary granularity |
+| `publicErrorCode` | `RESOURCE_UNAVAILABLE` | Match the response code |
 
-Không đưa file path, email, token hoặc raw filename thành label của metrics. Điều này gây rủi ro lộ dữ liệu, tăng số giá trị label (*cardinality*) và làm hệ thống giám sát khó vận hành.
+Never place file paths, emails, tokens, or raw filenames into metrics labels. That creates data-leakage risk, explodes label *cardinality*, and makes monitoring systems hard to operate.
 
-## 10. `requestId`: truy vết mà không công khai bí mật
+## 10. `requestId`: Tracing Without Exposing Secrets
 
-Mã request giúp nhân viên hỗ trợ tra log đúng sự cố mà không yêu cầu người dùng chụp màn hình stack trace.
+A request ID lets support engineers look up the exact incident in logs without asking users for screenshots of stack traces.
 
-Nguyên tắc:
+Principles:
 
-1. Tạo ID ở server, ví dụ `UUID.randomUUID().toString()`, hoặc dùng trace ID từ cơ chế đã được kiểm soát.
-2. Không ghép `userId + path + token` thành ID và không xuất giá trị hash từ một secret thấp entropy như thể chắc chắn vô hại.
-3. Không coi request ID là bằng chứng người dùng có quyền đọc toàn bộ log.
-4. Nếu nhận `X-Request-ID` từ client, kiểm tra chiều dài, charset, ký tự điều khiển và chính sách trust; nếu không tin cậy, tự tạo ID.
-5. Bảo vệ hệ thống tra cứu log bằng xác thực/authorization; biết request ID **không đủ** để được xem chẩn đoán nội bộ.
-6. Không dùng ID cố định của ví dụ trong production.
+1. Generate the ID on the server, e.g., `UUID.randomUUID().toString()`, or use a trace ID from a controlled mechanism.
+2. Never concatenate `userId + path + token` into an ID, and never emit hashes of low-entropy secrets assuming they are harmless.
+3. Never treat a request ID as proof that the user is authorized to read full logs.
+4. If accepting `X-Request-ID` from a client, validate length, charset, control characters, and trust policy; if untrusted, generate a new ID.
+5. Protect log-query tools with authentication/authorization; knowing a request ID is **not enough** to view internal diagnostics.
+6. Never use the fixed demo IDs in production.
 
 Snippet:
 
@@ -376,11 +376,11 @@ Snippet:
 String requestId = java.util.UUID.randomUUID().toString();
 ```
 
-Vì ID thực tế ngẫu nhiên, không thể viết stdout cố định cho một chương trình sinh ID mới ở mỗi lần chạy. Hai ví dụ trước dùng `REQ-DEMO-...` chỉ để thuận tiện đối chiếu output.
+Because real IDs are random, fixed stdout cannot be written for a program generating a fresh ID on each run. The two earlier examples used `REQ-DEMO-...` solely for convenient output verification.
 
-## 11. Tên file upload không phải dữ liệu tin cậy
+## 11. Uploaded Filenames Are Not Trusted Data
 
-Tên file do client gửi có thể chứa path cục bộ hoặc PII:
+Client-submitted filenames can contain local paths or PII:
 
 ```text
 C:\Users\Alice\Documents\medical-result.pdf
@@ -388,36 +388,36 @@ customer-123456789-bank-statement.pdf
 ../private/secret.txt
 ```
 
-Không dùng chuỗi này trực tiếp làm đường dẫn lưu trên server hoặc in vào error log public. Các vấn đề bao gồm:
+Never use this string directly as a server storage path or print it into public error logs. Issues include:
 
-- Path traversal, separator khác nhau giữa Windows/Unix.
-- Trùng tên file, cố ý ghi đè.
-- Chuỗi rất dài hoặc ký tự điều khiển dùng cho log/header injection.
-- Thông tin cá nhân được người dùng đặt trong tên file.
-- Nội dung file giả mạo extension hoặc MIME type.
+- Path traversal and separator differences between Windows and Unix.
+- Filename collisions and intentional overwrites.
+- Very long strings or control characters used for log/header injection.
+- Personal information embedded by users in filenames.
+- File content spoofing extensions or MIME types.
 
-Một chính sách thực dụng:
+A pragmatic policy:
 
-- Server tạo **storage key** độc lập tên gốc, có đủ tính duy nhất.
-- Kiểm tra giới hạn byte upload, loại file thực tế, quyền sở hữu resource.
-- Lưu **display name** riêng khi nghiệp vụ thực sự cần; chỉ hiển thị nó cho người được phép.
-- Không đưa path lưu file vào HTTP response hoặc URL kiểu file nội bộ.
-- Xử lý download header `Content-Disposition` bằng thư viện hỗ trợ encoding/validation phù hợp, không nối raw string chứa CR/LF.
+- Server generates a **storage key** independent of the original name, with sufficient uniqueness.
+- Enforce upload byte limits, actual file types, and resource ownership.
+- Store the **display name** separately only when business logic requires it; display it only to authorized users.
+- Never place the storage file path in HTTP responses or internal file-style URLs.
+- Build download `Content-Disposition` headers using a library with proper encoding/validation; never concatenate raw strings containing CR/LF.
 
-Snippet minh họa, chưa phải upload handler hoàn chỉnh:
+Illustrative snippet, not a complete upload handler:
 
 ```java
 String storageKey = java.util.UUID.randomUUID().toString();
 Path destination = controlledUploadRoot.resolve(storageKey);
 ```
 
-`controlledUploadRoot` phải do server sở hữu, có quyền filesystem/sandbox phù hợp. Cần thêm chiến lược ngăn symlink race, kiểm soát dung lượng/quota, scan theo chính sách và xử lý file lỗi/partial write.
+`controlledUploadRoot` must be server-owned with proper filesystem/sandbox permissions. You also need strategies against symlink races, capacity/quota control, policy-based scanning, and error/partial-write cleanup.
 
-## 12. Không tin rằng `normalize()` đã giải quyết bảo mật path
+## 12. Do Not Assume `normalize()` Solves Path Security
 
-Trong Java NIO, `Path.normalize()` loại bỏ các thành phần đường dẫn cú pháp như `.` và `..`; `toAbsolutePath()` tạo dạng tuyệt đối dựa trên môi trường. Hai lệnh này **không tự xác minh authorization**, không ngăn mọi trường hợp symbolic link/race và không chứng minh file nằm trong root thực được phép.
+In Java NIO, `Path.normalize()` removes syntactic path components such as `.` and `..`; `toAbsolutePath()` produces an environment-dependent absolute form. Neither call **verifies authorization**, prevents all symbolic-link/race cases, or proves the file lies inside the real permitted root.
 
-Ví dụ khi phục vụ download từ resource ID:
+Example when serving downloads by resource ID:
 
 ```text
 request resourceId
@@ -438,74 +438,74 @@ open/read with controlled filesystem permissions
 return bytes or safe public error DTO
 ```
 
-Không dùng raw path do client cung cấp làm chứng cứ quyền truy cập. Nếu ứng dụng xử lý path trong thư mục đối thủ có thể sửa, cân nhắc cơ chế directory handle/phân quyền thích hợp; `SecureDirectoryStream` chỉ dùng khi provider hỗ trợ và còn cần thiết kế chống race tương ứng.
+Never use a raw client-supplied path as proof of access rights. If the application handles paths inside a directory an adversary can mutate, use directory-handle mechanisms and proper permissions; use `SecureDirectoryStream` only when supported by the provider and paired with proper anti-race design.
 
-Ẩn path khỏi lỗi là một phần **giảm lộ thông tin**, không thay thế bảo vệ truy cập file thật.
+Hiding paths from errors is one part of **reducing information disclosure**, not a substitute for real file access protection.
 
-## 13. Các nguồn rò rỉ gián tiếp
+## 13. Indirect Leak Sources
 
-Ngay cả khi service đã không trả `ex.getMessage()`, một lớp khác có thể làm lộ:
+Even when a service stops returning `ex.getMessage()`, another layer can still leak:
 
-- Default error page bật debug với `trace` hoặc `exception`.
-- JSON serializer gặp DTO có field `Throwable`.
-- HTTP filter thêm `X-Error-Detail` nguyên nhân lỗi.
-- Middleware phản chiếu query string hoặc upload filename.
-- Tracing SDK gửi raw request/exception đến bên thứ ba.
-- UI hiển thị nguyên error body từ HTTP client.
-- Email hỗ trợ đính kèm toàn bộ server log.
-- Structured log exporter đưa raw `path` vào dashboard truy cập rộng.
+- Default debug error pages enabled with `trace` or `exception`.
+- A JSON serializer encountering a DTO containing a `Throwable` field.
+- An HTTP filter adding `X-Error-Detail` with the raw error cause.
+- Middleware echoing query strings or uploaded filenames.
+- Tracing SDKs sending raw requests/exceptions to third parties.
+- UI displaying raw error bodies from an HTTP client.
+- Support emails attaching full server logs.
+- Structured log exporters sending raw `path` fields to broad-access dashboards.
 
-Cần có **error boundary tập trung** cho mọi exception chưa được phân loại. Dùng response schema allowlist, kiểm tra các HTTP header, tắt trang debug ngoài development, kiểm tra error handler ở framework và hạn chế dữ liệu logging/tracing. Một status 500 không tự bảo vệ nội dung của body.
+You need a **centralized error boundary** for all unclassified exceptions. Use allowlisted response schemas, audit HTTP headers, disable debug pages outside development, inspect framework error handlers, and restrict logging/tracing data. A 500 status code does not protect the body's contents by itself.
 
-## 14. Redaction hỗ trợ, nhưng không phải tấm chắn duy nhất
+## 14. Redaction Helps, but Is Not the Sole Shield
 
-**Redaction** loại bỏ hoặc thay thế một số field như `Authorization`, token hay PII. Khi buộc phải nhận một object raw, có thể redact các trường theo schema trước khi log.
+**Redaction** removes or masks fields such as `Authorization`, tokens, or PII. When forced to handle a raw object, you can redact schema-defined fields before logging.
 
-Tuy nhiên regex trên một message bất kỳ không phải chính sách bảo mật hoàn chỉnh:
+However, a regex over an arbitrary message is not a complete security policy:
 
 ```java
 String sanitized = message.replaceAll(
         "token=[^ ]+", "token=[REDACTED]");
 ```
 
-Snippet trên **không đủ an toàn** khi token có xuống dòng, encoding, dấu phân cách khác hoặc nằm trong `cause`; path Windows/Unix, JSON/XML và thông tin cá nhân không có một mẫu tổng quát đáng tin.
+The snippet above **is insufficient** when tokens span newlines, use encoding, use different delimiters, or live inside `cause`; Windows/Unix paths, JSON/XML, and personal data have no single reliable catch-all pattern.
 
-Thứ tự ưu tiên:
+Priority order:
 
-1. Không tạo field public từ raw exception ngay từ đầu.
-2. Chọn status/code/message từ bảng cố định.
-3. Tối thiểu hóa field log bằng allowlist.
-4. Redact những trường bắt buộc phải xử lý ở tầng riêng, kèm kiểm thử.
-5. Kiểm soát truy cập log, retention, encryption và nơi xuất.
-6. Kiểm tra lại sau thay đổi thư viện/framework vì một error serializer có thể thêm trường mới.
+1. Never construct public fields from raw exceptions in the first place.
+2. Select status/code/message from a fixed table.
+3. Minimize log fields using an allowlist.
+4. Redact fields that must be processed at a dedicated layer, backed by tests.
+5. Control log access, retention, encryption, and export destinations.
+6. Re-verify after library/framework upgrades because an error serializer may introduce new fields.
 
-Nếu một hàm tên `sanitize()` được dùng khắp nơi, nó vẫn phải được đánh giá theo dữ liệu đầu vào và đường xuất; **tên hàm không phải bằng chứng chống rò rỉ**.
+Even if a function named `sanitize()` is called everywhere, it must still be evaluated against its inputs and output paths; **a function name is not proof against leakage**.
 
-## 15. Log injection từ nội dung client
+## 15. Log Injection from Client Content
 
-Một filename hoặc request ID chưa kiểm soát có thể chứa ký tự xuống dòng:
+An unvalidated filename or request ID can contain newline characters:
 
 ```text
 report.pdf
 ERROR admin access granted
 ```
 
-Nếu hệ thống nối chuỗi trực tiếp vào log, kẻ tấn công có thể tạo bản ghi giả. Đối sách:
+If the system concatenates strings directly into logs, an attacker can forge log entries. Countermeasures:
 
-- Không log raw input không cần thiết.
-- Ưu tiên structured logging có escaping/encoding đúng format.
-- Giới hạn độ dài và loại bỏ/kiểm tra các ký tự điều khiển theo policy.
-- Không chấp nhận request ID tùy ý từ client nếu không có quy tắc kiểm tra.
-- Phân biệt server-generated fields với user-provided fields.
-- Giới hạn số lượng event/log và có backpressure tránh log flooding.
+- Do not log unnecessary raw inputs.
+- Prefer structured logging with format-appropriate escaping/encoding.
+- Enforce length limits and strip/reject control characters per policy.
+- Do not accept arbitrary client-supplied request IDs without validation rules.
+- Distinguish server-generated fields from user-provided fields.
+- Rate-limit events/logs and apply backpressure to prevent log flooding.
 
-`requestId` cố định/được kiểm soát và `eventCode` từ enum thường dễ bảo vệ hơn concatenation của mọi chi tiết request.
+Fixed/validated `requestId` values and enum `eventCode` values are far easier to protect than concatenating every request detail.
 
-## 16. Kiểm thử public error bằng dữ liệu mồi nhạy cảm
+## 16. Testing Public Errors with Sensitive Canary Data
 
-Một test tốt chủ động tạo exception có chứa path/token giả, sau đó assert những chuỗi đó **không xuất hiện trong public output**. Không kiểm thử chỉ đường đi thành công.
+A good test proactively constructs exceptions containing fake paths/tokens, then asserts those strings **never appear in public output**. Never test only the happy path.
 
-Tạo **`PublicErrorContractTest.java`**:
+Create **`PublicErrorContractTest.java`**:
 
 ```java
 import java.io.IOException;
@@ -564,66 +564,66 @@ javac -encoding UTF-8 PublicErrorContractTest.java
 java PublicErrorContractTest
 ```
 
-Stdout khi thành công:
+Stdout on success:
 
 ```text
 passed=4
 ```
 
-Bài test này là **kiểm tra hợp đồng tối thiểu**, không chứng minh toàn bộ server an toàn. Trong thực tế cần test response JSON/headers/body mà framework thực sự xuất, telemetry/log sink, nested causes, Windows/Unix paths, URI, token, Unicode, control characters, user content trong archive và lỗi bất ngờ từ middleware.
+This test is a **minimum contract check**; it does not prove the entire server is safe. In practice, test actual JSON responses/headers/bodies emitted by the framework, telemetry/log sinks, nested causes, Windows/Unix paths, URIs, tokens, Unicode, control characters, user content inside archives, and unexpected middleware failures.
 
-### Checklist kiểm thử theo loại lỗi
+### Testing Checklist by Error Type
 
-| Tình huống | Dữ liệu mồi | Điều kiện kiểm tra |
+| Scenario | Canary Data | Verification Condition |
 | --- | --- | --- |
-| File không tồn tại | Path riêng | Không có path trong response |
-| File bị từ chối | `AccessDeniedException` có path | Không lộ tên file/quyền nội bộ |
-| I/O bất thường | `IOException` chứa token mồi | Token không xuất ở response/log công khai |
-| Input sai | Filename có `../` | Không phản chiếu raw name |
-| Upload quá lớn | Tên file chứa email | Chỉ hiển thị code/giới hạn phù hợp |
-| Parser lỗi | Dòng CSV chứa PII giả | Không hiện nội dung file |
-| Nested cause | Exception chain có path | Serializer không lộ cause/stack |
-| Header injection | ID chứa CR/LF | ID bị từ chối hoặc thay thế |
-| Logging | Token trong request body | Không ghi vào sink truy cập rộng |
+| File does not exist | Private path | No path in response |
+| File access denied | `AccessDeniedException` with path | No filename/internal permission leaked |
+| Unexpected I/O error | `IOException` with canary token | Token absent from public responses/logs |
+| Invalid input | Filename with `../` | Raw name is not echoed |
+| Upload too large | Filename containing email | Only appropriate code/limit shown |
+| Parser error | CSV line containing fake PII | File content not shown |
+| Nested cause | Exception chain containing path | Serializer does not expose cause/stack |
+| Header injection | ID containing CR/LF | ID rejected or replaced |
+| Logging | Token inside request body | Not written to broad-access sinks |
 
-## 17. Phân tầng trách nhiệm
+## 17. Layering Responsibilities
 
-Một kiến trúc dễ kiểm soát gồm:
+An easily auditable architecture separates:
 
-**File adapter / repository:** biết `Path`, `Files`, `FileChannel` và nguyên nhân I/O thật. Không tự quyết định public message.
+**File adapter / repository:** knows `Path`, `Files`, `FileChannel`, and the real I/O cause. Never decides public messages.
 
-**Service nghiệp vụ:** phân loại lỗi theo quyền người dùng, resource và ngữ nghĩa. Quyết định trường hợp nào nên trả 403, trường hợp nào 404 để hạn chế enumeration.
+**Business service:** classifies errors by user permissions, resource, and semantics. Decides which cases return 403 and which return 404 to curb enumeration.
 
-**API boundary:** bắt lỗi đã phân loại và lỗi chưa biết, tạo `PublicError` chỉ có status/code/message/requestId allowlisted. Không đưa `Throwable` trực tiếp vào serializer.
+**API boundary:** catches classified and unknown errors, builds `PublicError` with only allowlisted status/code/message/requestId. Never feeds `Throwable` directly to a serializer.
 
-**Diagnostic logging:** ghi event và ID có kiểm soát; audit log riêng nếu cần, với phân quyền và retention. Thông tin chi tiết chỉ được phép theo chính sách bảo vệ rõ ràng.
+**Diagnostic logging:** records controlled events and IDs; uses separate audit logs when needed with access control and retention. Detailed information is permitted only under explicit protection policies.
 
-**Security tests và monitoring:** kiểm tra đường lỗi thật, hệ thống log/exporter và cấu hình framework sau deploy. Không chỉ test một hàm xử lý exception đơn lẻ.
+**Security tests and monitoring:** verifies real error paths, log/exporter systems, and post-deploy framework configuration. Never tests only a single isolated exception-handler function.
 
-## 18. Những lỗi thiết kế phổ biến
+## 18. Common Design Mistakes
 
-1. Trả `IOException.getMessage()` trực tiếp cho người dùng.
-2. Nối `Path.toAbsolutePath()` vào thông báo 404.
-3. Serialize `Throwable` hoặc `StackTraceElement[]` trong DTO.
-4. Hiển thị trang debug lỗi 500 ở production.
-5. Ghi toàn bộ request body/header `Authorization` vào log khi lỗi parser.
-6. Để raw filename upload thành server path hoặc log public.
-7. Tin rằng `getFileName()` loại hết PII.
-8. Phân biệt 403/404 không nhất quán trên resource bí mật, gây enumeration.
-9. Dùng error code chứa internal path/storage key.
-10. Tạo request ID từ user identifier, filename hoặc secret.
-11. Cho người biết request ID xem log mà không authorization.
-12. Dùng một regex redaction rồi coi tất cả an toàn.
-13. Chưa xử lý CR/LF và log injection từ input.
-14. Chỉ kiểm tra controller, bỏ qua middleware, header và serializer.
-15. Coi stderr, tracing dashboard hoặc ticket support là kênh không bao giờ công khai.
-16. Ghi email/PII thành label metrics, gây rò rỉ và high-cardinality.
-17. Dựa vào `Path.normalize()` để thay authorization/symlink safety.
-18. Không kiểm tra lỗi chưa dự kiến và stack trace tự động của framework.
+1. Returning `IOException.getMessage()` directly to users.
+2. Appending `Path.toAbsolutePath()` to 404 messages.
+3. Serializing `Throwable` or `StackTraceElement[]` inside DTOs.
+4. Showing 500 debug error pages in production.
+5. Logging full request bodies or `Authorization` headers on parser failures.
+6. Letting raw uploaded filenames become server paths or public log entries.
+7. Believing `getFileName()` strips all PII.
+8. Distinguishing 403/404 inconsistently on confidential resources, enabling enumeration.
+9. Using error codes that embed internal paths/storage keys.
+10. Constructing request IDs from user identifiers, filenames, or secrets.
+11. Letting anyone who knows a request ID view logs without authorization.
+12. Applying one regex redaction and assuming everything is safe.
+13. Failing to handle CR/LF and log injection from inputs.
+14. Auditing only controllers while ignoring middleware, headers, and serializers.
+15. Treating `stderr`, tracing dashboards, or support tickets as never-public channels.
+16. Putting emails/PII into metrics labels, causing leaks and high cardinality.
+17. Relying on `Path.normalize()` instead of authorization/symlink safety.
+18. Failing to test unexpected errors and automatic framework stack traces.
 
-## 19. Bài tập thực hành
+## 19. Practice Exercises
 
-**Bài A — sửa anti-pattern.** Thay mã sau bằng một public DTO không chứa path/message:
+**Exercise A — Fix the anti-pattern.** Replace the following code with a public DTO containing no path/message:
 
 ```java
 catch (IOException ex) {
@@ -631,17 +631,17 @@ catch (IOException ex) {
 }
 ```
 
-**Bài B — resource bí mật.** Hãy thiết kế phản hồi cho hai trường hợp cùng một ID: không tồn tại và không có quyền xem. Khi nào bạn chọn cùng một 404? Làm sao đảm bảo phép kiểm tra quyền vẫn được thực thi?
+**Exercise B — Confidential resources.** Design responses for two cases on the same ID: not found vs. no permission to view. When do you return 404 for both? How do you ensure authorization checks still execute?
 
-**Bài C — filename chứa PII.** Khách hàng tải lên tệp tên chứa họ tên và thông tin y tế. Tại sao tên này không nên dùng trong log công khai? Tạo một storage key phía server và một display name có chính sách riêng.
+**Exercise C — Filenames containing PII.** A customer uploads a file whose name contains their full name and medical details. Why should this name not appear in public logs? Create a server-side storage key and a display name governed by its own policy.
 
-**Bài D — error serializer.** Một framework trả JSON có `message` và `trace` từ exception. Tạo DTO chỉ có `status`, `code`, `message`, `requestId`; test trên response thực.
+**Exercise D — Error serializer.** A framework returns JSON containing `message` and `trace` from an exception. Build a DTO containing only `status`, `code`, `message`, and `requestId`; test against the real response.
 
-**Bài E — chống log injection.** Client gửi request ID chứa dấu xuống dòng và chuỗi giả mạo log. Hãy mô tả cách giới hạn độ dài/charset hoặc thay bằng ID server-generated.
+**Exercise E — Preventing log injection.** A client sends a request ID containing newlines and forged log lines. Describe how to bound length/charset or substitute a server-generated ID.
 
-**Bài F — kiểm thử đa nền tảng.** Thêm dữ liệu mồi path Windows, path Linux, UNC path, URL riêng, token và tên file Unicode vào test; đảm bảo không xuất chuỗi đó ở response.
+**Exercise F — Cross-platform testing.** Add canary Windows paths, Linux paths, UNC paths, private URLs, tokens, and Unicode filenames to tests; verify none of those strings appear in responses.
 
-## 20. Tài liệu tham khảo
+## 20. References
 
 - [Java SE 17 — FileSystemException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/FileSystemException.html): `getFile()`, `getOtherFile()`, `getReason()`.
 - [Java SE 17 — NoSuchFileException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/NoSuchFileException.html).
@@ -651,8 +651,8 @@ catch (IOException ex) {
 - [OWASP Error Handling Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html).
 - [OWASP Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html).
 
-## 21. Ghi nhớ
+## 21. Key Takeaways
 
-Thông báo công khai cần trả lời **người dùng có thể làm gì tiếp**, không phản chiếu hệ thống lưu file ở đâu, tài nguyên riêng có tồn tại hay không, hoặc token/request payload nào gây ra exception. `NoSuchFileException`, `AccessDeniedException`, `FileSystemException`, `IOException` có thể chứa path, message OS và nested causes; không đưa raw exception vào UI/HTTP/email/webhook.
+Public messages must answer **what the user can do next**, never reflect where the system stores files, whether a private resource exists, or which token/request payload triggered an exception. `NoSuchFileException`, `AccessDeniedException`, `FileSystemException`, and `IOException` can carry paths, OS messages, and nested causes; never send raw exceptions to UI/HTTP/email/webhooks.
 
-Mô hình đúng là **lỗi I/O → phân loại và kiểm tra quyền → ánh xạ status/code/message từ allowlist → thêm requestId an toàn → ghi diagnostic có kiểm soát → kiểm thử các nhánh thất bại**. Log, telemetry và thông báo hỗ trợ cũng cần được bảo vệ. Việc ẩn path trong một catch block chỉ là một bước; an toàn thực tế cần phân quyền, kiểm soát dữ liệu xuất ra, chống injection, chính sách log và test hệ thống.
+The right pattern is **I/O error → classify and authorize → map status/code/message from an allowlist → attach a safe `requestId` → log controlled diagnostics → test failure branches**. Logs, telemetry, and support notifications must also be protected. Hiding a path inside one catch block is only a single step; practical security requires authorization, output control, anti-injection, log policies, and system-level testing.

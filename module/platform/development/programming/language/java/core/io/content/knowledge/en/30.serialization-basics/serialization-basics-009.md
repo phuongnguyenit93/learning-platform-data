@@ -1,41 +1,41 @@
-# Ghi lại đối tượng đã thay đổi, reset và cache handle
+# Re-writing Mutated Objects, reset, and Handle Caching
 
-## 1. Vấn đề: sửa đối tượng nhưng dữ liệu nhận vẫn cũ
+## 1. The Problem: Mutating an Object Yet Receiving Stale Data
 
-Khi dùng Java Object Serialization, gọi `ObjectOutputStream.writeObject(x)` lần đầu thường ghi trạng thái đối tượng và cấp **handle** (định danh tham chiếu trong luồng). Nếu về sau thay đổi field của **cùng instance** rồi gọi `writeObject(x)` lần nữa, stream thường chỉ ghi một **back-reference** tới handle cũ. `ObjectInputStream.readObject()` ở phía nhận có thể trả lại chính instance đã đọc lần đầu với trạng thái cũ.
+When using Java Object Serialization, the first `ObjectOutputStream.writeObject(x)` call writes the object's state and assigns a **handle** (a stream-scoped reference identifier). If you later mutate a field on **the same instance** and call `writeObject(x)` again, the stream normally writes only a **back-reference** to the old handle. `ObjectInputStream.readObject()` on the receiving side then returns the exact same instance read the first time, carrying the old state.
 
-Đây là tính năng bảo toàn cấu trúc **object graph**, không phải lỗi buffering. Nếu hai field cùng tham chiếu một object, reader cần tái tạo quan hệ `a.ref == b.ref`. Nếu graph có chu trình A → B → A, bảng handles giúp tránh duyệt vô hạn.
+This is a feature for preserving **object graph** topology, not a buffering bug. If two fields reference the same object, the reader must recreate `a.ref == b.ref`. If a graph has a cycle A → B → A, the handle table prevents infinite traversal.
 
-Sự khác biệt quan trọng:
+Key distinctions:
 
-- `writeObject(x)`: đối tượng chưa được ghi thì ghi định nghĩa; nếu **đã có handle** thì có thể ghi reference.
-- `reset()`: tạo một ranh giới mới trong serialization stream, bỏ state về những đối tượng đã ghi; lần ghi sau sẽ tuần tự hóa graph như mới.
-- `writeUnshared(x)`: buộc ghi mới **root object** của lời gọi, nhưng không nhất thiết làm mới các object con đã có handles.
-- `flush()`: đẩy bytes đã encode sang output bên dưới; **không** xóa handles.
+- `writeObject(x)`: if the object has not been written yet, writes its definition; if it **already has a handle**, may emit a reference.
+- `reset()`: creates a new boundary in the serialization stream, discarding state about previously written objects; subsequent writes serialize graphs anew.
+- `writeUnshared(x)`: forces writing the **root object** of that call anew, though child objects that already have handles are not necessarily refreshed.
+- `flush()`: pushes encoded bytes down to the underlying output; it **does not** clear handles.
 
-Không dùng `serialVersionUID` để theo dõi object mutation: UID phục vụ compatibility của class, không phải số phiên bản nội dung từng object.
+Do not use `serialVersionUID` to track object mutations: the UID serves class compatibility, not per-object content versioning.
 
-## 2. Cơ chế bảng handles
+## 2. How the Handle Table Works
 
 ```text
-Writer, cùng một ObjectOutputStream:
+Writer, same ObjectOutputStream:
     writeObject(x)  -> Object definition + handle H
     writeObject(x)  -> Reference to H
 
-Reader, cùng một ObjectInputStream:
-    readObject()    -> Tạo object y, lưu H -> y
-    readObject()    -> Trả lại chính y
+Reader, same ObjectInputStream:
+    readObject()    -> Create object y, store H -> y
+    readObject()    -> Return the exact same y
 ```
 
-Bảng handle là **theo stream instance**, không phải global cache JVM; object identity (`==`) khác so sánh nội dung `equals()`. Hai đối tượng khác nhau có cùng field vẫn có thể được ghi độc lập.
+The handle table is **per stream instance**, not a JVM-wide global cache; object identity (`==`) differs from content equality (`equals()`). Two distinct objects with identical field values are still written independently.
 
-Ví dụ `Account` được ghi một lần với `balance=10`; sau đó trong JVM gửi nó được sửa thành `balance=20`. Nếu lần thứ hai chỉ là reference đến handle, bản đọc thứ hai không tự thành 20. **ObjectOutputStream không giám sát field changes và không tự tạo delta.**
+For instance, an `Account` is written once with `balance=10`; afterward, in the sending JVM, it is mutated to `balance=20`. If the second write emits only a handle reference, the second read does not automatically become `20`. **`ObjectOutputStream` does not watch field mutations and does not compute deltas.**
 
-Đối tượng được encode là **toàn graph các field đủ điều kiện**, trừ trường hợp `transient`, `static` hoặc custom serialization. Một field chứa đối tượng không hỗ trợ `Serializable` có thể khiến `NotSerializableException`. Bảng handles còn ghi nhớ những object con và class descriptors đã gặp; điều đó quan trọng khi reset, writeUnshared và vận hành stream dài hạn.
+The encoded data covers the **entire graph of eligible fields**, excluding `transient`, `static`, or customized serialization cases. A field holding a non-`Serializable` object can trigger `NotSerializableException`. The handle table also tracks encountered child objects and class descriptors; this matters for `reset`, `writeUnshared`, and long-lived streams.
 
-## 3. Ví dụ Java 17: ghi cũ, reset, rồi ghi mới
+## 3. Java 17 Example: Write Old, Reset, Then Write New
 
-Tạo file `SerializationHandleDemo.java`:
+Create file `SerializationHandleDemo.java`:
 
 ```java
 import java.io.*;
@@ -69,14 +69,14 @@ public class SerializationHandleDemo {
 }
 ```
 
-Biên dịch/chạy với Java 17 trở lên:
+Compile and run with Java 17 or newer:
 
 ```bash
 javac --release 17 SerializationHandleDemo.java
 java SerializationHandleDemo
 ```
 
-Kết quả đã kiểm thử:
+Verified output:
 
 ```text
 values=before,before,after
@@ -84,47 +84,47 @@ a==b=true
 b==c=false
 ```
 
-Diễn giải:
+Explanation:
 
-1. Lần `writeObject` đầu mã hóa `Message{text="before"}` và tạo handle.
-2. Phép gán `message.text="after"` thay đổi object **trong bộ nhớ bên gửi**, không sửa bytes đã ghi.
-3. Lần `writeObject` thứ hai ghi reference tới handle; `b` là cùng object với `a`, có `text="before"`.
-4. `out.reset()` ghi **reset marker** và xóa bảng objects đã biết của writer. Reader gặp marker đó và cũng reset bảng handles của mình.
-5. Lần thứ ba mã hóa object như mới với `text="after"`. `c` có identity khác `b`.
+1. The first `writeObject` encodes `Message{text="before"}` and creates a handle.
+2. Assigning `message.text="after"` mutates the object **in sender memory**, without modifying already-written bytes.
+3. The second `writeObject` emits a handle reference; `b` is the exact same object as `a`, with `text="before"`.
+4. `out.reset()` writes a **reset marker** and clears the writer's known-objects table. The reader sees that marker and resets its own handle table too.
+5. The third write encodes the object anew with `text="after"`. `c` has a different identity from `b`.
 
-Không cần tạo một `ObjectInputStream` mới sau `reset()`; reader hiện tại hiểu marker trong serialization protocol. `reset` cũng không xóa những object mà code reader đã giữ trong biến `a` hoặc `b`.
+You do not need to create a new `ObjectInputStream` after `reset()`; the existing reader understands the protocol marker. Nor does `reset` erase objects the reader code already holds in variables `a` or `b`.
 
-## 4. reset() làm gì và không làm gì?
+## 4. What `reset()` Does and Does Not Do
 
-Chữ ký: `public void reset() throws IOException`.
+Signature: `public void reset() throws IOException`.
 
-- Bỏ trạng thái handles của luồng đối với những objects đã ghi; các object sau marker được xử lý như chưa từng ghi trong **epoch** hiện tại.
-- Ghi reset token vào stream, phối hợp với state của `ObjectInputStream` tương ứng.
-- Thích hợp cho nhiều snapshot **độc lập** của cùng một graph mutable, khi muốn reader nhìn thấy trạng thái mới.
-- Có thể giúp giới hạn lượng state do stream dài hạn ghi nhớ, nhưng làm tăng dung lượng do object/class descriptors cần encode lại.
+- Discards stream handle state for previously written objects; objects written after the marker are treated as unseen within the current **epoch**.
+- Writes a reset token into the stream, coordinating with the matching `ObjectInputStream` state.
+- Suitable for multiple **independent** snapshots of the same mutable graph when the reader must observe updated state.
+- Can help bound memory retained by long-lived streams, at the cost of increased byte volume because objects and class descriptors must be re-encoded.
 
-**Không làm:** xóa bytes trước đó trong file, truncate, ghi lại object nếu chưa gọi `writeObject` sau reset, tự bảo vệ snapshot khỏi thread khác sửa field, xác nhận storage đã sync hoặc thực hiện transaction.
+**What it does NOT do:** erase earlier bytes in a file, truncate, re-write objects without calling `writeObject` after reset, protect a snapshot from concurrent field mutations on another thread, confirm storage sync, or execute a transaction.
 
-Không được gọi `reset()` **khi quá trình serialize một object đang diễn ra**, ví dụ bên trong custom `private void writeObject(ObjectOutputStream out)` của object đang được ghi. Thao tác không hợp lệ này có thể ném `IOException`. Hãy reset **giữa** các lần ghi toàn bộ graph.
+Never call `reset()` **while an object is actively being serialized**, such as inside a custom `private void writeObject(ObjectOutputStream out)` of the object being written. That invalid call can throw `IOException`. Call `reset` **between** complete graph writes.
 
-So sánh:
+Comparison:
 
-| Lệnh | Tác động |
+| Call | Effect |
 | --- | --- |
-| `writeObject(x)` | Ghi định nghĩa hoặc back-reference. |
-| `reset()` | Đánh dấu epoch mới; quên toàn bộ object handles hiện tại. |
-| `flush()` | Đẩy bytes pending; **không làm mới handle**. |
-| `writeUnshared(x)` | Ghi mới root x; nested graph có thể tiếp tục dùng handles cũ. |
-| `close()` | Đóng stream/tài nguyên, không phải reset giữa cùng phiên giao thức. |
-| `FileChannel.force(...)` | Yêu cầu đồng bộ dữ liệu lưu trữ, không liên quan handles. |
+| `writeObject(x)` | Writes definition or back-reference. |
+| `reset()` | Marks a new epoch; forgets all current object handles. |
+| `flush()` | Pushes pending bytes; **does not refresh handles**. |
+| `writeUnshared(x)` | Writes root `x` anew; nested graph may still reuse old handles. |
+| `close()` | Closes stream/resource, not a mid-protocol reset. |
+| `FileChannel.force(...)` | Requests syncing storage data; unrelated to handles. |
 
-Một lỗi vận hành là tạo `new ObjectOutputStream(sameOutput)` nhiều lần lên **cùng một luồng liên tục** mà phía nhận vẫn dùng một `ObjectInputStream`. Constructor stream ghi header mới; header đột ngột ở giữa dữ liệu có thể gây `StreamCorruptedException`. Muốn nhiều snapshot trên một luồng, dùng một writer và `reset()`; muốn nhiều stream riêng thì cần ranh giới/reader riêng.
+An operational bug is creating `new ObjectOutputStream(sameOutput)` repeatedly onto **the same continuous stream** while the receiver still uses a single `ObjectInputStream`. The stream constructor writes a new header; an unexpected header mid-stream causes `StreamCorruptedException`. For multiple snapshots on one stream, use one writer with `reset()`; for separate streams, use explicit framing and separate readers.
 
-## 5. writeUnshared: root mới nhưng nested object cũ
+## 5. writeUnshared: New Root Yet Old Nested Objects
 
-`writeUnshared(root)` không phát back-reference tới chính **root** của lời gọi đó, nhưng các object con đã được ghi vẫn có thể được tham chiếu qua handles. Vì vậy nó **không phải deep copy**, cũng không bảo đảm snapshot của toàn graph có các field mới nhất.
+`writeUnshared(root)` suppresses emitting a back-reference for **the root** of that specific call, yet already-written child objects may still be referenced via handles. Therefore, it is **not a deep copy**, nor does it guarantee a snapshot of the whole graph with the latest field values.
 
-Tạo file `WriteUnsharedDemo.java`:
+Create file `WriteUnsharedDemo.java`:
 
 ```java
 import java.io.*;
@@ -171,7 +171,7 @@ javac --release 17 WriteUnsharedDemo.java
 java WriteUnsharedDemo
 ```
 
-Kết quả kiểm thử:
+Verified output:
 
 ```text
 labels=one,two,one
@@ -181,70 +181,70 @@ a==c=true
 nested-shared=true
 ```
 
-Lần đầu lưu root `Wrapper` và child `Item`. Sau khi thay đổi root thành "two" và child thành "blue", `writeUnshared(w)` ghi một **root mới** nhưng child vẫn có thể trỏ về `Item` cũ với "red". Lần `writeObject(w)` tiếp theo vẫn có thể tham chiếu root ban đầu (`a==c`). Muốn toàn graph hiện trạng được ghi lại, `reset(); writeObject(w)` rõ nghĩa hơn.
+The first write stores root `Wrapper` and child `Item`. After mutating root to `"two"` and child to `"blue"`, `writeUnshared(w)` writes a **new root**, yet the child still points back to the old `Item` with `"red"`. The subsequent `writeObject(w)` call still references the original root (`a==c`). To re-write the current state of the whole graph, `reset(); writeObject(w)` is much clearer.
 
-`ObjectInputStream.readUnshared()` không dùng như một phiên bản “tốt hơn” của `readObject()`: nếu entry cần đọc là **back-reference** thì `readUnshared` ném `ObjectStreamException`. Các cơ chế class như `readResolve` và đối tượng đặc biệt có thể tạo thêm ngoại lệ về identity; không suy ra mọi nested reference đều được clone.
+`ObjectInputStream.readUnshared()` is not a "better" drop-in replacement for `readObject()`: if the entry read is a **back-reference**, `readUnshared` throws `ObjectStreamException`. Class mechanisms like `readResolve` and special object types can create further identity exceptions; do not assume all nested references are cloned.
 
-## 6. Chu kỳ reset và bộ nhớ
+## 6. Reset Intervals and Memory
 
-Một stream tồn tại lâu và ghi nhiều object mới có thể làm handle table của writer/reader tăng, gây overhead và giữ references. Có thể đặt ranh giới giữa các batch:
+A long-lived stream writing many distinct new objects causes the writer and reader handle tables to grow, adding overhead and retaining references. You can place boundaries between batches:
 
 ```java
-// Snippet minh họa; out và makeMessage(i) do ứng dụng định nghĩa.
+// Illustrative snippet; out and makeMessage(i) are defined by the application.
 for (int i = 0; i < 10_000; i++) {
     out.writeObject(makeMessage(i));
     if ((i + 1) % 1_000 == 0) out.reset();
 }
 ```
 
-Mốc 1.000 chỉ để minh họa; chọn theo kích thước graph, heap, throughput, yêu cầu identity, và benchmark thực tế. Reset **quá dày** khiến nhiều bytes phải serialize lại, có thể giảm hiệu năng. Reset **quá ít** làm state handles phình ra. Nếu receiver cần định danh một thực thể xuyên nhiều snapshots, hãy truyền **business ID/version**; đừng dựa vào Java object handle luôn giữ nguyên.
+The threshold `1_000` is illustrative; choose based on graph size, heap, throughput, identity requirements, and real benchmarks. Resetting **too frequently** forces many bytes to be re-serialized, hurting performance. Resetting **too rarely** lets handle state bloat. If the receiver needs to identify an entity across multiple snapshots, pass a **business ID/version**; do not rely on Java object handles staying constant.
 
-## 7. Snapshot nhất quán và ứng dụng thực tế
+## 7. Consistent Snapshots and Practical Applications
 
-Cache handles chỉ là một phần bài toán. Nếu thread khác sửa graph **trong lúc** serialization, stream có thể chứa tổ hợp fields không hợp lệ. `Serializable` không có nghĩa tự động thread-safe, và `reset` không biến quá trình ghi thành transaction.
+Handle caching is only half the problem. If another thread mutates the graph **during** serialization, the stream can capture an inconsistent combination of fields. `Serializable` does not imply automatic thread safety, and `reset` does not turn a write into a transaction.
 
-Giải pháp nên cân nhắc:
+Solutions to consider:
 
-- Tạo immutable DTO snapshot bên trong lock hoặc giao dịch nghiệp vụ rồi serialize snapshot.
-- Dùng **một owner** cho `ObjectOutputStream`, phối hợp các producers qua hàng đợi; tránh xen kẽ `writeObject`, `reset`, `flush` giữa nhiều threads.
-- Định nghĩa rõ version/sequence khi gửi object liên tục. `ObjectOutputStream` không tự sinh delta hay application acknowledgement.
-- Xử lý `IOException`, EOF và hỏng stream; không đoán peer đã xử lý thành công chỉ vì lệnh local `writeObject` trả về.
-- Nếu dữ liệu phải sống sót sau mất điện, `flush/reset` không thay thế file sync và giao thức recovery.
-- Tránh deserialize dữ liệu không tin cậy một cách tùy ý. Nếu buộc dùng, kiểm soát class được phép, giới hạn chiều sâu/bytes/references bằng `ObjectInputFilter` và chọn giao thức có hợp đồng rõ ràng.
+- Build an immutable DTO snapshot inside a lock or business transaction, then serialize the snapshot.
+- Assign **a single owner** to `ObjectOutputStream`, coordinating producers through a queue; avoid interleaving `writeObject`, `reset`, and `flush` across threads.
+- Define explicit versions/sequences when streaming objects continuously. `ObjectOutputStream` does not generate deltas or application acknowledgements.
+- Handle `IOException`, EOF, and stream corruption; do not assume the peer processed a message just because local `writeObject` returned.
+- If data must survive power loss, `flush`/`reset` do not replace file syncing and recovery protocols.
+- Avoid arbitrarily deserializing untrusted data. If forced to do so, restrict permitted classes and cap depth/bytes/references with `ObjectInputFilter`, using a protocol with clear contracts.
 
-Khi cần lưu trữ lâu dài, tương thích đa ngôn ngữ hoặc nâng cấp schema thường xuyên, DTO cùng định dạng như JSON/CBOR/Protobuf hoặc database có thể phù hợp hơn native Java Serialization.
+When long-term storage, cross-language interoperability, or frequent schema evolution is needed, DTOs with formats like JSON/CBOR/Protobuf or a database are often more appropriate than native Java Serialization.
 
-## 8. Sai lầm phổ biến
+## 8. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Mutate x rồi `writeObject(x)` lại | Reader thấy state cũ | Reset trước snapshot mới hoặc gửi object/version riêng |
-| Gọi `flush()` để cập nhật field | Handle table không thay đổi | Phân biệt byte buffering với object identity |
-| Dùng `writeUnshared` làm deep copy | Nested fields vẫn cũ | `reset + writeObject` cho graph mới |
-| Dùng `readUnshared` cho back-reference | `ObjectStreamException` | Ghép contract writer/reader |
-| Gọi reset trong custom `writeObject` | `IOException` | Reset giữa các graph |
-| Tạo nhiều writer trên cùng stream liên tục | Stream header xuất hiện giữa luồng | Một writer + reset hoặc stream độc lập |
-| Quên reset với stream sống lâu | Áp lực bộ nhớ | Chọn batch/epoch có đo đạc |
-| Reset liên tục vô cớ | Tăng kích thước và công encode | Chọn policy theo workload |
-| Dùng `serialVersionUID` làm object version | Không theo dõi mutation | Version/sequence nghiệp vụ |
-| Serialize graph đang bị thread khác sửa | Snapshot không nhất quán | Immutable DTO, ownership, đồng bộ |
-| Coi reset là flush xuống đĩa | Sai mức durability | Storage sync/transaction phù hợp |
+| Mutate `x` and call `writeObject(x)` again | Reader sees stale state | Call `reset` before a fresh snapshot or send separate objects/versions |
+| Call `flush()` expecting fields to update | Handle table is unchanged | Distinguish byte buffering from object identity |
+| Use `writeUnshared` as a deep copy | Nested fields remain stale | Use `reset` + `writeObject` for a fresh graph |
+| Use `readUnshared` on a back-reference | `ObjectStreamException` | Align writer/reader contracts |
+| Call `reset` inside custom `writeObject` | `IOException` | Reset between full graphs |
+| Create multiple writers sequentially on one stream | Mid-stream header corruption | One writer + `reset`, or independent streams |
+| Forget to reset long-lived streams | Memory pressure | Choose measured batch/epoch intervals |
+| Reset excessively without reason | Increased size and encoding CPU | Tune policy to workload |
+| Use `serialVersionUID` as an object version | Does not track instance mutations | Use business version/sequence fields |
+| Serialize a graph while another thread mutates it | Torn/inconsistent snapshot | Immutable DTOs, ownership, synchronization |
+| Treat `reset` as flushing to disk | Wrong durability assumption | Use proper storage sync/transactions |
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-**Vì sao lần `writeObject` thứ hai có thể không ghi fields đã đổi?** Vì root đã có handle, writer có thể chỉ gửi back-reference.
+**Why might a second `writeObject` omit mutated fields?** Because the root already has a handle, the writer may emit only a back-reference.
 
-**Hai lần `readObject()` có thể trả cùng object không?** Có, nếu lần sau đọc back-reference.
+**Can two `readObject()` calls return the exact same object?** Yes, when the subsequent read reads a back-reference.
 
-**Reset có xóa byte cũ hoặc làm reader mất các references trước đó không?** Không; reset thay trạng thái lookup handles của **đoạn stream tiếp theo**, không xóa đối tượng ứng dụng đang giữ.
+**Does `reset` erase prior bytes or strip references already held by the reader?** No; `reset` changes handle lookup state for the **subsequent portion of the stream**, without deleting objects already held by application variables.
 
-**Reset có làm mới cả graph?** Nó xóa state handles của stream, nên graph ở lần `writeObject` sau được xử lý như mới, miễn không có mutation/race đồng thời hoặc cơ chế tùy biến can thiệp.
+**Does `reset` refresh the entire graph?** It clears the stream's handle state, so the graph in the next `writeObject` is processed anew, barring concurrent mutation races or custom hook intervention.
 
-**`writeUnshared(root)` có sao chép sâu graph không?** Không. Root mới; child vẫn có thể được tham chiếu từ handle cũ.
+**Does `writeUnshared(root)` deep-copy the graph?** No. Only the root is fresh; child objects can still be referenced via prior handles.
 
-**Lúc nào không nên dùng native Java Serialization?** Khi dữ liệu đầu vào không tin cậy hoặc yêu cầu định dạng lưu trữ/giao tiếp bền vững, đa ngôn ngữ, dễ versioning.
+**When should you avoid native Java Serialization?** When input is untrusted or when storage/communication requires durability, cross-language support, and easy versioning.
 
-## Tài liệu chính thức
+## Official Documentation
 
 - [Java SE 21 — ObjectOutputStream](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectOutputStream.html)
 - [Java SE 21 — ObjectInputStream](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputStream.html)
@@ -252,4 +252,4 @@ Khi cần lưu trữ lâu dài, tương thích đa ngôn ngữ hoặc nâng cấ
 - [Java Object Serialization Specification — Input](https://docs.oracle.com/en/java/javase/21/docs/specs/serialization/input.html)
 - [Java SE 21 — ObjectInputFilter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputFilter.html)
 
-**Kết luận:** `ObjectOutputStream` nhớ **identity của object đã ghi**, không tự theo dõi state. `reset` tạo epoch mới để ghi lại object graph; `writeUnshared` chỉ bảo đảm root mới; `flush` không thay đổi handle cache.
+**Conclusion:** `ObjectOutputStream` remembers **the identity of written objects**, without tracking state changes automatically. `reset` starts a new epoch to re-write the object graph; `writeUnshared` guarantees only a fresh root; `flush` does not alter the handle cache.

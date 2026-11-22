@@ -1,12 +1,12 @@
-# Normalize không thay thế việc xử lý symbolic link trong Java NIO
+# `normalize()` Does Not Replace Symbolic Link Handling in Java NIO
 
-## 1. Vấn đề cốt lõi: đường dẫn nhìn an toàn chưa chắc trỏ tới tài nguyên an toàn
+## 1. The Core Problem: A Path That Looks Safe May Not Point to a Safe Resource
 
-Khi ứng dụng Java nhận một tên tệp từ người dùng, API hoặc nội dung giải nén, ta thường muốn giới hạn mọi thao tác trong một thư mục tin cậy, ví dụ `/srv/app/uploads`. Một bước quen thuộc là dùng `Path.normalize()` để loại `.` và `..` dư thừa.
+When a Java application receives a filename from a user, an API, or archive extraction, we usually want to confine all operations within a trusted directory, such as `/srv/app/uploads`. A familiar step is calling `Path.normalize()` to remove redundant `.` and `..`.
 
-Nhưng **`Path.normalize()` chỉ là thao tác trên cấu trúc tên đường dẫn**. Nó **không mở filesystem, không xác minh tệp tồn tại, không kiểm tra symbolic link và không biết thực tế mỗi thành phần tên trỏ đến đâu**.
+However, **`Path.normalize()` only operates on the syntactic structure of the path name**. It **does not open the filesystem, does not verify that the file exists, does not check symbolic links, and does not know where each name component actually points**.
 
-Một symbolic link (symlink) là một entry chứa tham chiếu tới đường dẫn khác. Nó có thể khiến đường dẫn **nằm bên trong thư mục cho phép về mặt cú pháp**, nhưng thao tác I/O thực tế lại truy cập dữ liệu **bên ngoài**.
+A symbolic link (symlink) is an entry containing a reference to another path. It can make a path **appear syntactically inside the allowed directory**, while the actual I/O operation accesses data **outside**.
 
 ~~~text
 Filesystem:
@@ -19,87 +19,87 @@ Filesystem:
 /var/private/
     secret.txt
 
-Đầu vào: latest/secret.txt
-Kết quả normalize:
+Input: latest/secret.txt
+normalize() result:
 /srv/app/uploads/latest/secret.txt
             │
-            └── VẪN có prefix /srv/app/uploads theo cú pháp
+            └── STILL has the /srv/app/uploads prefix syntactically
 
-Nhưng khi hệ điều hành đi theo symlink:
+But when the OS follows the symlink:
 latest → /var/private
            │
-           └── /var/private/secret.txt   (ngoài uploads)
+           └── /var/private/secret.txt   (outside uploads)
 ~~~
 
-**Kết luận quan trọng:** `normalize()` giúp xử lý những đoạn đường dẫn như `a/../b`, nhưng **không thay thế chính sách xử lý symbolic link**, không đủ để chống mọi kiểu path traversal và không tạo ra một cơ chế sandbox filesystem.
+**Key conclusion:** `normalize()` helps clean up path segments like `a/../b`, but it **does not replace a symbolic link handling policy**, is not sufficient to prevent all forms of path traversal, and does not create a filesystem sandbox.
 
-Bài học này phân biệt lexical path và đường dẫn thực, giải thích `toRealPath()`, `NOFOLLOW_LINKS`, kiểm tra containment, race condition và hướng thiết kế an toàn trong Java 17+.
+This lesson distinguishes lexical paths from real paths, explains `toRealPath()`, `NOFOLLOW_LINKS`, containment checks, race conditions, and safe design practices in Java 17+.
 
-## 2. Ba thao tác Path rất dễ bị nhầm
+## 2. Three Path Operations That Are Easily Confused
 
-### 2.1. `normalize()` — chuẩn hóa thuần cú pháp
+### 2.1. `normalize()` — Purely Syntactic Normalization
 
 ~~~java
 Path p = Path.of("docs", ".", "drafts", "..", "report.txt");
 System.out.println(p.normalize());
 ~~~
 
-Đầu ra thường là:
+The output is typically:
 
 ~~~text
 docs/report.txt
 ~~~
 
-`normalize()` loại các đoạn `.` và một số cặp `tên/..` theo quy tắc đường dẫn của provider. Nó **không** truy cập filesystem nên vẫn hoạt động với đường dẫn chưa tồn tại.
+`normalize()` removes `.` segments and some `name/..` pairs according to the provider's path rules. It **does not** access the filesystem, so it still works on paths that do not exist yet.
 
-Lưu ý đặc biệt từ hợp đồng Java: nếu thành phần ngay trước `..` là symbolic link, việc bỏ cặp tên/`..` có thể **thay đổi tài nguyên được trỏ tới**, vì cách phân giải symlink của filesystem không tương đương thao tác xóa chuỗi.
+A special note from the Java contract: if the component immediately preceding `..` is a symbolic link, removing the `name/..` pair can **change the resource pointed to**, because filesystem symlink resolution is not equivalent to string removal.
 
-Ví dụ mang tính khái niệm:
+Conceptual example:
 
 ~~~text
 dir/link -> /different/location
 
-Đường dẫn gốc: dir/link/../file.txt
-Sau normalize: dir/file.txt
+Original path: dir/link/../file.txt
+After normalize: dir/file.txt
 
-Hai đường dẫn không nhất thiết trỏ cùng một file thực.
+The two paths do not necessarily point to the same real file.
 ~~~
 
-Do đó, không được mô tả `normalize()` là "resolve symlink" hoặc "canonicalize filesystem path".
+Therefore, never describe `normalize()` as "resolving symlinks" or "canonicalizing a filesystem path".
 
-### 2.2. `toAbsolutePath()` — lấy đường dẫn tuyệt đối
+### 2.2. `toAbsolutePath()` — Obtaining an Absolute Path
 
 ~~~java
 Path absolute = Path.of("reports", "a.txt").toAbsolutePath();
 ~~~
 
-Phương thức này chuyển đường dẫn tương đối thành đường dẫn tuyệt đối theo filesystem/provider, thường dựa trên working directory. Nó **không xác minh đích tồn tại và không mặc nhiên xử lý symbolic link**.
+This method converts a relative path into an absolute path according to the filesystem/provider, typically based on the working directory. It **does not verify that the target exists and does not automatically handle symbolic links**.
 
-`toAbsolutePath().normalize()` vẫn là một đường dẫn được biến đổi chủ yếu theo cú pháp, **không phải bằng chứng đích I/O thực nằm bên trong thư mục cho phép**.
+`toAbsolutePath().normalize()` is still a path transformed primarily by syntax, **not proof that the real I/O target resides inside the allowed directory**.
 
-### 2.3. `toRealPath()` — tìm đường dẫn thực của mục đang tồn tại
+### 2.3. `toRealPath()` — Finding the Real Path of an Existing Entry
 
 ~~~java
 Path real = path.toRealPath();
 ~~~
 
-Với provider filesystem mặc định và tùy chọn mặc định, `toRealPath()` trả đường dẫn tuyệt đối thực tới mục **đã tồn tại**, loại thành phần dư thừa và **đi theo symbolic link** để tìm đích. Nó có thể ném `IOException` khi mục không tồn tại, đường dẫn lỗi, quyền không đủ hoặc bị lỗi I/O.
+With the default filesystem provider and default options, `toRealPath()` returns the real absolute path to an **existing** entry, eliminating redundant components and **following symbolic links** to find the target. It can throw `IOException` when the entry does not exist, the path is invalid, permissions are insufficient, or an I/O error occurs.
 
-Khác với `normalize()`, `toRealPath()` làm việc với trạng thái filesystem thực tế tại thời điểm gọi.
+Unlike `normalize()`, `toRealPath()` operates against the actual filesystem state at the time of the call.
 
-| API | Cần mục tồn tại? | Đi theo symlink? | Ý nghĩa |
+| API | Requires Entry to Exist? | Follows Symlinks? | Meaning |
 | --- | --- | --- | --- |
-| `normalize()` | Không | Không truy cập filesystem | Rút gọn cấu trúc tên đường dẫn |
-| `toAbsolutePath()` | Không | Không tự xác minh symlink | Lấy đường dẫn tuyệt đối |
-| `toAbsolutePath().normalize()` | Không | Không xác minh đích I/O | Absolute + lexical normalization |
-| `toRealPath()` | Thường có | Có, theo mặc định | Xác định đường dẫn thực tại thời điểm kiểm tra |
-| `toRealPath(NOFOLLOW_LINKS)` | Thường có | Không theo symlink theo chính sách option | Không thích hợp để chứng minh đích sau khi follow nằm trong root |
+| `normalize()` | No | Does not access the filesystem | Simplifies path name structure |
+| `toAbsolutePath()` | No | Does not verify symlinks | Obtains an absolute path |
+| `toAbsolutePath().normalize()` | No | Does not verify I/O target | Absolute + lexical normalization |
+| `toRealPath()` | Usually yes | Yes, by default | Determines the real path at the time of check |
+| `toRealPath(NOFOLLOW_LINKS)` | Usually yes | Does not follow symlinks per option policy | Not suitable for proving the target after following lies inside the root |
 
-Từ "thường" để ghi nhận provider-specific semantics; khi thiết kế an toàn phải hiểu hợp đồng của filesystem đang sử dụng. Trên filesystem có symlink, khác biệt này đặc biệt quan trọng.
+The word "usually" notes provider-specific semantics; when designing safely, you must understand the contract of the filesystem in use. On filesystems with symlinks, this distinction is especially critical.
 
-## 3. Một ví dụ lỗi: kiểm tra prefix sau normalize rồi tin là an toàn
+## 3. A Buggy Example: Checking the Prefix After `normalize()` and Assuming Safety
 
-Giả sử `trustedRoot` là thư mục ứng dụng cho phép đọc:
+Suppose `trustedRoot` is a directory the application is allowed to read:
 
 ~~~java
 Path trustedRoot = Path.of("/srv/app/uploads")
@@ -112,31 +112,31 @@ if (!candidate.startsWith(trustedRoot)) {
     throw new SecurityException("Outside root");
 }
 
-// Không an toàn chỉ nhờ phép kiểm tra trên!
+// Not safe solely because of the check above!
 byte[] data = Files.readAllBytes(candidate);
 ~~~
 
-Đoạn trên là **mảnh minh họa lỗi**, không phải chương trình chạy độc lập, và dấu `/` là ví dụ trên hệ thống dùng đường dẫn kiểu Unix.
+The snippet above is a **buggy illustrative fragment**, not a standalone runnable program, and `/` is an example on systems using Unix-style paths.
 
-Nếu `uploads/latest` là symlink tới `/var/private`, `candidate.startsWith(trustedRoot)` **vẫn đúng**, vì phép so sánh xét **các thành phần tên của Path**, không bắt buộc mở symlink và xác minh đích.
+If `uploads/latest` is a symlink to `/var/private`, `candidate.startsWith(trustedRoot)` **still evaluates to true**, because the comparison inspects **the name components of the `Path`**, without requiring opening symlinks or verifying the target.
 
-Phép kiểm tra trên bảo vệ một phần khỏi traversal **thuần chữ** như `../../etc/passwd` nhưng không bảo vệ khỏi **symlink traversal**.
+The check above partially protects against **purely lexical** traversal like `../../etc/passwd` but does not protect against **symlink traversal**.
 
-### Vì sao phải dùng `Path.startsWith` chứ không dùng `String.startsWith`?
+### Why Must You Use `Path.startsWith` Instead of `String.startsWith`?
 
-Đừng thay bằng:
+Do not replace it with:
 
 ~~~java
 candidate.toString().startsWith(trustedRoot.toString());
 ~~~
 
-Nếu root là `/srv/app/data` thì tên `/srv/app/database-secret` cũng bắt đầu bằng chuỗi `/srv/app/data`. `Path.startsWith(Path)` là so sánh **theo thành phần đường dẫn và quy tắc provider**, tránh lỗi prefix text đơn giản đó.
+If the root is `/srv/app/data`, then `/srv/app/database-secret` also starts with the string `/srv/app/data`. `Path.startsWith(Path)` compares **by path components and provider rules**, avoiding that simple text-prefix bug.
 
-Nhưng ngay cả `Path.startsWith(Path)` cũng chỉ có ý nghĩa trên **những Path đang được so sánh**; nếu cả hai vẫn là lexical path thì nó không xác minh symlink.
+Yet even `Path.startsWith(Path)` is only meaningful for **the `Path` objects being compared**; if both remain lexical paths, it does not verify symlinks.
 
-## 4. Kiểm tra đích thực của file đã tồn tại
+## 4. Checking the Real Target of an Existing File
 
-Nếu chính sách cho phép **theo symlink nhưng chỉ khi đích vẫn ở trong trusted root**, một bước kiểm tra hữu ích là:
+If the policy allows **following symlinks only when the target stays inside the trusted root**, a useful verification step is:
 
 ~~~java
 Path rootReal = trustedRoot.toRealPath();
@@ -153,44 +153,44 @@ if (!candidateReal.startsWith(rootReal)) {
     throw new SecurityException("Resolved path escapes root");
 }
 
-// candidateReal nằm trong rootReal tại thời điểm kiểm tra.
-// Tuy nhiên vẫn phải xét race condition trước lúc mở file.
+// candidateReal is inside rootReal at the time of check.
+// However, race conditions before opening the file must still be considered.
 ~~~
 
-Đây là **mảnh mã minh họa**, với `trustedRoot` và `userProvidedName` đã được khai báo; cần xử lý `IOException` do đường dẫn hoặc filesystem.
+This is an **illustrative snippet**, with `trustedRoot` and `userProvidedName` already declared; `IOException` from the path or filesystem must be handled.
 
-Điểm chính:
+Key points:
 
-1. `rootReal` có thể là đường dẫn tuyệt đối thực của thư mục gốc tin cậy.
-2. `userInput.isAbsolute()` giúp loại tên tuyệt đối do người gọi cung cấp; tránh để logic `resolve` lệ thuộc ngữ nghĩa provider với path tuyệt đối.
-3. `candidateReal` được xác định sau khi đi theo symlink trong đường dẫn ở thời điểm kiểm tra.
-4. `candidateReal.startsWith(rootReal)` kiểm tra containment của **đường dẫn đã resolve**; symlink trỏ ra ngoài root sẽ bị phát hiện.
-5. `toRealPath()` không dùng trực tiếp cho đích **chưa tồn tại**; phần tạo file mới cần chiến lược khác.
-6. Kiểm tra này **chưa loại trừ Time-of-Check to Time-of-Use (TOCTOU)** nếu đường dẫn hoặc symlink thay đổi sau khi kiểm tra.
+1. `rootReal` can be the real absolute path of the trusted root directory.
+2. `userInput.isAbsolute()` rejects caller-supplied absolute names; avoid letting `resolve` logic depend on provider semantics for absolute paths.
+3. `candidateReal` is determined after following symlinks in the path at the time of check.
+4. `candidateReal.startsWith(rootReal)` checks containment of the **resolved path**; symlinks pointing outside the root will be detected.
+5. `toRealPath()` cannot be used directly for targets that **do not exist yet**; creating new files requires a different strategy.
+6. This check **does not eliminate Time-of-Check to Time-of-Use (TOCTOU)** if paths or symlinks change after the check.
 
-Đây là một **lớp phòng vệ**, không phải sự bảo đảm tuyệt đối rằng lời gọi `Files.newInputStream(candidateReal)` hoặc `Files.readAllBytes(candidate)` về sau sẽ luôn truy cập cùng tài nguyên.
+This is a **defense layer**, not an absolute guarantee that a subsequent `Files.newInputStream(candidateReal)` or `Files.readAllBytes(candidate)` call will always access the same resource.
 
-### Chính sách phải rõ: cho phép hay từ chối symlink?
+### Policy Must Be Clear: Allow or Reject Symlinks?
 
-Hai chính sách hợp lệ nhưng khác nhau:
+Two valid but different policies:
 
-- **Cho phép symlink nội bộ:** chấp nhận `docs/current.txt -> docs/v2.txt` nếu đích thực vẫn nằm trong root; từ chối link trỏ ra ngoài.
-- **Không cho phép symlink:** từ chối mọi symlink trên các thành phần mà ứng dụng dùng để truy cập tài nguyên, kể cả khi đích của chúng đang nằm trong root.
+- **Allow internal symlinks:** accept `docs/current.txt -> docs/v2.txt` if the real target remains inside the root; reject links pointing outside.
+- **Disallow all symlinks:** reject any symlink on components the application uses to access resources, even when their target lies inside the root.
 
-Chính sách thứ hai cần kiểm tra hoặc mở đường dẫn bằng những API có khả năng không follow symlink và chống thay đổi giữa các bước; chỉ gọi `normalize()` hoặc `toRealPath()` một lần là chưa đủ.
+The second policy requires inspecting or opening paths with APIs capable of not following symlinks and resisting changes between steps; calling `normalize()` or `toRealPath()` once is not enough.
 
-## 5. Ví dụ Java 17+ chạy được: lexical inside nhưng real outside
+## 5. Runnable Java 17+ Example: Lexical Inside, Real Outside
 
-Chương trình tạo một thư mục tạm gồm một vùng tin cậy và một vùng khác cùng cấp. Trong vùng tin cậy có `public.txt`. Nó thử tạo symlink `redirect` từ vùng tin cậy tới vùng bên ngoài; nếu hệ thống hỗ trợ, chương trình chứng minh:
+The program creates a temporary directory containing a trusted area and a sibling area. Inside the trusted area is `public.txt`. It attempts to create a symlink `redirect` from the trusted area to the outside area; if supported by the system, the program proves:
 
-- Đường dẫn `trusted/redirect/secret.txt` **lexically startsWith(trusted)**.
-- Đích thực của đường dẫn đó **không startsWith(trustedReal)**.
-- Một đường dẫn `../outside/secret.txt` sau `normalize` bị loại bằng phép kiểm tra lexical.
-- File `public.txt` thực sự nằm trong vùng tin cậy.
+- The path `trusted/redirect/secret.txt` **lexically startsWith(trusted)**.
+- The real target of that path **does not startsWith(trustedReal)**.
+- A path `../outside/secret.txt` after `normalize` is rejected by the lexical check.
+- The file `public.txt` genuinely lies inside the trusted area.
 
-Một số môi trường Windows yêu cầu quyền đặc biệt để tạo symbolic link; mã xử lý trường hợp không có quyền/thư viện không hỗ trợ mà không giả định mọi hệ điều hành giống nhau.
+Some Windows environments require special privileges to create symbolic links; the code handles lack of privilege/unsupported environments without assuming all operating systems behave identically.
 
-Lưu thành `NormalizeVsSymlinkDemo.java`:
+Save as `NormalizeVsSymlinkDemo.java`:
 
 ~~~java
 import java.io.IOException;
@@ -236,7 +236,7 @@ public class NormalizeVsSymlinkDemo {
                 linkCreated = true;
             } catch (UnsupportedOperationException
                     | IOException | SecurityException ex) {
-                // Symlink không có sẵn hoặc không được phép.
+                // Symlink unavailable or not permitted.
             }
 
             if (!linkCreated) {
@@ -251,7 +251,7 @@ public class NormalizeVsSymlinkDemo {
                         + redirected.toRealPath().startsWith(trustedReal));
             }
         } finally {
-            // Xóa symlink như một entry, không xóa đích mà nó trỏ tới.
+            // Delete the symlink as an entry, not the target it points to.
             Files.deleteIfExists(link);
             Files.deleteIfExists(publicFile);
             Files.deleteIfExists(secretFile);
@@ -263,14 +263,14 @@ public class NormalizeVsSymlinkDemo {
 }
 ~~~
 
-Chạy bằng JDK 17+:
+Run with JDK 17+:
 
 ~~~bash
 javac NormalizeVsSymlinkDemo.java
 java NormalizeVsSymlinkDemo
 ~~~
 
-Khi filesystem mặc định hỗ trợ tạo symbolic link trong thư mục tạm, stdout là:
+When the default filesystem supports creating symbolic links in the temporary directory, stdout is:
 
 ~~~text
 normal lexical inside=true
@@ -281,7 +281,7 @@ symlink lexical inside=true
 symlink real inside=false
 ~~~
 
-Nếu không thể tạo symlink, stdout thay thế hợp lệ:
+If symbolic links cannot be created, valid alternative stdout is:
 
 ~~~text
 normal lexical inside=true
@@ -290,59 +290,59 @@ dotdot lexical inside=false
 symlink demo=unavailable
 ~~~
 
-Phân tích:
+Analysis:
 
-1. `trusted` và `outside` là hai thư mục anh em. `trustedReal` dùng làm gốc containment sau khi resolve thực tế.
-2. `normal` là file bình thường trong root: cả kiểm tra theo cú pháp và theo đích thực đều trả `true`.
-3. `traversal` sau `normalize()` trỏ sang thư mục `outside`, nên phép kiểm tra lexical `startsWith(trusted)` trả `false`.
-4. `redirect` nếu được tạo thành công là symlink nằm **bên trong** thư mục `trusted` nhưng trỏ tới `outside`.
-5. `redirected` có tên lexical bắt đầu bằng `trusted` nên dòng `symlink lexical inside` là `true`.
-6. `redirected.toRealPath()` đi theo symlink và dẫn tới `outside/secret.txt`, ngoài trusted root, nên dòng `symlink real inside` là `false`.
-7. Khối `finally` xóa symbolic link như một entry; xóa link không xóa file đích. Các file/thư mục thử nghiệm được dọn theo thứ tự từ con tới cha.
+1. `trusted` and `outside` are sibling directories. `trustedReal` serves as the containment root after real resolution.
+2. `normal` is a regular file inside the root: both the syntactic check and the real-target check return `true`.
+3. `traversal` after `normalize()` points to the `outside` directory, so the lexical `startsWith(trusted)` check returns `false`.
+4. `redirect`, if created successfully, is a symlink located **inside** `trusted` yet pointing to `outside`.
+5. `redirected` has a lexical name starting with `trusted`, so `symlink lexical inside` is `true`.
+6. `redirected.toRealPath()` follows the symlink and leads to `outside/secret.txt`, outside the trusted root, so `symlink real inside` is `false`.
+7. The `finally` block deletes the symbolic link as an entry; deleting a link does not delete its target file. Test files/directories are cleaned up in child-to-parent order.
 
-**Điểm cần nhớ:** ví dụ giúp quan sát khác biệt về mặt **phân giải đường dẫn**. Nó không tuyên bố phép `toRealPath()` cộng `startsWith()` tự tạo ra một sandbox chống mọi race condition hoặc attacker có quyền sửa filesystem.
+**Takeaway:** the example lets you observe the difference in **path resolution**. It does not claim that `toRealPath()` plus `startsWith()` alone creates a sandbox immune to every race condition or an attacker with permissions to modify the filesystem.
 
-## 6. Symbolic link có thể xuất hiện ở nhiều vị trí trong đường dẫn
+## 6. Symbolic Links Can Appear at Multiple Positions in a Path
 
-Có ít nhất ba kiểu cần phân biệt:
+At least three patterns must be distinguished:
 
-### 6.1. Bản thân file đích là symlink
+### 6.1. The Target File Itself Is a Symlink
 
 ~~~text
 trusted/report.txt -> /outside/report.txt
 ~~~
 
-`Files.isSymbolicLink(trusted.resolve("report.txt"))` có thể phát hiện entry cuối cùng là symbolic link tại thời điểm gọi. Nhưng nếu một tiến trình khác có quyền thay entry đó, kết quả kiểm tra có thể lỗi thời trước lúc mở.
+`Files.isSymbolicLink(trusted.resolve("report.txt"))` can detect that the final entry is a symbolic link at the time of the call. However, if another process has permission to replace that entry, the check result can become stale before opening.
 
-### 6.2. Thư mục cha ở giữa là symlink
+### 6.2. An Intermediate Parent Directory Is a Symlink
 
 ~~~text
 trusted/archives -> /outside
 trusted/archives/2026.txt
 ~~~
 
-`Files.isSymbolicLink(trusted.resolve("archives/2026.txt"))` chỉ kiểm tra entry cuối `2026.txt`, không tự nói rằng `archives` là symlink. Dù `2026.txt` là file thường, đường dẫn vẫn đi qua một symlink ở thành phần cha.
+`Files.isSymbolicLink(trusted.resolve("archives/2026.txt"))` only checks the final entry `2026.txt`; it does not tell you that `archives` is a symlink. Even though `2026.txt` is a regular file, the path still passes through a symlink in a parent component.
 
-Chính sách cấm symlink phải xét **toàn bộ quá trình duyệt**, không chỉ tên cuối.
+A policy forbidding symlinks must examine **the entire traversal path**, not just the final name.
 
-### 6.3. Symlink kết hợp với `..`
+### 6.3. Symlinks Combined with `..`
 
 ~~~text
 trusted/jump -> /outside/folder
 trusted/jump/../target.txt
 ~~~
 
-Xóa `jump/..` theo cú pháp có thể làm tên đường dẫn chuyển thành `trusted/target.txt`, không nhất thiết tương đương cách hệ điều hành phân giải `jump` rồi đi lên thư mục cha của đích thực. Vì vậy, ngay cả phát biểu "normalize luôn giữ nguyên đích vật lý" cũng **sai** khi symbolic link tham gia.
+Syntactically removing `jump/..` can turn the path name into `trusted/target.txt`, which is not necessarily equivalent to how the OS resolves `jump` and then ascends to the parent of the real target. Therefore, even the statement "`normalize` always preserves the physical target" is **false** when symbolic links are involved.
 
-### Broken symlink và symlink cycle
+### Broken Symlinks and Symlink Cycles
 
-Một symbolic link có thể trỏ tới đường dẫn không tồn tại (broken) hoặc tạo vòng lặp khi đi theo nhiều link. `toRealPath()` có thể ném `IOException`/`FileSystemException` trong các tình huống đó. Đừng biến mọi ngoại lệ thành "đường dẫn an toàn" hoặc "file không tồn tại nên cho phép tạo"; cần xử lý lỗi một cách bảo thủ theo chính sách.
+A symbolic link can point to a non-existent path (broken) or create a cycle when following multiple links. `toRealPath()` can throw `IOException`/`FileSystemException` in those situations. Do not treat every exception as "safe path" or "file does not exist so allow creation"; handle errors conservatively according to policy.
 
-## 7. NOFOLLOW_LINKS dùng để làm gì và không làm được gì?
+## 7. What Does `NOFOLLOW_LINKS` Do and What Can It Not Do?
 
-`java.nio.file.LinkOption.NOFOLLOW_LINKS` là lựa chọn để một số API thao tác với **entry symbolic link** thay vì đi theo link tới đích.
+`java.nio.file.LinkOption.NOFOLLOW_LINKS` is an option telling certain APIs to operate on the **symbolic link entry itself** instead of following the link to its target.
 
-Ví dụ:
+Example:
 
 ~~~java
 boolean link = Files.isSymbolicLink(path);
@@ -354,61 +354,61 @@ Path lexicalLikeReal =
         path.toRealPath(LinkOption.NOFOLLOW_LINKS);
 ~~~
 
-Đây là các mảnh minh họa có biến `Path path` đang tồn tại và import tương ứng.
+These are illustrative snippets assuming an existing `Path path` variable and the corresponding imports.
 
-Ý nghĩa:
+Meaning:
 
-- `Files.isSymbolicLink(path)` kiểm tra path entry cuối ở thời điểm gọi. Nó không là phép duyệt an toàn toàn bộ cây.
-- `Files.isRegularFile(path, NOFOLLOW_LINKS)` thường không coi bản thân symbolic link cuối là regular file, kể cả khi đích của link là file thường.
-- `toRealPath(NOFOLLOW_LINKS)` yêu cầu không đi theo symbolic link khi xác định đường dẫn theo ngữ nghĩa của provider; **không dùng kết quả này để chứng minh rằng việc mở một path theo mặc định sẽ không đi ra ngoài root**.
-- Những API mở file có tùy chọn `NOFOLLOW_LINKS` phù hợp có thể từ chối symbolic link ở **entry cuối**. Nó không tự bảo đảm các thành phần thư mục cha không phải symbolic link hoặc không bị thay đổi.
+- `Files.isSymbolicLink(path)` checks the final path entry at the time of the call. It is not a safe traversal of the entire tree.
+- `Files.isRegularFile(path, NOFOLLOW_LINKS)` generally does not treat the final symbolic link itself as a regular file, even when the link's target is a regular file.
+- `toRealPath(NOFOLLOW_LINKS)` requests not following symbolic links when determining the path per provider semantics; **do not use this result to prove that opening a path with default behavior will stay inside the root**.
+- File-opening APIs supporting `NOFOLLOW_LINKS` can reject a symbolic link at the **final entry**. That does not automatically guarantee parent directory components are not symbolic links or have not been swapped.
 
-Một ví dụ yêu cầu mở entry cuối mà không follow symlink:
+An example requiring opening the final entry without following symlinks:
 
 ~~~java
 try (SeekableByteChannel channel = Files.newByteChannel(
         candidate,
         Set.of(StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS))) {
-    // Đọc các byte qua channel đã mở.
+    // Read bytes through the opened channel.
 }
 ~~~
 
-Mảnh code cần import `java.nio.channels.SeekableByteChannel`, `java.nio.file.*` và `java.util.Set`; biến `candidate` là một `Path`.
+The snippet requires importing `java.nio.channels.SeekableByteChannel`, `java.nio.file.*`, and `java.util.Set`; `candidate` is a `Path`.
 
-Đối với file cuối là symbolic link, lời gọi có thể bị từ chối theo chính sách/provider. **Nhưng parent path vẫn có thể chứa symbolic link**, nên không được khẳng định mảnh code này là đủ để cưỡng chế containment dưới một root có thể bị attacker chỉnh sửa.
+If the final file is a symbolic link, the call can be rejected depending on policy/provider. **However, the parent path can still contain symbolic links**, so you must not claim this snippet is sufficient to enforce containment under a root an attacker can modify.
 
-Tóm tắt:
+Summary:
 
-| Cách làm | Chặn traversal lexical kiểu `../`? | Nhận biết symlink? | Chống race khi path bị thay? |
+| Approach | Blocks Lexical Traversal Like `../`? | Detects Symlinks? | Prevents Races When Path Changes? |
 | --- | --- | --- | --- |
-| `normalize()` + so `startsWith` | Một phần, trên tên đường dẫn | Không | Không |
-| `toRealPath()` rồi kiểm tra rootReal | Phát hiện đích thực ở thời điểm kiểm tra | Theo symlink mặc định | Không tự bảo đảm |
-| `isSymbolicLink()` rồi `open()` | Không đầy đủ | Kiểm tra tại một thời điểm | Không |
-| `NOFOLLOW_LINKS` khi mở entry cuối | Có thể từ chối link cuối | Có tác dụng ở vị trí API hỗ trợ | Không nhất thiết bảo vệ các ancestor |
-| Directory-relative secure operations | Có thể giảm mạnh rủi ro thay đổi path giữa các bước | Có thể kiểm soát từng thành phần | Tốt hơn khi provider hỗ trợ và dùng đúng |
+| `normalize()` + `startsWith` | Partially, on path name | No | No |
+| `toRealPath()` then check `rootReal` | Detects real target at check time | Follows symlinks by default | Not guaranteed |
+| `isSymbolicLink()` then `open()` | Incomplete | Checks at a single point in time | No |
+| `NOFOLLOW_LINKS` when opening final entry | Can reject final link | Works where supported by API | Does not necessarily protect ancestors |
+| Directory-relative secure operations | Greatly reduces risk of path changes between steps | Can inspect every component | Better when supported by provider and used properly |
 
-## 8. TOCTOU: kiểm tra đúng vẫn có thể mở sai file
+## 8. TOCTOU: A Correct Check Can Still Open the Wrong File
 
-TOCTOU là viết tắt của **Time of Check to Time of Use**: trạng thái filesystem có thể thay đổi giữa lúc kiểm tra và lúc sử dụng.
+TOCTOU stands for **Time of Check to Time of Use**: the filesystem state can change between the check and the use.
 
-Ví dụ:
+Example:
 
 ~~~text
-Thread A / ứng dụng                     Process B / attacker
+Thread A / application                  Process B / attacker
 
 candidate.toRealPath()
 → /trusted/public.txt
-                                        thay public.txt thành symlink
+                                        replaces public.txt with a symlink
                                         → /outside/secret.txt
 
 Files.readAllBytes(candidate)
-→ hệ điều hành đi theo symlink mới
-→ đọc file ngoài root
+→ OS follows the new symlink
+→ reads file outside root
 ~~~
 
-Ngay cả khi phép kiểm tra `toRealPath()`, `startsWith(rootReal)` vừa trả kết quả tốt, nó chỉ mô tả filesystem **tại một thời điểm**. Nó không khóa tên file hay entry khỏi việc bị đổi.
+Even if `toRealPath()` and `startsWith(rootReal)` just returned a good result, that only describes the filesystem **at one point in time**. It does not lock the filename or entry against replacement.
 
-Mẫu dễ có race:
+Race-prone pattern:
 
 ~~~java
 if (!Files.isSymbolicLink(candidate)
@@ -417,23 +417,23 @@ if (!Files.isSymbolicLink(candidate)
 }
 ~~~
 
-Nếu một tiến trình khác có quyền thay directory entry, thời điểm mở thực tế có thể không còn giống thời điểm kiểm tra.
+If another process has permission to replace directory entries, the actual open time may no longer match the check time.
 
-Không nên viết trong tài liệu bảo mật rằng "đã canonicalize nên chắc chắn không bị symlink attack". Đúng hơn: canonicalization là một phép kiểm tra hữu ích, **nhưng cần thêm cơ chế mở/duyệt không dựa vào một tên đường dẫn dễ bị thay thế**.
+Security documentation should never state "already canonicalized, so definitely immune to symlink attacks". More accurately: canonicalization is a useful check, **but you also need an open/traversal mechanism that does not rely on a replaceable path name**.
 
-## 9. SecureDirectoryStream: thao tác tương đối với directory đã mở
+## 9. `SecureDirectoryStream`: Operating Relative to an Already-Open Directory
 
-Java NIO có giao diện `java.nio.file.SecureDirectoryStream`, dành cho provider có khả năng thao tác **tương đối với một directory stream đang mở**, giúp giảm rủi ro khi các entry trên filesystem bị thay thế đồng thời.
+Java NIO provides the `java.nio.file.SecureDirectoryStream` interface for providers capable of operating **relative to an open directory stream**, reducing the risk when filesystem entries are replaced concurrently.
 
-Một chiến lược:
+One strategy:
 
-1. Xác định và mở một thư mục gốc mà ứng dụng tin cậy và kiểm soát quyền sửa.
-2. Nếu `DirectoryStream` trả về có hỗ trợ `SecureDirectoryStream`, thực hiện các thao tác tương đối với directory đã mở, thay vì liên tục resolve một chuỗi absolute path mới.
-3. Với từng thư mục con cần vào, mở tiếp bằng `secure.newDirectoryStream(child, LinkOption.NOFOLLOW_LINKS)` khi chính sách cấm symlink.
-4. Với file cuối, dùng `secure.newByteChannel(relativeName, options)` và yêu cầu `NOFOLLOW_LINKS` nếu thích hợp.
-5. Truy cập dữ liệu qua **channel đã mở**, không lặp lại bước check rồi mở theo tên toàn cục.
+1. Identify and open a root directory whose write permissions are trusted and controlled by the application.
+2. If the returned `DirectoryStream` supports `SecureDirectoryStream`, perform operations relative to the opened directory instead of repeatedly resolving a new absolute path string.
+3. For each subdirectory to enter, open it with `secure.newDirectoryStream(child, LinkOption.NOFOLLOW_LINKS)` when policy forbids symlinks.
+4. For the final file, use `secure.newByteChannel(relativeName, options)` and pass `NOFOLLOW_LINKS` where appropriate.
+5. Access data through the **opened channel**, rather than repeating check-then-open by global path name.
 
-Mảnh Java minh họa đọc một file con trực tiếp:
+Illustrative Java snippet reading a direct child file:
 
 ~~~java
 Path baseReal = trustedRoot.toRealPath();
@@ -453,171 +453,171 @@ try (DirectoryStream<Path> opened = Files.newDirectoryStream(baseReal)) {
     try (SeekableByteChannel file = secure.newByteChannel(
             childName,
             Set.of(StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS))) {
-        // Thao tác đọc qua file channel đã mở.
+        // Perform read operations through the opened file channel.
     }
 }
 ~~~
 
-Đây là **mảnh minh họa**, không phải chương trình độc lập. Cần import `java.nio.file.*`, `java.nio.channels.SeekableByteChannel` và `java.util.Set`, cùng một `Path trustedRoot` đã được tin cậy.
+This is an **illustrative snippet**, not a standalone program. It requires importing `java.nio.file.*`, `java.nio.channels.SeekableByteChannel`, and `java.util.Set`, along with a trusted `Path trustedRoot`.
 
-**Không giả định `SecureDirectoryStream` luôn có sẵn** trên mọi provider/OS/filesystem. Nếu ứng dụng có yêu cầu bảo mật bắt buộc, khi provider không hỗ trợ nên **fail closed** hoặc sử dụng cơ chế cô lập mạnh hơn, thay vì âm thầm chuyển về mô hình check-then-open dễ bị race.
+**Do not assume `SecureDirectoryStream` is always available** on every provider/OS/filesystem. If the application has strict security requirements, when the provider does not support it, **fail closed** or use stronger isolation rather than silently falling back to a race-prone check-then-open model.
 
-Ví dụ chỉ mở **một tên con trực tiếp**. Nếu đầu vào gồm nhiều component, phải duyệt từng thành phần directory bằng một `SecureDirectoryStream` mới, kiểm soát `.`/`..`, link và quyền, tuyệt đối không truyền đường dẫn không kiểm soát chứa `../` rồi kỳ vọng một handle cấp root tự tạo sandbox.
+The example only opens **one direct child name**. If the input has multiple components, traverse each directory component using a new `SecureDirectoryStream`, checking `.`/`..`, links, and permissions; never pass an unchecked path containing `../` and expect a root-level handle to automatically act as a sandbox.
 
-`SecureDirectoryStream` có lợi ích mạnh hơn check path thuần túy nhưng không thay thế thiết kế quyền, owner, tính đáng tin của root ban đầu và chính sách truy cập file. Nó cũng không tự giải quyết dữ liệu nhạy cảm trong file đã được mở nếu ứng dụng cho phép người dùng chọn sai file từ đầu.
+`SecureDirectoryStream` offers stronger guarantees than pure path checks, but it does not replace permission design, ownership, trustworthiness of the initial root, or file access policies. Nor does it prevent sensitive data leakage inside an opened file if the application lets users choose the wrong file in the first place.
 
-## 10. Tạo file mới: toRealPath() không thể kiểm tra một đích chưa tồn tại
+## 10. Creating New Files: `toRealPath()` Cannot Check a Non-Existent Target
 
-Một trường hợp phổ biến là upload file mới:
+A common case is uploading a new file:
 
 ~~~text
 trusted/
     users/
-       new-image.png   (chưa tồn tại)
+       new-image.png   (does not exist yet)
 ~~~
 
-`target.toRealPath()` sẽ lỗi nếu `new-image.png` chưa tồn tại. Không nên thấy lỗi rồi tự cho phép tạo mà bỏ kiểm tra ancestor.
+`target.toRealPath()` will fail if `new-image.png` does not exist yet. Do not see the error and blindly allow creation while skipping ancestor checks.
 
-Với chính sách cho phép tạo **file mới** trong một thư mục có thể tin cậy, cần:
+With a policy allowing **new file** creation inside a trusted directory, you must:
 
-- Xác minh root và đường dẫn thư mục cha **đã tồn tại**.
-- Xác định đích nằm trong cấu trúc được phép theo policy.
-- Nếu root/subdirectory có thể bị attacker đổi, dùng thao tác directory-relative an toàn nếu provider hỗ trợ.
-- Tạo bằng `CREATE_NEW` khi muốn thất bại nếu entry cuối đã tồn tại; tránh ghi đè file người khác.
-- Dùng `NOFOLLOW_LINKS` hoặc cơ chế không follow entry cuối nếu API/provider hỗ trợ và chính sách yêu cầu.
-- Nếu tên file đến từ user, từ chối path tuyệt đối, `..` và các thành phần đặc biệt theo policy; dùng tên basename được kiểm tra hoặc một ID server-side nếu có thể.
-- Thiết lập quyền truy cập/ownership và vùng staging thích hợp. `Files.createDirectories()` không phải một cơ chế chống symlink race khi thư mục cha không đáng tin.
+- Verify that the root and parent directory path **already exist**.
+- Determine that the target falls within the policy-permitted structure.
+- If the root/subdirectory could be modified by an attacker, use safe directory-relative operations if supported by the provider.
+- Create with `CREATE_NEW` when you want to fail if the final entry already exists; avoid overwriting someone else's file.
+- Use `NOFOLLOW_LINKS` or a non-following mechanism on the final entry if supported by the API/provider and required by policy.
+- If the filename comes from the user, reject absolute paths, `..`, and special components per policy; use a validated basename or a server-side ID whenever possible.
+- Set appropriate access permissions/ownership and staging areas. `Files.createDirectories()` is not a symlink-race defense when parent directories are untrusted.
 
-Ví dụ lưu upload bằng tên do server sinh thay vì dùng nguyên đường dẫn từ HTTP request thường đơn giản và an toàn hơn. Không cho client chọn thư mục con sâu nếu nghiệp vụ không cần.
+For example, saving uploads using a server-generated name instead of the raw path from the HTTP request is usually simpler and safer. Do not let clients choose deep subdirectories if business requirements do not need it.
 
-### CREATE_NEW có tác dụng gì?
+### What Does `CREATE_NEW` Do?
 
-`StandardOpenOption.CREATE_NEW` yêu cầu tạo mới và thất bại nếu entry đích đã tồn tại; thao tác kiểm tra-tạo ở entry cuối được định nghĩa là atomic so với các thao tác tạo khác theo hợp đồng API. Điều này hữu ích để tránh vô tình overwrite một entry có sẵn, nhưng **không thay thế việc bảo vệ toàn bộ parent directory** nếu các ancestor có thể bị đổi.
+`StandardOpenOption.CREATE_NEW` requires creating a new file and fails if the destination entry already exists; the check-and-create operation at the final entry is defined as atomic relative to other creation operations per the API contract. This is useful for avoiding accidental overwrites of an existing entry, but it **does not replace protecting the entire parent directory** if ancestors can be swapped.
 
-## 11. Phòng vệ nhiều lớp và ranh giới tin cậy
+## 11. Defense in Depth and Trust Boundaries
 
-Không có một câu lệnh `normalize()` nào thay thế được thiết kế bảo mật filesystem. Một hệ thống xử lý đường dẫn từ nguồn không tin cậy có thể áp dụng các lớp sau:
+No single `normalize()` call replaces filesystem security design. A system handling paths from untrusted sources can apply the following layers:
 
-| Lớp phòng vệ | Vai trò |
+| Defense Layer | Role |
 | --- | --- |
-| API chỉ nhận ID/tên file server sinh | Tránh cho user cung cấp path tùy ý |
-| Kiểm tra path tuyệt đối và component `..` | Loại các dạng traversal trực tiếp |
-| `Path.normalize()` và `Path.startsWith()` | Kiểm tra cấu trúc lexical cho đường dẫn được xây dựng |
-| `toRealPath()` với root thật | Phát hiện symlink escape ở thời điểm kiểm tra đối với mục tồn tại |
-| `NOFOLLOW_LINKS` và/hoặc `SecureDirectoryStream` | Hạn chế việc theo symlink và giảm check/use race |
-| Quyền OS và thư mục do ứng dụng kiểm soát | Ngăn attacker thay link/entry trong vùng tin cậy |
-| Tài khoản tiến trình tối thiểu quyền | Hạn chế thiệt hại nếu có lỗi logic |
-| Sandboxing / container / mount policy | Tạo ranh giới hệ điều hành bổ sung |
-| Logging và test symlink race | Kiểm chứng các tình huống bị lợi dụng |
+| API accepting only server-generated IDs/filenames | Avoids letting users supply arbitrary paths |
+| Checking absolute paths and `..` components | Eliminates direct traversal forms |
+| `Path.normalize()` and `Path.startsWith()` | Checks lexical structure of the constructed path |
+| `toRealPath()` against the real root | Detects symlink escapes at check time for existing entries |
+| `NOFOLLOW_LINKS` and/or `SecureDirectoryStream` | Restricts symlink following and reduces check/use races |
+| OS permissions and application-controlled directories | Prevents attackers from swapping links/entries inside trusted areas |
+| Least-privilege process account | Limits damage if a logic bug occurs |
+| Sandboxing / containers / mount policies | Adds an operating-system boundary |
+| Logging and symlink-race tests | Verifies abuse scenarios |
 
-Phải phân biệt **bảo đảm về đường dẫn** với **ủy quyền người dùng**. Ngay cả file nằm bên trong root đúng policy, không có nghĩa bất kỳ user nào cũng được đọc nó. Ứng dụng vẫn cần kiểm tra quyền truy cập đối với đối tượng/danh tính người dùng.
+Distinguish **path guarantees** from **user authorization**. Even if a file lies inside a policy-compliant root, that does not mean any user may read it. The application must still verify access rights for the target object and user identity.
 
-### Không dựa vào chuỗi và separator
+### Do Not Rely on Strings and Separators
 
-`String.startsWith` không hiểu ranh giới component. Ghép chuỗi thủ công kiểu `root + "/" + filename` còn phụ thuộc separator, absolute path, Windows drive letter và provider. Dùng `Path`/`FileSystem` nhất quán; sau đó áp dụng chính sách containment theo path thực khi cần.
+`String.startsWith` does not understand component boundaries. Manual string concatenation like `root + "/" + filename` also depends on separators, absolute paths, Windows drive letters, and providers. Use `Path`/`FileSystem` consistently; then apply real-path containment policies when needed.
 
-Nếu có nhiều filesystem/provider (`zipfs`, filesystem mạng...), so sánh path của provider khác nhau có thể không có ý nghĩa như path của cùng filesystem. Chỉ so sánh khi hiểu rõ `Path.getFileSystem()` và ngữ nghĩa của provider.
+If multiple filesystems/providers exist (`zipfs`, network filesystems, etc.), comparing paths from different providers may not mean the same thing as paths on the same filesystem. Only compare when you understand `Path.getFileSystem()` and provider semantics.
 
-## 12. Các tình huống thường gây nhầm lẫn
+## 12. Scenarios That Commonly Cause Confusion
 
-### Tình huống A: kiểm tra lexical pass, nhưng symlink trỏ ra ngoài
+### Scenario A: Lexical Check Passes, but Symlink Points Outside
 
 ~~~text
 trusted/aliases -> /private
 trusted/aliases/account.db
 ~~~
 
-`normalize().startsWith(trusted)` có thể đúng, nhưng `toRealPath()` (mặc định follow) trỏ ra `/private/account.db`. Đây là ca bài học muốn nhấn mạnh.
+`normalize().startsWith(trusted)` may return true, but `toRealPath()` (which follows by default) points to `/private/account.db`. This is the core case highlighted by this lesson.
 
-### Tình huống B: symlink trỏ tới file khác nhưng vẫn bên trong root
+### Scenario B: Symlink Points to Another File Still Inside the Root
 
 ~~~text
 trusted/latest.txt -> trusted/v2.txt
 ~~~
 
-Nếu chính sách **cho phép internal symlink**, có thể chấp nhận sau khi xác minh real containment. Nếu chính sách **cấm mọi symlink**, vẫn phải từ chối. Bảo mật không phải chỉ là “link trỏ ra ngoài hay không”; đó là policy cụ thể.
+If the policy **allows internal symlinks**, it may be accepted after verifying real containment. If the policy **forbids all symlinks**, it must still be rejected. Security is not merely “does the link point outside or not”; it is a concrete policy.
 
-### Tình huống C: symlink ở ancestor
+### Scenario C: Symlink in an Ancestor
 
 ~~~text
 trusted/data -> /private
 trusted/data/info.txt
 ~~~
 
-`Files.isSymbolicLink(trusted/data/info.txt)` không tự kiểm tra `data`. Một API `NOFOLLOW_LINKS` ở file cuối có thể vẫn đi qua link ở thư mục cha nếu không bảo vệ các bước duyệt.
+`Files.isSymbolicLink(trusted/data/info.txt)` does not check `data`. A `NOFOLLOW_LINKS` API on the final file can still traverse the link in the parent directory unless traversal steps are protected.
 
-### Tình huống D: đường dẫn đã xác minh bị tráo sau đó
+### Scenario D: Verified Path Is Swapped Afterward
 
 ~~~text
-Check: trusted/config.txt là file thật.
-Race: attacker thay nó bằng symlink.
-Use: ứng dụng mở theo tên cũ.
+Check: trusted/config.txt is a real file.
+Race: attacker replaces it with a symlink.
+Use: application opens by the old name.
 ~~~
 
-`toRealPath()` và `isSymbolicLink()` kiểm tra tại thời điểm gọi, không cấp khóa bất biến cho tên file. Dùng handle-based access và quyền filesystem để giảm nguy cơ.
+`toRealPath()` and `isSymbolicLink()` inspect at call time; they do not place an immutable lock on the filename. Use handle-based access and filesystem permissions to reduce risk.
 
-### Tình huống E: file đích chưa có
+### Scenario E: Target File Does Not Exist Yet
 
-`toRealPath()` không thể bảo đảm containment của một file chưa tồn tại bằng cách gọi trực tiếp lên target. Hãy bảo vệ các thư mục cha, tạo entry mới với chính sách nhất quán và ưu tiên tên do server sinh.
+`toRealPath()` cannot verify containment of a non-existent file by calling it directly on the target. Protect parent directories, create the new entry with a consistent policy, and prefer server-generated names.
 
-### Tình huống F: theo dõi directory bằng Files.walk
+### Scenario F: Traversing Directories with `Files.walk`
 
-`Files.walk(...)` theo mặc định không đi theo symbolic link như một directory khi không bật `FOLLOW_LINKS`. Nhưng việc quét cây không biến mọi thao tác sau đó thành an toàn; cây vẫn có thể thay đổi trong lúc hoặc sau khi đi qua, nhất là với thư mục ghi được bởi người khác.
+`Files.walk(...)` does not follow symbolic links as directories by default when `FOLLOW_LINKS` is not enabled. However, scanning a tree does not make all subsequent operations safe; the tree can still change during or after traversal, especially in directories writable by others.
 
-## 13. Checklist thiết kế truy cập file an toàn
+## 13. Safe File Access Design Checklist
 
-Khi viết API đọc hoặc upload từ tên người dùng:
+When writing an API to read or upload from a user-supplied name:
 
-1. **Xác định trusted root**: thư mục có chủ sở hữu và quyền sửa do ứng dụng kiểm soát.
-2. **Định nghĩa symlink policy**: cấm hoàn toàn hay cho phép link có đích thực nội bộ?
-3. **Giảm quyền chọn path**: ưu tiên ID/basename server sinh hơn relative path tùy ý.
-4. **Kiểm tra path syntax**: path tuyệt đối, `..`, ký tự/đường dẫn đặc biệt theo provider.
-5. **Dùng lexical normalize như một bước phụ**: hữu ích nhưng không coi là sandbox.
-6. **Nếu mục đã tồn tại**, dùng `toRealPath()` để xác minh real containment theo policy khi phù hợp.
-7. **Xử lý race**: không mặc định check-then-open là atomic; dùng `SecureDirectoryStream`/handle access hoặc isolation phù hợp.
-8. **Với tạo file mới**, bảo vệ parent, dùng `CREATE_NEW` nếu không muốn overwrite, không tự follow link tùy ý.
-9. **Không cho process quá nhiều quyền OS**: ngay cả khi lỗi traversal xảy ra, phạm vi truy cập vẫn nên bị giới hạn.
-10. **Test cả negative cases**: `../`, absolute path, root prefix giống nhau, symlink ở file cuối, symlink ở ancestor, broken link, replace-during-open, permission denied.
-11. **Quản lý fallback**: nếu filesystem thiếu primitive bảo mật cần thiết, trả lỗi thay vì hạ cấp im lặng.
-12. **Đánh giá quyền ứng dụng**: file trong root chưa đủ để chứng minh caller có quyền xem nội dung.
+1. **Identify the trusted root**: a directory whose ownership and write permissions are controlled by the application.
+2. **Define the symlink policy**: forbid completely or allow links whose real target is internal?
+3. **Reduce path selection power**: prefer server-generated IDs/basenames over arbitrary relative paths.
+4. **Validate path syntax**: absolute paths, `..`, special characters/paths per provider.
+5. **Use lexical `normalize()` as a secondary step**: helpful, but never treat it as a sandbox.
+6. **If the entry exists**, use `toRealPath()` to verify real containment per policy where appropriate.
+7. **Address races**: do not assume check-then-open is atomic; use `SecureDirectoryStream`/handle access or appropriate isolation.
+8. **For new file creation**, protect parents, use `CREATE_NEW` when overwrites are unwanted, and avoid following links arbitrarily.
+9. **Do not give the process excessive OS privileges**: even if a traversal bug occurs, access scope should remain limited.
+10. **Test negative cases too**: `../`, absolute paths, similar root prefixes, symlink at final file, symlink at ancestor, broken links, replace-during-open, permission denied.
+11. **Manage fallbacks**: if the filesystem lacks required security primitives, return an error instead of silently downgrading.
+12. **Evaluate application authorization**: a file inside the root does not prove the caller is authorized to view its contents.
 
-## 14. Lỗi phổ biến và cách sửa
+## 14. Common Mistakes and Fixes
 
-**Lỗi 1 — Đồng nhất normalize với canonicalize.** `normalize()` chỉ biến đổi cú pháp, không đi theo symbolic link. Dùng `toRealPath()` để biết đích thực **tại thời điểm kiểm tra**, nhưng không bỏ qua race.
+**Mistake 1 — Equating `normalize()` with canonicalization.** `normalize()` only transforms syntax; it does not follow symbolic links. Use `toRealPath()` to find the real target **at check time**, while still accounting for races.
 
-**Lỗi 2 — Kiểm tra `startsWith(root)` trên lexical path rồi mở tùy ý.** Symlink nằm trong root có thể trỏ ra ngoài. Cần policy và cơ chế resolve/open an toàn.
+**Mistake 2 — Checking `startsWith(root)` on a lexical path and opening arbitrarily.** A symlink inside the root can point outside. You need a policy and a safe resolve/open mechanism.
 
-**Lỗi 3 — Dùng `String.startsWith(rootString)`.** Prefix text không có ranh giới component, dễ chấp nhận `data-secret` khi root là `data`. Dùng `Path.startsWith(Path)` phù hợp.
+**Mistake 3 — Using `String.startsWith(rootString)`.** Text prefixes lack component boundaries, easily accepting `data-secret` when the root is `data`. Use `Path.startsWith(Path)` properly.
 
-**Lỗi 4 — Chỉ gọi isSymbolicLink trên file cuối.** Symlink có thể ở bất kỳ ancestor nào. Với policy cấm link, phải quản lý từng bước duyệt và hạn chế TOCTOU.
+**Mistake 4 — Calling `isSymbolicLink` only on the final file.** A symlink can reside in any ancestor. With a no-symlink policy, control every traversal step and mitigate TOCTOU.
 
-**Lỗi 5 — Nghĩ NOFOLLOW_LINKS ở final file cấm mọi symlink.** Nó không mặc nhiên ngăn ancestor symlink. Cần kiểm soát directory traversal tương đối an toàn.
+**Mistake 5 — Thinking `NOFOLLOW_LINKS` on the final file blocks all symlinks.** It does not automatically prevent ancestor symlinks. You need safe directory-relative traversal control.
 
-**Lỗi 6 — Kiểm tra realPath rồi mở lại theo tên không được bảo vệ.** Attacker có thể tráo symlink giữa check và use. Ưu tiên thao tác dựa vào directory/file handle và quyền filesystem.
+**Mistake 6 — Checking `realPath` and then reopening by an unprotected name.** An attacker can swap a symlink between check and use. Prefer directory/file-handle operations and filesystem permissions.
 
-**Lỗi 7 — Coi mọi lỗi toRealPath là bằng chứng đích “chưa tồn tại nên an toàn”.** Lỗi có thể do broken symlink, permission hoặc vòng link. Không fail open.
+**Mistake 7 — Treating every `toRealPath` failure as proof the target “does not exist and is therefore safe”.** Failures can stem from broken symlinks, permissions, or link cycles. Never fail open.
 
-**Lỗi 8 — Cho phép path tuyệt đối do user đưa vào.** `root.resolve(userInput)` với absolute path có thể dẫn đến vị trí không mong muốn. Từ chối input tuyệt đối và kiểm tra policy trước khi dùng.
+**Mistake 8 — Allowing user-supplied absolute paths.** `root.resolve(userInput)` with an absolute path can lead to unintended locations. Reject absolute inputs and check policy before use.
 
-**Lỗi 9 — Tin rằng file trong trusted root tự động được phép đọc.** Còn cần authorization cho từng người dùng và loại dữ liệu.
+**Mistake 9 — Believing a file in the trusted root is automatically readable.** Per-user and per-data authorization is still required.
 
-**Lỗi 10 — Phụ thuộc SecureDirectoryStream mà không kiểm tra support.** Không phải provider nào cũng hỗ trợ; ứng dụng có yêu cầu mạnh nên fail closed nếu thiếu primitive cần thiết.
+**Mistake 10 — Relying on `SecureDirectoryStream` without checking support.** Not every provider supports it; applications with strong requirements should fail closed when needed primitives are missing.
 
-## 15. Tự kiểm tra
+## 15. Self-Check
 
-1. `Path.normalize()` có tự đọc symbolic link không? **Không**. Nó xử lý thành phần tên theo cú pháp.
-2. `toAbsolutePath().normalize()` có xác minh file tồn tại không? **Không**.
-3. `toRealPath()` mặc định xử lý symbolic link ra sao? **Đi theo symlink** để tìm real path của mục đang tồn tại, theo ngữ nghĩa provider.
-4. `candidate.normalize().startsWith(root.normalize())` đúng có bảo đảm open không thoát root không? **Không**.
-5. Vì sao nên dùng `Path.startsWith` thay vì `String.startsWith`? Vì nó so **component đường dẫn**, không chỉ prefix text.
-6. `Files.isSymbolicLink(candidate)` trả false có nghĩa mọi parent không phải symlink không? **Không**.
-7. `NOFOLLOW_LINKS` với file cuối có tự chặn link ở parent không? **Không bảo đảm**.
-8. `toRealPath()` trước `Files.readAllBytes()` có loại được race khi directory entry bị thay không? **Không hoàn toàn**; đó là TOCTOU.
-9. Một file chưa tồn tại có thể gọi `toRealPath()` thành công để kiểm tra không? **Thông thường không**; cần chiến lược tạo file an toàn dựa trên parent.
-10. `SecureDirectoryStream` có phải luôn được mọi filesystem cung cấp không? **Không**.
-11. Symlink `trusted/latest -> trusted/v2` nên được phép hay không? **Tùy policy**: cho phép internal link hoặc cấm mọi symlink.
-12. File nằm trong root đúng policy có tự chứng minh user có quyền xem không? **Không**; phải kiểm tra authorization.
-13. Nếu phải bảo vệ dữ liệu nhạy cảm ngay cả khi logic path có lỗi, lớp bảo vệ ngoài Java nào hữu ích? **Quyền OS tối thiểu, root ownership, sandbox/container/mount policy** và cô lập dữ liệu.
-14. Mô hình nào tốt hơn khi attacker có thể thay đổi thư mục giữa check và open? **Thao tác qua handle/directories an toàn với no-follow theo từng component**, kết hợp policy rõ ràng.
+1. Does `Path.normalize()` automatically read symbolic links? **No**. It processes name components syntactically.
+2. Does `toAbsolutePath().normalize()` verify that a file exists? **No**.
+3. How does `toRealPath()` handle symbolic links by default? **It follows symlinks** to find the real path of an existing entry, according to provider semantics.
+4. Does `candidate.normalize().startsWith(root.normalize())` returning true guarantee opening will not escape the root? **No**.
+5. Why should you use `Path.startsWith` instead of `String.startsWith`? Because it compares **path components**, not just text prefixes.
+6. Does `Files.isSymbolicLink(candidate)` returning false mean no parent is a symlink? **No**.
+7. Does `NOFOLLOW_LINKS` on the final file automatically block links in parents? **Not guaranteed**.
+8. Does calling `toRealPath()` before `Files.readAllBytes()` eliminate races when directory entries are replaced? **Not completely**; that is TOCTOU.
+9. Can a non-existent file succeed with `toRealPath()` for checking? **Usually no**; you need a safe file-creation strategy based on parents.
+10. Is `SecureDirectoryStream` always provided by every filesystem? **No**.
+11. Should a symlink `trusted/latest -> trusted/v2` be allowed or not? **Depends on policy**: allow internal links or forbid all symlinks.
+12. Does a file inside a policy-compliant root prove the user is authorized to view it? **No**; authorization must be checked.
+13. If sensitive data must be protected even when path logic has a bug, what external layers outside Java help? **Least-privilege OS permissions, root ownership, sandbox/container/mount policies**, and data isolation.
+14. Which model is better when an attacker can modify directories between check and open? **Safe handle/directory-relative operations with per-component no-follow**, combined with a clear policy.
 
-**Ghi nhớ:** `Path.normalize()` loại thành phần tên thừa nhưng **không biết symbolic link trỏ đi đâu**. Muốn kiểm tra đích đang tồn tại, hãy hiểu `toRealPath()` và containment trên các real path. Muốn chống việc path bị thay giữa kiểm tra và mở, cần cơ chế như `SecureDirectoryStream` nếu provider hỗ trợ, cùng với quyền filesystem và quản lý ownership đáng tin. **Không lấy một phép chuẩn hóa cú pháp làm ranh giới bảo mật của ứng dụng.**
+**Remember:** `Path.normalize()` removes redundant name components, but it **does not know where symbolic links point**. To verify an existing target, understand `toRealPath()` and containment on real paths. To prevent paths from being swapped between check and open, you need mechanisms like `SecureDirectoryStream` when supported by the provider, together with filesystem permissions and trusted ownership management. **Never treat a syntactic normalization call as the security boundary of your application.**

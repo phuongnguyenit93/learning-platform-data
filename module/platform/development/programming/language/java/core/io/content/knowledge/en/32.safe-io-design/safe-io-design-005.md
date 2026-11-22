@@ -1,8 +1,8 @@
-# SecureDirectoryStream và khả năng hỗ trợ của provider trong Java NIO.2
+# `SecureDirectoryStream` and Provider Support in Java NIO.2
 
-## 1. Tại sao cần SecureDirectoryStream?
+## 1. Why Is `SecureDirectoryStream` Needed?
 
-Một ứng dụng Java có thể xử lý tệp trong thư mục do người dùng hoặc tiến trình khác có khả năng sửa đổi. Quy trình “kiểm tra đường dẫn rồi thao tác” quen thuộc có một khoảng thời gian dễ bị lợi dụng:
+A Java application may process files inside a directory that users or other processes can modify. The familiar “check path then act” workflow has an exploitable time gap:
 
 ~~~java
 Path file = root.resolve(userName);
@@ -11,33 +11,33 @@ if (Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS)) {
 }
 ~~~
 
-**Đây là đoạn mã minh họa rủi ro, không phải mẫu xóa an toàn.** Sau khi `isRegularFile` kiểm tra và trước `delete`, một tác nhân khác có thể thay thế một thành phần đường dẫn. Khi đó hai lời gọi có thể nói về **hai đối tượng tệp khác nhau**. Lớp lỗi này gọi là *time-of-check to time-of-use*, viết tắt **TOCTOU**.
+**This is a snippet illustrating risk, not a safe deletion pattern.** Between the `isRegularFile` check and `delete`, another actor can replace a path component. At that point, the two calls can refer to **two different file objects**. This class of bug is called *time-of-check to time-of-use*, abbreviated **TOCTOU**.
 
-`SecureDirectoryStream<T>` trong `java.nio.file` giải quyết một phần quan trọng của vấn đề: cung cấp những thao tác đối với **đường dẫn tương đối theo một thư mục đang mở** thay vì liên tục giải lại từ một đường dẫn tên tuyệt đối có thể bị tráo. Đây là interface được thiết kế cho những ứng dụng cần duyệt cây thư mục hoặc làm việc trên tệp theo cách chống *race condition* khi provider/hệ điều hành hỗ trợ.
+`SecureDirectoryStream<T>` in `java.nio.file` solves an important part of this problem: it provides operations on **paths relative to an already-open directory** instead of repeatedly re-resolving from an absolute path name that can be swapped. This interface is designed for applications that need to traverse directory trees or operate on files in a way that resists *race conditions* when supported by the provider/OS.
 
 ~~~text
-Không có handle neo thư mục:
+Without a directory-anchoring handle:
 check /safe/inbox/item.txt
        |
-  attacker đổi inbox -> symlink tới /other
+  attacker swaps inbox -> symlink to /other
        |
-delete /safe/inbox/item.txt  => có thể đụng đối tượng khác
+delete /safe/inbox/item.txt  => may hit a different object
 
-Có SecureDirectoryStream:
-open /safe/inbox  --> handle H tới thư mục đang mở
+With SecureDirectoryStream:
+open /safe/inbox  --> handle H to the open directory
        |
        +-- deleteFile(Path.of("item.txt"))
-                thao tác tương đối với H
-                kể cả khi tên "inbox" bị đổi
+                operates relative to H
+                even if the name "inbox" is swapped
 ~~~
 
-Đây là sơ đồ **mô hình đe dọa**, không có nghĩa mọi thao tác trên mọi hệ thống đều có cùng kết quả. `SecureDirectoryStream` cần hỗ trợ từ provider và hệ điều hành, và không thay thế kiểm soát quyền, xác thực, bảo vệ link cứng hay chính sách sandbox.
+This is a **threat model** diagram; it does not mean every operation on every system produces the same outcome. `SecureDirectoryStream` requires provider and OS support, and it does not replace permission controls, authentication, hard-link protection, or sandbox policies.
 
-**Ý chính:** `SecureDirectoryStream` tăng khả năng chống tấn công tráo đường dẫn/hoán đổi symbolic link ở các thao tác tương đối với thư mục đang mở. Nó **không mặc nhiên có trên mọi filesystem và provider**; ứng dụng bảo mật phải kiểm tra hỗ trợ ngay tại runtime.
+**Main idea:** `SecureDirectoryStream` strengthens defense against path-swapping/symbolic-link replacement attacks in operations relative to an open directory. It is **not automatically present on every filesystem and provider**; security-sensitive applications must check support at runtime.
 
-## 2. Quan hệ giữa DirectoryStream và SecureDirectoryStream
+## 2. Relationship Between `DirectoryStream` and `SecureDirectoryStream`
 
-`DirectoryStream<T>` hỗ trợ lặp qua các entry của một thư mục, thường được lấy từ:
+`DirectoryStream<T>` supports iterating over the entries of a directory, typically obtained via:
 
 ~~~java
 try (DirectoryStream<Path> entries = Files.newDirectoryStream(root)) {
@@ -47,28 +47,28 @@ try (DirectoryStream<Path> entries = Files.newDirectoryStream(root)) {
 }
 ~~~
 
-Đây là đoạn minh họa với `root` là `Path` có sẵn, cần xử lý `IOException`. Với một `DirectoryStream<Path>` thông thường, iterator chỉ mang về các `Path` để ứng dụng tiếp tục gọi `Files.*` trên tên đó. Việc có tên đường dẫn trong iterator **không khóa** entry hoặc bảo đảm entry vẫn là đối tượng cũ khi thao tác.
+This is an illustrative snippet with an existing `Path root`, requiring `IOException` handling. With a regular `DirectoryStream<Path>`, the iterator only yields `Path` objects for the application to pass to `Files.*` by name. Receiving a path name from the iterator **does not lock** the entry or guarantee the entry remains the same object when acted upon.
 
-`SecureDirectoryStream<T>` **extends `DirectoryStream<T>`** và thêm thao tác theo open-directory context:
+`SecureDirectoryStream<T>` **extends `DirectoryStream<T>`** and adds open-directory-context operations:
 
-| Phương thức | Công dụng |
+| Method | Purpose |
 | --- | --- |
-| `newDirectoryStream(T path, LinkOption... options)` | Mở thư mục con tương đối với thư mục đang mở, trả về một `SecureDirectoryStream<T>` khác. |
-| `newByteChannel(T path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)` | Mở/tạo tệp qua một đường dẫn tương đối và trả về `SeekableByteChannel`. |
-| `deleteFile(T path)` | Xóa một file entry (cũng dùng để xóa symbolic link) tương đối với thư mục hiện tại. |
-| `deleteDirectory(T path)` | Xóa directory entry tương đối, với các điều kiện xóa thư mục tương ứng. |
-| `move(T src, SecureDirectoryStream<T> targetDir, T target)` | Di chuyển entry từ thư mục đang mở sang một thư mục đích đang mở. |
-| `getFileAttributeView(Class<V> type)` | Mở attribute view của chính thư mục đang mở. |
-| `getFileAttributeView(T path, Class<V> type, LinkOption... options)` | Mở attribute view của một entry tương đối. |
-| `close()` | Giải phóng directory stream/handle đang mở. |
+| `newDirectoryStream(T path, LinkOption... options)` | Opens a subdirectory relative to the open directory, returning another `SecureDirectoryStream<T>`. |
+| `newByteChannel(T path, Set<? extends OpenOption> options, FileAttribute<?>... attrs)` | Opens/creates a file via a relative path and returns a `SeekableByteChannel`. |
+| `deleteFile(T path)` | Deletes a file entry (also used to delete a symbolic link) relative to the current directory. |
+| `deleteDirectory(T path)` | Deletes a directory entry relatively, subject to the corresponding directory-deletion rules. |
+| `move(T src, SecureDirectoryStream<T> targetDir, T target)` | Moves an entry from the open directory to another open target directory. |
+| `getFileAttributeView(Class<V> type)` | Opens an attribute view of the open directory itself. |
+| `getFileAttributeView(T path, Class<V> type, LinkOption... options)` | Opens an attribute view of a relative entry. |
+| `close()` | Releases the open directory stream/handle. |
 
-Tham số `T` trong Java NIO thường là `Path`. Khi mở từ `Files.newDirectoryStream(root)`, kiểu khai báo thường là `DirectoryStream<Path>`; **không nên ép kiểu ngay** nếu chưa kiểm tra instance.
+The type parameter `T` in Java NIO is normally `Path`. When opened from `Files.newDirectoryStream(root)`, the declared type is typically `DirectoryStream<Path>`; **do not cast immediately** without checking the instance.
 
-## 3. Provider support là đặc tính tùy chọn
+## 3. Provider Support Is an Optional Feature
 
-API `SecureDirectoryStream` tồn tại từ Java 7, và Java 17 có đầy đủ những phương thức trên. Nhưng **sự tồn tại của interface không bảo đảm provider có triển khai**.
+The `SecureDirectoryStream` API has existed since Java 7, and Java 17 includes all of the methods above. However, **the existence of the interface does not guarantee that a provider implements it**.
 
-Javadoc Java 17 quy định: nếu implementation hỗ trợ tính năng này, `DirectoryStream` được trả bởi `newDirectoryStream` có thể là một `SecureDirectoryStream`. Ứng dụng phải kiểm tra đối tượng thực tế:
+Java 17 Javadoc specifies: if the implementation supports this feature, the `DirectoryStream` returned by `newDirectoryStream` may be a `SecureDirectoryStream`. The application must inspect the actual runtime object:
 
 ~~~java
 try (DirectoryStream<Path> stream = Files.newDirectoryStream(root)) {
@@ -80,26 +80,26 @@ try (DirectoryStream<Path> stream = Files.newDirectoryStream(root)) {
 }
 ~~~
 
-Đây là đoạn mã minh họa, cần import `java.nio.file.*`, biến `root` và xử lý `IOException`.
+This is an illustrative snippet requiring `java.nio.file.*` imports, a `root` variable, and `IOException` handling.
 
-Phụ thuộc thực tế:
+Actual support depends on:
 
-- **FileSystemProvider** được chọn bởi filesystem của `Path` đang sử dụng.
-- Hệ điều hành có hoặc không có cơ chế mở/thao tác tương đối qua handle.
-- Tùy phiên bản JDK, provider, loại filesystem và môi trường thực thi (filesystem gắn mạng, filesystem ảo, container...).
+- The **FileSystemProvider** selected by the `Path`'s filesystem.
+- Whether the operating system provides a handle-relative open/operation mechanism.
+- The JDK version, provider, filesystem type, and execution environment (network-mounted filesystems, virtual filesystems, containers, etc.).
 
-**Không viết điều kiện “Linux luôn có”, “Windows luôn không có”, “ZIP filesystem chắc chắn có”**. Khả năng hỗ trợ thực sự phải được kiểm tra ở runtime; các nhà cung cấp có thể khác nhau.
+**Do not hardcode rules like “Linux always has it”, “Windows never has it”, or “ZIP filesystem definitely has it”.** Actual support must be checked at runtime; providers vary.
 
-### 3.1. Vì sao không nên gọi trực tiếp trên DirectoryStream?
+### 3.1. Why Can't You Call These Methods Directly on `DirectoryStream`?
 
 ~~~java
 DirectoryStream<Path> stream = Files.newDirectoryStream(root);
 
-// Không hợp lệ về kiểu: DirectoryStream không định nghĩa deleteFile.
+// Type-invalid: DirectoryStream does not define deleteFile.
 // stream.deleteFile(Path.of("data.txt"));
 ~~~
 
-Phải kiểm tra và sử dụng đối tượng như `SecureDirectoryStream<Path>`:
+You must check and use the object as `SecureDirectoryStream<Path>`:
 
 ~~~java
 if (stream instanceof SecureDirectoryStream<?>) {
@@ -110,21 +110,21 @@ if (stream instanceof SecureDirectoryStream<?>) {
 }
 ~~~
 
-Đây là những **mảnh minh họa**, chưa có phần mở/đóng resource hoàn chỉnh. Cast phù hợp ở ví dụ vì nguồn `stream` được khai báo `DirectoryStream<Path>`; không suy diễn cast đó cho các custom `DirectoryStream<T>` với type parameter khác.
+These are **illustrative snippets**, without complete resource open/close handling. The cast is appropriate in the example because `stream` is declared as `DirectoryStream<Path>`; do not extrapolate that cast to custom `DirectoryStream<T>` types with different type parameters.
 
-### 3.2. Nếu provider không hỗ trợ thì làm gì?
+### 3.2. What Should You Do If the Provider Does Not Support It?
 
-Tùy yêu cầu:
+It depends on requirements:
 
-1. **Công việc có yêu cầu chống path-race như một điều kiện bảo mật:** *fail closed*, ngừng thao tác và báo provider/môi trường không đáp ứng yêu cầu.
-2. **Thư mục thuộc quyền kiểm soát độc quyền, không ai khác có thể đổi entry trong thời gian xử lý:** có thể cân nhắc API `Files.*` thông thường theo mô hình tin cậy đã chứng minh.
-3. **Cần hỗ trợ đa nền tảng nhưng vẫn yêu cầu tính an toàn tương đương:** thay kiến trúc (vùng staging riêng với quyền truy cập chặt, phiên bản tệp bất biến, service đặc quyền chuyên trách hoặc cơ chế hệ điều hành tương đương được kiểm chứng).
+1. **The task requires path-race protection as a security condition:** *fail closed*, abort the operation, and report that the provider/environment does not meet the requirement.
+2. **The directory is under exclusive application control, and no one else can alter entries during processing:** you may consider standard `Files.*` APIs under a proven trust model.
+3. **Cross-platform support is needed while preserving equivalent safety:** change the architecture (dedicated staging area with strict permissions, immutable file versions, a dedicated privileged service, or a verified OS-equivalent mechanism).
 
-**Không tạo “fallback” bằng cách chỉ gọi `toRealPath()`, `normalize()`, `Files.isSymbolicLink()` rồi `Files.delete()` và tuyên bố tương đương:** check-then-use vẫn có cửa sổ race khi một actor khác có thể thay đổi đường dẫn.
+**Do not build a “fallback” by merely calling `toRealPath()`, `normalize()`, `Files.isSymbolicLink()`, and then `Files.delete()` and claiming equivalence:** check-then-use still has a race window whenever another actor can modify the path.
 
-## 4. Relative path và neo vào directory handle
+## 4. Relative Paths and Anchoring to a Directory Handle
 
-Điều quan trọng nhất là các phương thức bảo mật thường nhận **đường dẫn tương đối với thư mục đang mở**:
+Most importantly, the secure methods generally accept **paths relative to the open directory**:
 
 ~~~java
 Path name = Path.of("invoice.txt");
@@ -132,22 +132,22 @@ SeekableByteChannel channel =
         secure.newByteChannel(name, Set.of(StandardOpenOption.READ));
 ~~~
 
-Mảnh mã này giả định `secure` là `SecureDirectoryStream<Path>` hợp lệ, đã được mở.
+This snippet assumes `secure` is a valid, already-open `SecureDirectoryStream<Path>`.
 
-Khi `name` là relative path, thao tác dựa vào directory handle hiện tại; đổi tên thư mục trong hệ thống tên đường dẫn không làm handle tự động trỏ sang directory khác.
+When `name` is a relative path, the operation uses the current directory handle; renaming the directory in the path namespace does not automatically redirect the handle to another directory.
 
-**Đường dẫn tuyệt đối là một ngoại lệ cần tránh.** Theo Javadoc, nếu truyền absolute path vào các phương thức này, việc định vị có thể tuân theo ngữ nghĩa đường dẫn tuyệt đối và làm mất mục tiêu neo vào thư mục đang mở. Hãy từ chối absolute path cho những thao tác có ý định giới hạn trong root.
+**Absolute paths are an exception to avoid.** According to the Javadoc, if an absolute path is passed to these methods, resolution may follow absolute-path semantics and defeat the goal of anchoring to the open directory. Reject absolute paths for operations intended to remain inside a root.
 
-### 4.1. Đừng chấp nhận path traversal
+### 4.1. Do Not Accept Path Traversal
 
-Ngay cả khi dùng secure stream, vẫn phải loại đường dẫn không thuộc miền tên được phép:
+Even when using a secure stream, you must still reject paths outside the allowed name domain:
 
 ~~~text
-Hợp lệ với API chỉ cho phép tên file đơn:
+Valid for an API allowing only a single filename:
   report.txt
   data_001.bin
 
-Phải từ chối theo quy tắc một thành phần:
+Must be rejected under the single-component rule:
   ../secret.txt
   subdir/../../secret.txt
   /etc/passwd
@@ -155,9 +155,9 @@ Phải từ chối theo quy tắc một thành phần:
   ..
 ~~~
 
-Kiểm tra `normalize()` và `startsWith(root)` trên đường dẫn tuyệt đối **không bảo vệ đầy đủ** trước các race do liên kết tượng trưng hoặc việc thay đổi thư mục từ bên ngoài. Cách dễ kiểm toán hơn là giới hạn user input thành **tên entry đơn**, từ chối `.`/`..`, phân cách đường dẫn, absolute path, tên đặc biệt và các trường hợp không hợp lệ theo filesystem/ứng dụng.
+Checking `normalize()` and `startsWith(root)` on absolute paths **does not fully protect** against symlink races or external directory mutations. A more auditable approach is restricting user input to a **single entry name**, rejecting `.`/`..`, path separators, absolute paths, special names, and invalid names per filesystem/application rules.
 
-Ví dụ một validator minh họa:
+An illustrative validator example:
 
 ~~~java
 static Path safeSingleName(FileSystem fs, String raw) {
@@ -175,11 +175,11 @@ static Path safeSingleName(FileSystem fs, String raw) {
 }
 ~~~
 
-Đây là **mảnh mã**; cần `java.nio.file.FileSystem` và `Path`. Với đầu vào từ Internet, còn phải định nghĩa chính sách tên, Unicode normalization, ký tự cấm, reserved names và case-folding phù hợp hệ thống. Validator không thay thế các kiểm tra authorization/ownership; nó chỉ thu hẹp phạm vi tên mà người dùng được chỉ định.
+This is a **code snippet**; it requires `java.nio.file.FileSystem` and `Path`. For inputs from the Internet, you must also define name policies, Unicode normalization, forbidden characters, reserved names, and system-appropriate case-folding. A validator does not replace authorization/ownership checks; it only narrows the name scope a user may specify.
 
-### 4.2. Nhiều cấp thư mục: đi từng cấp có kiểm soát
+### 4.2. Multiple Directory Levels: Traverse Level by Level Under Control
 
-Nếu ứng dụng thực sự cho phép thao tác trong cấu trúc con, nên mở thư mục con theo directory handle và kiểm soát symbolic link ở **mỗi bước**:
+If the application genuinely allows operations inside subdirectories, open subdirectories via directory handles and control symbolic links at **every step**:
 
 ~~~java
 try (SecureDirectoryStream<Path> sub =
@@ -189,42 +189,42 @@ try (SecureDirectoryStream<Path> sub =
     try (SeekableByteChannel file = sub.newByteChannel(
             Path.of("report.txt"),
             Set.of(StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS))) {
-        // Đọc dữ liệu từ channel đã mở.
+        // Read data from the opened channel.
     }
 }
 ~~~
 
-Đây là mảnh minh họa (cần biến `secure` hợp lệ, các import và exception handling). `NOFOLLOW_LINKS` ở `newDirectoryStream` ngăn việc mở thư mục con nếu entry cuối chính là symbolic link. Tương tự, `NOFOLLOW_LINKS` trong set open options của `newByteChannel` yêu cầu thao tác thất bại nếu entry đích là symbolic link.
+This is an illustrative snippet (requiring a valid `secure` variable, imports, and exception handling). `NOFOLLOW_LINKS` on `newDirectoryStream` prevents opening the subdirectory if that final entry itself is a symbolic link. Likewise, `NOFOLLOW_LINKS` in `newByteChannel`'s open options requires the operation to fail if the target entry is a symbolic link.
 
-**Không trộn parent traversal tùy ý vào một chuỗi path do user nhập**, rồi mặc định nó an toàn vì đã có `SecureDirectoryStream`. Path được phép nên được giới hạn và đi từng thành phần qua các handle đã tin cậy.
+**Do not mix arbitrary parent traversal into a user-supplied path string** and assume it is safe just because `SecureDirectoryStream` is used. Allowed paths should be constrained and traversed component by component through trusted handles.
 
-## 5. Symbolic link và NOFOLLOW_LINKS
+## 5. Symbolic Links and `NOFOLLOW_LINKS`
 
-Một nguyên nhân phổ biến của path race là **symbolic link**: attacker thay entry trong directory thành link trỏ tới vị trí ngoài phạm vi.
+A common cause of path races is **symbolic links**: an attacker replaces a directory entry with a link pointing outside the allowed scope.
 
-`LinkOption.NOFOLLOW_LINKS` chỉ rõ mục tiêu không được đi theo symlink ở thao tác tương ứng:
+`LinkOption.NOFOLLOW_LINKS` specifies that the target must not follow symlinks in the corresponding operation:
 
-| Thao tác | Ví dụ dùng no-follow | Ý nghĩa |
+| Operation | Example Using No-Follow | Meaning |
 | --- | --- | --- |
-| Mở thư mục con | `secure.newDirectoryStream(child, LinkOption.NOFOLLOW_LINKS)` | Thất bại nếu entry đó là symlink. |
-| Mở file byte channel | `secure.newByteChannel(file, Set.of(READ, LinkOption.NOFOLLOW_LINKS))` | Thất bại nếu file entry đích là symlink. |
-| Đọc metadata của entry | `secure.getFileAttributeView(file, BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS)` | Xem attribute của entry/link thay vì đi theo symlink. |
+| Open subdirectory | `secure.newDirectoryStream(child, LinkOption.NOFOLLOW_LINKS)` | Fails if that entry is a symlink. |
+| Open file byte channel | `secure.newByteChannel(file, Set.of(READ, LinkOption.NOFOLLOW_LINKS))` | Fails if the target file entry is a symlink. |
+| Read entry metadata | `secure.getFileAttributeView(file, BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS)` | Inspects attributes of the entry/link itself instead of following the symlink. |
 
-Chú ý **không phải mọi method đều nhận LinkOption**: `deleteFile`, `deleteDirectory` và `move` có hợp đồng riêng. Đừng cố truyền `NOFOLLOW_LINKS` vào `deleteFile` vì overload như vậy không tồn tại.
+Note that **not every method accepts `LinkOption`**: `deleteFile`, `deleteDirectory`, and `move` have their own contracts. Do not try passing `NOFOLLOW_LINKS` to `deleteFile`, as no such overload exists.
 
-`NOFOLLOW_LINKS` không thay thế việc giới hạn đường dẫn tuyệt đối hoặc đường dẫn chứa `..`. Nó cũng không ngăn mọi thay đổi do hard link, mount, quyền filesystem hay tiến trình khác đã mở file từ trước.
+`NOFOLLOW_LINKS` does not replace restricting absolute paths or paths containing `..`. Nor does it prevent every change caused by hard links, mounts, filesystem permissions, or another process that already opened the file earlier.
 
-## 6. Một ví dụ Java 17+ hoàn chỉnh, chạy độc lập và an toàn
+## 6. A Complete, Standalone, Safe Java 17+ Example
 
-Ví dụ này:
+This example:
 
-1. Tạo **thư mục tạm riêng** và file `message.txt` chứa `HELLO`.
-2. Gọi `Files.newDirectoryStream(root)`.
-3. Nếu provider hỗ trợ `SecureDirectoryStream`, mở file **theo tên tương đối** và `NOFOLLOW_LINKS`, đọc nội dung bằng `SeekableByteChannel`, rồi dùng `deleteFile` để xóa entry.
-4. Nếu không hỗ trợ, **không giả vờ dùng API kém an toàn để thay thế**; chương trình thông báo từ chối thao tác bảo mật.
-5. Đóng stream và channel bằng `try-with-resources`, sau đó dọn file/thư mục tạm.
+1. Creates a **dedicated temporary directory** and a file `message.txt` containing `HELLO`.
+2. Calls `Files.newDirectoryStream(root)`.
+3. If the provider supports `SecureDirectoryStream`, opens the file **by relative name** with `NOFOLLOW_LINKS`, reads the content with `SeekableByteChannel`, and uses `deleteFile` to delete the entry.
+4. If unsupported, **does not pretend to substitute a less safe API**; the program prints that the secure operation was refused.
+5. Closes the stream and channel with `try-with-resources`, then cleans up the temporary file/directory.
 
-Lưu thành `SecureDirectoryStreamDemo.java`:
+Save as `SecureDirectoryStreamDemo.java`:
 
 ~~~java
 import java.io.IOException;
@@ -290,14 +290,14 @@ public class SecureDirectoryStreamDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile/run:
 
 ~~~bash
 javac SecureDirectoryStreamDemo.java
 java SecureDirectoryStreamDemo
 ~~~
 
-Nếu filesystem/provider hỗ trợ `SecureDirectoryStream` và file tạm hoạt động bình thường, stdout:
+If the filesystem/provider supports `SecureDirectoryStream` and the temp file works normally, stdout is:
 
 ~~~text
 mode=SECURE
@@ -305,32 +305,32 @@ text=HELLO
 deleted=true
 ~~~
 
-Nếu provider **không** hỗ trợ, stdout:
+If the provider **does not** support it, stdout is:
 
 ~~~text
 mode=UNAVAILABLE
 action=REFUSED
 ~~~
 
-Hai đầu ra trên là **hai nhánh có điều kiện theo môi trường**, không phải kết quả cố định duy nhất của mọi hệ điều hành/JDK. Nếu các thao tác filesystem không được cấp quyền hoặc có lỗi I/O, chương trình có thể ném `IOException` thay vì in trọn nhánh; đây là hành vi đúng khi một thao tác bảo mật thất bại.
+The two outputs above are **two environment-dependent branches**, not a single fixed outcome across all OSes/JDKs. If filesystem operations lack permissions or encounter an I/O error, the program may throw `IOException` instead of completing a branch; that is the right behavior when a security operation fails.
 
-### 6.1. Vì sao kiểm tra instance thay vì chỉ kiểm tra hệ điều hành?
+### 6.1. Why Check the Instance Instead of Just Checking the OS?
 
-`Files.newDirectoryStream(root)` trả kiểu khai báo `DirectoryStream<Path>`. Nếu đối tượng thực tế triển khai `SecureDirectoryStream`, ta có thể dùng API bổ sung. Sự hỗ trợ tùy hệ điều hành và provider, nên kiểm tra kiểu thực tế **chính xác hơn** việc dựa vào tên OS hoặc filesystem được ghi trong cấu hình.
+`Files.newDirectoryStream(root)` has declared return type `DirectoryStream<Path>`. If the actual runtime object implements `SecureDirectoryStream`, we can use the extended API. Support depends on the OS and provider, so checking the actual runtime type is **more accurate** than relying on an OS name or filesystem type written in config.
 
-### 6.2. Vì sao đọc qua SeekableByteChannel?
+### 6.2. Why Read via `SeekableByteChannel`?
 
-`secure.newByteChannel(...)` gắn thao tác mở file với directory handle, không buộc chương trình gọi lại `Files.newInputStream(root.resolve(name))` (có thể tái giải đường dẫn). `Channels.newInputStream(channel)` chỉ bọc **channel đã mở**, nên không thay đổi đối tượng file được gắn với handle đó.
+`secure.newByteChannel(...)` binds the file-open operation to the directory handle instead of forcing the program to call `Files.newInputStream(root.resolve(name))` again (which could re-resolve the path). `Channels.newInputStream(channel)` merely wraps the **already-open channel**, so it does not change the file object bound to that handle.
 
-`newByteChannel` trả một channel độc lập với lifetime của directory stream đã mở nó; tuy nhiên bài ví dụ vẫn giữ stream mở cho đến khi hoàn tất các thao tác `deleteFile` để đảm bảo có directory handle dùng cho deletion.
+`newByteChannel` returns a channel independent of the lifetime of the directory stream that opened it; however, the example keeps the stream open until `deleteFile` finishes so the directory handle remains available for deletion.
 
-### 6.3. Vì sao dọn bằng Files.deleteIfExists ở cuối?
+### 6.3. Why Clean Up with `Files.deleteIfExists` at the End?
 
-Phần `finally` xử lý **thư mục tạm do chương trình tự tạo và sở hữu**, sau khi các secure operations đã kết thúc. Nó là logic dọn thử nghiệm, **không phải fallback bảo mật tương đương** nếu ta đang xử lý một directory do attacker kiểm soát. Nếu root tạm bị một actor không tin cậy kiểm soát thì phải đánh giá lại giả định an toàn của ví dụ.
+The `finally` block cleans up a **temporary directory created and owned by the program itself**, after the secure operations have finished. It is test cleanup logic, **not an equivalent security fallback** if handling an attacker-controlled directory. If the temporary root were controlled by an untrusted actor, the example's safety assumptions would need re-evaluation.
 
-## 7. Mở file bằng newByteChannel
+## 7. Opening Files with `newByteChannel`
 
-Chữ ký Java 17:
+Java 17 signature:
 
 ~~~java
 SeekableByteChannel newByteChannel(
@@ -340,18 +340,18 @@ SeekableByteChannel newByteChannel(
 ) throws IOException;
 ~~~
 
-Đây là **chữ ký phương thức**, không phải đoạn mã có thể đặt nguyên khối trong `main`.
+This is a **method signature**, not code to paste verbatim inside `main`.
 
-Những option thường dùng:
+Common options:
 
-- `StandardOpenOption.READ`: đọc.
-- `StandardOpenOption.WRITE`: ghi.
-- `StandardOpenOption.CREATE_NEW`: chỉ tạo khi file chưa tồn tại; hữu ích để tránh ghi đè entry đã có.
-- `StandardOpenOption.CREATE`: tạo nếu chưa tồn tại, nhưng không từ chối entry đã có; cân nhắc với file untrusted.
-- `StandardOpenOption.TRUNCATE_EXISTING`: cắt ngắn file hiện có khi mở ghi, nguy hiểm nếu target không được xác thực đúng.
-- `LinkOption.NOFOLLOW_LINKS`: từ chối nếu final path entry là symbolic link.
+- `StandardOpenOption.READ`: read.
+- `StandardOpenOption.WRITE`: write.
+- `StandardOpenOption.CREATE_NEW`: create only when the file does not exist; useful to avoid overwriting an existing entry.
+- `StandardOpenOption.CREATE`: create if absent, without rejecting an existing entry; use caution with untrusted files.
+- `StandardOpenOption.TRUNCATE_EXISTING`: truncate an existing file when opening for write; dangerous if the target is not properly validated.
+- `LinkOption.NOFOLLOW_LINKS`: fail if the final path entry is a symbolic link.
 
-Để tạo tệp mới theo directory handle:
+To create a new file relative to the directory handle:
 
 ~~~java
 try (SeekableByteChannel created = secure.newByteChannel(
@@ -368,28 +368,28 @@ try (SeekableByteChannel created = secure.newByteChannel(
 }
 ~~~
 
-Đây là mảnh minh họa cần import `ByteBuffer`, `StandardCharsets` và các API liên quan. `CREATE_NEW` tránh ghi đè một entry đã tồn tại; nhưng không đồng nghĩa user input đã được phép tạo tên đó theo quy tắc nghiệp vụ. Hãy kiểm tra tên/permission và giới hạn byte.
+This is an illustrative snippet requiring `ByteBuffer`, `StandardCharsets`, and related imports. `CREATE_NEW` avoids overwriting an existing entry; however, it does not mean the user input was authorized by business rules to create that name. Still validate names/permissions and enforce byte limits.
 
-Tham số `FileAttribute<?>... attrs` có thể được sử dụng để đặt thuộc tính ngay lúc tạo file **khi provider hỗ trợ**; các attribute không được hỗ trợ có thể gây `UnsupportedOperationException`. Không giả định mọi provider đều chấp nhận thuộc tính POSIX.
+The `FileAttribute<?>... attrs` parameter can set attributes at file creation time **when supported by the provider**; unsupported attributes may throw `UnsupportedOperationException`. Do not assume every provider accepts POSIX attributes.
 
-## 8. Xóa file, symlink và thư mục
+## 8. Deleting Files, Symlinks, and Directories
 
-`secure.deleteFile(relativeName)` xóa một **entry** file tương đối với directory stream; nếu entry là symbolic link, hành vi định nghĩa theo link entry, không phải xóa theo đích link. `secure.deleteDirectory(relativeName)` xóa directory entry theo hợp đồng của filesystem, không phải “xóa cây đệ quy”.
+`secure.deleteFile(relativeName)` deletes a file **entry** relative to the directory stream; if the entry is a symbolic link, the behavior applies to the link entry itself, not deleting the link's target. `secure.deleteDirectory(relativeName)` deletes a directory entry per filesystem contract, not “recursive tree deletion”.
 
 ~~~java
 secure.deleteFile(Path.of("obsolete.tmp"));
 secure.deleteDirectory(Path.of("empty-folder"));
 ~~~
 
-Đây là mảnh minh họa: cả hai tên phải hợp lệ trong directory handle và provider có quyền xóa; thư mục cần đáp ứng quy tắc xóa directory của filesystem (thường phải rỗng). Các lỗi như `NoSuchFileException`, `DirectoryNotEmptyException`, `AccessDeniedException` hoặc `IOException` cần được xử lý theo nghiệp vụ.
+This is an illustrative snippet: both names must be valid under the directory handle and the provider must have delete permission; the directory must satisfy the filesystem's directory-deletion rules (typically must be empty). Errors such as `NoSuchFileException`, `DirectoryNotEmptyException`, `AccessDeniedException`, or `IOException` must be handled per business logic.
 
-**Rủi ro ngoài phạm vi của secure stream:** nếu attacker có quyền sửa những nội dung bên trong file đã mở hoặc tạo hard link liên quan đến file, directory-relative API không tự đảm bảo nội dung là tin cậy. SecureDirectoryStream chủ yếu phục vụ **định vị file trong cây thư mục khi tên có thể bị tráo**, không thay thế hệ thống quyền.
+**Risks outside the scope of a secure stream:** if an attacker has permission to modify the contents inside an already-open file or create hard links to it, directory-relative APIs alone do not guarantee content trustworthiness. `SecureDirectoryStream` primarily addresses **locating files in a directory tree when names can be swapped**; it does not replace the permission system.
 
-### 8.1. Xóa cây thư mục có thể phức tạp hơn
+### 8.1. Recursive Directory Tree Deletion Can Be More Complex
 
-Muốn xóa cả cây do attacker có thể đồng thời thay đổi, không nên chỉ liệt kê `Files.walk(root)` rồi gọi `Files.delete(path)` trên absolute paths. Cần chiến lược thao tác tương đối bằng directory handles cho từng cấp, không đi theo symlink, kiểm tra quyền và giới hạn độ sâu/số entry. Trong môi trường không hỗ trợ SecureDirectoryStream, nên **không tuyên bố** một bản đệ quy tương tự có cùng tính kháng TOCTOU.
+To delete an entire tree that an attacker can mutate concurrently, you should not simply list `Files.walk(root)` and call `Files.delete(path)` on absolute paths. You need a strategy that operates relatively using directory handles at each level, avoids following symlinks, checks permissions, and bounds depth/entry counts. In environments without `SecureDirectoryStream` support, **do not claim** an equivalent recursive deletion has the same TOCTOU resistance.
 
-## 9. move(): thao tác giữa hai thư mục đang mở
+## 9. `move()`: Operating Between Two Open Directories
 
 API:
 
@@ -401,7 +401,7 @@ void move(
 ) throws IOException;
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 try (SecureDirectoryStream<Path> destination =
@@ -415,19 +415,19 @@ try (SecureDirectoryStream<Path> destination =
 }
 ~~~
 
-Đây là mảnh minh họa với `secure` trỏ vào directory nguồn và có thư mục con `archive` hợp lệ.
+This is an illustrative snippet with `secure` pointing to the source directory containing a valid `archive` subdirectory.
 
-Theo Javadoc Java 17, `move` thực hiện tương tự `Files.move` với `ATOMIC_MOVE`: việc di chuyển được thực hiện như một thao tác filesystem nguyên tử. Tuy nhiên:
+Per the Java 17 Javadoc, `move` behaves similarly to `Files.move` with `ATOMIC_MOVE`: the move is performed as an atomic filesystem operation. However:
 
-- Provider có thể ném `AtomicMoveNotSupportedException` khi không thể thực hiện move nguyên tử.
-- Nếu target đã tồn tại, việc thay thế hay thất bại là **implementation-specific**.
-- Không có tham số `REPLACE_EXISTING` cho phương thức `SecureDirectoryStream.move` này; đừng tự giả định một chính sách ghi đè.
-- Tên `srcpath` và `targetpath` nên được kiểm soát là **relative paths** trong các thư mục đã tin cậy. Nếu dùng absolute paths thì ngữ nghĩa có thể bỏ qua directory handle mong muốn.
-- Atomic rename không thay thế xác thực dữ liệu, permission check, durability của thay đổi hay quy trình publish phiên bản có thể khôi phục sau mất điện.
+- The provider may throw `AtomicMoveNotSupportedException` when an atomic move cannot be performed.
+- If the target already exists, whether it replaces or fails is **implementation-specific**.
+- There is no `REPLACE_EXISTING` parameter on this `SecureDirectoryStream.move` method; do not assume an overwrite policy.
+- `srcpath` and `targetpath` should be constrained as **relative paths** within trusted directories. Using absolute paths may bypass the intended directory-handle semantics.
+- Atomic rename does not replace data validation, permission checks, durability of changes, or a crash-recoverable version publishing workflow.
 
-## 10. Lấy metadata an toàn theo directory handle
+## 10. Safely Retrieving Metadata via a Directory Handle
 
-`getFileAttributeView` giúp lấy/sửa thông tin tệp mà không phải dựng lại absolute path theo name:
+`getFileAttributeView` retrieves/modifies file metadata without reconstructing an absolute path by name:
 
 ~~~java
 BasicFileAttributeView view = secure.getFileAttributeView(
@@ -441,11 +441,11 @@ if (view != null) {
 }
 ~~~
 
-Đây là mảnh minh họa, cần `java.nio.file.attribute.BasicFileAttributeView` và `BasicFileAttributes`. Tùy provider, attribute view có thể không được hỗ trợ và trả `null`. Ngoài `BasicFileAttributeView`, một số provider có thể hỗ trợ attribute views chuyên biệt, nhưng không nên giả định như nhau ở các filesystem.
+This is an illustrative snippet requiring `java.nio.file.attribute.BasicFileAttributeView` and `BasicFileAttributes`. Depending on the provider, an attribute view may be unsupported and return `null`. Besides `BasicFileAttributeView`, some providers may support specialized attribute views, though parity across filesystems should not be assumed.
 
-`NOFOLLOW_LINKS` giúp nhắm vào metadata của entry cuối thay vì link target. Mặc dù secure directory handle làm giảm rủi ro *định vị entry*, metadata vẫn là **ảnh chụp tại một thời điểm**: file có thể bị writer khác sửa nội dung hoặc metadata sau khi đọc. Muốn tính nhất quán của payload/ACL/version, cần chiến lược bổ sung như file bất biến, exclusive ownership hoặc protocol đồng bộ.
+`NOFOLLOW_LINKS` targets the metadata of the final entry rather than the link target. Although a secure directory handle reduces the risk of *locating the entry*, metadata is still a **point-in-time snapshot**: another writer can modify the file's contents or metadata after reading. For payload/ACL/version consistency, use additional strategies such as immutable files, exclusive ownership, or synchronization protocols.
 
-### 10.1. Attribute view của chính thư mục
+### 10.1. Attribute View of the Directory Itself
 
 ~~~java
 BasicFileAttributeView dirView =
@@ -453,178 +453,178 @@ BasicFileAttributeView dirView =
 BasicFileAttributes dirAttrs = dirView.readAttributes();
 ~~~
 
-Đây là mảnh minh họa; nếu provider không hỗ trợ view được hỏi có thể trả `null`, vì vậy production code cần kiểm tra trước khi dereference.
+This is an illustrative snippet; if the provider does not support the requested view it may return `null`, so production code must check before dereferencing.
 
-Lợi ích của view từ thư mục đã mở là hạn chế việc tra lại một tên đường dẫn có thể bị thay thế. Tuy vậy, nó không biến mọi lần đọc thuộc tính thành giao dịch nguyên tử với thao tác khác trong chương trình.
+The benefit of obtaining a view from the open directory is avoiding re-resolving a mutable path name. Still, it does not make attribute reads atomic transactions with other operations in the program.
 
-## 11. SecureDirectoryStream không phải sandbox hoàn chỉnh
+## 11. `SecureDirectoryStream` Is Not a Complete Sandbox
 
-Những gì interface hướng tới:
+What the interface aims to provide:
 
-- Xử lý các path tương đối theo **open directory** thay vì một chuỗi tên dễ bị thay thế.
-- Đi vào thư mục con bằng một **secure directory handle** mới, có thể dùng `NOFOLLOW_LINKS`.
-- Mở file byte channel, xóa và move entry theo ngữ nghĩa hỗ trợ giảm path-race.
-- Lấy attribute view gắn với directory handle để giảm phụ thuộc check-then-use trên tên đường dẫn toàn cục.
+- Operating on paths relative to an **open directory** rather than a replaceable name string.
+- Entering subdirectories using a new **secure directory handle**, optionally with `NOFOLLOW_LINKS`.
+- Opening file byte channels, deleting, and moving entries with path-race-reducing semantics.
+- Obtaining attribute views bound to the directory handle to reduce reliance on check-then-use over global path names.
 
-Những gì nó **không tự bảo đảm**:
+What it **does not guarantee on its own**:
 
-1. **Không cung cấp authorization theo người dùng:** ứng dụng vẫn phải xác minh user nào được đọc/xóa file nào.
-2. **Không chặn mọi hard link:** một entry không phải symlink vẫn có thể trỏ tới inode mà ứng dụng không nên thao tác; quyền và chính sách filesystem vẫn cần thiết.
-3. **Không khóa nội dung file khỏi writer khác:** open channel đúng file không có nghĩa byte không thể bị sửa đồng thời.
-4. **Không tránh tuyệt đối việc thay đổi mount/namespace:** security model phụ thuộc hệ điều hành và quyền của attacker; cần đánh giá threat model cụ thể.
-5. **Không loại bỏ mọi TOCTOU ngoài filesystem operation:** xác minh metadata, parse format, kiểm tra checksum và quyết định nghiệp vụ là những bước riêng.
-6. **Không tự giải quyết symbolic link trong path đã cho nếu ta không kiểm soát cấu trúc:** phải đi từng cấp và dùng `NOFOLLOW_LINKS` đúng nơi.
-7. **Không bảo đảm mọi provider hỗ trợ:** phải kiểm tra đối tượng thực tế và xử lý nhánh không hỗ trợ.
-8. **Không thay thế TLS, chữ ký số hoặc kiểm tra dữ liệu:** đường dẫn “được định vị đúng” không đồng nghĩa dữ liệu là đáng tin.
+1. **Does not provide per-user authorization:** the application must still verify which user may read/delete which file.
+2. **Does not block all hard links:** a non-symlink entry can still point to an inode the application should not touch; filesystem permissions and policies remain necessary.
+3. **Does not lock file contents from other writers:** opening the right file channel does not mean bytes cannot be modified concurrently.
+4. **Does not unconditionally prevent mount/namespace changes:** the security model depends on the OS and attacker privileges; evaluate your specific threat model.
+5. **Does not eliminate all TOCTOU outside filesystem operations:** metadata verification, format parsing, checksum checks, and business decisions are separate steps.
+6. **Does not automatically protect symlinks inside a given path if structure is unchecked:** you must step level by level and pass `NOFOLLOW_LINKS` where needed.
+7. **Does not guarantee every provider supports it:** you must check the runtime object and handle the unsupported branch.
+8. **Does not replace TLS, digital signatures, or data validation:** a “properly located” path does not mean the data is trustworthy.
 
-Một hệ thống an toàn phải xác định rõ quyền hệ điều hành, ai có thể sửa directory và các entry, dữ liệu nào do user nhập, provider nào thực sự hoạt động và hậu quả khi thao tác thất bại.
+A safe system must clearly define OS permissions, who can modify directories and entries, which data comes from users, which provider actually runs, and the consequences when an operation fails.
 
-## 12. Race condition mẫu và cách thay đổi thiết kế
+## 12. Sample Race Conditions and How to Redesign
 
-### 12.1. Sai lầm: Files.isDirectory rồi duyệt bên trong
+### 12.1. Mistake: `Files.isDirectory` Followed by Iterating Inside
 
 ~~~java
 if (Files.isDirectory(root.resolve("incoming"))) {
     try (DirectoryStream<Path> entries =
             Files.newDirectoryStream(root.resolve("incoming"))) {
-        // Có cửa sổ race giữa kiểm tra và mở.
+        // There is a race window between check and open.
     }
 }
 ~~~
 
-Thư mục `incoming` có thể bị thay đổi thành symlink trong khoảng giữa hai lời gọi; đây là một **mảnh mã minh họa kém an toàn trong môi trường untrusted**.
+The `incoming` directory could be replaced with a symlink between the two calls; this is an **unsafe illustrative snippet in an untrusted environment**.
 
-Với secure stream, nếu đã có handle tin cậy tới root:
+With a secure stream, if you already hold a trusted handle to `root`:
 
 ~~~java
 try (SecureDirectoryStream<Path> incoming =
         rootSecure.newDirectoryStream(
                 Path.of("incoming"), LinkOption.NOFOLLOW_LINKS)) {
-    // Làm việc tương đối với chính thư mục đã mở.
+    // Operate relative to the opened directory itself.
 }
 ~~~
 
-Lưu ý việc **tạo `rootSecure` ban đầu** cũng phải xuất phát từ nguồn root đáng tin và cơ chế bảo vệ thích hợp. Nếu attacker có thể thay root giữa lúc ta chọn root và lúc `Files.newDirectoryStream(root)` mở nó, secure stream sau đó neo vào thư mục **thực sự đã mở**, chưa chắc là thư mục ứng dụng dự định theo business policy.
+Note that **creating `rootSecure` initially** must also start from a trusted root source with proper protection. If an attacker can swap the root between selecting it and `Files.newDirectoryStream(root)` opening it, the resulting secure stream anchors to the directory **actually opened**, which may not be the one intended by business policy.
 
-### 12.2. Sai lầm: kiểm tra symlink rồi mở thường
+### 12.2. Mistake: Checking Symlink Status Then Doing a Normal Open
 
 ~~~java
 if (!Files.isSymbolicLink(file)) {
-    Files.newInputStream(file); // Một tên khác có thể xuất hiện sau check.
+    Files.newInputStream(file); // Another name may appear after the check.
 }
 ~~~
 
-**Mã minh họa rủi ro.** Khi dùng `SecureDirectoryStream.newByteChannel(relativeName, Set.of(READ, NOFOLLOW_LINKS))`, việc kiểm soát follow-link được chỉ định ngay trong thao tác mở file theo directory handle, tránh khoảng check-then-open đó cho entry cuối.
+**Risk-illustrating snippet.** When using `SecureDirectoryStream.newByteChannel(relativeName, Set.of(READ, NOFOLLOW_LINKS))`, follow-link control is specified directly in the directory-handle-relative file open, avoiding that check-then-open gap for the final entry.
 
-### 12.3. Sai lầm: bỏ qua trường hợp unsupported
+### 12.3. Mistake: Ignoring the Unsupported Case
 
 ~~~java
 DirectoryStream<Path> ds = Files.newDirectoryStream(root);
 SecureDirectoryStream<Path> s =
-        (SecureDirectoryStream<Path>) ds; // Có thể ClassCastException.
+        (SecureDirectoryStream<Path>) ds; // May throw ClassCastException.
 ~~~
 
-Chương trình chạy được trên máy A chưa chắc an toàn hoặc hoạt động trên máy B. Kiểm tra `instanceof` và có nhánh fail-closed rõ ràng. Không “bắt ClassCastException rồi chuyển sang Files.delete” nếu rủi ro ban đầu là symlink/path-race.
+A program that runs on machine A is not guaranteed to be safe or even work on machine B. Check `instanceof` and provide a clear fail-closed branch. Never “catch `ClassCastException` and fall back to `Files.delete`” if the original risk was a symlink/path race.
 
-## 13. Chi tiết về vòng đời và xử lý ngoại lệ
+## 13. Lifecycle and Exception Handling Details
 
-### 13.1. Đóng directory stream đúng lúc
+### 13.1. Closing the Directory Stream Promptly
 
-`DirectoryStream` và `SecureDirectoryStream` đều implement `Closeable`, nên:
+Both `DirectoryStream` and `SecureDirectoryStream` implement `Closeable`, so:
 
 ~~~java
 try (DirectoryStream<Path> stream = Files.newDirectoryStream(root)) {
-    // Kiểm tra instanceof và thao tác ở đây.
+    // Check instanceof and perform operations here.
 }
 ~~~
 
-Đóng stream giải phóng tài nguyên liên quan; những phương thức secure-relative gọi trên stream đã đóng có thể ném `ClosedDirectoryStreamException`. Một `SecureDirectoryStream` con được mở từ stream cha **có vòng đời riêng** theo hợp đồng: đóng cha không tự động đóng con. Tương tự, channel mở từ `newByteChannel` cũng phải đóng độc lập.
+Closing the stream releases associated resources; secure-relative methods invoked on a closed stream may throw `ClosedDirectoryStreamException`. A child `SecureDirectoryStream` opened from a parent stream **has its own lifecycle** per contract: closing the parent does not automatically close the child. Similarly, channels opened from `newByteChannel` must be closed independently.
 
-Vì vậy có thể tách lifetime của directory handle và file handle, nhưng mã thực tế nên làm ownership minh bạch để tránh rò rỉ descriptor.
+Thus the lifetimes of directory handles and file handles can be decoupled, though production code should make ownership explicit to prevent descriptor leaks.
 
-### 13.2. Các lỗi có thể cần xử lý
+### 13.2. Errors You May Need to Handle
 
-| Lỗi / ngoại lệ | Tình huống |
+| Error / Exception | Situation |
 | --- | --- |
-| `NoSuchFileException` | Entry không còn tồn tại khi truy cập. |
-| `AccessDeniedException` | Quyền không cho phép thao tác. |
-| `NotDirectoryException` | Tên được yêu cầu mở như directory nhưng không phải directory (tùy provider). |
-| `DirectoryNotEmptyException` | Xóa thư mục vẫn có entry. |
-| `ClosedDirectoryStreamException` | Gọi secure operation sau khi directory stream đã đóng. |
-| `AtomicMoveNotSupportedException` | Không thể chuyển `move` theo thao tác nguyên tử. |
-| `UnsupportedOperationException` | Provider không hỗ trợ option/attribute được yêu cầu. |
-| `IOException` | Lỗi I/O rộng hơn (kể cả race làm target biến mất). |
+| `NoSuchFileException` | Entry no longer exists at access time. |
+| `AccessDeniedException` | Permissions do not allow the operation. |
+| `NotDirectoryException` | Name requested as a directory is not a directory (provider-dependent). |
+| `DirectoryNotEmptyException` | Deleting a directory that still contains entries. |
+| `ClosedDirectoryStreamException` | Calling a secure operation after the directory stream was closed. |
+| `AtomicMoveNotSupportedException` | Unable to perform `move` atomically. |
+| `UnsupportedOperationException` | Provider does not support the requested option/attribute. |
+| `IOException` | Broader I/O errors (including races causing the target to vanish). |
 
-Không giả định mọi hệ điều hành trả cùng **lớp exception cụ thể** trong mọi tình huống; nhiều lớp ngoại lệ chi tiết là *optional specific exception*. Khi thao tác bảo mật không thể hoàn tất theo yêu cầu, cần dừng/rollback nghiệp vụ phù hợp thay vì âm thầm bỏ qua.
+Do not assume every operating system throws the exact same **specific exception subclass** in every situation; many specific subclasses are *optional specific exceptions*. When a security operation cannot complete as required, halt/roll back the business workflow appropriately instead of silently ignoring it.
 
-### 13.3. Thread-safety và iteration
+### 13.3. Thread-Safety and Iteration
 
-Một directory stream dùng để iterate tên entry; tập entry có thể thay đổi trong lúc duyệt. Không dựa vào thứ tự duyệt, không giả định snapshot, và không dùng stream/channels từ nhiều thread theo cách có data race. Nếu cần xử lý bất đồng bộ, hãy xác định thread nào sở hữu directory handle và quản lý thời điểm close.
+A directory stream is used to iterate entry names; the set of entries may change during iteration. Do not depend on iteration order, do not assume a snapshot, and do not use streams/channels from multiple threads in a way that creates data races. If asynchronous processing is needed, define which thread owns the directory handle and manage when it is closed.
 
-## 14. Một quy trình an toàn hơn khi xử lý file upload
+## 14. A Safer Workflow for Handling File Uploads
 
-Ví dụ dịch vụ nhận tên file từ request và lưu trong một thư mục upload:
+Suppose a service receives a filename from a request and saves it into an upload directory:
 
-1. **Xác thực và phân quyền** user trước, giới hạn số lượng và kích thước upload.
-2. Chọn root theo cấu hình tin cậy, không lấy một absolute path từ user.
-3. Mở root và **kiểm tra `instanceof SecureDirectoryStream<?>`**; nếu provider không hỗ trợ mà yêu cầu chống path-race là bắt buộc, từ chối thao tác.
-4. Kiểm soát tên file là **một thành phần relative**; cấm absolute, `.`, `..` và các biểu diễn qua separator.
-5. Sử dụng `newByteChannel(name, Set.of(WRITE, CREATE_NEW, NOFOLLOW_LINKS))` để tạo entry, tránh ghi đè và theo symlink.
-6. Ghi dữ liệu theo byte count, kiểm tra quota và size giới hạn; xử lý partial write khi cần.
-7. Nếu upload cần commit có kiểm soát, lưu ở một vùng staging tin cậy, xác minh nội dung và dùng quy trình publish đã thiết kế. `move` secure-relative có ngữ nghĩa atomic nhưng không tự bổ sung mọi yêu cầu durability/authorization.
-8. Đóng channel và directory streams đúng vòng đời, xóa bản tạm khi lỗi, nhưng phải xét race/ownership ngay cả khi cleanup.
-9. Log những lỗi không hỗ trợ provider, permission, size/quota và thao tác từ chối mà không lộ đường dẫn nhạy cảm cho client.
+1. **Authenticate and authorize** the user first; enforce upload count and size limits.
+2. Select the root from trusted configuration; never take an absolute path from the user.
+3. Open the root and **check `instanceof SecureDirectoryStream<?>`**; if unsupported by the provider when path-race protection is mandatory, reject the operation.
+4. Constrain the filename to a **single relative component**; forbid absolute paths, `.`, `..`, and separator representations.
+5. Use `newByteChannel(name, Set.of(WRITE, CREATE_NEW, NOFOLLOW_LINKS))` to create the entry, avoiding overwrites and symlink following.
+6. Write data while counting bytes, checking quotas and size limits; handle partial writes as needed.
+7. If the upload requires controlled commit, write to a trusted staging area, validate content, and use the designed publish workflow. Secure-relative `move` has atomic semantics but does not automatically add durability/authorization guarantees.
+8. Close channels and directory streams according to lifecycle, delete temporary files on error, while still considering races/ownership during cleanup.
+9. Log provider-unsupported, permission, size/quota, and rejection errors without exposing sensitive paths to the client.
 
-Đừng xem `CREATE_NEW` là bảo đảm “file này do mình tạo nên chắc chắn an toàn”: dữ liệu có thể đến từ nguồn không tin cậy, tên có thể có xung đột ở mức nghiệp vụ và còn rất nhiều yêu cầu an ninh khác.
+Do not treat `CREATE_NEW` as a guarantee that “because we created this file, it is definitely safe”: the data may come from an untrusted source, names may collide at the business level, and many other security requirements still apply.
 
-## 15. Khi nào vẫn dùng Files.* bình thường?
+## 15. When Is Regular `Files.*` Still Appropriate?
 
-`Files.readString`, `Files.copy`, `Files.delete`, `Files.move` và `Files.walkFileTree` có API rất tiện. Chúng không tự trở thành sai chỉ vì tồn tại `SecureDirectoryStream`.
+`Files.readString`, `Files.copy`, `Files.delete`, `Files.move`, and `Files.walkFileTree` have very convenient APIs. They do not automatically become wrong simply because `SecureDirectoryStream` exists.
 
-Chọn `Files.*` khi:
+Choose `Files.*` when:
 
-- Tệp/thư mục được ứng dụng sở hữu với **quyền hệ điều hành bảo vệ**, không có actor không tin cậy có thể tráo path giữa các thao tác.
-- Đọc file cấu hình bất biến, dữ liệu build nội bộ, test fixtures hoặc công việc batch không có threat model path-race đáng kể.
-- Provider không hỗ trợ secure stream nhưng workflow **được chứng minh là không yêu cầu** bảo vệ race giữa check/use.
+- Files/directories are application-owned with **protective OS permissions**, and no untrusted actor can swap paths between operations.
+- Reading immutable configuration files, internal build data, test fixtures, or batch jobs without a significant path-race threat model.
+- The provider does not support secure streams, yet the workflow **is proven not to require** race protection between check and use.
 
-Chọn `SecureDirectoryStream` khi:
+Choose `SecureDirectoryStream` when:
 
-- Xóa/di chuyển/đọc/ghi trong thư mục dùng chung nơi actor không tin cậy có thể thay entry đồng thời.
-- Cần bảo vệ khỏi symlink swap của các thành phần directory do đối thủ kiểm soát.
-- Duyệt cây tệp hoặc publish entry theo directory handle với yêu cầu hạn chế TOCTOU.
-- Có thể **yêu cầu môi trường hỗ trợ API này** hoặc có chính sách fail-closed.
+- Deleting/moving/reading/writing in shared directories where untrusted actors may concurrently alter entries.
+- Protecting against symlink swaps of adversary-controlled directory components.
+- Traversing file trees or publishing entries via directory handles with a requirement to mitigate TOCTOU.
+- You can **require the environment to support this API** or enforce a fail-closed policy.
 
-Nếu yêu cầu bảo vệ path-race bắt buộc mà platform không có khả năng tương đương, giải pháp đúng có thể là **không triển khai chức năng trên platform đó**, chứ không phải âm thầm giảm bảo đảm.
+If path-race protection is mandatory and the platform lacks an equivalent capability, the right solution may be **not deploying that feature on that platform**, rather than silently weakening guarantees.
 
-## 16. Bài tập tự kiểm tra
+## 16. Self-Check Exercises
 
-1. **`SecureDirectoryStream` là class hay interface?** Là interface mở rộng `DirectoryStream<T>`.
-2. **Mọi `Files.newDirectoryStream(dir)` đều trả một `SecureDirectoryStream` không?** Không; phụ thuộc provider và hỗ trợ hệ điều hành.
-3. **Kiểm tra hỗ trợ bằng cách nào?** Xem đối tượng thực tế có `instanceof SecureDirectoryStream<?>` hay không; chỉ cast khi hợp lệ.
-4. **Vì sao `Files.isSymbolicLink(path)` rồi `Files.newInputStream(path)` có thể nguy hiểm?** Có khoảng TOCTOU giữa kiểm tra và sử dụng tên.
-5. **Lợi ích của relative path theo directory handle?** Giảm việc giải lại tên directory trên toàn cục khi entry bị đổi tên hoặc tráo.
-6. **`NOFOLLOW_LINKS` có vai trò gì?** Yêu cầu không theo symbolic link ở thao tác tương ứng, ví dụ mở thư mục con/file.
-7. **`deleteFile` có tham số `NOFOLLOW_LINKS` không?** Không; nó có hợp đồng xóa entry riêng.
-8. **`move` của secure stream có bảo đảm overwrite target không?** Không; khi target tồn tại, hành vi replace hay fail tùy implementation.
-9. **`move` có thể ném gì nếu atomic move không khả dụng?** `AtomicMoveNotSupportedException`.
-10. **Đóng secure directory stream cha có tự đóng stream con không?** Không. Stream con có lifetime riêng.
-11. **Đóng directory stream có tự đóng channel đã mở từ nó không?** Không. Channel có lifetime riêng.
-12. **Nếu provider không hỗ trợ, có được tuyên bố fallback check-then-delete đạt cùng bảo đảm không?** Không; nếu chống race là yêu cầu bắt buộc cần fail-closed hoặc thay kiến trúc.
-13. **Đưa `../../etc/passwd` làm relative path có an toàn vì đã dùng secure stream không?** Không; cần validation và kiểm soát các thành phần path.
-14. **SecureDirectoryStream có ngăn mọi hard link attack không?** Không; cần xét ownership, quyền và threat model filesystem.
-15. **Nếu file đã mở an toàn nhưng một writer khác có thể thay nội dung cùng file, data có tự bất biến không?** Không; phải có kiểm soát version/ownership và đọc/ghi nhất quán.
-16. **Nếu chương trình chạy trên Linux nhưng FileSystemProvider tự viết không hỗ trợ SDS, có dùng được không?** Không được giả định; kiểm tra runtime và xử lý unsupported.
-17. **Có nên dùng absolute path khi gọi secure.newByteChannel(...) để giới hạn trong root?** Không; absolute path có thể bỏ qua ngữ nghĩa neo vào thư mục đang mở.
-18. **Nếu ứng dụng cần chống path-race nhưng không kiểm soát root ban đầu, mở SDS có đủ chứng minh thư mục đúng không?** Chưa; cần đảm bảo ban đầu root handle trỏ đến thư mục tin cậy.
-19. **Có phải mọi DirectoryStream iteration phản ánh snapshot bất biến?** Không; entry có thể thay đổi trong lúc lặp.
-20. **SecureDirectoryStream có thay thế kiểm tra nội dung upload và quota không?** Không; nó tập trung thao tác đường dẫn tương đối, không xác thực dữ liệu.
+1. **Is `SecureDirectoryStream` a class or an interface?** It is an interface extending `DirectoryStream<T>`.
+2. **Does every `Files.newDirectoryStream(dir)` return a `SecureDirectoryStream`?** No; it depends on the provider and OS support.
+3. **How do you check for support?** Check whether the runtime object is `instanceof SecureDirectoryStream<?>`; cast only when true.
+4. **Why can `Files.isSymbolicLink(path)` followed by `Files.newInputStream(path)` be dangerous?** There is a TOCTOU gap between checking and using the name.
+5. **What is the benefit of relative paths anchored to a directory handle?** It avoids re-resolving directory names globally when entries are renamed or swapped.
+6. **What is the role of `NOFOLLOW_LINKS`?** It requests not following symbolic links in the corresponding operation, such as opening a subdirectory/file.
+7. **Does `deleteFile` take a `NOFOLLOW_LINKS` parameter?** No; it has its own entry-deletion contract.
+8. **Does `SecureDirectoryStream.move` guarantee overwriting the target?** No; when the target already exists, whether it replaces or fails is implementation-dependent.
+9. **What can `move` throw if atomic move is unavailable?** `AtomicMoveNotSupportedException`.
+10. **Does closing a parent secure directory stream automatically close child streams?** No. Child streams have their own lifetimes.
+11. **Does closing a directory stream automatically close channels opened from it?** No. Channels have their own lifetimes.
+12. **If the provider lacks support, can you claim a check-then-delete fallback provides the same guarantee?** No; if race protection is mandatory, fail closed or change the architecture.
+13. **Is passing `../../etc/passwd` as a relative path safe just because a secure stream is used?** No; path-component validation and control are still required.
+14. **Does `SecureDirectoryStream` prevent all hard-link attacks?** No; ownership, permissions, and the filesystem threat model must be considered.
+15. **If a file is opened safely yet another writer can modify its contents, is the data automatically immutable?** No; version/ownership controls and consistent read/write coordination are still needed.
+16. **If the program runs on Linux but a custom `FileSystemProvider` does not support SDS, can you use it?** Never assume; check at runtime and handle the unsupported case.
+17. **Should you pass an absolute path to `secure.newByteChannel(...)` to stay inside the root?** No; an absolute path can bypass the open-directory anchoring semantics.
+18. **If an application must prevent path races without controlling the initial root, is opening SDS enough to prove it is the right directory?** No; you must ensure the initial root handle points to a trusted directory.
+19. **Does every `DirectoryStream` iteration reflect an immutable snapshot?** No; entries may change during iteration.
+20. **Does `SecureDirectoryStream` replace upload content validation and quotas?** No; it focuses on relative path operations, not data validation.
 
-## 17. Tài liệu Java 17 chính thức
+## 17. Official Java 17 Documentation
 
-- [SecureDirectoryStream — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/SecureDirectoryStream.html): ngữ nghĩa open-directory-relative, các phương thức hỗ trợ, fallback và ngoại lệ.
-- [DirectoryStream — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/DirectoryStream.html): iteration và vòng đời directory stream.
-- [Files — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): `newDirectoryStream`, `newByteChannel` và các thao tác tệp thông thường.
-- [LinkOption — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/LinkOption.html): `NOFOLLOW_LINKS` và ý nghĩa tùy thao tác.
-- [FileSystemProvider — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/spi/FileSystemProvider.html): vai trò của provider trong filesystem implementation.
+- [SecureDirectoryStream — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/SecureDirectoryStream.html): open-directory-relative semantics, supported methods, fallback notes, and exceptions.
+- [DirectoryStream — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/DirectoryStream.html): iteration and directory stream lifecycle.
+- [Files — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): `newDirectoryStream`, `newByteChannel`, and standard file operations.
+- [LinkOption — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/LinkOption.html): `NOFOLLOW_LINKS` and operation-specific semantics.
+- [FileSystemProvider — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/spi/FileSystemProvider.html): provider's role in filesystem implementation.
 
-**Ghi nhớ:** `SecureDirectoryStream` hoạt động theo **handle của thư mục đang mở**, giúp chống nhiều race do tráo entry/link khi thao tác trên **relative paths**. Hỗ trợ phụ thuộc provider và hệ điều hành, nên phải **kiểm tra `instanceof` tại runtime**. Nếu an toàn chống race là yêu cầu bắt buộc, provider không hỗ trợ thì **fail closed**, không thay bằng check-then-use và tuyên bố tương đương. Luôn kiểm soát tên path, symlink, quyền truy cập, lifetime và tính toàn vẹn dữ liệu.
+**Remember:** `SecureDirectoryStream` operates against an **open directory handle**, helping prevent many races caused by entry/link swapping when operating on **relative paths**. Support depends on the provider and OS, so you must **check `instanceof` at runtime**. If race safety is mandatory and the provider lacks support, **fail closed** instead of substituting check-then-use and claiming equivalence. Always control path names, symlinks, permissions, lifetimes, and data integrity.

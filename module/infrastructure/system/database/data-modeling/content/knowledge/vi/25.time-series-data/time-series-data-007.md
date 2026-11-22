@@ -129,24 +129,6 @@ Với bucket độ rộng cố định `w` và gốc thời gian `origin`, có t
 
 $$
 b(t) = \mathrm{origin} + \left\lfloor \frac{t-\mathrm{origin}}{w} \right\rfloor w
-$$ $$
-\operatorname{count}_{A\cup B}=\operatorname{count}_A+\operatorname{count}_B
-$$ $$
-\operatorname{sum}_{A\cup B}=\operatorname{sum}_A+\operatorname{sum}_B
-$$ $$
-\min_{A\cup B}=\min(\min_A,\min_B),\quad \max_{A\cup B}=\max(\max_A,\max_B)
-$$ $$
-\operatorname{avg}_{A\cup B}=\frac{\operatorname{sum}_A+\operatorname{sum}_B}{\operatorname{count}_A+\operatorname{count}_B}
-$$ $$
-\frac{20+30}{2}=25\,^\circ\mathrm{C}
-$$ $$
-\frac{60+30}{3+1}=22{,}5\,^\circ\mathrm{C}
-$$ $$
-1000\times6\times60\times24=8\,640\,000\ \text{mẫu/ngày}
-$$ $$
-1000\times12\times24=288\,000\ \text{bucket/ngày}
-$$ $$
-\frac{59\times20+80}{60}=21\,^\circ\mathrm{C}
 $$
 
 Công thức mô tả cách xác định `bucket_start` từ timestamp tuyệt đối; trong PostgreSQL có thể dùng `date_bin` với khoảng cố định. Ví dụ:
@@ -184,13 +166,21 @@ Một phương pháp đúng phải dựa trên **phép hợp nhất thống kê*
 
 Giả sử bucket A có `count_A, sum_A, min_A, max_A`; bucket B có các trạng thái tương tự. Để gộp hai tập mẫu **không chồng nhau**:
 
+$$
+\operatorname{count}_{A\cup B}=\operatorname{count}_A+\operatorname{count}_B
+$$
 
+$$
+\operatorname{sum}_{A\cup B}=\operatorname{sum}_A+\operatorname{sum}_B
+$$
 
+$$
+\min_{A\cup B}=\min(\min_A,\min_B),\quad \max_{A\cup B}=\max(\max_A,\max_B)
+$$
 
-
-
-
-
+$$
+\operatorname{avg}_{A\cup B}=\frac{\operatorname{sum}_A+\operatorname{sum}_B}{\operatorname{count}_A+\operatorname{count}_B}
+$$
 
 Điều kiện quan trọng: các bucket **cùng đơn vị, cùng quy tắc lọc mẫu và không chồng lấn**. `count` là số mẫu hợp lệ, không phải số phút trong bucket.
 
@@ -211,11 +201,15 @@ Bucket 08:00 có **count = 3, sum = 60, avg = 20°C, min = 18°C, max = 22°C**.
 
 Nếu lấy trung bình các trung bình bucket:
 
-
+$$
+\frac{20+30}{2}=25\,^\circ\mathrm{C}
+$$
 
 Kết quả ấy **không phải trung bình của bốn mẫu**. Kết quả đúng là:
 
-
+$$
+\frac{60+30}{3+1}=22{,}5\,^\circ\mathrm{C}
+$$
 
 **Phải giữ ít nhất `sum` và `count`** nếu muốn tổng hợp trung bình chính xác qua nhiều mức. Đối với số đo lưu bằng số thực, còn cần xét sai số tích lũy và chiến lược tính toán phù hợp.
 
@@ -598,13 +592,17 @@ Sau khi xóa raw, nếu bảng 5 phút chỉ lưu `count,sum,min,max`, vẫn có
 
 Giả sử **1.000 sensor**, mỗi sensor gửi **một mẫu/10 giây** liên tục:
 
-
+$$
+1000\times6\times60\times24=8\,640\,000\ \text{mẫu/ngày}
+$$
 
 Trong 30 ngày: khoảng **259,2 triệu mẫu raw** trước khi tính dữ liệu nhập thêm, index, metadata, phiên bản hàng, nén hoặc replication.
 
 Rollup 5 phút có tối đa:
 
-
+$$
+1000\times12\times24=288\,000\ \text{bucket/ngày}
+$$
 
 Rollup giờ có tối đa **24.000 bucket/ngày**. Các con số giả định mọi sensor có mẫu ở mọi bucket; nếu sensor ngừng gửi thì số hàng thực tế có thể thấp hơn. **Không lấy số byte của một giá trị nhiệt độ nhân số mẫu rồi coi là dung lượng database**: cần tính overhead hàng, khóa, WAL, index, retention và cơ chế sao lưu.
 
@@ -622,7 +620,9 @@ Một màn hình rộng 1.200 pixel thường không thể biểu diễn rõ **m
 
 Giả sử một phút có 59 mẫu nhiệt độ **20°C** và một mẫu **80°C**. Trung bình của phút là:
 
-
+$$
+\frac{59\times20+80}{60}=21\,^\circ\mathrm{C}
+$$
 
 Nếu dashboard chỉ vẽ **21°C**, người vận hành không thấy đỉnh 80°C có thể quan trọng cho cảnh báo. Vì vậy với dữ liệu cần phát hiện cực trị, có thể trả **average kèm min/max**, hoặc giữ những đỉnh nổi bật và đường biểu diễn band/range.
 

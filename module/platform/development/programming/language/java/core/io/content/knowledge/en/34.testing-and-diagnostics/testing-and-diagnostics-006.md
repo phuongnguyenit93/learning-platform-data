@@ -1,82 +1,82 @@
-# Mô phỏng partial read, partial write và lỗi giữa chừng trong Java I/O
+# Simulating Partial Reads, Partial Writes, and Mid-Stream Failures in Java I/O
 
-## 1. Vì sao phải kiểm thử I/O theo từng phần?
+## 1. Why Must You Test Partial I/O?
 
-Trong Java NIO, `ReadableByteChannel.read(ByteBuffer)` và `WritableByteChannel.write(ByteBuffer)` trả về **số byte thật sự đã chuyển trong lời gọi hiện tại**, không hứa luôn xử lý hết `ByteBuffer.remaining()`. Với file nhỏ trên ổ cục bộ, một lần đọc/ghi có thể tình cờ đủ. Nhưng socket non-blocking, luồng bị giới hạn băng thông, bộ đệm gần đầy, I/O từ thiết bị hoặc một test double có thể khiến lệnh chỉ chuyển **một phần**, không chuyển byte nào, hoặc gặp `IOException` giữa chuỗi thao tác.
+In Java NIO, `ReadableByteChannel.read(ByteBuffer)` and `WritableByteChannel.write(ByteBuffer)` return **the number of bytes actually transferred in the current call**, without promising to consume or fill all of `ByteBuffer.remaining()`. With small files on a local disk, a single read or write may happen to transfer everything. However, non-blocking sockets, bandwidth-throttled streams, nearly full buffers, device I/O, or a test double can cause a call to transfer only **part of the data**, transfer zero bytes, or throw an `IOException` partway through a sequence of operations.
 
-Nếu chỉ kiểm tra trường hợp “đọc hết một lần, ghi hết một lần”, code dễ chứa những lỗi:
+If you only test the "read all in one call, write all in one call" scenario, the code easily hides bugs:
 
-- Bỏ quên phần `ByteBuffer` chưa ghi, gây **mất dữ liệu**.
-- Coi `read() == 0` là EOF, nên dừng quá sớm.
-- Coi `write() == 0` là thành công và loại bỏ bytes chưa chuyển.
-- Quên gọi `flip()`/`clear()` hoặc `compact()`, khiến ghi sai vùng dữ liệu.
-- Thử lại toàn bộ request/file sau lỗi và **ghi trùng** phần đã thực hiện.
-- Coi `IOException` chỉ có thể xảy ra trước khi bất kỳ byte nào được chuyển.
-- Dùng `Thread.sleep` trong test thay vì kiểm soát lịch lỗi một cách xác định.
+- Leaving unwritten bytes behind in `ByteBuffer`, causing **data loss**.
+- Treating `read() == 0` as EOF, stopping prematurely.
+- Treating `write() == 0` as success and dropping untransferred bytes.
+- Forgetting to call `flip()`/`clear()` or `compact()`, writing the wrong buffer slice.
+- Retrying the entire request or file after an error and **duplicating** the already-completed portion.
+- Assuming `IOException` can only happen before any bytes are transferred.
+- Using `Thread.sleep` in tests instead of controlling the failure schedule deterministically.
 
-Mục tiêu của bài này là **tạo tình huống lỗi một cách chủ động và tái lập được** bằng các channel giả lập, thay vì chờ mạng chậm hoặc làm hỏng file thật. Bạn sẽ biết cách kiểm thử vòng lặp đọc đủ/ghi đủ, phân biệt `0`/EOF/exception, quan sát trạng thái buffer và thiết kế retry có thể phục hồi.
+The goal of this lesson is to **trigger failure conditions proactively and reproducibly** using simulated channels rather than waiting for slow networks or corrupting real files. You will learn how to test read-fully/write-fully loops, distinguish `0`/EOF/exceptions, inspect buffer state, and design recoverable retry strategies.
 
-## 2. Hợp đồng read và write cần thuộc lòng
+## 2. Read and Write Contracts to Memorize
 
-Với `ReadableByteChannel.read(dst)`, gọi `dst.remaining()` trước khi đọc để biết số byte tối đa mà buffer nhận được.
+For `ReadableByteChannel.read(dst)`, inspect `dst.remaining()` before reading to know the maximum bytes the buffer can accept.
 
-| Kết quả | Ý nghĩa | Cách xử lý |
+| Result | Meaning | How to Handle |
 | --- | --- | --- |
-| `n > 0` | Đã đưa `n` bytes vào `dst`, tăng `position` tương ứng. | Cập nhật số byte, tiếp tục nếu đang đọc một frame cố định. |
-| `n == 0` | Chưa đọc được byte trong lời gọi này; có thể do I/O chưa sẵn sàng hoặc buffer không còn chỗ. | **Không** tự coi là EOF; xem blocking mode, readiness và deadline. |
-| `n == -1` | Đã tới end-of-stream (EOF). | Nếu cần đúng N bytes mà chưa đủ thì báo truncated frame. |
-| `IOException` | Đọc thất bại. | Không coi là EOF hay “chắc chắn chưa đọc byte nào”; áp dụng chính sách lỗi/recovery. |
+| `n > 0` | Placed `n` bytes into `dst` and advanced `position` accordingly. | Update byte count; continue if reading a fixed-size frame. |
+| `n == 0` | No bytes read on this call; I/O may not be ready or the buffer has no space. | **Do not** treat as EOF; respect blocking mode, readiness, and deadlines. |
+| `n == -1` | Reached end-of-stream (EOF). | If exact `N` bytes were needed and haven't arrived, report a truncated frame. |
+| `IOException` | Read failed. | Do not treat as EOF or assume "no bytes were read"; apply error/recovery policy. |
 
-Với `WritableByteChannel.write(src)`:
+For `WritableByteChannel.write(src)`:
 
-| Kết quả | Ý nghĩa | Cách xử lý |
+| Result | Meaning | How to Handle |
 | --- | --- | --- |
-| `n > 0` | Đã lấy `n` bytes từ `src`, tăng `position` tương ứng. | Tiếp tục ghi phần `src.hasRemaining()`. |
-| `n == 0` | Chưa chuyển byte trong lần gọi này. | Giữ buffer, chờ khả năng ghi/áp dụng deadline; tránh busy-loop. |
-| `IOException` | Lời gọi thất bại. | Không ACK thành công và không retry mù nếu có thể đã ghi một phần. |
+| `n > 0` | Consumed `n` bytes from `src` and advanced `position` accordingly. | Continue writing while `src.hasRemaining()`. |
+| `n == 0` | No bytes transferred on this call. | Retain buffer, wait for writability / enforce deadline; avoid busy loops. |
+| `IOException` | Call failed. | Never ACK success and never retry blindly if a partial write may have occurred. |
 
-`write` **không dùng `-1` làm tín hiệu EOF** như `read`. Một số channel có hành vi blocking và có thể đợi tới khi tiến triển, nhưng những channel như `SocketChannel` ở non-blocking mode có thể thường xuyên trả `0`. Giao diện `ReadableByteChannel` cho phép trả ít hơn số byte còn chỗ trong buffer; một lần read không đồng nghĩa một message TCP.
+`write` **does not use `-1` as an EOF signal** the way `read` does. Blocking channels may wait until progress occurs, whereas non-blocking channels like a non-blocking `SocketChannel` may frequently return `0`. The `ReadableByteChannel` interface permits returning fewer bytes than available buffer space; a single read is not equivalent to a single TCP message.
 
-### ByteBuffer.position, limit và remaining
+### `ByteBuffer.position`, `limit`, and `remaining`
 
-Giả sử `ByteBuffer.allocate(8)`: lúc mới tạo, `position=0`, `limit=8`, `remaining=8`.
+Suppose `ByteBuffer.allocate(8)`: initially `position=0`, `limit=8`, `remaining=8`.
 
 ```text
-Sau khi read được 3 bytes:
+After reading 3 bytes:
   position=3, limit=8
   [A B C _ _ _ _ _]
-   ^ dữ liệu nhận     ^ vùng còn chỗ
+   ^ received data    ^ remaining space
 
-Sau flip():
+After flip():
   position=0, limit=3
-  [A B C] -> vùng chuẩn bị truyền/đọc
+  [A B C] -> region ready to transmit/read
 
-Sau write được 2 bytes:
+After writing 2 bytes:
   position=2, limit=3
-  [A B | C] -> còn byte C chưa gửi
+  [A B | C] -> byte C still unsent
 
-Sau write hết byte C:
+After writing remaining byte C:
   position=3, limit=3; remaining=0
 ```
 
-`flip()` chuyển buffer từ chế độ lấp dữ liệu sang chế độ tiêu thụ. `clear()` đưa position về 0 và limit về capacity nhưng **không xóa vật lý bytes**. `compact()` giữ các bytes chưa tiêu thụ rồi chuyển chúng về đầu để tiếp tục đọc thêm; hữu ích cho parser TCP nhận dữ liệu không trọn frame.
+`flip()` switches a buffer from filling mode to draining mode. `clear()` resets `position` to 0 and `limit` to `capacity` without **physically erasing bytes**. `compact()` keeps unconsumed bytes and shifts them to the front so more can be read; this is useful for TCP parsers receiving partial frames.
 
-Nếu gọi `clear()` ngay sau một lần `write` ngắn, phần bytes chưa ghi sẽ bị coi như không còn trong buffer và có nguy cơ mất. Nếu luôn gọi `flip()` sau mỗi lệnh `read` mà chưa cân nhắc state, bạn có thể gửi lặp một đoạn hoặc phá trạng thái parser.
+Calling `clear()` immediately after a short `write` marks the unwritten bytes as gone from the buffer and risks data loss. Always calling `flip()` after every `read` without checking state can re-send a slice or corrupt parser state.
 
-## 3. Thiết kế test double cho partial I/O
+## 3. Designing Test Doubles for Partial I/O
 
-Một unit test tốt không cần socket Internet hoặc ghi lên ổ thật. Có thể triển khai hai interface Java NIO:
+A good unit test does not need an Internet socket or real disk writes. You can implement two Java NIO interfaces:
 
-- `ReadableByteChannel` nhận dữ liệu từ byte array và mỗi lần chỉ đưa tối đa 2 bytes vào buffer.
-- `WritableByteChannel` nhận dữ liệu vào `ByteArrayOutputStream` và mỗi lần chỉ lấy tối đa 3 bytes từ buffer.
-- Ở lần gọi đầu tiên, mỗi channel trả `0` để kiểm tra code không nhầm “chưa sẵn sàng” với EOF hay thành công.
-- Thống kê số lần gọi để xác nhận code đã đi qua nhánh partial I/O thực sự.
+- `ReadableByteChannel` reading from a byte array and copying at most 2 bytes per call into the buffer.
+- `WritableByteChannel` writing into a `ByteArrayOutputStream` and draining at most 3 bytes per call from the buffer.
+- On the first call, each channel returns `0` to verify the code does not confuse "not ready yet" with EOF or completion.
+- Tracking call counts to confirm the code actually exercised the partial I/O paths.
 
-Với test double, các số 2/3 là **ràng buộc cố ý của test**, không phải dự đoán filesystem hoặc số byte do hệ điều hành quyết định. Lợi ích lớn nhất là kiểm thử hoàn toàn xác định: chạy một trăm lần vẫn đi qua cùng lịch sự kiện.
+With test doubles, the numbers 2 and 3 are **deliberate test constraints**, not predictions of filesystem behavior or OS chunk sizes. The biggest advantage is completely deterministic testing: running a hundred times exercises the exact same event schedule.
 
-### Ví dụ Java 17 chạy được: ShortIoDemo
+### Runnable Java 17 Example: `ShortIoDemo`
 
-Tạo file `ShortIoDemo.java`:
+Create `ShortIoDemo.java`:
 
 ```java
 import java.io.*;
@@ -128,11 +128,11 @@ public class ShortIoDemo {
             while (true) {
                 int n = source.read(buffer);
                 if (n < 0) break;
-                if (n == 0) continue; // Fixture chỉ trả 0 đúng một lần.
+                if (n == 0) continue; // Fixture returns 0 exactly once.
                 buffer.flip();
                 while (buffer.hasRemaining()) {
                     int written = target.write(buffer);
-                    if (written == 0) continue; // Fixture chỉ trả 0 đúng một lần.
+                    if (written == 0) continue; // Fixture returns 0 exactly once.
                     total += written;
                 }
                 buffer.clear();
@@ -148,14 +148,14 @@ public class ShortIoDemo {
 }
 ```
 
-Biên dịch/chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac --release 17 ShortIoDemo.java
 java ShortIoDemo
 ```
 
-Kết quả đã kiểm thử:
+Verified output:
 
 ```text
 content=ABCDEFG
@@ -166,42 +166,42 @@ read-calls=6
 write-calls=5
 ```
 
-**Diễn giải lịch I/O:**
+**I/O trace explanation:**
 
-1. `read` đầu trả `0`; vòng lặp chưa chuyển byte nào và chỉ tiếp tục vì fixture được thiết kế chắc chắn có tiến triển.
-2. Bốn lệnh `read` tiếp theo trả `2, 2, 2, 1` byte. Mỗi lệnh sử dụng phần `dst.remaining()` và tăng `position` đúng số byte.
-3. Lệnh `read` cuối trả `-1` để báo EOF. Tổng cộng **6** lần gọi.
-4. `write` đầu tiên trả `0`. Bốn lần ghi có tiến triển sau đó tiêu thụ `2, 2, 2, 1` byte. Tổng **5** lần gọi write.
-5. `flip()` chuyển 2 hoặc 1 byte vừa nhận sang chế độ đọc để writer tiêu thụ; `while (buffer.hasRemaining())` bảo đảm chưa mất byte nào trước `clear()`.
-6. `copied=7` và `content=ABCDEFG` chứng minh toàn bộ bytes được đưa qua fixture đúng thứ tự.
+1. The first `read` returns `0`; the loop transfers nothing and continues only because the fixture is guaranteed to make progress next.
+2. The next four `read` calls return `2, 2, 2, 1` bytes. Each consumes `dst.remaining()` and advances `position` by that exact count.
+3. The final `read` returns `-1` to signal EOF. Total: **6** read calls.
+4. The first `write` returns `0`. Four progressing writes then consume `2, 2, 2, 1` bytes. Total: **5** write calls.
+5. `flip()` switches the 2 or 1 newly read bytes to read mode for the writer to consume; `while (buffer.hasRemaining())` guarantees no bytes are lost before `clear()`.
+6. `copied=7` and `content=ABCDEFG` prove all bytes passed through the fixture in the exact order.
 
-**Cảnh báo quan trọng:** hai nhánh `if (n == 0) continue` ở đây chỉ có thể dùng an toàn vì fixture cố ý trả `0` đúng **một lần**. Không sao chép nguyên vòng này vào channel non-blocking production: một channel có thể trả `0` liên tục, gây CPU spin. Dùng `Selector`/readiness, hàng đợi/đợi có giới hạn và timeout đúng kiến trúc.
+**Important warning:** the two `if (n == 0) continue` branches here are safe only because the fixture deliberately returns `0` **once**. Never copy this loop directly onto a production non-blocking channel: a channel may return `0` repeatedly, causing CPU spin. Use `Selector`/readiness, bounded queues/waits, and proper timeouts architecturally.
 
-### Một lỗi test dễ bỏ qua
+### An Easily Missed Test Bug
 
-Nếu fixture luôn trả “đủ các bytes được hỏi” thì code sai sau vẫn vượt qua:
+If the fixture always returns "all requested bytes," the following buggy code still passes:
 
 ```java
-// Anti-pattern: lỗi vì không xử lý short write.
+// Anti-pattern: buggy because short writes are unhandled.
 ByteBuffer src = ByteBuffer.wrap(payload);
-channel.write(src);               // Có thể chỉ ghi một phần.
-System.out.println("finished");   // Báo thành công quá sớm.
+channel.write(src);               // May write only part of the buffer.
+System.out.println("finished");   // Reports success prematurely.
 ```
 
-Đây là đoạn minh họa có `payload`, `channel` giả định. Test dùng `ShortWriter` sẽ làm rõ ngay lỗi này: `src.hasRemaining()` vẫn true sau lời gọi đầu có tiến triển, hoặc thậm chí lần đầu trả `0` mà chưa có byte nào được ghi.
+This is an illustrative snippet with assumed `payload` and `channel`. A test using `ShortWriter` exposes this bug immediately: `src.hasRemaining()` remains true after the first progressing call, or the first call even returns `0` with zero bytes written.
 
-## 4. Mô phỏng lỗi giữa chừng: đã chuyển một phần rồi IOException
+## 4. Simulating Mid-Stream Failures: Partial Transfer Followed by `IOException`
 
-Mục tiêu tiếp theo là kiểm tra không chỉ short I/O, mà cả **lỗi đến sau một số lời gọi thành công**:
+The next goal is testing not just short I/O, but **errors arriving after several successful calls**:
 
-- Reader cung cấp đúng 2 bytes `HE`, rồi ném `IOException` khi ứng dụng còn cần 3 bytes.
-- Writer nhận đúng 2 bytes `HE`, rồi ném `IOException` ở lần ghi kế tiếp; 3 bytes `LLO` vẫn còn trong buffer của ví dụ.
-- Ứng dụng phải ghi nhận dữ liệu **chưa hoàn chỉnh**, không trả thành công.
-- Không thể suy từ lỗi rằng bên nhận hoặc storage **chưa từng nhận byte nào**.
+- The reader supplies exactly 2 bytes `HE`, then throws `IOException` while the application still needs 3 bytes.
+- The writer accepts exactly 2 bytes `HE`, then throws `IOException` on the next write; 3 bytes `LLO` remain in the example's buffer.
+- The application must record the data as **incomplete**, never returning success.
+- You cannot infer from the error that the receiver or storage **never received any bytes**.
 
-### Ví dụ Java 17: MidStreamFailureDemo
+### Java 17 Example: `MidStreamFailureDemo`
 
-Tạo file `MidStreamFailureDemo.java`:
+Create `MidStreamFailureDemo.java`:
 
 ```java
 import java.io.*;
@@ -275,14 +275,14 @@ public class MidStreamFailureDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile and run:
 
 ```bash
 javac --release 17 MidStreamFailureDemo.java
 java MidStreamFailureDemo
 ```
 
-Kết quả đã kiểm thử:
+Verified output:
 
 ```text
 read-error=injected read failure
@@ -292,20 +292,20 @@ written-prefix=HE
 remaining=3
 ```
 
-Kết quả được kiểm soát hoàn toàn bởi fixture: lần đọc đầu tăng `received.position()` lên `2`; lần ghi đầu tăng `pending.position()` lên `2`. Sau đó lỗi xảy ra ở **lời gọi kế tiếp** trước khi fixture thay đổi buffer thêm lần nữa, nên bản ghi đã nhận đúng prefix `HE` và còn `3` byte chưa ghi.
+The output is completely controlled by the fixture: the first read advances `received.position()` to `2`; the first write advances `pending.position()` to `2`. The error then occurs on the **next call** before the fixture modifies the buffer again, so the sink received the prefix `HE` with `3` bytes left unwritten.
 
-**Không suy diễn ra mọi channel thật:** nếu một lời gọi I/O **tự nó** ném `IOException` giữa khi truy cập OS/thiết bị, mức tiến triển đã được lưu bền hoặc peer đã xử lý có thể **không xác định** ở tầng ứng dụng. Vị trí `ByteBuffer` của fixture là đo được vì ta tự viết nó; API không có một “số byte chắc chắn đã commit đến peer/database” sau mọi exception. Tránh báo retry an toàn chỉ dựa trên `position()` sau lỗi.
+**Do not extrapolate this to every real channel:** if an I/O call **itself** throws `IOException` midway through accessing the OS or device, how much progress was durably stored or processed by the peer can be **indeterminate** at the application layer. The fixture's `ByteBuffer` position is measurable only because we wrote the fixture; the API provides no "guaranteed committed bytes to peer/database" after arbitrary exceptions. Avoid declaring a retry safe based solely on `position()` after an error.
 
-## 5. EOF giữa frame khác IOException giữa frame
+## 5. Mid-Frame EOF vs. Mid-Frame `IOException`
 
-Khi một protocol quy định frame dài **N bytes**, reader phải phân biệt:
+When a protocol specifies a frame of **N bytes**, the reader must distinguish:
 
-- Đọc được đúng N bytes: hoàn thành frame.
-- Nhận `-1` khi mới có ít hơn N bytes: **truncated frame**, dù EOF tự nó là kết thúc stream bình thường.
-- Nhận `IOException`: lỗi đọc, không được tự diễn dịch là EOF.
-- Nhận `0`: chưa tiến triển; không thể tự kết luận frame hỏng hoặc hoàn thành.
+- Reading exact `N` bytes: complete frame.
+- Receiving `-1` when fewer than `N` bytes arrived: **truncated frame**, even though EOF itself is normal stream termination.
+- Receiving `IOException`: read error, never to be interpreted as EOF.
+- Receiving `0`: no progress yet; cannot conclude whether the frame is broken or complete.
 
-Một hàm đọc đủ trong **blocking context** (mã minh họa, không phải chương trình độc lập):
+A read-fully helper in a **blocking context** (illustrative code, not a standalone program):
 
 ```java
 static void readFully(ReadableByteChannel input, ByteBuffer dst)
@@ -323,22 +323,22 @@ static void readFully(ReadableByteChannel input, ByteBuffer dst)
 }
 ```
 
-Hàm cố tình **fail fast trên `0`** khi dùng trong test được kiểm soát, để tránh vòng lặp vô hạn. Với non-blocking `SocketChannel`, `0` là trạng thái hợp lệ; handler production nên giữ `dst` và đăng ký `OP_READ`, không coi nó là lỗi ngay. Với blocking channel thông thường, nếu buffer còn chỗ, read thường chờ có tiến triển hoặc EOF; vẫn cần xử lý trạng thái và timeout theo loại channel.
+This helper intentionally **fails fast on `0`** when used in controlled tests to avoid infinite loops. With a non-blocking `SocketChannel`, `0` is valid; a production handler should retain `dst` and register `OP_READ` rather than treating it as an immediate error. With ordinary blocking channels, when the buffer has space, `read` typically waits for progress or EOF; still handle channel state and timeouts as appropriate.
 
-Khi một frame có **length-prefix**, phải giới hạn length trước khi cấp phát buffer để tránh lỗi bảo mật/tài nguyên:
+When a frame has a **length prefix**, bound the length before allocating a buffer to prevent security and resource exhaustion bugs:
 
 ```text
 [4-byte length][payload length bytes][optional checksum]
 ```
 
-Test lần lượt “header thiếu 1 byte”, “payload thiếu 1 byte”, “length âm/quá lớn”, “truyền nhiều frame chung một read”, “một frame trải qua nhiều read”, “đọc 0 nhiều lần”. Đây là kiểm thử parser/protocol, bổ sung cho test API Channel.
+Test in turn "header short by 1 byte," "payload short by 1 byte," "negative/oversized length," "multiple frames in one read," "one frame spanning multiple reads," and "multiple zero reads." These are parser/protocol tests complementing Channel API tests.
 
-## 6. Ghi đủ không đồng nghĩa transaction nguyên tử
+## 6. Writing Everything Does Not Equal an Atomic Transaction
 
-Vòng lặp ghi dữ liệu có tiến triển thường được diễn đạt:
+A progressing write loop is commonly written as:
 
 ```java
-// Snippet minh họa dành cho channel có progress theo chính sách.
+// Illustrative snippet for a channel guaranteed by policy to make progress.
 static void writeAll(WritableByteChannel output, ByteBuffer src)
         throws IOException {
     while (src.hasRemaining()) {
@@ -350,83 +350,83 @@ static void writeAll(WritableByteChannel output, ByteBuffer src)
 }
 ```
 
-Cách này hữu ích cho **fixture hoặc blocking path** được kỳ vọng có tiến triển. Với non-blocking socket, phải chờ `OP_WRITE` thay vì ném lỗi ngay; không bật `OP_WRITE` liên tục nếu không có bytes pending, vì socket thường writable khiến vòng xử lý thức liên tục.
+This works for **fixtures or blocking paths** expected to make progress. For non-blocking sockets, wait for `OP_WRITE` instead of throwing immediately; do not keep `OP_WRITE` enabled when no bytes are pending, because sockets are usually writable and will keep the event loop spinning constantly.
 
-Ngay cả khi `writeAll` hoàn tất:
+Even when `writeAll` finishes:
 
-- Với socket, điều đó **không chứng minh remote application đã parse/commit dữ liệu**; cần acknowledgement ở protocol.
-- Với file, điều đó **không chứng minh bytes đã bền vững sau mất điện**; xem `FileChannel.force` và filesystem contract.
-- Với record lớn, thao tác có thể gồm nhiều ghi nhỏ; nếu crash ở giữa, file có thể chứa prefix dở. Cần checksum/version/journal/atomic replace hoặc storage engine.
-- Với network request không idempotent, lỗi kết nối sau partial write có thể tạo **trạng thái chưa rõ bên nhận xử lý tới đâu**. Retry mù có thể gây gửi trùng hoặc double charge.
+- Over a socket, it **does not prove the remote application parsed or committed the data**; protocol-level acknowledgments are required.
+- On a file, it **does not prove bytes survive power loss**; check `FileChannel.force` and the filesystem contract.
+- For large records, an operation may involve multiple small writes; if a crash occurs mid-way, the file can contain a partial prefix. You need checksums, versioning, journaling, atomic replacement, or a storage engine.
+- For non-idempotent network requests, a connection error after a partial write can leave **uncertainty about how far the receiver processed the request**. Blindly retrying can cause duplicates or double charges.
 
-## 7. Chiến lược retry an toàn sau lỗi
+## 7. Safe Retry Strategies After Failure
 
-Một điểm dễ nhầm là tách ba cấp độ:
+A common confusion is conflating three levels:
 
-| Cấp độ | Có thể biết gì sau một lời gọi thành công? | Không thể kết luận gì? |
+| Level | What Is Known After a Successful Call? | What Cannot Be Concluded? |
 | --- | --- | --- |
-| `ByteBuffer` | `position` tăng theo byte được channel báo đã chuyển. | Peer đã xử lý, disk đã commit. |
-| Kết nối TCP | `write` chấp nhận một phần byte stream ở local stack. | Remote app đã nhận toàn bộ logical message. |
-| Ứng dụng nghiệp vụ | Chỉ có response/ACK theo protocol của ứng dụng. | Nếu mất ACK, không chắc server chưa làm việc. |
+| `ByteBuffer` | `position` advanced by the bytes the channel reported transferring. | Whether the peer processed them or disk committed them. |
+| TCP connection | `write` handed part of the byte stream to the local stack. | Whether the remote app received the full logical message. |
+| Business application | Only an application-protocol response/ACK. | If the ACK is lost, whether the server did or didn't act. |
 
-Khi IOException xảy ra:
+When an `IOException` occurs:
 
-1. Ghi log **tác vụ, offset/frame ID, kích thước mong đợi, số bytes đã báo tiến triển từ các lời gọi thành công trước đó**, loại exception và trạng thái kênh.
-2. Đánh dấu request/file ở trạng thái **incomplete hoặc uncertain**, đừng báo thành công.
-3. Kiểm tra loại dữ liệu: file tạm mới có thể xóa rồi dựng lại; log append cần record framing/checksum; network request cần idempotency key hoặc hỏi transaction status.
-4. Quy định retry budget, backoff và deadline; tránh retry vô hạn khi thiết bị/mạng đang hỏng.
-5. Khi không chứng minh được offset đã commit, **không** tùy tiện chỉ gửi phần còn lại hoặc gửi từ đầu nếu giao thức không hỗ trợ resume/dedup.
+1. Log **the operation, offset/frame ID, expected size, bytes reported as transferred by prior successful calls**, exception type, and channel state.
+2. Mark the request or file as **incomplete or uncertain**; never report success.
+3. Check the data kind: a new temporary file can be deleted and rebuilt; an append log needs record framing/checksums; a network request needs an idempotency key or transaction-status query.
+4. Define retry budgets, backoff, and deadlines; avoid infinite retries when the device or network is broken.
+5. When the committed offset cannot be proven, **never** arbitrarily send only the remaining bytes or resend from the start unless the protocol supports resume or deduplication.
 
-Ví dụ một file import có thể ghi vào `incoming.tmp` rồi publish bằng `ATOMIC_MOVE` sau khi kiểm tra checksum; consumer không bao giờ đọc file tạm. Với log cần lưu mọi record, dùng length/checksum/commit marker và quét bỏ record cuối dở khi recovery. Đây là vấn đề durability/transaction, **không được giải quyết chỉ bằng vòng lặp write**.
+For example, a file import can write to `incoming.tmp` and publish via `ATOMIC_MOVE` after verifying a checksum; consumers never read the temp file. For a log needing every record, use lengths, checksums, and commit markers, trimming an incomplete trailing record during recovery. This is a durability/transaction concern, **not solved by a write loop alone**.
 
-## 8. Test matrix tối thiểu cần chạy
+## 8. Minimum Test Matrix to Run
 
-| Test case | Lịch mô phỏng | Kết quả phải kiểm tra |
+| Test Case | Simulated Schedule | Result to Verify |
 | --- | --- | --- |
-| Read đủ ngay | `read -> N` | Byte contents và count đúng. |
-| Partial read | `read -> 2, 2, 1` | Tích lũy đủ N, không bỏ/mất thứ tự. |
-| Read tạm 0 | `read -> 0, N` | Không coi `0` là EOF; không CPU-spin trong production. |
-| EOF trước đủ N | `read -> 2, -1` | Báo truncated frame, không parse dữ liệu dở. |
-| Read lỗi sau prefix | `read -> 2, IOException` | Báo lỗi, giữ context số bytes, không ACK. |
-| Write đủ ngay | `write -> N` | `hasRemaining == false`, bytes đúng. |
-| Partial write | `write -> 1, 2, ...` | Lặp cho tới khi hết buffer, không gọi `clear` sớm. |
-| Write tạm 0 | `write -> 0, N` | Giữ pending bytes, chờ readiness/deadline. |
-| Write lỗi giữa chừng | `write -> 2, IOException` | Prefix có thể đã được chuyển; xử lý uncertain state. |
-| Lỗi ở lời gọi đầu | `read/write -> IOException` | Không suy diễn là EOF, không retry vô hạn. |
-| Buffer rất nhỏ | Capacity 1, 2, 3 | Không phá trạng thái flip/clear, giữ đúng thứ tự. |
-| Payload rỗng / boundary | 0, 1, N-1, N, N+1 | Không truy cập buffer quá limit. |
-| Nhiều message | Frame bị tách hoặc gộp | Parser giữ state, không dựa vào một read = một message. |
-| Client hủy / timeout | Thời hạn hết giữa I/O | Cleanup, close, không double-complete. |
-| Retry sau lỗi | Thử lại cùng ID | Idempotency/khả năng khôi phục, không tạo side effect trùng. |
+| Full immediate read | `read -> N` | Exact byte contents and count. |
+| Partial read | `read -> 2, 2, 1` | Accumulates all `N` bytes without dropping or reordering. |
+| Temporary zero read | `read -> 0, N` | Does not treat `0` as EOF; no CPU spin in production. |
+| EOF before `N` bytes | `read -> 2, -1` | Reports truncated frame; does not parse incomplete data. |
+| Read error after prefix | `read -> 2, IOException` | Reports error, preserves byte context, does not ACK. |
+| Full immediate write | `write -> N` | `hasRemaining == false`, exact bytes. |
+| Partial write | `write -> 1, 2, ...` | Loops until buffer is drained; does not call `clear` early. |
+| Temporary zero write | `write -> 0, N` | Retains pending bytes, waits for readiness/deadline. |
+| Mid-stream write error | `write -> 2, IOException` | Prefix may have been sent; handles uncertain state. |
+| Error on first call | `read/write -> IOException` | Does not interpret as EOF; does not retry infinitely. |
+| Tiny buffers | Capacity 1, 2, 3 | Preserves `flip`/`clear` state and byte order. |
+| Empty / boundary payloads | 0, 1, N-1, N, N+1 | Never accesses buffer past `limit`. |
+| Multiple messages | Split or coalesced frames | Parser keeps state; does not assume one read = one message. |
+| Client cancel / timeout | Deadline expires mid-I/O | Cleans up, closes, no double-completion. |
+| Retry after error | Retry same ID | Idempotency/recoverability without duplicate side effects. |
 
-Nên dùng một test double **đặt sẵn lịch trả về** (`0, 2, 1, -1, exception`), chứ không phụ thuộc `Thread.sleep` hoặc traffic thật để đạt nhánh logic. Integration test sau đó nên chạy trên local file, loopback TCP, volume/OS mục tiêu, với network delay và restart simulation phù hợp.
+Use a test double with a **pre-scripted return schedule** (`0, 2, 1, -1, exception`), rather than relying on `Thread.sleep` or live network traffic to hit logic branches. Integration tests should then run against local files, loopback TCP, and target volumes/OSes with realistic network delays and restart simulations.
 
-### Cách viết assertions
+### Writing Assertions
 
-Không chỉ kiểm tra “không ném exception”. Một bộ test tốt xác nhận:
+Do not merely assert "no exception thrown." A solid test suite verifies:
 
-- **Nội dung chính xác**: so sánh byte arrays (`Arrays.equals`), không chỉ số bytes.
-- **Không mất/không nhân đôi bytes**: tổng số bytes ghi đúng bằng payload length khi hoàn tất.
-- **Vòng lặp không treo**: số lần gọi hoặc deadline giới hạn; test phải thất bại rõ nếu channel cứ trả `0`.
-- **Buffer state**: `position, limit, remaining` ở từng bước đúng ý nghĩa.
-- **Nhánh lỗi**: ghi nhận exception, không thực hiện commit/ACK sau lỗi.
-- **Tài nguyên**: cả hai channel được đóng trong `try-with-resources` khi thành công và khi ném lỗi.
-- **Tái thực thi**: với retry, business state không bị nhân đôi và có thể phân biệt uncommitted/committed.
+- **Exact content**: compare byte arrays (`Arrays.equals`), not just byte counts.
+- **No lost or duplicated bytes**: total bytes written equals payload length upon completion.
+- **No hanging loops**: bounded call counts or deadlines; tests must fail explicitly if a channel keeps returning `0`.
+- **Buffer state**: `position`, `limit`, and `remaining` match expectations at each step.
+- **Error paths**: capture exceptions; never commit or ACK after failure.
+- **Resources**: both channels are closed via `try-with-resources` on both success and failure.
+- **Re-execution**: on retry, business state is not duplicated and uncommitted vs. committed states are distinguishable.
 
-## 9. Quan sát và chẩn đoán khi chạy thực tế
+## 9. Observing and Diagnosing in Production
 
-Khi sự cố chỉ xảy ra dưới tải, log nên giúp tách **short I/O bình thường** khỏi **lỗi I/O**:
+When issues occur only under load, logs should separate **normal short I/O** from **I/O failures**:
 
-- Operation ID, channel type, local/remote endpoint hoặc path đã được bảo vệ thông tin nhạy cảm.
-- Offset và total expected bytes của file/record/frame.
-- Bytes returned bởi từng call; số lần trả `0` và số lần short read/write.
-- `ByteBuffer.position/limit/remaining` **trước và sau lời gọi thành công**, chú ý rằng buffer có thể không an toàn để suy luận trạng thái commit sau exception tùy API.
-- Thời gian chờ readiness, deadline, số lượng pending bytes, queue length và retry count.
-- Exception class, cause và socket/file lifecycle; không nuốt stack trace khi cần chẩn đoán.
+- Operation ID, channel type, and local/remote endpoints or redacted paths.
+- Offset and total expected bytes of the file, record, or frame.
+- Bytes returned per call; counts of `0` returns and short reads/writes.
+- `ByteBuffer.position`/`limit`/`remaining` **before and after successful calls**, noting that buffer state may not safely indicate commit status after an exception depending on the API.
+- Readiness wait times, deadlines, pending byte counts, queue depth, and retry counts.
+- Exception class, cause, and socket/file lifecycle; never swallow stack traces needed for diagnosis.
 
-Tránh log toàn bộ payload chứa token, PII hoặc binary khổng lồ. Dùng sample hoặc metadata đủ để tái dựng vấn đề; khi cần xác minh toàn vẹn có thể dùng checksum ở mức record.
+Avoid logging full payloads containing tokens, PII, or huge binaries. Log samples or metadata sufficient to reproduce the issue; use record-level checksums when integrity verification is needed.
 
-Một ví dụ ngắn về log định hướng:
+A brief example of structured diagnostic logging:
 
 ```text
 op=send-order-142 expected=1024 written=512 remaining=512 result=SHORT_WRITE
@@ -434,65 +434,65 @@ op=send-order-142 expected=1024 written=768 remaining=256 result=SHORT_WRITE
 op=send-order-142 result=IO_ERROR error=IOException commit=UNKNOWN
 ```
 
-Đây là **log giả định để minh họa**, không phải stdout của chương trình trên. Trường `commit=UNKNOWN` nhắc rằng không thể suy từ byte count local rằng nghiệp vụ bên kia chưa làm gì.
+This is **illustrative synthetic logging**, not stdout from the program above. The `commit=UNKNOWN` field reminds operators that local byte counts cannot prove the peer's business logic took no action.
 
-## 10. Lỗi thường gặp và sửa chữa
+## 10. Common Mistakes and Fixes
 
-| Sai lầm | Vì sao sai | Hướng đúng |
+| Mistake | Why It Is Wrong | Correct Approach |
 | --- | --- | --- |
-| Một `read` bằng cả message | TCP và channel có thể đọc ngắn | Parser tích lũy, length framing. |
-| Một `write` gửi hết buffer | Channel có thể ghi ngắn hoặc 0 | Kiểm tra `hasRemaining` và ghi tiếp theo readiness. |
-| Coi `read == 0` là EOF | EOF là `-1` | Xử lý 0 như chưa tiến triển. |
-| Busy-loop `while(write==0)` | CPU 100% khi output buffer chưa sẵn sàng | `Selector`/backpressure/deadline. |
-| Gọi `clear` khi còn bytes chưa write | Mất phần bytes chưa gửi | Chỉ clear sau khi tiêu thụ hết; dùng compact nếu cần. |
-| Coi `IOException` như EOF | Lỗi và kết thúc bình thường khác semantics | Phân biệt exception, EOF, timeout. |
-| Sau lỗi retry payload từ đầu | Có thể gây trùng side effect | Idempotency/resume/protocol ACK. |
-| Sau lỗi giả định đã ghi đúng `position()` bytes bên remote | Local buffer không đo commit của peer | Theo dõi trạng thái ở protocol. |
-| Test dựa vào sleep/network bất định | Flaky, khó tái hiện | Scripted fake channels/fault injection. |
-| Chỉ test happy path | Không bắt được partial/truncation | Ma trận `0`/short/EOF/error/boundaries. |
-| Giữ object buffer cho nhiều operation concurrent | Data race và trạng thái buffer sai | Một owner cho buffer tới completion. |
-| Gọi `force` rồi coi file transaction nguyên tử | Durability khác atomicity | WAL/checksum/atomic publication/recovery. |
+| One `read` equals a full message | TCP and channels can return short reads | Stateful accumulating parser, length framing. |
+| One `write` sends the whole buffer | Channels can write partially or return `0` | Check `hasRemaining` and write when ready. |
+| Treating `read == 0` as EOF | EOF is `-1` | Handle `0` as no progress yet. |
+| Busy-loop `while(write==0)` | Burns 100% CPU when output buffer is full | `Selector`/backpressure/deadlines. |
+| Calling `clear` while unwritten bytes remain | Drops unsent bytes | `clear` only after fully consumed; use `compact` if needed. |
+| Treating `IOException` as EOF | Errors and normal termination have different semantics | Distinguish exceptions, EOF, and timeouts. |
+| Retrying payload from byte 0 after error | Can cause duplicate side effects | Idempotency, resume, or protocol ACKs. |
+| Assuming `position()` bytes were committed remotely after error | Local buffer does not measure peer commits | Track state at the protocol level. |
+| Tests relying on sleep or flaky networks | Non-deterministic, hard to reproduce | Scripted fake channels and fault injection. |
+| Testing only the happy path | Misses partial reads/writes and truncation | Matrix of `0`/short/EOF/error/boundaries. |
+| Sharing a buffer object across concurrent operations | Data races and corrupted buffer state | Single owner per buffer until completion. |
+| Calling `force` and assuming atomic file transactions | Durability differs from atomicity | WAL, checksums, atomic publication, recovery. |
 
-## 11. Checklist thực hành
+## 11. Practice Checklist
 
-1. Đã biết loại channel đang **blocking hay non-blocking** chưa?
-2. Đã ghi đủ điều kiện dừng: `N bytes`, `EOF`, deadline hay protocol marker?
-3. Đã phân biệt `0` với `-1` và `IOException`?
-4. Có lưu phần `ByteBuffer.remaining()` sau short write không?
-5. Sau `read` có `flip` đúng lúc và sau write có `clear/compact` đúng lúc không?
-6. Có limit số bytes/frames để chống input bất hợp lệ và OOM không?
-7. Vòng thử lại có bounded deadline/readiness, không busy-loop không?
-8. Fixture có tạo được lịch partial + `0` + EOF + IOException deterministically không?
-9. Test có assert **nội dung byte** và số lần tiến triển thay vì chỉ output console không?
-10. Sau lỗi, ứng dụng có trạng thái uncertain/recovery/idempotency thay vì ACK sai không?
-11. Đã log offset/bytes/exception an toàn, có đóng tài nguyên đúng vòng đời không?
-12. Nếu dùng file thật hoặc network, đã có integration test trên provider/OS mục tiêu chưa?
+1. Do you know whether the channel is **blocking or non-blocking**?
+2. Have you specified all stop conditions: `N bytes`, `EOF`, deadline, or protocol marker?
+3. Have you distinguished `0` from `-1` and `IOException`?
+4. Do you preserve `ByteBuffer.remaining()` after a short write?
+5. Do you `flip` at the right time after `read` and `clear`/`compact` at the right time after write?
+6. Do you cap byte and frame sizes to prevent invalid inputs and OOM?
+7. Do retry loops use bounded deadlines/readiness instead of busy-looping?
+8. Can your test fixtures deterministically schedule partial I/O + `0` + EOF + `IOException`?
+9. Do tests assert **byte contents** and progress counts rather than just console output?
+10. After an error, does the application enter an uncertain/recovery/idempotency path instead of sending a false ACK?
+11. Are offsets, bytes, and exceptions logged safely, and are resources closed properly across their lifecycle?
+12. When using real files or networks, do you have integration tests on target providers and OSes?
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-**1. `read(dst)` trả `2` khi buffer còn chỗ cho 8 bytes có phải lỗi không?** Không; short read là hành vi hợp lệ.
+**1. `read(dst)` returns `2` when the buffer has space for 8 bytes—is that an error?** No; short reads are valid behavior.
 
-**2. `read(dst)` trả `0` có nghĩa EOF?** Không. EOF của readable channel được báo bằng `-1`.
+**2. Does `read(dst)` returning `0` mean EOF?** No. EOF on a readable channel is signaled by `-1`.
 
-**3. `write(src)` trả `0` thì có được `src.clear()` không?** Không, vì bytes vẫn pending trong buffer.
+**3. If `write(src)` returns `0`, may you call `src.clear()`?** No, because bytes are still pending in the buffer.
 
-**4. Đang đọc frame 5 bytes, mới được 2 bytes rồi `-1`: kết quả gì?** Truncated frame, thường báo `EOFException`.
+**4. Reading a 5-byte frame, 2 bytes arrive followed by `-1`: what is the outcome?** Truncated frame, usually throwing `EOFException`.
 
-**5. Sau `IOException` từ network write, có chắc server chưa xử lý request?** Không; cần acknowledgement/idempotency ở tầng ứng dụng.
+**5. After an `IOException` from a network write, can you be sure the server never processed the request?** No; you need application-level acknowledgments or idempotency.
 
-**6. Vì sao test fake channel hữu ích hơn chỉ giới hạn băng thông mạng thật?** Vì fake channel kiểm soát thứ tự trả `0`, partial counts, EOF và exception, dễ lặp lại nhánh lỗi.
+**6. Why are fake channels more useful in unit tests than throttling real network bandwidth?** Because fake channels deterministically control `0` returns, partial counts, EOF, and exceptions, making error branches easy to reproduce.
 
-**7. Có nên dùng vòng `while (channel.write(buf) == 0)` liên tục trên non-blocking socket?** Không; nên chờ readiness và giới hạn thời gian để tránh CPU spin.
+**7. Should you spin in `while (channel.write(buf) == 0)` on a non-blocking socket?** No; wait for readiness with timeouts to avoid CPU spin.
 
-**8. Khi một lệnh `write` ném IOException, `ByteBuffer.position` có phải số byte chắc chắn đã tới disk/peer?** Không. Buffer state không phải application commit evidence.
+**8. When a `write` throws `IOException`, is `ByteBuffer.position` guaranteed to equal the bytes committed to disk or peer?** No. Buffer state is not proof of application commit.
 
-## Tài liệu chính thức
+## Official Documentation
 
-- [Java SE 21 — ReadableByteChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/ReadableByteChannel.html): `read` có thể trả ít bytes hơn yêu cầu, 0 hoặc -1.
-- [Java SE 21 — WritableByteChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/WritableByteChannel.html): `write` có thể ghi ngắn hoặc 0.
-- [Java SE 21 — ByteBuffer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/ByteBuffer.html): `flip`, `clear`, `compact`, position/limit.
-- [Java SE 21 — SocketChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/SocketChannel.html): non-blocking network read/write.
-- [Java SE 21 — FileChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html): positional file I/O, IOException, `force`.
+- [Java SE 21 — ReadableByteChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/ReadableByteChannel.html): `read` may return fewer bytes than requested, `0`, or `-1`.
+- [Java SE 21 — WritableByteChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/WritableByteChannel.html): `write` may transfer fewer bytes or `0`.
+- [Java SE 21 — ByteBuffer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/ByteBuffer.html): `flip`, `clear`, `compact`, `position`/`limit`.
+- [Java SE 21 — SocketChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/SocketChannel.html): non-blocking network reads and writes.
+- [Java SE 21 — FileChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html): positional file I/O, `IOException`, `force`.
 - [Java SE 21 — Selector](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/Selector.html): readiness-based non-blocking I/O.
 
-**Tổng kết:** Đừng kiểm thử I/O bằng giả định mọi lần đọc/ghi đều đủ. Hãy chủ động mô phỏng **short read**, **short write**, `0`, EOF và lỗi giữa chừng; quan sát `ByteBuffer` đúng ranh giới và thiết kế recovery/idempotency khi đã chuyển một phần dữ liệu.
+**Summary:** Never test I/O assuming every read or write transfers everything at once. Proactively simulate **short reads**, **short writes**, `0`, EOF, and mid-stream failures; track `ByteBuffer` boundaries carefully, and design recovery/idempotency when partial data has already been transferred.

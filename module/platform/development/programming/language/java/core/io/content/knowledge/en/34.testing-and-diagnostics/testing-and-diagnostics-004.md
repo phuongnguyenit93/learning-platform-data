@@ -1,44 +1,44 @@
-# Dữ liệu Unicode, BOM và ký tự bị chia giữa các khối khi đọc/ghi Java I/O
+# Unicode Data, BOMs, and Characters Split Across Chunks in Java I/O
 
-## 1. Vấn đề cần giải quyết
+## 1. The Problem to Solve
 
-Khi một ứng dụng Java đọc hoặc ghi văn bản, nó không thực sự chuyển trực tiếp “ký tự” qua ổ đĩa hay socket. Nó chuyển **byte**. Các byte ấy phải được mã hóa hoặc giải mã theo một **charset** nhất định, chẳng hạn UTF-8 hoặc UTF-16.
+When a Java application reads or writes text, it does not literally transfer "characters" over disk or a socket. It transfers **bytes**. Those bytes must be encoded or decoded according to a specific **charset**, such as UTF-8 or UTF-16.
 
-Một chương trình có thể xử lý đúng văn bản ASCII nhưng lại làm hỏng tiếng Việt, emoji hoặc tên người khi:
+A program may handle ASCII text fine yet corrupt Vietnamese characters, emojis, or personal names when it:
 
-- Chia tệp/network stream thành các **khối byte** rồi gọi `new String(chunk, UTF_8)` cho **từng khối riêng lẻ**.
-- Đọc các byte của một ký tự UTF-8 nhiều byte bằng những lượt đọc khác nhau.
-- Nhầm **byte**, **UTF-16 code unit**, **Unicode code point** và **ký tự người dùng nhìn thấy**.
-- Không nhận diện đúng **BOM** (Byte Order Mark) ở đầu file.
-- Giải mã UTF-16 với byte order không phù hợp.
-- Thay thế byte lỗi bằng ký tự `�` mà không phát hiện nguồn dữ liệu đã hỏng.
-- Nhầm số byte trong network framing với `String.length()`.
-- Cắt buffer ở vị trí bất kỳ rồi coi đó là ranh giới ký tự.
+- Splits a file or network stream into **byte chunks** and calls `new String(chunk, UTF_8)` on **each individual chunk**.
+- Reads the bytes of a multi-byte UTF-8 character across separate read calls.
+- Confuses **bytes**, **UTF-16 code units**, **Unicode code points**, and **user-perceived characters**.
+- Fails to recognize a **BOM** (Byte Order Mark) at the start of a file.
+- Decodes UTF-16 with the wrong byte order.
+- Replaces invalid bytes with `�` without detecting that the source data is corrupted.
+- Confuses the byte count in network framing with `String.length()`.
+- Slices a buffer at an arbitrary position and treats it as a character boundary.
 
-Bài này đặt trong nhóm **Kiểm thử và chẩn đoán** của Java Core I/O: ngoài cách giải mã đúng, chúng ta sẽ xây dựng các trường hợp kiểm thử ranh giới, in byte hex, kiểm tra chính sách lỗi, BOM và Unicode normalization.
+This lesson sits in the **Testing and Diagnostics** module of Java Core I/O: besides decoding correctly, we will design boundary test cases, hex byte dumps, error-policy checks, BOM handling, and Unicode normalization checks.
 
-**Nguyên tắc trung tâm:** Ranh giới một lần `InputStream.read(...)`, `FileChannel.read(...)` hoặc một network packet **không phải** ranh giới Unicode character. Việc giải mã phải duy trì **trạng thái liên tục** giữa các lần nhận byte.
+**Central principle:** The boundary of a single `InputStream.read(...)`, `FileChannel.read(...)`, or network packet **is not** a Unicode character boundary. Decoding must preserve **continuous state** across incoming byte chunks.
 
-## 2. Unicode không đồng nghĩa với UTF-8
+## 2. Unicode Is Not Synonymous with UTF-8
 
-### Unicode code point
+### Unicode Code Points
 
-Unicode định nghĩa các **code point**, thường được viết dưới dạng `U+XXXX`. Ví dụ:
+Unicode defines **code points**, usually written as `U+XXXX`. For example:
 
-| Nội dung | Unicode code point | UTF-8 | UTF-16 |
+| Content | Unicode Code Point | UTF-8 | UTF-16 |
 |---|---|---|---|
 | `A` | `U+0041` | `41` | `0041` |
 | `é` | `U+00E9` | `C3 A9` | `00E9` |
 | `☕` | `U+2615` | `E2 98 95` | `2615` |
 | `😀` | `U+1F600` | `F0 9F 98 80` | `D83D DE00` (surrogate pair) |
 
-Các dãy UTF-16 trong bảng là **giá trị code unit**; byte thực tế của chúng còn phụ thuộc big-endian/little-endian.
+The UTF-16 sequences in the table are **code unit values**; their actual bytes also depend on big-endian/little-endian byte order.
 
-### UTF-8 là encoding biến độ dài
+### UTF-8 Is a Variable-Length Encoding
 
-Trong UTF-8, một Unicode code point hợp lệ có thể chiếm **1 đến 4 byte**. Các byte thuộc cùng một code point **có thể nằm ở hai khối đọc khác nhau**.
+In UTF-8, a valid Unicode code point occupies **1 to 4 bytes**. The bytes of a single code point **can land in two different read chunks**.
 
-Ví dụ với `☕`:
+Example with `☕`:
 
 ```text
 Unicode code point: U+2615
@@ -50,14 +50,14 @@ UTF-8 bytes: E2 98 95
 Chunk #1: E2 98
 Chunk #2: 95
 
-Cả hai chunk riêng lẻ đều KHÔNG đủ để giải mã U+2615.
+Neither individual chunk is enough to decode U+2615.
 ```
 
-Nếu người lập trình dùng `new String(chunk1, UTF_8)` và `new String(chunk2, UTF_8)` rồi nối hai chuỗi, mỗi lần giải mã có thể xem phần byte của chunk đó là một chuỗi độc lập bị lỗi, làm xuất hiện ký tự thay thế `U+FFFD`.
+If a developer calls `new String(chunk1, UTF_8)` and `new String(chunk2, UTF_8)` and concatenates the two strings, each decode treats that chunk's bytes as a standalone broken sequence, producing replacement characters `U+FFFD`.
 
-### UTF-16 là encoding theo code unit 16 bit
+### UTF-16 Is a 16-Bit Code Unit Encoding
 
-Trong Java, `String` dùng chuỗi **UTF-16 code units** để biểu diễn nội dung (API `char` tương ứng một code unit). Một code point ở vùng bổ sung, ví dụ `😀`, cần **hai code unit**:
+In Java, `String` uses a sequence of **UTF-16 code units** to represent content (the `char` type corresponds to one code unit). A supplementary-plane code point, such as `😀`, requires **two code units**:
 
 ```text
 U+1F600 -> high surrogate D83D + low surrogate DE00
@@ -66,70 +66,70 @@ Java "😀".length() == 2
 "😀".codePointCount(0, "😀".length()) == 1
 ```
 
-Trong file UTF-16, từng code unit gồm hai byte; muốn đọc đúng cần biết **endianness**, đồng thời phải xử lý surrogate pair. File còn có thể bị chia ngay **giữa hai byte của một code unit**, hoặc **giữa hai surrogate**.
+In a UTF-16 file, each code unit consists of two bytes; reading it properly requires knowing **endianness**, as well as handling surrogate pairs. A file can also be split right **between the two bytes of a code unit**, or **between the two surrogates**.
 
-## 3. Bốn đơn vị đếm hay bị nhầm
+## 3. Four Counting Units Frequently Confused
 
-Xét chuỗi:
+Consider the string:
 
 ```java
 String text = "A☕B😀C";
 ```
 
-Các đại lượng khác nhau:
+The different quantities:
 
-| Đại lượng | Giá trị | Giải thích |
+| Metric | Value | Explanation |
 |---|---:|---|
-| `text.getBytes(UTF_8).length` | 10 | 1 + 3 + 1 + 4 + 1 byte UTF-8 |
-| `text.length()` | 6 | Số UTF-16 code units; emoji chiếm 2 |
-| `text.codePointCount(0,text.length())` | 5 | Số Unicode code points |
-| Số grapheme clusters người dùng thấy | 5 với ví dụ này | Không phải lúc nào bằng code points |
+| `text.getBytes(UTF_8).length` | 10 | 1 + 3 + 1 + 4 + 1 UTF-8 bytes |
+| `text.length()` | 6 | Number of UTF-16 code units; the emoji takes 2 |
+| `text.codePointCount(0,text.length())` | 5 | Number of Unicode code points |
+| User-perceived grapheme clusters | 5 for this example | Not always equal to code points |
 
-**Không dùng `String.length()` làm kích thước byte cần gửi**, không cắt byte stream theo số ký tự, không coi một Java `char` luôn là một ký tự Unicode đầy đủ.
+**Never use `String.length()` as the byte size to send**, never slice a byte stream by character count, and never treat a Java `char` as always being a complete Unicode character.
 
-Ví dụ ghép ký tự có dấu:
+Example of combining accented characters:
 
 ```text
-"é"        U+00E9            (một code point)
-"e\u0301"  U+0065 U+0301     (hai code points)
+"é"        U+00E9            (one code point)
+"e\u0301"  U+0065 U+0301     (two code points)
 
-Hai chuỗi có thể nhìn gần giống nhau nhưng có biểu diễn khác.
+Two strings can look almost identical yet have different representations.
 ```
 
-Hai cách biểu diễn này có thể có số byte UTF-8 khác nhau, `String.equals` không nhất thiết true, và normalization có thể được cân nhắc theo quy định nghiệp vụ.
+These two representations can have different UTF-8 byte counts, `String.equals` is not necessarily true, and normalization may be considered depending on business rules.
 
-Đối với emoji phức tạp có zero-width joiner, variation selector hoặc dấu tổ hợp, “một ký tự nhìn thấy” còn có thể gồm **nhiều** code points. Không giả định `codePointCount` luôn bằng số grapheme clusters.
+For complex emojis with zero-width joiners, variation selectors, or combining marks, "one visible character" can consist of **multiple** code points. Never assume `codePointCount` always equals the number of grapheme clusters.
 
-## 4. Một lần read() không đảm bảo đủ một ký tự
+## 4. A Single `read()` Does Not Guarantee a Complete Character
 
-API I/O thường trả về số byte thực nhận được:
+I/O APIs normally return the actual number of bytes received:
 
 ```java
 int n = inputStream.read(buffer);
 ```
 
-Một lần read có thể trả **ít byte hơn độ dài buffer**, thậm chí khi nguồn còn nhiều dữ liệu, tùy kiểu stream và thời điểm. Với network socket, một send của peer không tương ứng một read của ứng dụng nhận.
+A single read can return **fewer bytes than the buffer length**, even when the source still has plenty of data, depending on stream type and timing. Over a network socket, one `send` by the peer does not correspond to one `read` in the receiving application.
 
-Ví dụ tệp chứa byte UTF-8:
+Example file containing UTF-8 bytes:
 
 ```text
 41 E2 98 95 42 F0 9F 98 80 43
  A    ☕      B       😀        C
 ```
 
-Người đọc lấy từng khối 2 byte:
+The reader fetches 2-byte chunks:
 
 ```text
-Khối 1: 41 E2
-Khối 2: 98 95
-Khối 3: 42 F0
-Khối 4: 9F 98
-Khối 5: 80 43
+Chunk 1: 41 E2
+Chunk 2: 98 95
+Chunk 3: 42 F0
+Chunk 4: 9F 98
+Chunk 5: 80 43
 ```
 
-Không một sự kiện I/O nào nói “đây là một Unicode character”. Ranh giới khối chỉ do buffer, provider và thời điểm truyền dữ liệu quyết định.
+No I/O event says "this is one Unicode character." Chunk boundaries are determined solely by buffer size, providers, and data arrival timing.
 
-### Phản ví dụ: decode từng chunk riêng
+### Anti-pattern: Decoding Each Chunk Independently
 
 ```java
 byte[] buffer = new byte[2];
@@ -141,13 +141,13 @@ while ((n = input.read(buffer)) != -1) {
 }
 ```
 
-Đây là **mã minh họa sai về Unicode**, giả định biến `input` là `InputStream`. Từng lời gọi `new String` tạo **một phiên giải mã độc lập**, không nhớ rằng byte `E2` cuối khối trước còn cần `98 95` trong khối sau.
+This is **code illustrating a Unicode bug**, assuming `input` is an `InputStream`. Each `new String` call creates **an independent decoding session**, forgetting that the trailing byte `E2` of the previous chunk still needed `98 95` in the next chunk.
 
-Việc chọn buffer lớn hơn **giảm xác suất** cắt ký tự trong một số bài thử nhưng **không giải quyết triệt để**. Bất kỳ buffer hữu hạn nào cũng có thể kết thúc giữa ký tự.
+Choosing a larger buffer **reduces the probability** of splitting a character in some tests, but **does not solve the root cause**. Any finite buffer can end in the middle of a character.
 
-## 5. Cách dễ nhất: dùng Reader với charset tường minh
+## 5. Simplest Approach: Use a `Reader` with an Explicit Charset
 
-Nếu mục tiêu là **đọc văn bản** chứ không cần tự thao tác với byte framing, dùng `InputStreamReader` hoặc `Files.newBufferedReader` với charset đúng:
+If the goal is **reading text** without managing custom byte framing, use `InputStreamReader` or `Files.newBufferedReader` with the proper charset:
 
 ```java
 try (BufferedReader reader = Files.newBufferedReader(
@@ -155,16 +155,16 @@ try (BufferedReader reader = Files.newBufferedReader(
 
     String line;
     while ((line = reader.readLine()) != null) {
-        // Xử lý cả dòng Unicode đã được decoder ghép đúng.
+        // Process the complete Unicode line properly assembled by the decoder.
     }
 }
 ```
 
-Đây là snippet minh họa, cần `BufferedReader`, `Files`, `Path` và `StandardCharsets`; `path` phải được khai báo.
+This is an illustrative snippet requiring `BufferedReader`, `Files`, `Path`, and `StandardCharsets`; `path` must be declared.
 
-`InputStreamReader` giữ **decoder state giữa những lần read ký tự**. Nếu một code point UTF-8 bị chia qua nhiều lần đọc byte ở dưới, reader có thể giữ phần chưa đủ và chờ byte tiếp theo thay vì giải mã từng byte chunk như một chuỗi hoàn chỉnh.
+`InputStreamReader` maintains **decoder state across character reads**. If a UTF-8 code point is split across multiple underlying byte reads, the reader retains the incomplete portion and waits for the remaining bytes instead of decoding each byte chunk as a standalone string.
 
-### Chọn charset một cách tường minh
+### Specifying the Charset Explicitly
 
 ```java
 try (Reader reader = new InputStreamReader(
@@ -172,36 +172,36 @@ try (Reader reader = new InputStreamReader(
     char[] chars = new char[256];
     int n;
     while ((n = reader.read(chars)) != -1) {
-        // Sử dụng đúng n UTF-16 code units.
+        // Use the exact n UTF-16 code units.
     }
 }
 ```
 
-Reader trả **UTF-16 code units** vào `char[]`, không trả “đúng n code points”. Dù decoder UTF-8 xử lý byte nhiều phần đúng cách, **một cặp surrogate trong char[] vẫn có thể bị chia qua các lần read ký tự** nếu buffer/khối đọc không đủ hoặc việc đọc dừng đúng ranh giới đó.
+A `Reader` returns **UTF-16 code units** into `char[]`, not "exact `n` code points." Even though the UTF-8 decoder handles split multi-byte sequences properly, **a surrogate pair in `char[]` can still be split across character reads** if the buffer or read chunk fills up or stops right at that boundary.
 
-Nếu tác vụ chỉ hiển thị/ghi lại văn bản, có thể tiếp tục giữ ký tự trong reader/writer. Nếu cần đếm code point, gắn token/grapheme hoặc validate surrogate, phải xử lý theo API Unicode phù hợp chứ không xem mọi phần tử `char` độc lập.
+If the task only displays or rewrites text, characters can stay in the reader/writer pipeline. If you must count code points, split tokens/graphemes, or validate surrogates, use appropriate Unicode APIs rather than treating every `char` element as standalone.
 
-## 6. CharsetDecoder: giải mã liên tục với ByteBuffer
+## 6. `CharsetDecoder`: Continuous Decoding with `ByteBuffer`
 
-Khi ứng dụng xử lý **binary protocol**, `ByteBuffer`, hoặc nhận stream theo những đoạn tùy ý, `java.nio.charset.CharsetDecoder` cho phép kiểm soát quá trình giải mã.
+When an application handles a **binary protocol**, `ByteBuffer`, or streams arriving in arbitrary segments, `java.nio.charset.CharsetDecoder` gives full control over decoding.
 
-Các thành phần:
+Components:
 
-- `CharsetDecoder`: giữ trạng thái giải mã giữa các lần gọi.
-- `ByteBuffer` input: chứa byte mới nhận **và byte dư chưa đủ một character từ lần trước**.
-- `CharBuffer` output: nhận UTF-16 code units đã decode.
-- `CoderResult.UNDERFLOW`: decoder đã tiêu thụ được những gì có thể từ input hiện tại; có thể còn byte chưa đủ cần giữ lại.
-- `CoderResult.OVERFLOW`: output buffer hết chỗ, cần drain `CharBuffer` rồi decode tiếp.
-- `CoderResult.isError()`: byte không hợp lệ hoặc unmappable theo charset/error policy.
-- `decoder.decode(input, output, endOfInput)`: truyền `true` khi đã xác nhận byte stream thực sự kết thúc.
-- `decoder.flush(output)`: hoàn tất phần trạng thái cuối **sau khi decode(..., true) đã trả UNDERFLOW**.
+- `CharsetDecoder`: maintains decoding state across calls.
+- `ByteBuffer` input: holds newly arrived bytes **plus any leftover partial character bytes from the previous pass**.
+- `CharBuffer` output: receives decoded UTF-16 code units.
+- `CoderResult.UNDERFLOW`: the decoder consumed all it can from current input; incomplete trailing bytes may remain.
+- `CoderResult.OVERFLOW`: the output buffer is full; drain `CharBuffer` and continue decoding.
+- `CoderResult.isError()`: invalid or unmappable bytes according to the charset and error policy.
+- `decoder.decode(input, output, endOfInput)`: pass `true` only once the byte stream has truly ended.
+- `decoder.flush(output)`: finalizes trailing state **after `decode(..., true)` has returned `UNDERFLOW`**.
 
-### Chu trình chuẩn với buffer
+### Standard Buffer Cycle
 
 ```text
-ByteBuffer ở WRITE MODE
-     |   (có thể còn byte từ cuối lượt trước)
-     +-- append byte mới
+ByteBuffer in WRITE MODE
+     |   (may still contain bytes from the end of the previous pass)
+     +-- append new bytes
      |
      v
 input.flip()  -> READ MODE
@@ -209,35 +209,35 @@ input.flip()  -> READ MODE
      v
 decoder.decode(input, chars, eof)
      |
-     +-- OVERFLOW -> chars.flip(), drain, chars.clear(), decode tiếp
+     +-- OVERFLOW -> chars.flip(), drain, chars.clear(), continue decoding
      |
-     +-- ERROR -> throwException / chính sách lỗi
+     +-- ERROR -> throwException / error policy
      |
-     +-- UNDERFLOW -> giữ byte chưa được tiêu thụ
+     +-- UNDERFLOW -> retain unconsumed bytes
      |
-input.compact() -> dồn byte chưa đủ về đầu, quay WRITE MODE
+input.compact() -> move incomplete bytes to the front, return to WRITE MODE
      |
-     +-- nếu chưa EOF: đọc thêm byte vào phần trống, lặp
+     +-- if not EOF: read more bytes into remaining space, loop
      |
-     +-- nếu EOF: decoder.flush(chars) tới UNDERFLOW
+     +-- if EOF: decoder.flush(chars) until UNDERFLOW
 ```
 
-`ByteBuffer.compact()` là điểm cốt lõi. Nó **không bỏ phần còn lại**: nó sao chép phần byte ở `[position,limit)` chưa xử lý về đầu và đặt position sau số byte còn tồn. Lượt đọc tiếp chỉ append byte mới phía sau chúng.
+`ByteBuffer.compact()` is the core mechanism. It **does not discard remaining bytes**: it copies unprocessed bytes in `[position, limit)` to the start of the buffer and places `position` right after them. The next I/O read simply appends new bytes behind them.
 
-Không dùng `input.clear()` sau mọi UNDERFLOW: `clear()` sẽ cho ghi đè toàn bộ input và **đánh mất byte đang chờ**.
+Never call `input.clear()` after every `UNDERFLOW`: `clear()` allows overwriting the entire input buffer and **drops pending bytes**.
 
-## 7. Ví dụ Java 17+ hoàn chỉnh: đọc UTF-8 theo các khối 2 byte
+## 7. Complete Java 17+ Example: Reading UTF-8 in 2-Byte Chunks
 
-Chương trình dưới đây:
+The program below:
 
-1. Tạo tệp tạm chứa `A☕B😀C` được mã hóa bằng UTF-8.
-2. Đọc mỗi lần **tối đa 2 byte**, cố tình cắt ở giữa biểu diễn của `☕` và `😀`.
-3. Sử dụng một `CharsetDecoder` xuyên suốt, giữ byte dư bằng `compact()`.
-4. Kiểm tra round-trip và so sánh số byte, số UTF-16 code units, số code points.
-5. Ghi lại file với **UTF-8 BOM** ở đầu để chứng minh decoder thông thường nhìn thấy `U+FEFF` như một ký tự và cách xử lý BOM theo policy.
-6. Đóng/dọn file tạm.
+1. Creates a temporary file containing `A☕B😀C` encoded in UTF-8.
+2. Reads **at most 2 bytes** per read, deliberately slicing inside the byte encodings of `☕` and `😀`.
+3. Uses a single `CharsetDecoder` throughout, retaining leftover bytes with `compact()`.
+4. Verifies the round-trip and compares byte count, UTF-16 code unit count, and code point count.
+5. Rewrites the file with a leading **UTF-8 BOM** to demonstrate that a standard decoder sees `U+FEFF` as a character and how to handle BOMs by policy.
+6. Closes and deletes the temporary file.
 
-Lưu tên **`UnicodeBoundaryDemo.java`**:
+Save as **`UnicodeBoundaryDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -338,7 +338,7 @@ public class UnicodeBoundaryDemo {
                     if (step.isUnderflow()) {
                         break;
                     }
-                    // OVERFLOW: outputChars đã được drain, decode tiếp.
+                    // OVERFLOW: outputChars has been drained, continue decoding.
                 }
 
                 inputBytes.compact();
@@ -357,7 +357,7 @@ public class UnicodeBoundaryDemo {
                 if (step.isUnderflow()) {
                     break;
                 }
-                // OVERFLOW: còn ký tự trong decoder, drain tiếp.
+                // OVERFLOW: characters remain in decoder, keep draining.
             }
         }
 
@@ -370,14 +370,14 @@ public class UnicodeBoundaryDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac UnicodeBoundaryDemo.java
 java UnicodeBoundaryDemo
 ```
 
-**Stdout dự kiến chính xác khi I/O file tạm thành công:**
+**Exact expected stdout when temporary file I/O succeeds:**
 
 ```text
 UTF-8 bytes: 10
@@ -388,41 +388,41 @@ Leading BOM character: true
 After BOM policy: A☕B😀C
 ```
 
-Vì sao ví dụ đúng?
+Why is this example correct?
 
-- `inputBytes` trong trạng thái write mode nhận tối đa 2 byte mỗi lượt. Nếu gặp 2 byte đầu của `☕`, decoder trả UNDERFLOW và không xem chúng là lỗi vì chưa phải EOF.
-- `inputBytes.compact()` giữ lại các byte chưa được decode. Lượt sau append byte thứ ba, tạo đủ chuỗi `E2 98 95`.
-- Tương tự với `😀` có 4 byte UTF-8. Decoder có thể giữ những byte đầu qua nhiều lượt cho tới khi nhận đủ.
-- `outputChars` chứa kết quả dạng UTF-16. `StringBuilder.append(CharBuffer)` thêm các code units đã giải mã.
-- `CodingErrorAction.REPORT` khiến byte thực sự sai hoặc chuỗi cuối bị cắt dở gây lỗi thay vì lặng lẽ chèn `�`.
-- `endOfInput=true` **chỉ khi `read` đã trả `-1`**. Nếu báo true sớm khi chunk chưa chứa đủ byte, decoder có thể coi byte dư là malformed.
-- Sau decode cuối, `decoder.flush` hoàn tất trạng thái decoder theo đúng protocol.
-- `rawWithBom` bắt đầu bằng ký tự `U+FEFF` được giải mã từ byte `EF BB BF`. Policy ví dụ chỉ bỏ **ký tự U+FEFF đầu tiên**; nó không xóa mọi ký tự tương tự giữa nội dung.
+- `inputBytes` in write mode accepts at most 2 bytes per turn. When encountering the first 2 bytes of `☕`, the decoder returns `UNDERFLOW` and does not treat them as an error because `endOfInput` is not yet true.
+- `inputBytes.compact()` preserves the undecoded bytes. The next turn appends the third byte, completing `E2 98 95`.
+- Likewise for the 4-byte UTF-8 character `😀`. The decoder can hold leading bytes across multiple passes until all bytes arrive.
+- `outputChars` holds decoded UTF-16 results. `StringBuilder.append(CharBuffer)` appends the decoded code units.
+- `CodingErrorAction.REPORT` ensures genuinely invalid bytes or truncated trailing sequences throw an error rather than silently inserting `�`.
+- `endOfInput=true` **only when `read` has returned `-1`**. Passing `true` prematurely when a chunk holds incomplete bytes causes the decoder to treat leftover bytes as malformed.
+- After the final decode, `decoder.flush` completes decoder state per the protocol.
+- `rawWithBom` begins with `U+FEFF` decoded from `EF BB BF`. The example policy strips only **the leading `U+FEFF` character**; it does not delete every occurrence inside the body.
 
-**Giới hạn có chủ đích:** ví dụ dùng buffer nhỏ, file nhỏ và `StringBuilder` để nhìn rõ cơ chế. Khi triển khai thật với file rất lớn hoặc nguồn không tin cậy, cần giới hạn output, quản lý tốc độ/timeout và xử lý trực tiếp phần ký tự đã decode thay vì tích lũy toàn bộ vào một StringBuilder.
+**Intentional limitations:** the example uses small buffers, a tiny file, and a `StringBuilder` to make the mechanism clear. In production with very large files or untrusted sources, enforce output limits, manage rate/timeouts, and process decoded characters incrementally rather than accumulating everything in one `StringBuilder`.
 
-## 8. Phân tích sâu các trạng thái CharsetDecoder
+## 8. Deep Dive into `CharsetDecoder` States
 
 ### UNDERFLOW
 
-Kết quả UNDERFLOW thường có nghĩa decoder **không thể tiến thêm** với input đã cung cấp. Trong chế độ streaming, `ByteBuffer` có thể còn 1–3 byte đầu của một UTF-8 sequence chưa đủ. Giữ chúng lại bằng `compact()`.
+`UNDERFLOW` typically means the decoder **cannot make further progress** with the provided input. In streaming mode, `ByteBuffer` may still hold 1–3 leading bytes of an incomplete UTF-8 sequence. Keep them using `compact()`.
 
-Ví dụ:
+Example:
 
 ```text
-Bytes input: E2 98
+Input bytes: E2 98
 Decoder: UNDERFLOW
-input.remaining(): 2 (chưa tiêu thụ)
-compact(): giữ E2 98
+input.remaining(): 2 (unconsumed)
+compact(): keeps E2 98
 append next: 95
-decode lại: -> ☕
+decode again: -> ☕
 ```
 
-Khi `endOfInput=true`, các byte thiếu ở EOF không còn được chờ tiếp: chúng phải bị xử lý theo malformed-input policy.
+When `endOfInput=true`, incomplete trailing bytes at EOF can no longer wait for more input: they must be handled according to the malformed-input policy.
 
 ### OVERFLOW
 
-`OVERFLOW` không có nghĩa file quá lớn hoặc byte sai. Nó có nghĩa **CharBuffer chưa đủ chỗ chứa các UTF-16 code units kế tiếp**. Có thể giải quyết bằng:
+`OVERFLOW` does not mean the file is too large or bytes are corrupted. It means **`CharBuffer` lacks space for the next UTF-16 code units**. Handle it by draining:
 
 ```java
 outputChars.flip();
@@ -430,35 +430,35 @@ process(outputChars);
 outputChars.clear();
 ```
 
-Đây là đoạn minh họa, `process` do ứng dụng định nghĩa. Sau khi drain, gọi `decode` tiếp **trên input đang ở vị trí hiện tại**, không được bỏ input còn lại hoặc tạo decoder mới.
+This is an illustrative snippet where `process` is application-defined. After draining, call `decode` again **on the input at its current position**—never discard remaining input or create a new decoder.
 
 ### ERROR
 
-`CoderResult.isError()` gồm malformed-input hoặc unmappable-character theo bảng mã và chính sách:
+`CoderResult.isError()` covers malformed-input or unmappable-character conditions according to the charset and error policy:
 
-- `REPORT`: nhận kết quả lỗi, `throwException()` chuyển thành checked exception phù hợp, ví dụ `MalformedInputException`.
-- `REPLACE`: thay bằng một chuỗi/ký tự replacement của decoder và tiếp tục.
-- `IGNORE`: bỏ input bị lỗi, có nguy cơ mất thông tin mà không để dấu vết.
+- `REPORT`: returns an error result; `throwException()` converts it into an appropriate checked exception, such as `MalformedInputException`.
+- `REPLACE`: inserts the decoder's replacement string/character and continues.
+- `IGNORE`: drops the invalid input, risking silent data loss without trace.
 
-`REPORT` thường thích hợp khi kiểm thử data pipeline, đọc file cấu hình, giải mã giao thức có schema hoặc nội dung cần bảo toàn chính xác. `REPLACE` có thể phù hợp với giao diện hiển thị dữ liệu bị hỏng nếu sản phẩm muốn phục hồi “best effort”, nhưng phải có telemetry để biết đã mất byte. `IGNORE` hiếm khi thích hợp cho dữ liệu có ý nghĩa bảo mật, identifier hoặc chữ ký.
+`REPORT` is usually appropriate when testing data pipelines, reading config files, decoding schema-governed protocols, or handling content needing exact preservation. `REPLACE` may suit UI display of damaged data when "best effort" recovery is desired, provided telemetry records that bytes were lost. `IGNORE` is rarely appropriate for security-relevant data, identifiers, or signatures.
 
-## 9. InputStreamReader có giải quyết tất cả không?
+## 9. Does `InputStreamReader` Solve Everything?
 
-`InputStreamReader` là lựa chọn đơn giản và rất tốt cho **byte-to-character streaming** với charset đã biết. Nó giữ `CharsetDecoder` nội bộ và không làm sai Unicode chỉ vì tầng InputStream cung cấp các byte chia nhỏ.
+`InputStreamReader` is a simple and solid choice for **byte-to-character streaming** with a known charset. It manages an internal `CharsetDecoder` and will not corrupt Unicode merely because the underlying `InputStream` delivers bytes in small chunks.
 
-Nhưng cần nhớ:
+However, remember:
 
-1. Nó không tự đoán chính xác charset của mọi file; nên quy định rõ.
-2. Với UTF-8, nó không tự động loại mọi BOM theo một chính sách ứng dụng có thể dự đoán; nếu cần bỏ BOM đầu file, phải có logic riêng.
-3. Nó chuyển byte thành `char`/UTF-16 units. Nếu ứng dụng xử lý các đơn vị `char[]` riêng và cắt surrogate pair, lỗi có thể xuất hiện ở **tầng sau** dù byte decoder đã đúng.
-4. Nó không tự parse JSON, XML hay giao thức có length prefix.
-5. Nó không giới hạn tổng lượng ký tự được đọc, không tự bảo vệ memory nếu ứng dụng gọi `readAllBytes` hoặc ghép chuỗi không kiểm soát.
-6. Với API parser yêu cầu byte offset chính xác, `Reader` có thể không tiện vì một `char` không ánh xạ 1:1 sang một byte.
-7. Với các codec và yêu cầu error policy khác, tạo `CharsetDecoder` chủ động có thể giúp báo lỗi thay vì thay ký tự.
+1. It does not auto-detect the charset of arbitrary files; specify it explicitly.
+2. With UTF-8, it does not automatically strip BOMs according to a predictable application policy; if leading BOM removal is needed, write explicit logic.
+3. It converts bytes into `char`/UTF-16 units. If the application processes `char[]` slices and splits a surrogate pair, bugs can still arise at the **next layer** even though the byte decoder worked properly.
+4. It does not parse JSON, XML, or length-prefixed protocols.
+5. It does not cap total characters read or protect memory if the application calls `readAllBytes` or builds unbounded strings.
+6. For parser APIs requiring exact byte offsets, `Reader` can be awkward because one `char` does not map 1:1 to one byte.
+7. For custom codecs or strict error policies, explicitly creating a `CharsetDecoder` helps fail fast instead of silently substituting characters.
 
-### Cắt UTF-16 surrogate pair ở tầng ký tự
+### Splitting a UTF-16 Surrogate Pair at the Character Layer
 
-Ví dụ:
+Example:
 
 ```java
 String emoji = "😀";
@@ -470,17 +470,17 @@ System.out.println(Character.isHighSurrogate(high)); // true
 System.out.println(Character.isLowSurrogate(low));   // true
 ```
 
-Đây là một đoạn Java minh họa có thể đặt trong `main`. Nếu sau khi đã decode UTF-8 đúng, một chương trình lại xử lý từng `char` như một code point độc lập, nó vẫn có thể làm hỏng emoji.
+This is an illustrative Java snippet you can place in `main`. Even after decoding UTF-8 properly, a program that treats every `char` as an independent code point can still break emojis.
 
-Giải pháp ở tầng text: sử dụng `String.codePoints()`, `Character.codePointAt`, hoặc một iterator giữ high/low surrogate giữa các khối `char[]`. Với việc phân đoạn ký tự hiển thị, cần thêm xử lý grapheme clusters (Unicode segmentation) chứ không chỉ code points.
+Text-layer solution: use `String.codePoints()`, `Character.codePointAt`, or an iterator that carries a trailing high surrogate across `char[]` chunks. For user-visible character segmentation, handle grapheme clusters (Unicode segmentation) rather than only code points.
 
-## 10. BOM là gì?
+## 10. What Is a BOM?
 
-**Byte Order Mark (BOM)** có gốc là ký hiệu Unicode `U+FEFF` được dùng ở đầu một số stream, chủ yếu để chỉ **endianness** hoặc nhận diện encoding. Không phải mọi file Unicode đều có BOM và BOM không phải metadata bảo mật.
+A **Byte Order Mark (BOM)** originates from the Unicode character `U+FEFF` placed at the beginning of some streams, primarily to indicate **endianness** or identify encoding. Not all Unicode files have a BOM, and a BOM is not security metadata.
 
-Các dãy byte mở đầu phổ biến:
+Common leading byte sequences:
 
-| Encoding/đặc điểm | BOM ở đầu stream |
+| Encoding / Characteristic | Leading Stream BOM |
 |---|---|
 | UTF-8 | `EF BB BF` |
 | UTF-16 big-endian | `FE FF` |
@@ -488,13 +488,13 @@ Các dãy byte mở đầu phổ biến:
 | UTF-32 big-endian | `00 00 FE FF` |
 | UTF-32 little-endian | `FF FE 00 00` |
 
-**Chú ý:** UTF-8 không có vấn đề byte order; UTF-8 BOM là **dấu hiệu nhận diện** tùy chọn, không phải yêu cầu. Nhiều định dạng/giao thức cấm, bỏ qua hoặc xử lý BOM theo các quy tắc riêng.
+**Note:** UTF-8 has no byte-order ambiguity; a UTF-8 BOM is an optional **signature**, not a requirement. Many formats and protocols forbid, ignore, or handle BOMs under specific rules.
 
-### BOM phải ở đầu stream
+### A BOM Must Be at the Start of the Stream
 
-Nếu ứng dụng quyết định bỏ BOM, chỉ nhận diện BOM ở **đầu nội dung** (sau khi xác định source framing phù hợp). Đừng dùng `text.replace("\uFEFF","")` trên toàn bộ văn bản: bạn sẽ xóa mọi `U+FEFF` xuất hiện trong nội dung, dù nó không được dùng làm BOM đầu stream.
+If an application chooses to strip a BOM, detect it only at the **beginning of the content** (after resolving appropriate source framing). Never run `text.replace("\uFEFF","")` across the entire text: you would erase every `U+FEFF` inside the body even when it was not a leading stream BOM.
 
-BOM có thể bị chia qua chunk boundaries:
+A BOM can be split across chunk boundaries:
 
 ```text
 UTF-8 BOM: EF BB BF
@@ -502,14 +502,14 @@ Chunk 1: EF
 Chunk 2: BB
 Chunk 3: BF 41 ...
 
-Không được quyết định “không có BOM” chỉ vì chunk 1 chưa đủ ba byte.
+Do not decide "no BOM" just because chunk 1 does not yet have three bytes.
 ```
 
-Vì vậy BOM detector tự viết cũng phải **giữ lại số byte đầu đủ dài** rồi mới quyết định, hoặc giải mã liên tục từ đầu và xử lý ký tự `U+FEFF` đầu tiên khi định dạng cho phép.
+Therefore, a custom BOM detector must **buffer enough leading bytes** before deciding, or decode continuously from the start and handle an initial `U+FEFF` character when allowed by the format.
 
-## 11. UTF-8 BOM và Java StandardCharsets.UTF_8
+## 11. UTF-8 BOM and Java `StandardCharsets.UTF_8`
 
-`StandardCharsets.UTF_8` khi giải mã byte `EF BB BF` thông thường trả về **ký tự `U+FEFF`** trong chuỗi. Ví dụ:
+When decoding bytes `EF BB BF`, `StandardCharsets.UTF_8` normally yields **character `U+FEFF`** in the resulting string. Example:
 
 ```java
 byte[] bytes = {
@@ -522,67 +522,67 @@ System.out.println(text.startsWith("\uFEFF")); // true
 System.out.println(text.substring(1));          // A
 ```
 
-Đây là đoạn code minh họa cần `StandardCharsets` và có thể đặt trong `main`.
+This is an illustrative snippet requiring `StandardCharsets` that can run in `main`.
 
-Đây là nguồn của một lỗi khó thấy: file cấu hình có BOM UTF-8, ứng dụng kỳ vọng header `"id,name"` nhưng String thực là `"\uFEFFid,name"`. So sánh tên cột đầu tiên thất bại dù mắt thường thấy giống nhau.
+This causes a subtle bug: a configuration file has a UTF-8 BOM, the application expects header `"id,name"`, but the actual `String` is `"\uFEFFid,name"`. Comparing the first column name fails even though both look identical to the human eye.
 
-Cách xử lý tùy định dạng:
+Handling depends on the format:
 
-- Nếu format **cho phép BOM**, nhận diện và bỏ BOM **một lần ở đầu**.
-- Nếu format **cấm BOM**, từ chối input với thông báo rõ thay vì tự ý sửa.
-- Nếu format cần bảo toàn chính xác byte gốc, không loại BOM âm thầm.
-- Nếu ứng dụng chỉ hiển thị, nên có quyết định nhất quán để tránh ký tự zero-width ẩn đầu text.
+- If the format **allows a BOM**, detect and strip it **once at the beginning**.
+- If the format **forbids a BOM**, reject the input with a clear message rather than silently fixing it.
+- If the format requires exact byte preservation, do not strip the BOM silently.
+- If the application only displays text, enforce a consistent policy to avoid hidden leading zero-width characters.
 
-Không tự chèn UTF-8 BOM cho mọi file bằng mặc định; UTF-8 chuẩn không cần BOM để giải mã đúng.
+Do not insert a UTF-8 BOM into every file by default; standard UTF-8 does not need a BOM to decode properly.
 
-## 12. UTF-16 BOM và byte order
+## 12. UTF-16 BOM and Byte Order
 
-UTF-16 có hai endian-specific charset là `UTF_16BE` và `UTF_16LE`; Java cũng có `StandardCharsets.UTF_16`. Chúng không được sử dụng như nhau trong mọi trường hợp.
+UTF-16 has two endian-specific charsets, `UTF_16BE` and `UTF_16LE`; Java also provides `StandardCharsets.UTF_16`. They are not interchangeable in every situation.
 
-- `UTF_16BE`: hai byte đầu của code unit `0x0041` là `00 41`.
-- `UTF_16LE`: hai byte đầu là `41 00`.
-- `UTF_16`: Java hỗ trợ cơ chế nhận diện BOM để xác định byte order (khi có), dùng byte order mặc định của charset này khi không có BOM theo hợp đồng implementation/documentation.
+- `UTF_16BE`: the two bytes of code unit `0x0041` are `00 41`.
+- `UTF_16LE`: the two bytes are `41 00`.
+- `UTF_16`: Java supports BOM detection to determine byte order when present, and uses this charset's default byte order when absent according to the implementation/documentation contract.
 
-Ví dụ:
+Example:
 
 ```text
-Văn bản "A"
+Text "A"
 
-UTF-16BE bytes (không BOM): 00 41
-UTF-16LE bytes (không BOM): 41 00
+UTF-16BE bytes (no BOM): 00 41
+UTF-16LE bytes (no BOM): 41 00
 
-Có BOM:
+With BOM:
 UTF-16BE: FE FF 00 41
 UTF-16LE: FF FE 41 00
 ```
 
-Nếu code dùng `new String(bytes, UTF_16LE)` để đọc file có BOM UTF-16BE, kết quả sẽ sai; bạn đã chỉ định little-endian trong khi byte thực tế là big-endian. Nếu dùng `UTF_16` trên dữ liệu có BOM chuẩn, decoder có thể nhận diện endian phù hợp.
+If code uses `new String(bytes, UTF_16LE)` to read a file with a UTF-16BE BOM, the result is wrong; you forced little-endian while the bytes are actually big-endian. Using `UTF_16` on data with a standard BOM lets the decoder detect the appropriate endianness.
 
-### Không chỉ kiểm tra hai byte đầu một cách cứng nhắc
+### Do Not Naively Check Only the First Two Bytes
 
-Nếu hệ thống hỗ trợ cả UTF-16/UTF-32, thứ tự nhận diện BOM cần chú ý vì `FF FE 00 00` của UTF-32LE bắt đầu bằng `FF FE` (trùng prefix của UTF-16LE). Detector tự viết nên kiểm tra **BOM dài nhất trước**, kết hợp charset được protocol cho phép. Java SE có các charset UTF-8/UTF-16 chuẩn; UTF-32 không nằm trong `StandardCharsets` constant set bắt buộc ở mọi môi trường, nên không tự assume `StandardCharsets.UTF_32LE` tồn tại.
+If a system supports both UTF-16 and UTF-32, BOM detection order matters because UTF-32LE's `FF FE 00 00` begins with `FF FE` (sharing a prefix with UTF-16LE). A custom detector should match the **longest BOM first**, combined with charsets allowed by the protocol. Java SE includes standard UTF-8/UTF-16 charsets; UTF-32 is not among the required `StandardCharsets` constants in every environment, so do not assume `StandardCharsets.UTF_32LE` exists.
 
-Một ứng dụng tốt thường **không cần tự động dò mọi Unicode encoding**. Nếu format đã quy định UTF-8 thì xử lý như UTF-8 và chỉ quản lý BOM theo spec của format đó.
+A well-designed application usually **does not need to auto-detect every Unicode encoding**. When a format specifies UTF-8, process it as UTF-8 and manage BOMs strictly per that format's specification.
 
-## 13. Không nhầm BOM với mã hóa file từ nguồn không rõ
+## 13. Do Not Confuse a BOM with Charset Trust for Unknown Sources
 
-“Có BOM” không có nghĩa nội dung phía sau chắc chắn hợp lệ. “Không có BOM” cũng không đủ để kết luận file là ASCII hay UTF-8.
+"Has a BOM" does not guarantee the following content is valid. "No BOM" is also not enough to conclude a file is ASCII or UTF-8.
 
-Một số nguồn lỗi:
+Common sources of error:
 
-- Ứng dụng dùng `Charset.defaultCharset()` thay vì charset của giao thức.
-- File ghi bằng Windows-1252 hoặc một legacy code page nhưng code đọc bằng UTF-8.
-- File UTF-16LE không BOM bị đọc bằng UTF-8, tạo chuỗi có NUL xen kẽ hoặc ký tự không mong đợi.
-- File UTF-8 BOM bị ứng dụng xử lý như tên cột CSV thông thường.
-- File có byte sai hoặc bị cắt cuối, decoder với `REPLACE` làm mất bằng chứng lỗi.
-- Network protocol có length prefix tính theo **số byte**, nhưng writer lại dùng `String.length()`.
-- HTTP/content metadata và nội dung thực không nhất quán; ứng dụng vẫn phải theo spec để xử lý.
+- The application uses `Charset.defaultCharset()` instead of the protocol's charset.
+- A file was written in Windows-1252 or a legacy code page, yet read as UTF-8.
+- A BOM-less UTF-16LE file is read as UTF-8, producing interspersed NULs or unexpected characters.
+- A UTF-8 BOM file is parsed as an ordinary CSV column name.
+- A file has corrupted bytes or is truncated at the end, and a `REPLACE` decoder destroys evidence of the error.
+- A network protocol specifies a length prefix in **bytes**, yet the writer sends `String.length()`.
+- HTTP/content metadata and actual bytes disagree; the application must still follow the spec.
 
-Không dùng phép suy đoán từ một vài byte để gán charset cho dữ liệu mang ý nghĩa bảo mật hoặc cần trọn vẹn. Nếu không có metadata đáng tin, cần một **hợp đồng/chiến lược phát hiện encoding rõ ràng** và xác nhận ở tầng nghiệp vụ.
+Never guess a charset from a few bytes for security-sensitive data or data requiring strict integrity. Without trusted metadata, establish an **explicit encoding contract/detection strategy** and validate at the business layer.
 
-## 14. CodingErrorAction: REPORT, REPLACE, IGNORE
+## 14. `CodingErrorAction`: `REPORT`, `REPLACE`, `IGNORE`
 
-Java `CharsetDecoder` cho phép thiết lập:
+Java `CharsetDecoder` allows configuring:
 
 ```java
 CharsetDecoder strict = StandardCharsets.UTF_8.newDecoder()
@@ -590,28 +590,28 @@ CharsetDecoder strict = StandardCharsets.UTF_8.newDecoder()
         .onUnmappableCharacter(CodingErrorAction.REPORT);
 ```
 
-Đây là đoạn minh họa, cần import `CharsetDecoder`, `StandardCharsets` và `CodingErrorAction`.
+This is an illustrative snippet requiring `CharsetDecoder`, `StandardCharsets`, and `CodingErrorAction`.
 
-Bảng so sánh:
+Comparison table:
 
-| Chính sách | Hành vi | Nên dùng khi |
+| Policy | Behavior | When to Use |
 |---|---|---|
-| `REPORT` | Trả lỗi dạng `CoderResult` / ném exception khi xử lý | Dữ liệu cần đúng byte, cấu hình, protocol, kiểm thử |
-| `REPLACE` | Chèn replacement do decoder cung cấp | Hiển thị best-effort được phép mất thông tin |
-| `IGNORE` | Bỏ phần input lỗi | Chỉ khi yêu cầu nghiệp vụ cho phép bỏ dữ liệu mà không phá ý nghĩa |
+| `REPORT` | Returns an error `CoderResult` / throws an exception when handled | Data requiring exact bytes, configs, protocols, testing |
+| `REPLACE` | Inserts the decoder's replacement character | Best-effort display where data loss is acceptable |
+| `IGNORE` | Drops invalid input | Only when business rules allow discarding data without breaking meaning |
 
 ### Malformed UTF-8
 
-Một chuỗi byte có thể sai vì:
+A byte sequence can be invalid because:
 
-- Byte continuation xuất hiện khi chưa có lead byte hợp lệ.
-- Lead byte cần thêm continuation nhưng gặp byte không phù hợp.
-- Một sequence bị cắt ngay khi EOF.
-- Byte dùng encoding **overlong** cho code point (bị UTF-8 chuẩn cấm).
-- Sequence tạo surrogate code points hoặc code point ngoài phạm vi Unicode.
-- Byte trên một charset khác bị giải mã nhầm UTF-8.
+- A continuation byte appears without a preceding valid lead byte.
+- A lead byte expects more continuation bytes, but an invalid byte follows.
+- A sequence is cut off right at EOF.
+- Bytes use an **overlong** encoding for a code point (forbidden by standard UTF-8).
+- A sequence encodes surrogate code points or code points outside Unicode range.
+- Bytes in another charset are mistakenly decoded as UTF-8.
 
-Ví dụ byte thiếu:
+Example of missing bytes:
 
 ```java
 byte[] incomplete = {(byte) 0xE2, (byte) 0x98};
@@ -625,27 +625,27 @@ try {
 }
 ```
 
-Đoạn này là **mã minh họa**, cần import `ByteBuffer`, `CharsetDecoder`, `CodingErrorAction`, `MalformedInputException`. Overload `decode(ByteBuffer)` thực hiện một lần giải mã hoàn chỉnh, nên phần 2-byte chưa đủ bị coi là malformed khi kết thúc input. Trong streaming, gọi `decode(input, output, false)` trước EOF sẽ **chờ** byte tiếp theo thay vì báo sai ngay.
+This is an **illustrative code snippet** requiring imports for `ByteBuffer`, `CharsetDecoder`, `CodingErrorAction`, and `MalformedInputException`. The single-argument `decode(ByteBuffer)` overload performs a complete one-shot decode, so the incomplete 2-byte sequence is reported as malformed at the end of input. In streaming mode, calling `decode(input, output, false)` before EOF **waits** for the next byte instead of failing immediately.
 
-### Unicode replacement character không chỉ là chuyện thẩm mỹ
+### The Unicode Replacement Character Is More Than Cosmetic
 
-Nếu chương trình lưu `�` vào tên file, key hoặc chữ ký thay vì dữ liệu gốc, nhiều thứ có thể thay đổi:
+If a program stores `�` into a file name, key, or signature instead of the original data, many things break:
 
-- Hash/checksum byte.
-- So sánh tên user/resource.
-- JSON field name hoặc CSV header.
-- Truy vấn database và khóa deduplication.
-- Nội dung văn bản có ý nghĩa pháp lý, tài chính, y tế hoặc bảo mật.
+- Byte hashes and checksums.
+- User/resource name comparisons.
+- JSON field names or CSV headers.
+- Database queries and deduplication keys.
+- Legal, financial, medical, or security-sensitive text.
 
-Vì vậy ở các trường hợp yêu cầu chính xác, nên xử lý lỗi bằng `REPORT` hoặc xác minh encoding nguồn thay vì tự biến input lỗi thành “đã decode thành công”.
+Therefore, whenever accuracy matters, handle errors with `REPORT` or verify source encoding rather than turning corrupted input into "successfully decoded."
 
-## 15. ByteBuffer: flip, compact, clear và các lỗi boundary
+## 15. `ByteBuffer`: `flip`, `compact`, `clear`, and Boundary Bugs
 
-`ByteBuffer` có ba trạng thái quan trọng: `capacity`, `position` và `limit`.
+`ByteBuffer` has three key state properties: `capacity`, `position`, and `limit`.
 
-### Sau read byte từ I/O
+### After Reading Bytes from I/O
 
-Buffer write mode:
+Buffer in write mode:
 
 ```text
 capacity = 8
@@ -654,7 +654,7 @@ limit = 8
 [41 E2 98 95 42 | ...]
 ```
 
-`flip()` đặt limit bằng position hiện tại, position về 0 để decoder đọc byte hợp lệ:
+`flip()` sets `limit` to the current `position` and resets `position` to `0` so the decoder reads valid bytes:
 
 ```text
 position = 0
@@ -662,23 +662,23 @@ limit = 5
 [41 E2 98 95 42 | ...]
 ```
 
-### Khi decoder chưa xử lý hết bytes
+### When the Decoder Has Not Consumed All Bytes
 
-Giả sử cuối buffer có `E2 98` thiếu byte `95`. Sau decode, position trỏ tới hai byte chưa được consume.
+Suppose the end of the buffer holds `E2 98`, missing byte `95`. After `decode`, `position` points at those two unconsumed bytes.
 
-`compact()` giữ hai byte đó, position chuyển tới 2, limit về capacity. Lượt I/O kế tiếp ghi nối thêm byte sau vị trí 2.
+`compact()` keeps those two bytes, moves `position` to `2`, and resets `limit` to `capacity`. The next I/O read appends new bytes starting at index 2.
 
-`clear()` trong tình huống này thì **không giữ nội dung chưa decode**, có thể khiến byte cũ bị ghi đè; đây là nguyên nhân phổ biến của ký tự `�` hoặc mất dữ liệu không ổn định theo buffer size.
+Calling `clear()` here **does not preserve undecoded bytes**, allowing old bytes to be overwritten; this is a common cause of `�` artifacts or flaky data loss that varies with buffer size.
 
-### Decoder và CharBuffer cũng có ranh giới riêng
+### Decoder and `CharBuffer` Have Their Own Boundaries Too
 
-Với `CharBuffer` output quá nhỏ, `decode` trả OVERFLOW. Drain output và gọi `decode` tiếp. Đừng giải thích OVERFLOW là “file nén quá lớn” hay “byte UTF-8 sai”.
+When the output `CharBuffer` is too small, `decode` returns `OVERFLOW`. Drain the output and call `decode` again. Never interpret `OVERFLOW` as "compressed file too large" or "invalid UTF-8 bytes."
 
-Nếu output CharBuffer có chỗ cho một UTF-16 unit nhưng code point kế tiếp cần surrogate pair gồm hai units, decoder có thể phải trả OVERFLOW thay vì đặt nửa cặp không hợp lệ. Chọn buffer đủ lớn để có thể chứa ít nhất cặp surrogate và luôn xử lý OVERFLOW.
+If the output `CharBuffer` has room for one UTF-16 unit, yet the next code point needs a two-unit surrogate pair, the decoder may return `OVERFLOW` rather than writing an invalid half-pair. Choose a buffer large enough to hold at least a surrogate pair and always handle `OVERFLOW`.
 
-## 16. Tự chẩn đoán bằng hex dump
+## 16. Self-Diagnosis via Hex Dump
 
-Khi một ký tự bị hỏng, log chuỗi đã được `new String(...)` có thể đánh mất bằng chứng vì byte không hợp lệ đã bị thay. Hãy quan sát **byte gốc** ở một môi trường test/an toàn:
+When a character is corrupted, logging the `new String(...)` string can destroy evidence because invalid bytes were already replaced. Inspect the **raw bytes** in a test or safe environment:
 
 ```java
 byte[] data = "A☕B😀C".getBytes(StandardCharsets.UTF_8);
@@ -694,33 +694,33 @@ for (byte b : data) {
 System.out.println(hex);
 ```
 
-Snippet cần import `StandardCharsets`; có thể đặt trong `main`. `StringBuilder.isEmpty()` là phương thức có trên Java 17 (qua `CharSequence`/`StringBuilder` API tương ứng tùy runtime); để tránh ràng buộc đối với môi trường cũ, có thể thay bằng `hex.length() > 0`.
+This snippet requires importing `StandardCharsets` and can be placed in `main`. `StringBuilder.isEmpty()` is available on Java 17 (via `CharSequence`/`StringBuilder` depending on runtime); to avoid constraints on older environments, use `hex.length() > 0`.
 
-Đầu ra:
+Output:
 
 ```text
 41 E2 98 95 42 F0 9F 98 80 43
 ```
 
-**Không log raw bytes của password, access token hay dữ liệu cá nhân trong production**. Với lỗi thực tế, ưu tiên log metadata có giới hạn, offset, charset dự kiến và sample bytes đã redacted theo policy.
+**Never log raw bytes of passwords, access tokens, or personal data in production.** For real failures, prefer logging bounded metadata, offsets, expected charset, and byte samples redacted per policy.
 
-### Thông tin chẩn đoán nên có
+### Diagnostic Information to Include
 
-- Encoding/charset đã cấu hình ở cả writer và reader.
-- File path/source ID, kích thước file và byte offset nơi phát hiện lỗi.
-- Kích thước từng chunk và `ByteBuffer.position/limit`.
-- CoderResult là `UNDERFLOW`, `OVERFLOW` hay `MALFORMED`.
-- Có BOM hay không; BOM thuộc phần đầu file hay sau một prefix protocol khác.
-- Chính sách `REPORT/REPLACE/IGNORE`.
-- Dữ liệu có bị gzip/decompress, decrypt hoặc transform trước khi decode không.
-- Có đoạn nào tự tạo `new String(chunk)` với charset mặc định không.
-- Có logic xóa mọi `\uFEFF` hoặc normalize Unicode không kiểm soát không.
+- Configured encoding/charset on both writer and reader.
+- File path or source ID, file size, and byte offset where the error was detected.
+- Individual chunk sizes and `ByteBuffer.position`/`limit`.
+- Whether `CoderResult` was `UNDERFLOW`, `OVERFLOW`, or `MALFORMED`.
+- Whether a BOM is present; whether it is at the start of the file or after another protocol prefix.
+- The `REPORT`/`REPLACE`/`IGNORE` policy.
+- Whether the data was gzipped/decompressed, decrypted, or transformed before decoding.
+- Whether any code calls `new String(chunk)` with the default charset.
+- Whether any logic blindly strips every `\uFEFF` or normalizes Unicode unchecked.
 
-## 17. Chẩn đoán byte offset và char index
+## 17. Diagnosing Byte Offsets vs. Char Indexes
 
-Nếu lỗi xảy ra ở byte offset 127, bạn không thể suy ra nó chính là Java `String.charAt(127)` khi dữ liệu dùng UTF-8.
+If an error occurs at byte offset 127, you cannot infer that it corresponds to Java `String.charAt(127)` when the data is UTF-8.
 
-Ví dụ:
+Example:
 
 ```text
 Text: A☕B
@@ -735,30 +735,30 @@ Java UTF-16 char indexes:
   B index 2
 ```
 
-Với emoji vùng bổ sung, chênh lệch còn khác hơn vì 4 UTF-8 bytes → 2 UTF-16 units → 1 code point.
+For supplementary emojis, the divergence grows further because 4 UTF-8 bytes → 2 UTF-16 units → 1 code point.
 
-Khi báo lỗi parser, hãy nêu rõ offset là:
+When reporting parser errors, state explicitly whether the offset is:
 
-- **Byte offset** trong file/wire.
-- **UTF-16 char index** trong Java String.
-- **Code point index** của nội dung.
-- **Dòng/cột logic** nếu parser đã định nghĩa chuẩn newline và Unicode.
+- **Byte offset** in the file or wire stream.
+- **UTF-16 char index** in a Java `String`.
+- **Code point index** in the content.
+- **Logical line/column** if the parser defines newline and Unicode rules.
 
-Nếu một binary protocol có length prefix bằng byte, phải encode trước để tính length, và reader đọc đủ length byte rồi decode đúng **phần payload**, không tính bằng `String.length()`.
+If a binary protocol has a byte-length prefix, encode first to compute the length, and have the reader read all `length` bytes before decoding **only that payload**—never compute length with `String.length()`.
 
-## 18. Byte length trong giao thức mạng
+## 18. Byte Length in Network Protocols
 
-Sai lầm điển hình:
+Typical mistake:
 
 ```java
 String body = "Cà phê ☕";
-int declaredLength = body.length();   // Sai nếu protocol yêu cầu byte count.
+int declaredLength = body.length();   // Wrong if protocol requires byte count.
 byte[] wire = body.getBytes(StandardCharsets.UTF_8);
 ```
 
-Nếu giao thức có frame `[4-byte payload length][payload bytes]`, length phải là `wire.length`, không phải `body.length()`.
+If the protocol uses a frame `[4-byte payload length][payload bytes]`, the length must be `wire.length`, not `body.length()`.
 
-Mẫu đúng (mã minh họa):
+Correct pattern (illustrative code):
 
 ```java
 byte[] bodyBytes = body.getBytes(StandardCharsets.UTF_8);
@@ -769,13 +769,13 @@ frame.putInt(bodyBytes.length);
 frame.put(bodyBytes);
 ```
 
-Các biến `body`, `MAX_PAYLOAD_BYTES`, `frame` cần được khai báo/cấp đủ capacity trước, và `frame` phải tuân theo `ByteOrder` đã thống nhất với peer. Ở phía đọc, sử dụng đúng số byte length đã công bố, đọc đủ frame (xử lý partial I/O), rồi decode **sau khi đủ byte**. Dù frame bị chia qua TCP packets hoặc file chunks, encoding vẫn có ranh giới logic rõ ràng.
+`body`, `MAX_PAYLOAD_BYTES`, and `frame` must be declared and allocated with enough capacity beforehand, and `frame` must use the `ByteOrder` agreed upon with the peer. On the reading side, use the exact advertised byte length, read the complete frame (handling partial I/O), and decode **after all bytes have arrived**. Even if a frame is split across TCP packets or file chunks, decoding has clear logical boundaries.
 
-Nếu giao thức dùng text delimiter như newline, còn phải quyết định cách escape, việc nhận `\r\n` bị chia qua buffers và giới hạn dòng. **Ranh giới network I/O không tự biến thành ranh giới record hoặc ký tự Unicode**.
+If the protocol uses a text delimiter such as newline, you must also define escaping, splitting `\r\n` across buffers, and line length limits. **Network I/O boundaries do not automatically become record boundaries or Unicode character boundaries.**
 
-## 19. Unicode normalization: giống về hình thức chưa chắc bằng bytes
+## 19. Unicode Normalization: Visually Identical Does Not Mean Byte-Equal
 
-Hai chuỗi có thể được hiển thị tương tự nhưng khác mã hóa Unicode:
+Two strings can render identically yet differ in Unicode encoding:
 
 ```java
 String a = "\u00E9";
@@ -788,211 +788,211 @@ String nb = Normalizer.normalize(b, Normalizer.Form.NFC);
 System.out.println(na.equals(nb)); // true
 ```
 
-Đây là đoạn minh họa cần import `java.text.Normalizer`, chạy được trong method Java 17.
+This is an illustrative snippet requiring `java.text.Normalizer`, runnable inside a Java 17 method.
 
-- **NFC** cố gắng tổ hợp canonical equivalents theo chuẩn Unicode.
-- **NFD** tách canonical decomposition.
-- NFKC/NFKD có compatibility mapping, có thể thay đổi ý nghĩa hoặc kiểu hiển thị của một số ký tự hơn canonical normalization.
-- Không normalize âm thầm mọi dữ liệu như identifier, password hoặc chuỗi đã ký nếu protocol không quy định.
-- Không coi normalization là phòng chống mọi homograph, spoofing hoặc confusable characters.
+- **NFC** composes canonical equivalents per the Unicode standard.
+- **NFD** decomposes into canonical decomposition.
+- NFKC/NFKD apply compatibility mappings, which can alter the meaning or visual style of certain characters beyond canonical normalization.
+- Never silently normalize fields such as identifiers, passwords, or signed strings unless the protocol specifies it.
+- Do not treat normalization as a complete defense against homograph, spoofing, or confusable-character attacks.
 
-Để kiểm thử dữ liệu tiếng Việt, nên có cả dạng precomposed và combining marks, kiểm tra byte round-trip khi cần bảo toàn nguyên bản, và kiểm tra normalization riêng theo rule nghiệp vụ.
+To test Vietnamese data, include both precomposed forms and combining marks, verify byte round-trips when raw preservation is required, and test normalization separately according to business rules.
 
-## 20. Test cases tối thiểu cho Unicode streaming
+## 20. Minimum Test Cases for Streaming Unicode
 
-Một bộ kiểm thử nên có các chuỗi và tình huống sau:
+A test suite should include the following strings and scenarios:
 
-| Trường hợp | Điều muốn chứng minh |
+| Scenario | What It Proves |
 |---|---|
-| ASCII `Hello` | Không cần multibyte, baseline |
-| Tiếng Việt `Cà phê` | Unicode ngoài ASCII |
-| `☕` chia sau byte 1 và byte 2 | Decoder giữ 1–2 byte còn thiếu |
-| `😀` chia sau byte 1, 2 và 3 | Decoder giữ tối đa 3 byte đầu |
-| UTF-8 BOM `EF BB BF` chia làm 3 chunks | Policy BOM áp dụng đúng một lần |
-| Không BOM | Không vô tình xóa ký tự đầu tiên |
-| U+FEFF ở giữa nội dung | Không xóa mọi U+FEFF |
-| UTF-16BE/LE với BOM | Đúng endian theo format |
-| UTF-16LE không BOM | Chỉ decode đúng khi charset đã được biết |
-| Input UTF-8 thiếu byte cuối | `REPORT` phát hiện truncated input khi EOF |
-| Byte continuation lẻ `80` | Malformed input đúng |
-| Buffer output đầy | `OVERFLOW` được drain, không mất ký tự |
-| Decoder chia byte với kích thước chunk 1, 2, 3, 4, 7... | Output bất biến theo cách phân khối |
-| String có combining accents | Không lẫn equals với canonical equivalence |
-| Emoji với surrogate pair | Không cắt đôi khi xử lý Java char[] |
-| Giao thức length-prefixed UTF-8 | Length tính theo byte, không theo String.length |
+| ASCII `Hello` | Baseline without multi-byte characters |
+| Vietnamese `Cà phê` | Non-ASCII Unicode |
+| `☕` split after byte 1 and byte 2 | Decoder retains 1–2 missing bytes |
+| `😀` split after bytes 1, 2, and 3 | Decoder retains up to 3 leading bytes |
+| UTF-8 BOM `EF BB BF` split into 3 chunks | BOM policy applies cleanly once |
+| No BOM | Does not accidentally drop the first character |
+| `U+FEFF` in the middle of content | Does not delete every `U+FEFF` |
+| UTF-16BE/LE with BOM | Correct endianness per format |
+| UTF-16LE without BOM | Decodes properly only when charset is known |
+| UTF-8 input missing final byte | `REPORT` catches truncated input at EOF |
+| Stray continuation byte `80` | Malformed input detected properly |
+| Full output buffer | `OVERFLOW` is drained without losing characters |
+| Decoder fed chunks of size 1, 2, 3, 4, 7... | Output is invariant across chunking strategies |
+| Strings with combining accents | Does not confuse `equals` with canonical equivalence |
+| Emoji with surrogate pair | Not split in half when processing Java `char[]` |
+| Length-prefixed UTF-8 protocol | Length measured in bytes, not `String.length` |
 
-### Property-style test: bất biến theo ranh giới chunk
+### Property-Style Test: Invariance Across Chunk Boundaries
 
-Một nguyên tắc mạnh:
+A strong rule:
 
-> Với cùng một dãy byte UTF-8 hợp lệ, output của decoder stateful phải giống nhau bất kể input được chia thành các chunk 1, 2, 3,... byte như thế nào (miễn là giữ đúng thứ tự byte và báo EOF đúng lúc).
+> Given the same valid UTF-8 byte sequence, the output of a stateful decoder must be identical regardless of how the input is split into 1-, 2-, 3-, ... byte chunks (as long as byte order is preserved and EOF is signaled accurately).
 
-Có thể viết test lặp các kích thước chunk cố định khác nhau, sau đó thêm kiểm thử random partition. Không cần “một packet = một message” để decode text đúng.
+You can write a test looping over different fixed chunk sizes, then add randomized partitioning tests. You do not need "one packet = one message" to decode text correctly.
 
-Tương tự, với chuỗi UTF-8 không hợp lệ, **chính sách lỗi** phải nhất quán: `REPORT` phát hiện input malformed/truncated, còn `REPLACE` tạo output được định nghĩa theo chính sách replacement; không âm thầm chấp nhận dữ liệu chỉ vì sự cố xảy ra ở boundary khác.
+Likewise, for invalid UTF-8 sequences, the **error policy** must be consistent: `REPORT` detects malformed/truncated input, while `REPLACE` produces output per the replacement policy; never silently accept invalid data simply because the split landed on a different boundary.
 
-## 21. BOM và đầu vào có prefix/header nhị phân
+## 21. BOMs and Inputs with Binary Prefixes/Headers
 
-Trong một số protocol, byte stream bắt đầu bằng **binary header** rồi mới đến một trường text. Khi đó BOM (nếu spec cho phép) phải được kiểm tra **tại đầu trường text**, không nhất thiết ở offset 0 của toàn bộ stream.
+In some protocols, a byte stream starts with a **binary header** followed by a text field. In that case, a BOM (if permitted by the spec) must be checked **at the start of the text field**, not necessarily at offset 0 of the entire stream.
 
-Ví dụ:
+Example:
 
 ```text
 [magic: 4 bytes][version: 1][textLength: 4][text UTF-8 bytes]
 ```
 
-Nếu `text UTF-8 bytes` bắt đầu bằng `EF BB BF`, policy BOM áp dụng sau khi parser đã đọc đúng header và xác định vị trí payload. Nếu parser đọc toàn bộ byte stream qua `InputStreamReader` ngay từ byte 0, binary header có thể bị giải mã thành ký tự sai và làm lệch byte offset.
+If `text UTF-8 bytes` begins with `EF BB BF`, the BOM policy applies after the parser reads the header and locates the payload. If the parser wrapped the entire byte stream in `InputStreamReader` starting at byte 0, the binary header would be decoded as bogus characters and shift byte offsets.
 
-Vì vậy:
+Therefore:
 
-1. Parse **binary structure** theo byte trước.
-2. Xác định byte range của text payload.
-3. Chọn charset từ spec/metadata.
-4. Áp policy BOM phù hợp tại **đầu payload**.
-5. Decode đầy đủ range bằng stateful decoder hoặc đọc đủ bytes của field rồi decode một lần.
+1. Parse the **binary structure** in bytes first.
+2. Locate the byte range of the text payload.
+3. Determine the charset from the spec or metadata.
+4. Apply the BOM policy at the **start of the payload**.
+5. Decode the exact range with a stateful decoder, or read all bytes of the field and decode once.
 
-Không tự kết luận mọi `EF BB BF` xuất hiện giữa payload là BOM; nó cũng có thể là byte biểu diễn `U+FEFF` có chủ ý trong nội dung.
+Do not assume every `EF BB BF` appearing inside a payload is a BOM; it can also be an intentional `U+FEFF` character in the content.
 
-## 22. Khi nào decode từng chunk độc lập là hợp lệ?
+## 22. When Is Independent Per-Chunk Decoding Valid?
 
-Không phải mọi phân khối đều sai. Nếu **giao thức định nghĩa từng chunk là một chuỗi UTF-8 độc lập và hoàn chỉnh**, có length prefix rõ và sender bảo đảm không cắt một encoding sequence, thì có thể giải mã từng message riêng.
+Not every chunked decode is wrong. If **the protocol defines each chunk as an independent, self-contained UTF-8 string** with a clear length prefix and the sender guarantees never to split an encoding sequence, then decoding each message independently is valid.
 
-Ví dụ:
+Example:
 
 ```text
 Frame 1: [length=3]["☕" UTF-8 3 bytes]
 Frame 2: [length=4]["😀" UTF-8 4 bytes]
 ```
 
-Reader phải đọc đủ 3 hoặc 4 byte rồi mới tạo String. Nếu tầng network lại chia frame thành nhiều lần read, phải gom **đủ frame bytes** trước. Phần được phép decode độc lập là **message boundary do protocol định nghĩa**, không phải boundary do socket/file buffer ngẫu nhiên.
+The reader must read all 3 or 4 bytes before creating the `String`. If the network layer splits a frame across multiple reads, accumulate **all frame bytes** first. The unit eligible for independent decoding is the **protocol-defined message boundary**, not an accidental socket or file buffer boundary.
 
-Một số text protocols như JSON Lines có delimiter rõ; cần parser xác định delimiter đúng theo charset và bảo vệ line length. Với các ký tự Unicode nhiều byte, một byte không thể được tự do hiểu là newline nằm giữa UTF-8 multibyte sequence; nhưng cần đảm bảo parser không nhầm framing và encoding theo một byte order khác.
+Some text protocols like JSON Lines have explicit delimiters; the parser must detect delimiters according to the charset and enforce line length limits. In UTF-8 multi-byte characters, continuation bytes cannot be confused with an ASCII newline byte, though the parser must still ensure it does not confuse framing with another byte-order encoding.
 
-## 23. Sai lầm thường gặp và cách sửa
+## 23. Common Mistakes and Fixes
 
-1. **`new String(buffer, 0, n, UTF_8)` mỗi lần read byte rồi nối chuỗi.** Sai khi code point bị chia; dùng `InputStreamReader` hoặc `CharsetDecoder` stateful.
-2. **Dùng `String.length()` làm số byte ghi lên wire.** Sai với UTF-8; encode trước rồi dùng `byte[].length`.
-3. **Coi Java `char` là code point.** Không đúng với surrogate pair; dùng `codePoints()` hoặc API Character thích hợp.
-4. **Gọi `ByteBuffer.clear()` khi decoder trả UNDERFLOW còn byte chưa đủ.** Làm mất bytes; dùng `compact()`.
-5. **Quên `flip()` trước khi decode.** Decoder có thể đọc sai phạm vi hay không đọc gì.
-6. **Không drain `CharBuffer` sau OVERFLOW.** Vòng lặp không tiến hoặc mất output.
-7. **Gọi `decode(..., true)` sau mỗi chunk.** Khi chunk kết thúc giữa code point, decoder tưởng đó là EOF và báo malformed.
-8. **Không gọi `flush` sau `decode(..., true)`.** Với các decoder stateful, có thể bỏ mất output/bước kết thúc.
-9. **Sử dụng một CharsetDecoder cho nhiều stream cùng lúc.** Decoder có state và không được chia sẻ tùy tiện giữa các stream/thread.
-10. **Không `reset()` decoder trước khi tái sử dụng cho một stream độc lập mới.** State và quy trình decoding có thể không còn hợp lệ.
-11. **Coi `CodingErrorAction.REPLACE` là truyền dữ liệu chính xác.** Replacement đã làm mất thông tin, không dùng cho nội dung cần round-trip.
-12. **Bỏ qua malformed bytes (`IGNORE`) mà không đánh giá tác động nghiệp vụ.** Có thể làm thay đổi identifiers/headers.
-13. **Mặc định mọi file Unicode có BOM.** UTF-8 BOM là tùy chọn và nhiều format cấm BOM.
-14. **Xóa U+FEFF ở mọi vị trí.** Nếu cần strip, chỉ xử lý phần đầu đúng theo spec.
-15. **Nhầm BOM UTF-16BE/LE.** Endian sai làm nội dung vô nghĩa.
-16. **Nhận diện UTF-16 trước UTF-32 khi hỗ trợ cả hai.** UTF-32LE BOM có prefix FF FE giống UTF-16LE; cần quy tắc match dài nhất.
-17. **Cho rằng raw UTF-8 bytes của NFC và NFD giống nhau.** Có thể hiển thị giống nhưng byte/code point khác.
-18. **Dựa vào log chuỗi đã decode để xác định byte lỗi.** Replacement có thể che mất byte gốc; quan sát hex an toàn.
-19. **Đọc cả file không tin cậy bằng `readAllBytes` trước khi decode.** Dễ cạn bộ nhớ; dùng streaming với quota.
-20. **Tưởng `InputStreamReader` trả grapheme clusters nguyên vẹn ở mỗi lần read.** Reader trả `char` units; tầng sau vẫn phải quản lý surrogate/grapheme khi chia char[].
-21. **Không kiểm tra EOF cuối file.** UTF-8 bị cắt một nửa chỉ hiện lỗi khi biết chắc không còn byte nữa.
-22. **Parser JSON/XML/CSV không thống nhất charset giữa writer/reader.** Cần xác định từ spec, không từ môi trường ngẫu nhiên.
-23. **Normalize tất cả text mà không xem hợp đồng.** Có thể thay chữ ký, identifier hoặc dữ liệu cần bảo toàn bytes.
-24. **Đoán charset từ extension file.** Tên file không cam kết content encoding.
-25. **Cho rằng read của network trùng message boundary.** TCP là byte stream, phải framing riêng.
+1. **`new String(buffer, 0, n, UTF_8)` on every read followed by concatenation.** Fails when a code point is split; use `InputStreamReader` or a stateful `CharsetDecoder`.
+2. **Using `String.length()` as the byte count written on the wire.** Wrong for UTF-8; encode first and use `byte[].length`.
+3. **Treating a Java `char` as a code point.** False for surrogate pairs; use `codePoints()` or appropriate `Character` APIs.
+4. **Calling `ByteBuffer.clear()` when the decoder returns `UNDERFLOW` with incomplete bytes.** Discards bytes; use `compact()`.
+5. **Forgetting `flip()` before decoding.** The decoder may read the wrong slice or nothing at all.
+6. **Failing to drain `CharBuffer` after `OVERFLOW`.** The loop stalls or drops output.
+7. **Calling `decode(..., true)` after every chunk.** When a chunk ends mid-code-point, the decoder assumes EOF and reports malformed input.
+8. **Forgetting to call `flush` after `decode(..., true)`.** With stateful decoders, trailing output or finalization steps can be lost.
+9. **Sharing one `CharsetDecoder` across multiple streams simultaneously.** Decoders hold state and must not be shared across streams or threads.
+10. **Not calling `reset()` on a decoder before reusing it for a new independent stream.** State and decoding progress can become invalid.
+11. **Treating `CodingErrorAction.REPLACE` as lossless data transmission.** Replacement loses information and must not be used when round-tripping is required.
+12. **Ignoring malformed bytes (`IGNORE`) without evaluating business impact.** Can alter identifiers or headers.
+13. **Assuming every Unicode file has a BOM.** UTF-8 BOMs are optional, and many formats forbid them.
+14. **Deleting `U+FEFF` at every position.** If stripping is needed, remove it only at the beginning per spec.
+15. **Confusing UTF-16BE and UTF-16LE BOMs.** Wrong endianness turns content into gibberish.
+16. **Checking UTF-16 before UTF-32 when supporting both.** UTF-32LE BOM starts with `FF FE`, matching UTF-16LE; use a longest-match rule.
+17. **Assuming raw UTF-8 bytes of NFC and NFD are identical.** They may render alike while differing in bytes and code points.
+18. **Relying on decoded string logs to diagnose bad bytes.** Replacement hides original bytes; inspect safe hex dumps.
+19. **Reading an entire untrusted file with `readAllBytes` before decoding.** Easily exhausts memory; use streaming with quotas.
+20. **Assuming `InputStreamReader` returns intact grapheme clusters on every read.** It returns `char` units; downstream layers still must manage surrogates and graphemes when splitting `char[]`.
+21. **Failing to check EOF at end of file.** Truncated UTF-8 only triggers an error once you know no more bytes will arrive.
+22. **JSON/XML/CSV parsers not agreeing on charset between writer and reader.** Determine it from the spec, not random environment defaults.
+23. **Normalizing all text without checking the contract.** Can break signatures, identifiers, or data requiring byte preservation.
+24. **Guessing charset from the file extension.** File names do not guarantee content encoding.
+25. **Assuming network reads match message boundaries.** TCP is a byte stream and requires explicit framing.
 
-## 24. Bài tập thực hành
+## 24. Practice Exercises
 
-**Bài 1 — Đổi kích thước chunk.** Sửa ví dụ `UnicodeBoundaryDemo` từ 2 byte/lượt thành 1, 3, 4, 5 byte/lượt. Chứng minh `Split-safe equals: true` trong mọi lần nếu file và charset đúng. Không tạo decoder mới cho mỗi vòng.
+**Exercise 1 — Varying Chunk Sizes.** Modify `UnicodeBoundaryDemo` from 2 bytes per read to 1, 3, 4, and 5 bytes per read. Prove `Split-safe equals: true` in all runs when the file and charset are valid. Do not recreate the decoder inside the loop.
 
-**Bài 2 — Hỏng byte cuối.** Lấy UTF-8 của `"😀"` và bỏ byte cuối. Dùng `CharsetDecoder` với `REPORT`, gọi `decode(..., true)` khi EOF và xác nhận lỗi malformed. Sau đó thử `REPLACE` để thấy output không còn nguyên bản.
+**Exercise 2 — Corrupting the Final Byte.** Take the UTF-8 bytes of `"😀"` and drop the last byte. Use `CharsetDecoder` with `REPORT`, call `decode(..., true)` at EOF, and confirm the malformed error. Then try `REPLACE` to observe that the output no longer matches the original.
 
-**Bài 3 — UTF-8 BOM bị chia ba lượt.** Ghi byte `EF BB BF 41`, dùng InputStream chỉ trả từng byte một. Đảm bảo detector không nhầm `EF` đơn lẻ là BOM hoàn chỉnh, và output sau policy là `A`.
+**Exercise 3 — UTF-8 BOM Split Across Three Reads.** Write bytes `EF BB BF 41` and use an `InputStream` returning one byte at a time. Ensure the detector does not mistake a lone `EF` for a complete BOM, and that the post-policy output is `A`.
 
-**Bài 4 — UTF-16BE và UTF-16LE.** Tạo byte sequences của `"A☕"` với `UTF_16BE` và `UTF_16LE`. So sánh hex, giải mã bằng charset đúng, sau đó giải mã nhầm để quan sát khác biệt.
+**Exercise 4 — UTF-16BE and UTF-16LE.** Generate byte sequences for `"A☕"` using `UTF_16BE` and `UTF_16LE`. Compare hex, decode with the right charset, then decode with the wrong one to observe the difference.
 
-**Bài 5 — Cặp surrogate.** Đọc Unicode emoji thành Java char[]. Chia char[] ngay giữa high và low surrogate, sau đó thiết kế bộ xử lý codepoint giữ high surrogate tới lần nhận tiếp theo.
+**Exercise 5 — Surrogate Pairs.** Read a Unicode emoji into a Java `char[]`. Split the `char[]` right between the high and low surrogates, then implement a code-point processor that retains the trailing high surrogate until the next read.
 
-**Bài 6 — Binary length prefix.** Viết protocol `int32 byteLength + UTF-8 payload`. Truyền text `"Cà phê ☕"`, thử chia payload thành từng read ngẫu nhiên, kiểm tra cuối cùng String bằng bản gốc.
+**Exercise 6 — Binary Length Prefix.** Implement a protocol `int32 byteLength + UTF-8 payload`. Send `"Cà phê ☕"`, split the payload across random read sizes, and verify the final `String` equals the original.
 
-**Bài 7 — Normalization.** So sánh `"\u00E9"` và `"e\u0301"` về `equals`, số code point, byte UTF-8 và kết quả sau `Normalizer.Form.NFC`.
+**Exercise 7 — Normalization.** Compare `"\u00E9"` and `"e\u0301"` on `equals`, code point count, UTF-8 bytes, and results after `Normalizer.Form.NFC`.
 
-**Bài 8 — Diagnostics.** Khi phát hiện malformed UTF-8, log charset dự kiến, byte offset và chuỗi byte hex **đã redacted**, không log toàn bộ nội dung nhạy cảm. Viết test cho bytes `80` và `E2 98`.
+**Exercise 8 — Diagnostics.** When malformed UTF-8 is detected, log the expected charset, byte offset, and **redacted** hex bytes without logging full sensitive content. Write tests for bytes `80` and `E2 98`.
 
-## 25. Câu hỏi tự kiểm tra
+## 25. Self-Check Questions
 
-**Câu 1.** Đọc hai byte `E2 98` rồi kết thúc **một lần read**, có đủ lý do báo UTF-8 hỏng chưa?  
-**Không**, nếu byte stream chưa EOF. Đây có thể là prefix hợp lệ của code point ba byte. Decoder cần chờ byte tiếp theo.
+**Q1.** Reading two bytes `E2 98` at the end of **a single read**—is that enough reason to report corrupted UTF-8?  
+**No**, if the byte stream has not reached EOF. It may be the valid prefix of a three-byte code point. The decoder must wait for the next byte.
 
-**Câu 2.** Nếu đã biết **EOF thực sự** và chỉ còn `E2 98`, kết quả strict decoding?  
-**Malformed input**, vì sequence chưa hoàn chỉnh.
+**Q2.** If **true EOF** is known and only `E2 98` remains, what is the result of strict decoding?  
+**Malformed input**, because the sequence is incomplete.
 
-**Câu 3.** Vì sao `new String(chunk1,UTF_8)+new String(chunk2,UTF_8)` có thể sai?  
-**Vì mỗi decoder độc lập** không nhớ byte đầu của một code point nằm ở chunk trước.
+**Q3.** Why can `new String(chunk1,UTF_8)+new String(chunk2,UTF_8)` fail?  
+**Because each independent decoder** forgets the leading bytes of a code point that appeared in the previous chunk.
 
-**Câu 4.** `ByteBuffer.compact()` giúp gì trong một incremental decoder?  
-**Giữ byte chưa được consume** khi đang chờ chunk tiếp theo và chuẩn bị vùng trống để append.
+**Q4.** How does `ByteBuffer.compact()` help in an incremental decoder?  
+**It preserves unconsumed bytes** while waiting for the next chunk and frees space at the end for appending.
 
-**Câu 5.** `CoderResult.OVERFLOW` là dữ liệu UTF-8 sai phải không?  
-**Không.** Thường là output `CharBuffer` hết chỗ, cần drain rồi decode tiếp.
+**Q5.** Does `CoderResult.OVERFLOW` mean invalid UTF-8 data?  
+**No.** It usually means the output `CharBuffer` ran out of space and must be drained before continuing decoding.
 
-**Câu 6.** Chuỗi `"😀"` có `length() == 1` không?  
-**Không**. `String.length() == 2` do cặp surrogate UTF-16, nhưng có 1 Unicode code point.
+**Q6.** Does `"😀"` have `length() == 1`?  
+**No**. `String.length() == 2` due to the UTF-16 surrogate pair, though it has 1 Unicode code point.
 
-**Câu 7.** UTF-8 BOM gồm những byte nào?  
-**EF BB BF**. UTF-8 không cần BOM để xác định endian.
+**Q7.** Which bytes make up the UTF-8 BOM?  
+**EF BB BF**. UTF-8 does not need a BOM to determine endianness.
 
-**Câu 8.** Java UTF-8 decoder có luôn tự bỏ `EF BB BF` ở đầu không?  
-**Không**. Nhiều API giải mã chuẩn đưa nó thành ký tự `U+FEFF`; cần policy rõ.
+**Q8.** Does Java's UTF-8 decoder always strip a leading `EF BB BF` automatically?  
+**No**. Many standard decoding APIs return it as character `U+FEFF`; an explicit policy is needed.
 
-**Câu 9.** Có nên gọi `text.replace("\uFEFF","")` để xử lý BOM không?  
-**Không theo mặc định**, vì thao tác đó xóa U+FEFF ở mọi vị trí. BOM là dấu ở **đầu stream/field**, không phải mọi ký tự U+FEFF.
+**Q9.** Should you call `text.replace("\uFEFF","")` to handle a BOM?  
+**Not by default**, because it deletes `U+FEFF` everywhere. A BOM belongs only at the **start of a stream or field**, not every `U+FEFF` character.
 
-**Câu 10.** Protocol gửi chuỗi UTF-8 có prefix byte length. Dùng `String.length()` được không?  
-**Không**; phải encode rồi lấy số byte thực tế.
+**Q10.** A protocol sends a UTF-8 string with a byte-length prefix. Can you use `String.length()`?  
+**No**; encode first and use the actual byte count.
 
-**Câu 11.** `InputStreamReader` giải mã UTF-8 đúng qua nhiều byte chunks có tự bảo đảm các lần `read(char[])` không chia đôi cặp surrogate không?  
-**Không nên dựa vào điều đó**; tầng xử lý char units vẫn phải chịu trách nhiệm về code points/grapheme boundaries.
+**Q11.** Does `InputStreamReader` decoding UTF-8 across byte chunks automatically guarantee `read(char[])` calls never split a surrogate pair?  
+**Do not rely on it**; the `char`-unit processing layer remains responsible for code point and grapheme boundaries.
 
-**Câu 12.** Vì sao `REPORT` hữu ích trong kiểm thử dữ liệu đầu vào?  
-**Nó làm lỗi encoding lộ rõ**, thay vì âm thầm chèn replacement rồi khiến dữ liệu sai được xem là hợp lệ.
+**Q12.** Why is `REPORT` valuable when testing input data?  
+**It surfaces encoding errors clearly**, instead of silently inserting replacements and treating corrupted data as valid.
 
-**Câu 13.** Hai chuỗi nhìn như `é` có nhất thiết có cùng bytes UTF-8 không?  
-**Không**. Một chuỗi có thể là U+00E9, chuỗi kia là U+0065 U+0301.
+**Q13.** Do two strings that look like `é` necessarily have the same UTF-8 bytes?  
+**No**. One can be `U+00E9` while the other is `U+0065 U+0301`.
 
-**Câu 14.** Khi hỗ trợ UTF-16 và UTF-32 BOM, tại sao cần kiểm tra BOM dài nhất trước?  
-**Để không hiểu nhầm prefix `FF FE` của UTF-32LE** là BOM hoàn chỉnh của UTF-16LE.
+**Q14.** When supporting both UTF-16 and UTF-32 BOMs, why check the longest BOM first?  
+**To avoid misreading the `FF FE` prefix of UTF-32LE** as a complete UTF-16LE BOM.
 
-## 26. Checklist triển khai và kiểm thử
+## 26. Implementation and Testing Checklist
 
-- [ ] Xác định chính xác charset từ giao thức hoặc metadata đáng tin cậy, ưu tiên UTF-8 khi spec cho phép.
-- [ ] Ghi rõ encoding ở writer và reader; không phụ thuộc charset mặc định.
-- [ ] Phân biệt byte offset, Java UTF-16 index, code point và grapheme.
-- [ ] Không decode riêng từng byte chunk chưa chắc chứa một message hoàn chỉnh.
-- [ ] Với text stream đơn giản, dùng `InputStreamReader`/`BufferedReader` cùng charset.
-- [ ] Với binary protocol/ByteBuffer, dùng stateful `CharsetDecoder` và giữ byte dư bằng `compact()`.
-- [ ] Đảm bảo `decode(..., true)` **chỉ khi EOF**, sau đó `flush` đúng protocol.
-- [ ] Drain output buffer khi OVERFLOW, không mất byte/input state.
-- [ ] Chọn `REPORT` cho dữ liệu yêu cầu chính xác; log và xử lý lỗi rõ.
-- [ ] Đặt giới hạn bytes/ký tự/CPU/timeouts phù hợp nguồn tin cậy.
-- [ ] Có policy BOM: cho phép, loại ở đầu, hoặc từ chối theo định dạng.
-- [ ] Với UTF-16, xác định BE/LE; không đoán BOM khi format đã cố định charset.
-- [ ] Không strip `U+FEFF` ở giữa nội dung một cách mù quáng.
-- [ ] Khi framing network, tính length theo byte sau encoding.
-- [ ] Kiểm thử với tiếng Việt, emoji, dấu tổ hợp, UTF-8 BOM, EOF giữa code point.
-- [ ] Kiểm thử mọi kích thước chunk nhỏ: 1, 2, 3, 4, ... byte và random splits.
-- [ ] So sánh byte round-trip khi yêu cầu bảo toàn chính xác.
-- [ ] Đảm bảo normalization theo hợp đồng; không tự động biến NFD thành NFC khi không được phép.
-- [ ] Định nghĩa hành vi trước malformed bytes và sai encoding.
-- [ ] Không log raw data nhạy cảm trong thông điệp chẩn đoán.
+- [ ] Determine the exact charset from the protocol or trusted metadata, preferring UTF-8 when the spec allows.
+- [ ] Specify encoding explicitly on both writer and reader; never rely on the default charset.
+- [ ] Distinguish byte offset, Java UTF-16 index, code point, and grapheme.
+- [ ] Never decode individual byte chunks independently unless guaranteed to hold a complete message.
+- [ ] For simple text streams, use `InputStreamReader`/`BufferedReader` with an explicit charset.
+- [ ] For binary protocols/`ByteBuffer`, use a stateful `CharsetDecoder` and retain leftover bytes with `compact()`.
+- [ ] Pass `decode(..., true)` **only at EOF**, then `flush` according to the protocol.
+- [ ] Drain the output buffer on `OVERFLOW` without losing bytes or input state.
+- [ ] Choose `REPORT` for data requiring exactness; log and handle errors explicitly.
+- [ ] Enforce byte, character, CPU, and timeout limits appropriate to source trust.
+- [ ] Define a BOM policy: allow, strip at start, or reject per format.
+- [ ] For UTF-16, determine BE/LE; do not guess BOMs when the format fixes the charset.
+- [ ] Do not blindly strip `U+FEFF` from the middle of content.
+- [ ] For network framing, compute length in bytes after encoding.
+- [ ] Test with Vietnamese text, emojis, combining marks, UTF-8 BOMs, and EOF mid-code-point.
+- [ ] Test small chunk sizes: 1, 2, 3, 4, ... bytes and random splits.
+- [ ] Verify byte round-trips when exact preservation is required.
+- [ ] Apply normalization strictly per contract; never silently turn NFD into NFC when disallowed.
+- [ ] Define behavior for malformed bytes and wrong encodings.
+- [ ] Never log raw sensitive data in diagnostic messages.
 
-## 27. Tóm tắt
+## 27. Summary
 
-- **Unicode là tập mã code point; UTF-8/UTF-16 là cách biểu diễn chúng thành các đơn vị lưu/truyền.**
-- **Một lần đọc byte không tương đương một Unicode character.** UTF-8 từ 1–4 byte/code point, nên phải cho phép sequence nằm qua nhiều chunks.
-- **Không dùng `new String` độc lập cho từng chunk tùy ý.** Dùng `InputStreamReader` hoặc `CharsetDecoder` giữ state.
-- **`flip()` để chuyển sang đọc; `compact()` giữ byte chưa đủ; `clear()` có thể làm mất chúng.**
-- **Báo EOF chỉ khi stream kết thúc**, xử lý decode final + flush và báo malformed khi input bị cắt.
-- **BOM UTF-8 là EF BB BF**, tùy chọn; UTF-16 BOM cho biết endian. Policy BOM phải theo format, chỉ áp vào đầu stream/payload.
-- **Byte count ≠ `String.length()` ≠ code point count**, đặc biệt khi có tiếng Việt/emoji/combining marks.
-- **Kiểm thử ranh giới và error policy là bắt buộc** để không biến dữ liệu sai thành các ký tự thay thế mà không ai phát hiện.
+- **Unicode is a set of code points; UTF-8/UTF-16 are ways of encoding them into storage/transmission units.**
+- **One byte read does not equal one Unicode character.** UTF-8 uses 1–4 bytes per code point, so sequences must be allowed to span chunks.
+- **Never call `new String` independently on arbitrary chunks.** Use `InputStreamReader` or a stateful `CharsetDecoder`.
+- **`flip()` switches to reading; `compact()` retains incomplete bytes; `clear()` can discard them.**
+- **Signal EOF only when the stream ends**, execute final decode + `flush`, and report malformed input when truncated.
+- **The UTF-8 BOM is `EF BB BF`**, optional; UTF-16 BOMs indicate endianness. BOM policy must follow the format and apply only at the start of a stream or payload.
+- **Byte count ≠ `String.length()` ≠ code point count**, especially with Vietnamese text, emojis, and combining marks.
+- **Boundary testing and error-policy testing are mandatory** so corrupted data is never silently turned into replacement characters unnoticed.
 
-### Tài liệu API Java SE 17
+### Java SE 17 API Documentation
 
 - [CharsetDecoder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetDecoder.html)
 - [CoderResult](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CoderResult.html)

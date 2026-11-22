@@ -1,16 +1,16 @@
-# Hoàn thiện ví dụ tích hợp Java I/O và kiểm thử các nhánh thất bại
+# Completing an Integrated Java I/O Example and Testing Failure Branches
 
-## 1. Mục tiêu và tiêu chí hoàn thành
+## 1. Objectives and Completion Criteria
 
-Bài thực hành tích hợp các thành phần đã học của Java I/O/NIO.2 thành một luồng xử lý có thể chạy và kiểm tra được: **đọc byte → giải mã UTF-8 → đọc theo dòng → xác thực dữ liệu → tính toán → ghi tệp tạm → đưa kết quả vào vị trí đích**. Ngoài luồng thành công, mỗi điểm có khả năng thất bại đều phải có một kiểm thử cho thấy lỗi được phát hiện, tài nguyên được đóng và kết quả hợp lệ cũ được giữ nguyên khi chưa tới bước hoàn tất.
+This exercise integrates the Java I/O/NIO.2 components covered so far into a runnable, testable pipeline: **read bytes → decode UTF-8 → read line by line → validate data → compute → write temp file → move result to target location**. Alongside the happy path, every potential failure point must have a test showing that the error is caught, resources are closed, and any previous valid output remains intact before the commit step.
 
-Sau bài này, bạn cần giải thích được sự khác biệt giữa lỗi định dạng dữ liệu và lỗi I/O, vai trò của `try-with-resources`, lý do không ghi trực tiếp đè lên báo cáo cũ, cách tạo lỗi giả lập có kiểm soát và cách kiểm thử **cả ngoại lệ lẫn trạng thái tệp sau ngoại lệ**.
+After this lesson, you should be able to explain the difference between data-format errors and I/O errors, the role of `try-with-resources`, why you should never overwrite an old report directly, how to inject controlled faults, and how to test **both the exception and post-exception file state**.
 
-**Đề bài mẫu:** Đọc tệp UTF-8 `orders.csv` có hai cột `id,quantity`, tính số bản ghi và tổng số lượng, xuất `report.txt` chứa `records=...` và `totalQuantity=...`. Bài dùng **CSV đơn giản có chính xác một dấu phẩy mỗi dòng**, không hỗ trợ trường trong dấu nháy hoặc dấu phẩy nằm trong giá trị; hệ thống CSV thực tế cần parser chuyên dụng.
+**Sample problem:** Read a UTF-8 `orders.csv` file with two columns `id,quantity`, compute record count and total quantity, and write `report.txt` containing `records=...` and `totalQuantity=...`. This exercise uses **simple CSV with exactly one comma per line**, without supporting quoted fields or commas inside values; production CSV systems require a dedicated parser.
 
-Quy ước dữ liệu: dòng đầu tiên phải chính xác `id,quantity` (không BOM); mỗi dòng tiếp theo phải có ID khớp `[A-Za-z][A-Za-z0-9_-]{0,31}`, ID không trùng, `quantity` là số nguyên `long` dương. Dòng trống, số không hợp lệ, số âm/0, ID trùng, dữ liệu UTF-8 lỗi hoặc tổng bị tràn đều làm thao tác thất bại. Tệp chỉ có header là hợp lệ và tạo báo cáo 0 bản ghi, tổng 0.
+Data rules: the first line must strictly be `id,quantity` (no BOM); each subsequent line must have an ID matching `[A-Za-z][A-Za-z0-9_-]{0,31}`, no duplicate IDs, and `quantity` as a positive `long` integer. Blank lines, invalid numbers, negative/zero numbers, duplicate IDs, malformed UTF-8 data, or sum overflow all fail the operation. A header-only file is valid and produces a report with 0 records and total 0.
 
-Ví dụ đầu vào:
+Example input:
 
 ```csv
 id,quantity
@@ -18,26 +18,26 @@ apple,2
 banana,7
 ```
 
-Kết quả nội dung `report.txt`:
+Resulting `report.txt` content:
 
 ```text
 records=2
 totalQuantity=9
 ```
 
-## 2. Thiết kế luồng và ranh giới trách nhiệm
+## 2. Pipeline Design and Responsibility Boundaries
 
-1. `generate` nhận `Path` đầu vào/đầu ra, không cho dùng cùng một tệp và điều phối hai pha.
-2. `parse` sử dụng `Files.newInputStream`, `InputStreamReader` với bộ giải mã UTF-8 ở chế độ `REPORT`, rồi `BufferedReader` để xử lý tuần tự. Toàn bộ phân tích và kiểm tra diễn ra **trước khi tạo báo cáo mới**.
-3. `writeSafely` viết kết quả ra tệp tạm trong **cùng thư mục** với đích, đóng writer trước khi di chuyển; dùng `Files.move(..., ATOMIC_MOVE, REPLACE_EXISTING)` để yêu cầu đổi tên nguyên tử nếu hệ thống tệp hỗ trợ. Không hỗ trợ atomic move thì trả lỗi rõ ràng, không âm thầm chuyển sang thao tác kém bảo đảm hơn.
-4. `finally` xóa tệp tạm nếu nó còn tồn tại. `BeforeCommit` là điểm chèn lỗi dành cho kiểm thử, giúp ép luồng lỗi ngay sau khi ghi tệp tạm mà không lệ thuộc vào quyền tệp/hệ điều hành.
-5. Bộ kiểm thử dùng thư mục tạm độc lập cho mỗi ca và xóa sau khi chạy. Assertions xác minh giá trị đầu ra, **loại lỗi mong đợi** và tác động lên tệp cũ/tệp tạm.
+1. `generate` accepts input/output `Path`s, forbids using the same file for both, and orchestrates two phases.
+2. `parse` uses `Files.newInputStream`, `InputStreamReader` with a UTF-8 decoder in `REPORT` mode, and `BufferedReader` for sequential processing. All parsing and validation happen **before creating any new report**.
+3. `writeSafely` writes the result to a temp file in the **same directory** as the target, closing the writer before moving; it calls `Files.move(..., ATOMIC_MOVE, REPLACE_EXISTING)` to request atomic rename when supported by the filesystem. If atomic move is unsupported, it throws a clear error rather than silently downgrading to a weaker operation.
+4. `finally` deletes the temp file if it still exists. `BeforeCommit` is a test-only fault-injection hook allowing failure right after writing the temp file without depending on OS or file permissions.
+5. The test suite uses an isolated temporary directory per test case and cleans up afterward. Assertions verify output values, **expected exception types**, and side effects on old/temp files.
 
-Trong ví dụ đơn luồng này, “an toàn” có nghĩa là **không cố ý thay báo cáo cũ trước khi dữ liệu mới được đọc, kiểm tra và ghi xong**; tính nguyên tử của bước đổi tên phải được hệ thống tệp bảo đảm. Đây không phải cơ chế giao dịch nhiều tệp, chống ghi đồng thời hoặc bảo đảm dữ liệu đã được đồng bộ vật lý xuống thiết bị lưu trữ.
+In this single-threaded example, "safely" means **avoiding intentionally replacing the old report before new data is read, validated, and fully written**; rename atomicity must be provided by the filesystem. This is not a multi-file transaction mechanism, concurrent-write defense, or guarantee that data has been physically synced to storage hardware.
 
-## 3. Mã hoàn chỉnh: Java 17 trở lên
+## 3. Complete Code: Java 17 or Newer
 
-Lưu toàn bộ chương trình bên dưới trong **`IntegratedIoDemo.java`** (một tệp, không dùng thư viện bên thứ ba). `Summary` dùng `record`, các hàm kiểm thử nằm cùng lớp để chạy trực tiếp bằng JDK.
+Save the entire program below in **`IntegratedIoDemo.java`** (single file, no third-party libraries). `Summary` uses a `record`, and test methods live in the same class so it runs directly with the JDK.
 
 ```java
 import java.io.BufferedReader;
@@ -298,16 +298,16 @@ public class IntegratedIoDemo {
 }
 ```
 
-## 4. Biên dịch, chạy và quan sát kết quả
+## 4. Compile, Run, and Observe Results
 
-Trong thư mục chứa tệp Java, thực hiện:
+In the directory containing the Java file, run:
 
 ```bash
 javac -encoding UTF-8 IntegratedIoDemo.java
 java IntegratedIoDemo
 ```
 
-Với hệ thống tệp hỗ trợ atomic rename, chương trình in đúng 11 dòng sau (đã chạy kiểm tra trên JDK 21 với mã Java 17 tương thích):
+On a filesystem supporting atomic rename, the program prints these exact 11 lines (verified on JDK 21 with Java 17-compatible source):
 
 ```text
 PASS success
@@ -323,46 +323,46 @@ PASS failure-before-commit
 PASS same-input-and-output
 ```
 
-Muốn chạy như công cụ thật, tạo tệp `orders.csv` từ ví dụ ở mục 1, rồi chạy:
+To run as an actual CLI tool, create `orders.csv` from section 1, then execute:
 
 ```bash
 java IntegratedIoDemo orders.csv report.txt
 ```
 
-Lệnh này báo `Created report: report.txt` khi thành công. Nội dung tệp báo cáo giống ví dụ; ký tự xuống dòng của tệp phụ thuộc nền tảng nhưng `Files.readAllLines` kiểm tra nội dung theo dòng, tránh gắn kiểm thử với CRLF/LF.
+This prints `Created report: report.txt` on success. The report file's content matches the example; file line endings depend on the platform, while `Files.readAllLines` verifies content line by line so tests avoid coupling to CRLF/LF.
 
-## 5. Ma trận kiểm thử nhánh thành công và thất bại
+## 5. Success and Failure Test Matrix
 
-| Ca kiểm thử | Kích hoạt | Kết quả cần chứng minh |
+| Test Case | Trigger | Outcome to Prove |
 |---|---|---|
-| `success` | Dữ liệu đúng, hai bản ghi | Có báo cáo `records=2`, `totalQuantity=9` |
-| `missing-input` | Đường dẫn nguồn không có tệp | `NoSuchFileException`; không tạo kết quả |
-| `bad-header` | Header không chính xác | `DataFormatException` với vị trí dòng đầu |
-| `bad-row` | Số lượng `nope` | `DataFormatException` thay vì bỏ qua dòng |
-| `duplicate-id` | ID `a` xuất hiện hai lần | Phát hiện ID lặp và dừng |
-| `sum-overflow` | Tổng vượt `Long.MAX_VALUE` | `Math.addExact` phát hiện tràn, không cho báo cáo sai |
-| `malformed-utf8` | Byte `C3 28` không tạo chuỗi UTF-8 hợp lệ | `MalformedInputException` từ decoder ở chế độ `REPORT` |
-| `output-is-directory` | Đường dẫn đích là thư mục | Trả `IOException`; thư mục còn nguyên |
-| `old-report-survives-bad-input` | Báo cáo cũ là `KEEP`, dữ liệu mới sai | Báo cáo cũ vẫn đúng từng ký tự |
-| `failure-before-commit` | Hook ném `IOException` sau khi đã đóng writer | Báo cáo cũ vẫn là `KEEP`; không còn tệp `.report-*.tmp` |
-| `same-input-and-output` | Trỏ nguồn và đích tới một tệp | Từ chối xử lý; nguồn không bị ghi đè |
+| `success` | Valid data, two records | Produces report `records=2`, `totalQuantity=9` |
+| `missing-input` | Source path has no file | `NoSuchFileException`; no output created |
+| `bad-header` | Incorrect header | `DataFormatException` citing line 1 |
+| `bad-row` | Quantity `nope` | `DataFormatException` instead of skipping the row |
+| `duplicate-id` | ID `a` appears twice | Detects duplicate ID and stops |
+| `sum-overflow` | Total exceeds `Long.MAX_VALUE` | `Math.addExact` catches overflow, prevents wrong report |
+| `malformed-utf8` | Bytes `C3 28` do not form valid UTF-8 | `MalformedInputException` from decoder in `REPORT` mode |
+| `output-is-directory` | Target path is a directory | Throws `IOException`; directory remains intact |
+| `old-report-survives-bad-input` | Old report is `KEEP`, new input invalid | Old report remains character-for-character intact |
+| `failure-before-commit` | Hook throws `IOException` after writer closes | Old report remains `KEEP`; zero `.report-*.tmp` files left |
+| `same-input-and-output` | Source and target point to the same file | Rejects processing; source is not overwritten |
 
-**Vì sao cần xác minh trạng thái sau lỗi?** Chỉ kiểm tra `expect(IOException.class, ...)` là chưa đủ: một chương trình vẫn có thể ném ngoại lệ *sau khi đã làm hỏng output*. Hai ca `old-report-survives-bad-input` và `failure-before-commit` kiểm tra trực tiếp tính bất biến của dữ liệu cũ; ca sau kiểm tra thêm cleanup. Việc tạo thư mục tạm cho mỗi test khiến kết quả ít phụ thuộc trạng thái còn sót từ lần chạy khác.
+**Why verify post-error state?** Checking `expect(IOException.class, ...)` alone is insufficient: a program can still throw an exception *after already corrupting the output*. Both `old-report-survives-bad-input` and `failure-before-commit` directly verify immutability of the old data; the latter additionally verifies cleanup. Creating a dedicated temporary directory per test prevents results from depending on leftover state from prior runs.
 
-## 6. Cơ chế xử lý lỗi và vòng đời tài nguyên
+## 6. Error Handling Mechanics and Resource Lifecycle
 
-**Đường đọc:** `Files.newInputStream` có thể ném `NoSuchFileException`, `AccessDeniedException` hoặc các `IOException` khác. `InputStreamReader` đổi byte thành ký tự bằng decoder chỉ định; chế độ `REPORT` bảo đảm byte UTF-8 sai bị báo thay vì thay thầm bằng ký tự `�`. `BufferedReader.readLine()` tiện cho dữ liệu theo dòng nhưng không thích hợp khi cần giữ nguyên ký tự xuống dòng hoặc xử lý bản ghi nhiều dòng. Đóng `BufferedReader` trong `try-with-resources` đóng luôn reader bên trong và input stream, kể cả khi parser ném lỗi.
+**Read path:** `Files.newInputStream` can throw `NoSuchFileException`, `AccessDeniedException`, or other `IOException`s. `InputStreamReader` converts bytes to characters using the specified decoder; `REPORT` mode ensures invalid UTF-8 bytes are reported rather than silently replaced with `�`. `BufferedReader.readLine()` is convenient for line-oriented data, though unsuitable when exact line endings must be preserved or multi-line records parsed. Closing `BufferedReader` in `try-with-resources` also closes the underlying reader and input stream, even when the parser throws.
 
-**Đường kiểm tra:** `DataFormatException extends IOException` biểu diễn nội dung đầu vào không đáp ứng hợp đồng, với số dòng có thể dùng để chẩn đoán. `Long.parseLong` xử lý lỗi văn bản/số vượt phạm vi; `Math.addExact` và `Math.incrementExact` ngăn tràn khi cộng dồn. `Set` phát hiện ID trùng. Bài chọn chính sách **fail fast**: chỉ một dòng sai đã làm cả lượt xử lý thất bại; không tạo báo cáo một phần. Nếu nghiệp vụ muốn gom nhiều lỗi để trả về cùng lúc, phải thiết kế kết quả validation riêng.
+**Validation path:** `DataFormatException extends IOException` represents input content failing the contract, with line numbers for diagnostics. `Long.parseLong` catches non-numeric text and out-of-range numbers; `Math.addExact` and `Math.incrementExact` prevent overflow during accumulation. `Set` catches duplicate IDs. This exercise chooses a **fail-fast** policy: a single invalid row fails the entire run without generating a partial report. If business logic requires collecting multiple errors to return together, design a separate validation-result model.
 
-**Đường ghi:** Ghi vào `output` trực tiếp bằng `TRUNCATE_EXISTING` có thể xóa nội dung cũ trước khi lỗi xảy ra. Tệp tạm cùng thư mục giảm nguy cơ đổi tên xuyên hệ thống tệp. Writer được đóng trước `move`; nếu hook ném lỗi, `finally` dọn tệp tạm. Nếu rename nguyên tử không được hỗ trợ, phương thức phát sinh `IOException` bọc `AtomicMoveNotSupportedException`. Với `ATOMIC_MOVE`, cách xử lý đích đã tồn tại có khác biệt theo provider; cần kiểm chứng trên hệ thống tệp triển khai, và lỗi truy cập/quyền ghi không nên được nuốt rồi coi như thành công.
+**Write path:** writing directly to `output` with `TRUNCATE_EXISTING` can wipe old content before an error strikes. A temp file in the same directory reduces the risk of cross-filesystem renames. The writer closes before `move`; if the hook throws, `finally` cleans up the temp file. If atomic rename is unsupported, the method throws an `IOException` wrapping `AtomicMoveNotSupportedException`. Under `ATOMIC_MOVE`, existing-target handling varies by provider; verify on your deployment filesystem, and never swallow access/write-permission errors as if they succeeded.
 
-**Lưu ý giới hạn thực tế:** Ví dụ không theo dõi dung lượng đĩa/quota, không gọi `FileChannel.force` để tăng bảo đảm bền vững sau mất điện, không giải quyết nhiều tiến trình cùng cập nhật báo cáo và không bảo vệ khỏi thay đổi đường dẫn/symlink giữa lúc kiểm tra và ghi. Ở dịch vụ thật, bổ sung giới hạn kích thước file, chính sách path/permission, log có ngữ cảnh và cơ chế khóa/phối hợp khi cần. Không dùng `catch (Exception) { }`, không làm mất nguyên nhân lỗi trong lúc chuyển thành `DataFormatException`.
+**Practical limitations note:** The example does not track disk space/quotas, does not call `FileChannel.force` to strengthen power-loss durability, does not solve concurrent updates to the report by multiple processes, and does not guard against path/symlink swaps between check and write. In a real service, add file-size limits, path/permission policies, contextual logging, and locking/coordination where required. Never write `catch (Exception) { }`, and never lose the underlying cause when wrapping into `DataFormatException`.
 
-## 7. Tự đánh giá kết quả và mở rộng có kiểm soát
+## 7. Self-Evaluating Results and Controlled Extensions
 
-Một bài hoàn chỉnh cần đạt đồng thời: chạy xanh ca hợp lệ; mỗi nhánh sai thất bại theo đúng loại/nhóm ngoại lệ; nội dung hợp lệ cũ còn nguyên khi validation hoặc hook lỗi; không rò rỉ temp; input/output khác nhau; file handle được đóng; output không được công bố trước bước commit.
+A complete submission must pass all of these together: the valid case runs green; each failure branch fails with the right exception type/group; existing valid content remains intact when validation or hooks fail; zero temp files leak; input and output are distinct; file handles close cleanly; and output is never published prior to the commit step.
 
-Để kiểm tra hiểu sâu, hãy chủ động đổi một ca test thành lượng `0` hoặc `-1`, một dòng thiếu dấu phẩy, thêm dấu phẩy thứ hai, một header rỗng, một ID không hợp lệ và một output parent chưa tồn tại: xác định lỗi do pha parse hay pha write, và vì sao. Thử đổi decoder sang chính sách `REPLACE` để thấy lý do cần chế độ strict khi chất lượng dữ liệu có ý nghĩa. Khi đưa sang CI, có thể chuyển các kiểm thử thành JUnit 5 với `@TempDir`, `assertThrows` và `assertEquals`; giữ nguyên các assertion về dữ liệu và cleanup.
+To test deeper understanding, deliberately alter a test case to quantity `0` or `-1`, a row missing a comma, add a second comma, an empty header, an invalid ID, and a non-existent output parent: identify whether the failure occurs in the parse phase or write phase, and why. Try switching the decoder to `REPLACE` mode to see why strict mode is vital when data quality matters. When moving to CI, convert the tests into JUnit 5 using `@TempDir`, `assertThrows`, and `assertEquals`, keeping all data and cleanup assertions intact.
 
-Phần quan trọng của thực hành là **chứng minh hành vi khi thất bại**, không chỉ chứng minh một đường chạy thành công.
+The core lesson of this exercise is **proving behavior under failure**, not merely proving one happy path works.

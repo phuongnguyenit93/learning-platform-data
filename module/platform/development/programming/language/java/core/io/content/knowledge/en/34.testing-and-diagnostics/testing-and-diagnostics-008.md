@@ -1,70 +1,70 @@
-# Kiểm tra symbolic link, quyền truy cập và hành vi theo nền tảng trong Java NIO.2
+# Testing Symbolic Links, Permissions, and Platform-Specific Behavior in Java NIO.2
 
-## 1. Mục tiêu bài học
+## 1. Lesson Goal
 
-Một đoạn mã I/O chạy đúng trên Linux có thể gặp lỗi trên Windows, macOS, filesystem mạng, ổ USB hoặc filesystem ảo. Các nguyên nhân thường liên quan đến **symbolic link (liên kết tượng trưng)**, **quyền của tệp**, **file attribute view**, chính sách của provider và những thay đổi xảy ra giữa lúc kiểm tra với lúc sử dụng đường dẫn.
+A piece of I/O code that runs fine on Linux can fail on Windows, macOS, network filesystems, USB drives, or virtual filesystems. The causes usually involve **symbolic links**, **file permissions**, **file attribute views**, provider policies, and changes occurring between the time a path is checked and the time it is used.
 
-Ví dụ, đoạn mã sau không phải một phép bảo đảm an toàn:
+For example, the following code is not a safety guarantee:
 
 ```java
 if (Files.exists(path) && Files.isReadable(path)) {
-    // Không bảo đảm thao tác đọc sau đó sẽ thành công.
+    // Does not guarantee the subsequent read will succeed.
     String content = Files.readString(path);
 }
 ```
 
-Đây là snippet, chưa phải chương trình độc lập. Sau phép kiểm tra, file có thể bị xóa, thay quyền, đổi tên, thay bằng symbolic link hoặc khóa bởi cơ chế khác; `readString` vẫn có thể ném `IOException`.
+This is a snippet, not a standalone program. After the check, the file may be deleted, have its permissions changed, be renamed, be replaced with a symbolic link, or be locked by another mechanism; `readString` can still throw `IOException`.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Kiểm tra một `Path` có phải symbolic link không, đọc link target và phân biệt **follow** với **`NOFOLLOW_LINKS`**.
-2. Giải thích vì sao một link bị đứt có thể cho `Files.exists(path) == false` nhưng `Files.exists(path, NOFOLLOW_LINKS) == true`.
-3. Xem basic attributes và phát hiện khả năng hỗ trợ **POSIX permissions**, **DOS attributes** hoặc **ACL** mà không giả định mọi platform đều có.
-4. Phân biệt `Files.isReadable/isWritable/isExecutable` với phép kiểm tra quyền truy cập có thể tin cậy; hiểu các race kiểu **TOCTOU**.
-5. Viết ví dụ Java 17+ và test có kết quả **phụ thuộc nền tảng được nhận diện rõ ràng**, thay vì dùng kết quả Linux làm chuẩn cho mọi hệ điều hành.
-6. Xử lý unsupported operation, thiếu quyền, symbolic-link loop, đường dẫn tạm và cleanup an toàn.
+1. Check whether a `Path` is a symbolic link, read the link target, and distinguish **following** from **`NOFOLLOW_LINKS`**.
+2. Explain why a broken link can give `Files.exists(path) == false` while `Files.exists(path, NOFOLLOW_LINKS) == true`.
+3. Inspect basic attributes and detect support for **POSIX permissions**, **DOS attributes**, or **ACLs** without assuming every platform provides them.
+4. Distinguish `Files.isReadable`/`isWritable`/`isExecutable` from reliable access checks; understand **TOCTOU** races.
+5. Write Java 17+ examples and tests whose **platform-dependent outcomes are explicitly identified**, instead of treating Linux behavior as the standard across all operating systems.
+6. Handle unsupported operations, missing permissions, symbolic-link loops, temporary paths, and safe cleanup.
 
-Trong nhóm **Kiểm thử và chẩn đoán**, trọng tâm là biết **quan sát, kiểm chứng và đưa ra kết luận đúng phạm vi**, không phải cố vượt qua phân quyền hệ điều hành.
+Within **Testing and Diagnostics**, the focus is knowing **how to observe, verify, and draw accurately scoped conclusions**, rather than trying to bypass OS access controls.
 
-## 2. Symbolic link là gì?
+## 2. What Is a Symbolic Link?
 
-Symbolic link (*symlink*) là một filesystem entry chứa tham chiếu tới một đường dẫn target. Nó **không phải** bản sao nội dung file đích và cũng không giống **hard link**.
+A symbolic link (*symlink*) is a filesystem entry holding a reference to a target path. It is **not** a copy of the target file's content, and it is not the same as a **hard link**.
 
 ```text
 work/
-  actual.txt       nội dung: "HELLO"
-  shortcut.txt -->  actual.txt      (symbolic link tương đối)
+  actual.txt       content: "HELLO"
+  shortcut.txt -->  actual.txt      (relative symbolic link)
 ```
 
-Khi chương trình truy cập `shortcut.txt`, nhiều thao tác `Files` mặc định **đi theo symlink** tới `actual.txt`; một số thao tác được thiết kế để quan sát chính đối tượng link.
+When a program accesses `shortcut.txt`, many `Files` operations **follow the symlink** to `actual.txt` by default; certain operations are designed to inspect the link entry itself.
 
-Cần phân biệt:
+Distinguish carefully:
 
-- **Link path**: đường dẫn nơi symbolic link được lưu, ví dụ `work/shortcut.txt`.
-- **Link target**: giá trị target bên trong link, ví dụ `actual.txt` hoặc một đường dẫn tuyệt đối.
-- **Resolved target**: đường dẫn nhận được khi hệ thống giải quyết target tương đối với **thư mục chứa link**, không phải mặc định theo thư mục làm việc của Java process.
-- **Dangling/broken link**: link vẫn tồn tại nhưng target không tồn tại hoặc không thể được giải quyết.
-- **Link cycle**: chuỗi link hoặc liên kết tới thư mục tạo vòng lặp khi theo dõi.
+- **Link path**: the path where the symbolic link resides, such as `work/shortcut.txt`.
+- **Link target**: the target value stored inside the link, such as `actual.txt` or an absolute path.
+- **Resolved target**: the path obtained when the system resolves a relative target against **the directory containing the link**, not against the Java process's working directory by default.
+- **Dangling/broken link**: the link entry exists, but its target does not exist or cannot be resolved.
+- **Link cycle**: a chain of links or a directory link forming a loop when followed.
 
-Ví dụ: `Files.readSymbolicLink(link)` trả target được lưu trong link và **không bắt buộc trả đường dẫn tuyệt đối**. Nếu target là relative, ngữ cảnh giải quyết chính là thư mục chứa link.
+For example, `Files.readSymbolicLink(link)` returns the target stored in the link and **is not required to return an absolute path**. If the target is relative, the resolution context is the directory containing the link.
 
-## 3. Những phương thức và tùy chọn quan trọng
+## 3. Important Methods and Options
 
-| API | Công dụng | Lưu ý |
+| API | Purpose | Notes |
 | --- | --- | --- |
-| `Files.isSymbolicLink(path)` | Hỏi entry có phải symbolic link không | Nếu không thể xác định, có thể trả false |
-| `Files.createSymbolicLink(link, target)` | Tạo symlink; operation tùy khả năng provider/OS | Có thể không hỗ trợ hoặc thiếu quyền |
-| `Files.readSymbolicLink(link)` | Đọc target được lưu trong link | Target có thể là relative hoặc chưa tồn tại |
-| `Files.exists(path)` | Kiểm tra path tồn tại theo quy tắc follow mặc định | Trả false khi không xác định được hoặc link target mất |
-| `Files.exists(path, NOFOLLOW_LINKS)` | Kiểm tra chính entry link mà không theo target | Có thể true dù target mất |
-| `Files.isRegularFile(path, NOFOLLOW_LINKS)` | Kiểm tra loại của chính entry | Symlink không được xem như regular file |
-| `Files.readAttributes(path, BasicFileAttributes.class, options)` | Đọc loại, size, thời gian, file key | Có thể ném `IOException`; dùng để phân biệt lỗi |
-| `Path.toRealPath(options)` | Trả đường dẫn thực theo contract provider | Không phải một biện pháp authorization độc lập |
-| `Files.isSameFile(a, b)` | Kiểm tra cùng file khi có thể | Có thể truy cập filesystem và ném `IOException` |
-| `Files.delete(link)` | Xóa directory entry chỉ định | Xóa symlink không tự xóa target |
-| `Files.walkFileTree(...)` | Duyệt cây thư mục | Mặc định không đi theo symlink; `FOLLOW_LINKS` có tác động riêng |
+| `Files.isSymbolicLink(path)` | Asks whether the entry is a symbolic link | If indeterminate, may return `false` |
+| `Files.createSymbolicLink(link, target)` | Creates a symlink; depends on provider/OS capability | May be unsupported or lack permission |
+| `Files.readSymbolicLink(link)` | Reads the target stored inside the link | Target may be relative or non-existent |
+| `Files.exists(path)` | Checks whether the path exists under default follow rules | Returns `false` when indeterminate or link target is missing |
+| `Files.exists(path, NOFOLLOW_LINKS)` | Checks the link entry itself without following the target | Can be `true` even if target is missing |
+| `Files.isRegularFile(path, NOFOLLOW_LINKS)` | Checks the type of the entry itself | A symlink is not considered a regular file |
+| `Files.readAttributes(path, BasicFileAttributes.class, options)` | Reads type, size, timestamps, and file key | Can throw `IOException`; useful for distinguishing errors |
+| `Path.toRealPath(options)` | Returns the real path per provider contract | Not a standalone authorization mechanism |
+| `Files.isSameFile(a, b)` | Checks if two paths refer to the same file when possible | Can access the filesystem and throw `IOException` |
+| `Files.delete(link)` | Deletes the specified directory entry | Deleting a symlink does not delete its target |
+| `Files.walkFileTree(...)` | Walks a directory tree | Does not follow symlinks by default; `FOLLOW_LINKS` changes behavior |
 
-Import thường dùng:
+Common imports:
 
 ```java
 import java.nio.file.Files;
@@ -73,13 +73,13 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 ```
 
-Đây là tập import phục vụ các snippet trong bài. Khi cần bắt lỗi, dùng `IOException` và các subclass hoặc `UnsupportedOperationException` theo đặc điểm API.
+This is the import set used by the snippets in this lesson. When catching failures, use `IOException` and its subclasses or `UnsupportedOperationException` as dictated by the API.
 
-## 4. `NOFOLLOW_LINKS` có nghĩa chính xác gì?
+## 4. What Does `NOFOLLOW_LINKS` Exactly Mean?
 
-`LinkOption.NOFOLLOW_LINKS` điều khiển việc đi theo symbolic link cho **những API có tham số `LinkOption...` hoặc nhận option này theo hợp đồng**.
+`LinkOption.NOFOLLOW_LINKS` controls whether symbolic links are followed for **APIs that accept `LinkOption...` or honor this option per contract**.
 
-Giả sử:
+Suppose:
 
 ```text
 dir/
@@ -88,9 +88,9 @@ dir/
   broken.txt -> missing.txt
 ```
 
-Trên hệ thống hỗ trợ symlink và còn nguyên trạng thái:
+On a system supporting symlinks with intact state:
 
-| Phép kiểm tra | `item.txt` | `link.txt` | `broken.txt` |
+| Check | `item.txt` | `link.txt` | `broken.txt` |
 | --- | --- | --- | --- |
 | `Files.exists(path)` | true | true | false |
 | `Files.exists(path, NOFOLLOW_LINKS)` | true | true | true |
@@ -99,18 +99,18 @@ Trên hệ thống hỗ trợ symlink và còn nguyên trạng thái:
 | `Files.isRegularFile(path, NOFOLLOW_LINKS)` | true | false | false |
 | `Files.readAttributes(path, BasicFileAttributes.class, NOFOLLOW_LINKS).isSymbolicLink()` | false | true | true |
 
-Bảng nêu **tình huống file local bình thường, có quyền và provider phân loại đúng**, không hứa rằng `Files.exists` luôn trả true/false như trên khi có I/O lỗi hoặc điều kiện truy cập không đủ.
+The table shows **normal local files with permissions and accurate provider classification**; it does not promise `Files.exists` always returns true/false as shown when I/O errors or insufficient access occur.
 
-**Hai cảnh báo:**
+**Two warnings:**
 
-1. Không phải phương thức nào của `Files` cũng nhận hoặc tuân theo `NOFOLLOW_LINKS` theo cùng cách; đọc Javadoc của phương thức cụ thể.
-2. `NOFOLLOW_LINKS` thường kiểm soát việc đi theo **symbolic link cuối cùng** cho API được gọi; nó **không tự động bảo đảm mọi thành phần thư mục cha không có symlink hoặc không bị đổi trong lúc thao tác**.
+1. Not every method on `Files` accepts or obeys `NOFOLLOW_LINKS` in the same way; read the Javadoc for the specific method.
+2. `NOFOLLOW_LINKS` typically controls following **the final symbolic link** for the invoked API; it **does not automatically guarantee that no parent directory component is a symlink or gets swapped mid-operation**.
 
-Nếu một yêu cầu bảo mật là “không được vượt ra khỏi thư mục gốc kể cả khi có symlink trong path”, chỉ kiểm tra `normalize()` hoặc `exists(..., NOFOLLOW_LINKS)` là chưa đủ.
+If a security requirement states "must never escape the root directory even when symlinks exist in the path," checking `normalize()` or `exists(..., NOFOLLOW_LINKS)` alone is not enough.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: symlink hợp lệ và link bị đứt
+## 5. Complete Java 17+ Example: Valid Symlink and Broken Link
 
-Tạo **`SymbolicLinkInspectionDemo.java`**:
+Create **`SymbolicLinkInspectionDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -165,7 +165,7 @@ public class SymbolicLinkInspectionDemo {
                 System.out.println("sameAsActual="
                         + Files.isSameFile(link, actual));
 
-                Files.delete(link); // xóa link, không xóa actual
+                Files.delete(link); // deletes link, does not delete actual
                 System.out.println("targetSurvivedDelete="
                         + Files.exists(actual));
             }
@@ -179,14 +179,14 @@ public class SymbolicLinkInspectionDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 SymbolicLinkInspectionDemo.java
 java SymbolicLinkInspectionDemo
 ```
 
-**Stdout khi nền tảng hỗ trợ tạo symlink và các phép I/O thành công:**
+**Stdout when the platform supports symlink creation and I/O succeeds:**
 
 ```text
 symbolicLinksAvailable=true
@@ -201,44 +201,44 @@ sameAsActual=true
 targetSurvivedDelete=true
 ```
 
-Nếu provider hoặc quyền thực thi **không cho tạo symbolic link**, dòng đầu có thể là:
+If the provider or execution privileges **disallow creating symbolic links**, the first line may be:
 
 ```text
 symbolicLinksAvailable=false
 ```
 
-và chương trình bỏ qua phần kiểm tra symlink. Việc chỉ thấy `false` không chứng minh “Windows không hỗ trợ symlink”: nguyên nhân có thể là quyền, filesystem, policy, provider hoặc điều kiện I/O. Đừng tạo test bắt buộc symlink phải tạo được trên mọi CI runner.
+and the program skips the symlink checks. Observing `false` alone does not prove "Windows does not support symlinks": the cause can be privileges, filesystem, policy, provider, or an I/O condition. Do not write tests requiring symlinks to succeed on every CI runner.
 
-**Giải thích:**
+**Explanation:**
 
-- `createSymbolicLink(link, Path.of("actual.txt"))` tạo target tương đối: đường dẫn được giải quyết từ **thư mục chứa `shortcut.txt`**.
-- `readSymbolicLink(link).isAbsolute()` bằng false vì target được lưu là relative.
-- Không kèm `NOFOLLOW_LINKS`, `isRegularFile(link)` kiểm tra target `actual.txt`; có `NOFOLLOW_LINKS`, nó kiểm tra chính entry link.
-- `BasicFileAttributes` cung cấp phép thử loại file với lỗi I/O tường minh.
-- `broken.txt` vẫn có entry là symlink nhưng target `missing.txt` không tồn tại, nên hai kiểu `exists` khác nhau.
-- `Files.delete(link)` không xóa `actual.txt`.
-- Cleanup thử xóa từng entry được tạo; ví dụ không thay đổi file nào ngoài thư mục tạm do chính nó tạo.
+- `createSymbolicLink(link, Path.of("actual.txt"))` creates a relative target: the path is resolved from **the directory containing `shortcut.txt`**.
+- `readSymbolicLink(link).isAbsolute()` is `false` because the stored target is relative.
+- Without `NOFOLLOW_LINKS`, `isRegularFile(link)` checks the target `actual.txt`; with `NOFOLLOW_LINKS`, it checks the link entry itself.
+- `BasicFileAttributes` provides file-type inspection with explicit I/O error reporting.
+- `broken.txt` still has a symlink entry, while target `missing.txt` does not exist, so the two `exists` checks differ.
+- `Files.delete(link)` does not delete `actual.txt`.
+- Cleanup attempts to delete each created entry; the example alters no files outside the temporary directory it created.
 
-Phần catch khi tạo link chỉ xử lý lỗi khả năng nền tảng để **skip kiểm tra link**. Các phép I/O tiếp theo vẫn có thể thất bại; ví dụ để exception đó lộ ra như lỗi test, không che tất cả lỗi bằng `catch (Exception)`.
+The `catch` around link creation handles only platform-capability failures to **skip link checks**. Subsequent I/O operations can still fail; let those exceptions surface as test failures rather than hiding all errors with `catch (Exception)`.
 
-## 6. Không nhầm symlink với hard link và shortcut giao diện
+## 6. Do Not Confuse Symlinks with Hard Links or Desktop Shortcuts
 
-**Hard link** là một directory entry khác tham chiếu cùng đối tượng file, được tạo bằng `Files.createLink(link, existing)` nếu provider/filesystem hỗ trợ. Nó thường không được `Files.isSymbolicLink()` nhận là symbolic link.
+A **hard link** is another directory entry pointing to the same file object, created via `Files.createLink(link, existing)` when supported by the provider/filesystem. It is generally not reported as a symbolic link by `Files.isSymbolicLink()`.
 
-| Đặc điểm | Symbolic link | Hard link |
+| Property | Symbolic Link | Hard Link |
 | --- | --- | --- |
-| Đích có thể chưa tồn tại? | Có thể | Thường phải trỏ tới file đang tồn tại |
-| `Files.isSymbolicLink` | true cho symlink hợp lệ được nhận diện | false |
-| `Files.readSymbolicLink` | Đọc chuỗi target được lưu | Không áp dụng |
-| Xóa một entry | Xóa link, không tự xóa target | Gỡ một directory entry; dữ liệu có thể còn qua hard link khác |
-| Khả năng hỗ trợ | Có thể bị OS/policy/provider giới hạn | Có thể khác filesystem/provider |
-| Tác động đến kiểm thử | Test follow/NOFOLLOW | Test identity và số lượng link theo OS khi phù hợp |
+| Can target be absent? | Yes | Usually must point to an existing file |
+| `Files.isSymbolicLink` | `true` for recognized valid symlinks | `false` |
+| `Files.readSymbolicLink` | Reads stored target string | Not applicable |
+| Deleting one entry | Removes link; does not delete target | Removes one directory entry; data can persist via other hard links |
+| Supportability | May be restricted by OS/policy/provider | May vary by filesystem/provider |
+| Testing impact | Test follow/`NOFOLLOW` | Test file identity and link counts by OS when appropriate |
 
-Tệp shortcut kiểu `.lnk` của Windows thường là **một file do shell xử lý**, không được mặc nhiên coi là filesystem symbolic link của `Files.isSymbolicLink`. Tương tự alias của GUI và junction/reparse point có ngữ nghĩa platform riêng; không suy ra mọi loại liên kết đều xuất hiện đồng nhất qua `java.nio.file.Files`.
+Windows `.lnk` shortcut files are typically **shell-handled regular files**, not filesystem symbolic links recognized by `Files.isSymbolicLink`. Likewise, GUI aliases and junctions/reparse points have platform-specific semantics; do not assume all link types behave uniformly through `java.nio.file.Files`.
 
-## 7. Quyền truy cập trong Java: kiểm tra khác với mở thật
+## 7. Access Permissions in Java: Checking Differs from Opening
 
-Các phép thử tiện dụng:
+Convenient probe methods:
 
 ```java
 boolean readable = Files.isReadable(path);
@@ -246,35 +246,35 @@ boolean writable = Files.isWritable(path);
 boolean executable = Files.isExecutable(path);
 ```
 
-Đây là snippet cần có `path`. Những phương thức này hữu ích để **hiển thị trạng thái quan sát** hoặc tối ưu đường đi, nhưng:
+This is a snippet requiring `path`. These methods are useful for **displaying observed status** or fast-path hints, yet:
 
-- Trả true không phải là cam kết lần `Files.newInputStream`/`newOutputStream` kế tiếp sẽ thành công.
-- Trả false có thể do không có quyền **hoặc không thể xác định** quyền tại thời điểm đó.
-- Quyền thực tế có thể liên quan owner, group, ACL, chính sách sandbox, share mode, network mounts hoặc process identity.
-- File có thể bị đổi permission/xóa/thay link giữa phép thử và thao tác.
-- Không suy từ `isWritable` ra chắc chắn còn quota/dung lượng đĩa hoặc storage hoạt động.
+- Returning `true` does not promise the next `Files.newInputStream`/`newOutputStream` will succeed.
+- Returning `false` can mean no permission **or inability to determine** permissions at that moment.
+- Effective access can involve owner, group, ACLs, sandbox policies, share modes, network mounts, or process identity.
+- The file can have its permissions changed, be deleted, or be replaced with a link between check and operation.
+- Do not infer from `isWritable` that disk space, quotas, or storage health are sufficient.
 
-Cách xử lý đúng là **thực hiện thao tác I/O cần thiết và bắt exception phát sinh**, thay vì dùng `isReadable` như một “authorization check” của người dùng.
+The right approach is to **perform the intended I/O operation and catch resulting exceptions**, instead of treating `isReadable` as a user authorization check.
 
-Ví dụ:
+Example:
 
 ```java
 try (var in = Files.newInputStream(path)) {
-    // Xử lý nội dung và kiểm tra kết quả I/O.
+    // Process content and verify I/O results.
 } catch (java.nio.file.NoSuchFileException ex) {
-    // File/đường dẫn không tồn tại ở thời điểm thao tác.
+    // File/path does not exist at operation time.
 } catch (java.nio.file.AccessDeniedException ex) {
-    // OS/provider từ chối truy cập.
+    // OS/provider denied access.
 } catch (java.io.IOException ex) {
-    // Các lỗi I/O khác: link loop, device, file system...
+    // Other I/O errors: link loops, device, filesystem...
 }
 ```
 
-Đây là snippet, không phải chương trình độc lập. Các ngoại lệ cụ thể không nhất thiết xuất hiện giống nhau trên mọi provider; nhiều lỗi được báo qua `FileSystemException` hoặc `IOException` chung. **Không được suy diễn `AccessDeniedException` thay thế authorization nghiệp vụ**; hệ điều hành và ứng dụng có các mô hình quyền riêng.
+This is a snippet, not a standalone program. Specific exception subclasses do not necessarily appear identically across every provider; many failures surface as `FileSystemException` or general `IOException`. **Never interpret `AccessDeniedException` as a substitute for business authorization**; the OS and the application have distinct permission models.
 
-## 8. Basic attributes là điểm bắt đầu portable
+## 8. Basic Attributes Are the Portable Starting Point
 
-`BasicFileAttributes` dùng cho những thuộc tính cơ bản:
+`BasicFileAttributes` exposes fundamental attributes:
 
 ```java
 BasicFileAttributes info = Files.readAttributes(
@@ -288,32 +288,32 @@ System.out.println(info.isOther());
 System.out.println(info.size());
 ```
 
-Snippet cần `path`, import và xử lý `IOException`.
+This snippet requires `path`, imports, and `IOException` handling.
 
-`BasicFileAttributes` còn cung cấp `lastModifiedTime()`, `creationTime()`, `lastAccessTime()` và `fileKey()`. Nhưng không nên giả định:
+`BasicFileAttributes` also provides `lastModifiedTime()`, `creationTime()`, `lastAccessTime()`, and `fileKey()`. Never assume:
 
-- Mọi filesystem lưu `creationTime` theo nghĩa giống nhau.
-- Timestamps có cùng độ chính xác hoặc được cập nhật cùng chính sách trên mọi OS.
-- `fileKey()` luôn khác null, ổn định mãi mãi hoặc dùng được như ID public.
-- `size()` của symbolic link khi `NOFOLLOW_LINKS` có nghĩa là số byte nội dung của target.
-- Toàn bộ attributes được đọc atomically với những thay đổi đồng thời: Javadoc cho phép sự khác biệt do provider.
+- Every filesystem stores `creationTime` with the same meaning.
+- Timestamps have identical precision or update policies across OSes.
+- `fileKey()` is always non-null, permanently stable, or usable as a public identifier.
+- `size()` of a symbolic link with `NOFOLLOW_LINKS` equals the target's content byte length.
+- All attributes are read atomically against concurrent modifications: Javadoc allows provider-dependent differences.
 
-Nếu cần phân biệt “không phải symbolic link” với “không xác định được vì I/O lỗi”, dùng `readAttributes(..., NOFOLLOW_LINKS)` và xử lý exception, thay vì chỉ gọi `Files.isSymbolicLink` rồi coi false là chứng minh chắc chắn.
+When you must distinguish "not a symbolic link" from "indeterminate due to an I/O error," use `readAttributes(..., NOFOLLOW_LINKS)` and handle exceptions rather than calling `Files.isSymbolicLink` and treating `false` as definitive proof.
 
-## 9. Các nhóm attribute view theo nền tảng
+## 9. Platform-Specific Attribute Views
 
-Java NIO.2 có nhiều giao diện attribute view, nhưng hỗ trợ cụ thể phụ thuộc filesystem/provider:
+Java NIO.2 defines multiple attribute view interfaces, though actual support depends on the filesystem/provider:
 
-| View | Java API | Thông tin tiêu biểu |
+| View | Java API | Typical Information |
 | --- | --- | --- |
-| Basic | `BasicFileAttributeView` | Loại entry, size, timestamps, file key |
+| Basic | `BasicFileAttributeView` | Entry type, size, timestamps, file key |
 | POSIX | `PosixFileAttributeView` | Owner, group, POSIX permission bits |
 | DOS | `DosFileAttributeView` | Readonly, hidden, archive, system flags |
 | Owner | `FileOwnerAttributeView` | Owner user principal |
-| ACL | `AclFileAttributeView` | Danh sách ACE và owner |
-| User-defined | `UserDefinedFileAttributeView` | Extended attributes nếu provider hỗ trợ |
+| ACL | `AclFileAttributeView` | ACE list and owner |
+| User-defined | `UserDefinedFileAttributeView` | Extended attributes if provider supports them |
 
-Thư viện có thể hỏi ở hai cấp:
+Libraries can query support at two levels:
 
 ```java
 Set<String> providerViews =
@@ -325,18 +325,18 @@ boolean posixAvailable =
                 PosixFileAttributeView.class);
 ```
 
-Snippet cần import `Set`, `FileStore`, `PosixFileAttributeView` và `Path`; `Files.getFileStore` có thể ném `IOException`.
+This snippet requires importing `Set`, `FileStore`, `PosixFileAttributeView`, and `Path`; `Files.getFileStore` can throw `IOException`.
 
-- `supportedFileAttributeViews()` là khả năng mà **filesystem provider** hỗ trợ nói chung.
-- `FileStore.supportsFileAttributeView(...)` là phép kiểm tra trên **file store** cụ thể.
-- Quyền thực tế vẫn có thể khiến thao tác đọc/đổi attributes thất bại, dù view được hỗ trợ.
-- Không dùng `System.getProperty("os.name")` làm nguồn quyết định duy nhất: cả trên một OS có thể có nhiều file store với khả năng khác nhau.
+- `supportedFileAttributeViews()` reflects capabilities of the **filesystem provider** in general.
+- `FileStore.supportsFileAttributeView(...)` queries a specific **file store**.
+- Runtime permissions can still cause attribute reads/updates to fail even when the view is supported.
+- Never rely solely on `System.getProperty("os.name")`: a single OS can mount multiple file stores with different capabilities.
 
-`Files.getFileAttributeView(path, PosixFileAttributeView.class)` có thể trả `null` khi view không hỗ trợ. Khi thật sự gọi `Files.getPosixFilePermissions` trên filesystem không hỗ trợ POSIX, thường nhận `UnsupportedOperationException`. Bài test phải có nhánh skip riêng.
+`Files.getFileAttributeView(path, PosixFileAttributeView.class)` can return `null` when unsupported. Calling `Files.getPosixFilePermissions` on a filesystem without POSIX support typically throws `UnsupportedOperationException`. Tests must include a dedicated skip branch.
 
-## 10. Ví dụ Java 17+ hoàn chỉnh: kiểm tra khả năng file store
+## 10. Complete Java 17+ Example: Checking File Store Capabilities
 
-Tạo **`FileAttributeCapabilityDemo.java`**:
+Create **`FileAttributeCapabilityDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -377,7 +377,7 @@ public class FileAttributeCapabilityDemo {
             System.out.println("dosSupported=" + dos);
             System.out.println("aclSupported=" + acl);
 
-            // Kết quả thăm dò không thay thế open/read/write thực tế.
+            // Probe results do not replace actual open/read/write.
             System.out.println("content="
                     + Files.readString(file));
         } finally {
@@ -388,36 +388,36 @@ public class FileAttributeCapabilityDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 FileAttributeCapabilityDemo.java
 java FileAttributeCapabilityDemo
 ```
 
-Hai dòng chắc chắn theo hợp đồng file system provider chuẩn khi các thao tác thành công:
+Two lines are guaranteed under standard filesystem provider contracts when operations succeed:
 
 ```text
 basic=true
 providerSupportsBasic=true
 ```
 
-Các dòng tiếp theo **phụ thuộc nền tảng và file store**:
+The remaining lines **depend on the platform and file store**:
 
 ```text
-posixSupported=<true hoặc false>
-dosSupported=<true hoặc false>
-aclSupported=<true hoặc false>
+posixSupported=<true or false>
+dosSupported=<true or false>
+aclSupported=<true or false>
 content=hello
 ```
 
-Các dấu `<true hoặc false>` là **mô tả khả năng**, không phải output literal cần mong đợi từng ký tự. Chương trình thật in `true` hoặc `false`. Không viết unit test buộc POSIX phải true hoặc DOS/ACL phải false: Java có thể chạy trên filesystem có khả năng khác hệ điều hành chủ.
+The `<true or false>` markers are **capability descriptions**, not literal character-by-character output. The real program prints `true` or `false`. Never write unit tests requiring POSIX to be `true` or DOS/ACL to be `false`: Java can run on filesystems with different capabilities from the host OS.
 
-**Giải thích:** `getFileStore(file)` lấy store của tệp thử nghiệm, không suy từ hệ điều hành. `supportsFileAttributeView` cho biết một khả năng, **không** xác nhận process luôn có quyền chỉnh thuộc tính đó. Ví dụ không thay đổi owner/ACL hoặc permission thật, nên có thể chạy trong workspace tạm mà không ảnh hưởng cấu hình tệp của người dùng.
+**Explanation:** `getFileStore(file)` inspects the test file's store rather than guessing from the OS. `supportsFileAttributeView` reports a capability, **not** that the process always has permission to modify those attributes. The example alters no real user owners, ACLs, or permissions, so it runs safely in a temporary workspace without affecting user file settings.
 
-## 11. POSIX permissions: hiểu các bit và giới hạn
+## 11. POSIX Permissions: Understanding Bits and Limits
 
-Trên file store hỗ trợ POSIX, có thể đọc quyền bằng:
+On a file store supporting POSIX, permissions can be read with:
 
 ```java
 Set<PosixFilePermission> perms =
@@ -425,67 +425,67 @@ Set<PosixFilePermission> perms =
 String symbolic = PosixFilePermissions.toString(perms);
 ```
 
-Snippet cần `path` và import `Set`, `PosixFilePermission`, `PosixFilePermissions`, xử lý `IOException`/`UnsupportedOperationException`.
+This snippet requires `path`, imports for `Set`, `PosixFilePermission`, `PosixFilePermissions`, and handling `IOException`/`UnsupportedOperationException`.
 
-Các ký hiệu `rwxr-x---` là quyền read/write/execute của **owner, group, others**. Nhưng hiệu lực có thể còn phụ thuộc user hiện hành, supplementary groups, ACL, mount flags, quyền thư mục cha và hệ điều hành.
+Notation like `rwxr-x---` represents read/write/execute permissions for **owner, group, others**. Effective access can still depend on the current user, supplementary groups, ACLs, mount flags, parent directory permissions, and OS rules.
 
-Lưu ý:
+Notes:
 
-- Trên filesystem không hỗ trợ POSIX view, gọi `getPosixFilePermissions` có thể thất bại với `UnsupportedOperationException`.
-- `Files.setPosixFilePermissions(path, perms)` **thay đổi quyền file thực**; không dùng trên file người dùng trong ví dụ thử nghiệm.
-- `Files.createTempFile`/`createTempDirectory` có thể tạo quyền ban đầu khác nhau theo provider và umask; không hardcode output octal dự kiến cho mọi máy.
-- POSIX `OWNER_READ` không tương đương một công bố “mọi process đọc được”.
-- Ở Windows, quyền NTFS thường dựa trên ACL; không thể suy ra cách phân quyền chỉ bằng sơ đồ rwx.
-- Không dùng permission bits làm cơ chế kiểm tra quyền nghiệp vụ đối với user web. Cần authorization riêng ở application.
+- On filesystems without a POSIX view, calling `getPosixFilePermissions` can fail with `UnsupportedOperationException`.
+- `Files.setPosixFilePermissions(path, perms)` **mutates real file permissions**; never run it on user files in test examples.
+- `Files.createTempFile`/`createTempDirectory` may assign different initial permissions depending on provider and `umask`; never hardcode expected octal output across all machines.
+- POSIX `OWNER_READ` is not equivalent to "every process can read."
+- On Windows, NTFS permissions rely primarily on ACLs; access rules cannot be inferred solely from an `rwx` model.
+- Never use OS permission bits as web-user business authorization. Enforce application-level authorization separately.
 
-### Thăm dò quyền ở mức không gây thay đổi
+### Non-Mutating Permission Probing
 
-Trong phần chẩn đoán, ghi các thông tin **không nhạy cảm** như `posixSupported=true`, `fileType=regular`, `testReadSucceeded=true` có thể hữu ích. Nếu cần ghi owner/group/path vào log, phải xét quyền truy cập và bảo vệ dữ liệu; owner hoặc path có thể chứa username thật.
+In diagnostics, logging **non-sensitive** details like `posixSupported=true`, `fileType=regular`, and `testReadSucceeded=true` can be helpful. If owner/group/path must be logged, evaluate access controls and data protection; owners or paths can contain real usernames.
 
-Một phép thử `Files.isWritable(path)` trả true **không hứa** rằng `Files.write(path, bytes)` sẽ thành công sau đó: hệ thống có thể hết dung lượng, quota, file lock, thay trạng thái hoặc policy từ chối ghi vào thời điểm thực hiện.
+`Files.isWritable(path)` returning `true` **does not promise** `Files.write(path, bytes)` will succeed later: the system can hit disk full, quotas, file locks, state changes, or policy denials at write time.
 
-## 12. DOS flags và ACL: không đồng nhất với POSIX
+## 12. DOS Flags and ACLs: Not Identical to POSIX
 
-**DOS attributes** như `readonly`, `hidden`, `archive`, `system` có thể được truy cập qua `DosFileAttributeView` nếu provider hỗ trợ. Chúng không phải bản sao trực tiếp của các bit POSIX.
+**DOS attributes** such as `readonly`, `hidden`, `archive`, and `system` are accessed via `DosFileAttributeView` when supported by the provider. They are not direct equivalents of POSIX bits.
 
-**ACL** qua `AclFileAttributeView` biểu diễn danh sách mục cấp quyền/từ chối quyền. Hệ thống có thể xét thứ tự và loại ACE, user/group principals và các quy tắc riêng; **không** nên tự thực hiện một parser đơn giản rồi nói “user này chắc chắn được đọc”.
+**ACLs** via `AclFileAttributeView` represent a list of allow/deny entries. Systems may evaluate ACE order and type, user/group principals, and inheritance rules; **do not** build a naive parser and claim "this user can definitely read."
 
-Ví dụ phát hiện view:
+Example view detection:
 
 ```java
 AclFileAttributeView aclView = Files.getFileAttributeView(
         path, AclFileAttributeView.class);
 
 if (aclView == null) {
-    // Không có ACL view cho path/provider này.
+    // No ACL view for this path/provider.
 } else {
-    // Chỉ khi nghiệp vụ cần và có quyền,
-    // đọc ACL theo chính sách bảo mật.
+    // Only when business logic requires it and permissions allow,
+    // read ACL according to security policy.
 }
 ```
 
-Đây là snippet. `getAcl()` có thể trả dữ liệu nhạy cảm về user/group; không in toàn bộ ACL lên trang lỗi công khai. Với các test về thay đổi ACL/owner, sử dụng môi trường cô lập có chính sách cụ thể và làm sạch trạng thái sau test; không thay ACL của thư mục làm việc chung.
+This is a snippet. `getAcl()` can return sensitive user/group details; never print full ACLs on public error pages. For tests modifying ACLs or owners, use an isolated environment under explicit policy and restore/clean up state afterward; never alter ACLs on shared working directories.
 
-## 13. Thử thao tác thật và bắt lỗi đúng cách
+## 13. Trying the Real Operation and Catching Errors Properly
 
-Một phép thăm dò cần thiết nên ưu tiên **thao tác tối thiểu mà nghiệp vụ dự định làm**, trong phạm vi tệp/thư mục đã cấp quyền:
+Necessary probes should prefer **the minimal operation the business logic intends**, within an authorized file/directory scope:
 
 ```java
 try (var in = Files.newInputStream(path)) {
     byte[] first = in.readNBytes(32);
-    // Chỉ xử lý first.length byte thực đọc.
+    // Process only the first.length bytes actually read.
 } catch (java.nio.file.NoSuchFileException ex) {
-    // Không tồn tại tại thời điểm mở.
+    // Does not exist at open time.
 } catch (java.nio.file.AccessDeniedException ex) {
-    // Hệ thống không cho phép truy cập.
+    // System denied access.
 } catch (IOException ex) {
-    // Các lỗi IO khác.
+    // Other I/O errors.
 }
 ```
 
-Đoạn snippet cần `IOException`, `Files`, `Path` và một `path` từ luồng nghiệp vụ đã phân quyền. Nếu cần không đi theo symbolic link cuối cùng, **mở bằng API có hợp đồng tùy chọn phù hợp**, chứ đừng chỉ gọi `isSymbolicLink` rồi mở bình thường.
+This snippet requires `IOException`, `Files`, `Path`, and an authorized `path` from the business flow. If you must refuse to follow a final symbolic link, **open using an API with the appropriate option contract**, rather than calling `isSymbolicLink` and then opening normally.
 
-Một lựa chọn đối với những provider hỗ trợ `NOFOLLOW_LINKS` khi mở channel là:
+One option on providers supporting `NOFOLLOW_LINKS` when opening a channel:
 
 ```java
 try (var channel = Files.newByteChannel(
@@ -493,19 +493,19 @@ try (var channel = Files.newByteChannel(
         java.util.Set.of(
                 java.nio.file.StandardOpenOption.READ,
                 LinkOption.NOFOLLOW_LINKS))) {
-    // Đọc từ channel đã mở nếu thành công.
+    // Read from the opened channel if successful.
 }
 ```
 
-Snippet này giả định `path` và import `Files`, `LinkOption`, xử lý `IOException`/`UnsupportedOperationException`. `NOFOLLOW_LINKS` là `OpenOption` được hỗ trợ theo hợp đồng NIO phù hợp; khi target cuối là symbolic link, việc mở có thể thất bại thay vì theo link. Nó **không tự ngăn việc path cha chứa symlink** hoặc một đối thủ thay đổi đường dẫn trước khi mở.
+This snippet assumes `path`, imports for `Files` and `LinkOption`, and handling for `IOException`/`UnsupportedOperationException`. `NOFOLLOW_LINKS` is a supported `OpenOption` under appropriate NIO contracts; when the final target is a symbolic link, opening fails instead of following the link. It **does not by itself prevent parent path components from containing symlinks** or an adversary swapping paths before opening.
 
-Hãy nghĩ theo nguyên tắc **mở đối tượng cụ thể một lần và dùng handle đã mở**, hạn chế chuỗi “kiểm tra path → sử dụng lại path” tạo cơ hội cho race.
+Think in terms of **opening the concrete object once and operating on the opened handle**, minimizing "check path → reuse path" sequences that create race windows.
 
-## 14. TOCTOU: lỗi giữa check và use
+## 14. TOCTOU: Bugs Between Check and Use
 
-TOCTOU (*Time Of Check To Time Of Use*) xảy ra khi trạng thái được kiểm tra tại một thời điểm nhưng file thay đổi trước thao tác tiếp theo.
+TOCTOU (*Time Of Check To Time Of Use*) happens when state is checked at one moment, yet the file changes before the subsequent operation.
 
-Ví dụ không an toàn:
+Unsafe example:
 
 ```java
 Path candidate = root.resolve(userSuppliedName).normalize();
@@ -513,44 +513,44 @@ Path candidate = root.resolve(userSuppliedName).normalize();
 if (candidate.startsWith(root)
         && !Files.isSymbolicLink(candidate)
         && Files.isReadable(candidate)) {
-    // Một tiến trình khác có thể thay candidate sau các check.
+    // Another process may replace candidate after the checks.
     return Files.readAllBytes(candidate);
 }
 ```
 
-Snippet cố ý minh họa rủi ro; cần khai báo `root` và `userSuppliedName`, kiểm soát đầu vào và xử lý ngoại lệ. Ngoài race ở final symlink, kiểm tra `candidate.startsWith(root)` dựa trên **đường dẫn chuẩn hóa cú pháp**, không bảo đảm đường dẫn thực ở trong root khi thư mục cha chứa symlink.
+This snippet intentionally illustrates risk; `root` and `userSuppliedName` must be declared with input validation and exception handling. Beyond the final-symlink race, `candidate.startsWith(root)` checks **syntactically normalized paths** and does not guarantee the real path stays inside `root` if a parent directory contains a symlink.
 
-Đối sách theo mức cần thiết:
+Mitigations according to risk level:
 
-1. **Không cho client truyền path tùy ý**; ánh xạ resource ID sang storage key do server quản lý.
-2. Thiết lập thư mục lưu trữ có quyền OS phù hợp, không cho bên không tin cậy thay entry và symlink.
-3. Dùng các tùy chọn mở `NOFOLLOW_LINKS` khi yêu cầu cấm final symlink; cần xem xét từng thành phần đường dẫn.
-4. Trong provider hỗ trợ, cân nhắc `SecureDirectoryStream` để thao tác tương đối qua directory handle và giảm race khi phân giải directory entry.
-5. Với tệp cần tạo mới, dùng `StandardOpenOption.CREATE_NEW` để tránh ghi đè entry tồn tại trong những tình huống thích hợp; kết hợp quyền thư mục và option liên quan.
-6. Thiết kế xử lý `IOException` ngay ở thao tác thật; không coi check trước là giấy phép chắc chắn.
-7. Khi yêu cầu an ninh cao, kiểm tra định danh/file identity và quyền ở OS/resource handle theo khả năng môi trường, thay vì dựa vào string path.
+1. **Do not let clients supply arbitrary paths**; map resource IDs to server-managed storage keys.
+2. Configure storage directories with proper OS permissions so untrusted parties cannot alter entries or symlinks.
+3. Use `NOFOLLOW_LINKS` open options when forbidding final symlinks; also evaluate every path segment.
+4. On supporting providers, consider `SecureDirectoryStream` to perform relative operations through a directory handle and reduce races during entry resolution.
+5. For newly created files, use `StandardOpenOption.CREATE_NEW` to avoid overwriting existing entries where appropriate; combine with directory permissions and relevant options.
+6. Handle `IOException` directly on the real operation; never treat a pre-check as a guaranteed license.
+7. Where high security is needed, verify identity/file identity and permissions on the OS/resource handle as supported by the environment, rather than relying on string paths.
 
-`Path.toRealPath()` giải quyết đường dẫn thực theo hợp đồng, nhưng kết quả đó **cũng có thể lỗi thời ngay sau lời gọi**. Không biến phép chuẩn hóa thành bảo đảm chống symlink swap.
+`Path.toRealPath()` resolves the real path per contract, yet that result **can also become stale immediately after the call**. Never treat path canonicalization as complete protection against symlink swaps.
 
-## 15. `toRealPath()` và đường dẫn canonical: dùng đúng ý nghĩa
+## 15. `toRealPath()` and Canonical Paths: Using Them with Accurate Meaning
 
-So sánh:
+Comparison:
 
-| API | Tác dụng chính |
+| API | Primary Effect |
 | --- | --- |
-| `path.toAbsolutePath()` | Tạo dạng absolute theo filesystem context |
-| `path.normalize()` | Chuẩn hóa cú pháp `.`, `..`; không cần truy cập file thực |
-| `path.toRealPath()` | Trả path thực của một entry tồn tại, theo dõi link mặc định, giải quyết path theo provider |
-| `path.toRealPath(NOFOLLOW_LINKS)` | Trả path thực theo tùy chọn không theo symbolic links theo hợp đồng |
-| `Files.readSymbolicLink(path)` | Trả target lưu trong symlink, có thể relative và chưa tồn tại |
+| `path.toAbsolutePath()` | Produces an absolute form using filesystem context |
+| `path.normalize()` | Syntactically collapses `.` and `..`; need not access the real file |
+| `path.toRealPath()` | Returns the real path of an existing entry, following links by default, resolved per provider |
+| `path.toRealPath(NOFOLLOW_LINKS)` | Returns the real path opting not to follow symbolic links per contract |
+| `Files.readSymbolicLink(path)` | Returns the target stored in the symlink, which may be relative and non-existent |
 
-`toRealPath()` có thể ném `NoSuchFileException`, `FileSystemLoopException` hoặc `IOException` nếu không giải quyết được. `normalize()` không xác minh tệp tồn tại. Tính đặc thù platform còn ảnh hưởng case sensitivity và aliasing.
+`toRealPath()` can throw `NoSuchFileException`, `FileSystemLoopException`, or `IOException` if unresolvable. `normalize()` does not verify file existence. Platform specifics also affect case sensitivity and aliasing.
 
-Không in `toRealPath()` (hoặc path nội bộ gốc) trong HTTP error response chỉ để chẩn đoán; đó có thể là đường dẫn chứa tên người dùng, mount hoặc cấu trúc deployment. Hãy trả mã lỗi công khai ổn định, lưu diagnostic theo chính sách truy cập phù hợp.
+Never print `toRealPath()` (or internal root paths) in an HTTP error response just for diagnostics; it can leak usernames, mounts, or deployment layout. Return stable public error codes and store diagnostics under proper access policies.
 
-## 16. Duyệt cây thư mục và vòng lặp symbolic link
+## 16. Directory Tree Traversal and Symbolic Link Loops
 
-`Files.walkFileTree(start, visitor)` mặc định **không đi theo symlink**. Nếu truyền `FileVisitOption.FOLLOW_LINKS`, traversal có thể đi vào directory liên kết và gặp vòng lặp.
+`Files.walkFileTree(start, visitor)` **does not follow symlinks** by default. Passing `FileVisitOption.FOLLOW_LINKS` lets traversal enter linked directories and potentially hit cycles.
 
 ```java
 Files.walkFileTree(
@@ -561,50 +561,50 @@ Files.walkFileTree(
         visitor);
 ```
 
-Đây là snippet cần `root` và một `FileVisitor<Path> visitor` cùng import; không phải chương trình độc lập. Khi `FOLLOW_LINKS`, Java có cơ chế phát hiện cycle; `FileSystemLoopException` có thể được đưa đến `visitFileFailed`. Người viết visitor phải quyết định xử lý ra sao.
+This snippet requires `root`, a `FileVisitor<Path> visitor`, and imports; it is not standalone. With `FOLLOW_LINKS`, Java performs cycle detection; `FileSystemLoopException` can be delivered to `visitFileFailed`. The visitor author must decide how to handle it.
 
-Khi **không có nhu cầu theo dõi link**, nên giữ mặc định không follow và xử lý symbolic-link entry riêng nếu cần. Đặc biệt khi thao tác xóa hoặc đóng gói cây thư mục, một traversal follow link ngoài root có thể chạm đến dữ liệu không thuộc phạm vi. Đừng chạy một chương trình “dọn thư mục” theo tên path chưa tin cậy với `FOLLOW_LINKS` mà không xác định rõ tác động.
+When **there is no need to follow links**, keep the default no-follow behavior and handle symbolic-link entries explicitly if needed. Especially when deleting or archiving directory trees, a traversal following links outside the root can touch out-of-scope data. Never run a "directory cleanup" on untrusted paths with `FOLLOW_LINKS` without strictly bounding its effects.
 
-### Không suy luận mọi directory listing là snapshot
+### Do Not Treat Every Directory Listing as a Snapshot
 
-`Files.walk` hoặc `walkFileTree` có thể quan sát trạng thái thay đổi trong lúc đang duyệt. Directory entry bị xóa, đổi quyền hoặc thay link có thể làm một vòng lặp fail giữa chừng. Chẩn đoán phải xử lý exception theo từng entry và không mặc định danh sách trả về là snapshot nhất quán tuyệt đối.
+`Files.walk` or `walkFileTree` can observe mutations while traversing. Deleted entries, changed permissions, or swapped links can fail a walk mid-way. Diagnostics must handle exceptions per entry and never assume the returned listing is an atomic snapshot.
 
-## 17. Tính đặc thù Windows, Linux, macOS và provider
+## 17. Windows, Linux, macOS, and Provider Specifics
 
-| Chủ đề | Những điểm có thể thay đổi |
+| Topic | What Can Vary |
 | --- | --- |
-| Khả năng tạo symlink | Filesystem, quyền hệ điều hành, policy, developer mode/đặc quyền trên Windows |
-| POSIX permission bits | Thường có trên nhiều filesystem kiểu Unix; không nên giả định có trên Windows/NTFS |
-| ACL | Có thể có trên Windows/NTFS và một số filesystem khác; không đồng nhất với POSIX bits |
-| DOS attributes | Thường gắn với FAT/NTFS hoặc provider liên quan; không có trên mọi store |
-| Case sensitivity | NTFS, APFS, ext4... có thể cấu hình/diễn giải khác nhau |
-| Separator/path syntax | Windows/Unix và filesystem provider có cách thể hiện khác |
-| Symlink/junction/reparse point | Một số loại link riêng OS không nhất thiết được báo theo cùng API |
-| Xóa file đang mở | Hành vi chia sẻ/khóa, đặc biệt giữa Windows và POSIX, khác nhau |
-| Rename atomic | Phụ thuộc file store/provider và hỗ trợ `ATOMIC_MOVE` |
-| Timestamp precision | Mốc thời gian có thể bị làm tròn/không được cập nhật giống nhau |
-| Network filesystem | Caching, credentials, lỗi mạng, eventual observation, quyền từ xa |
-| Virtual filesystem | ZIP filesystem, in-memory provider, read-only store có tập operation khác |
+| Symlink creation capability | Filesystem, OS privileges, policy, Windows Developer Mode / privileges |
+| POSIX permission bits | Common on Unix-like filesystems; do not assume present on Windows/NTFS |
+| ACLs | Present on Windows/NTFS and some other filesystems; not identical to POSIX bits |
+| DOS attributes | Tied to FAT/NTFS or related providers; absent on some stores |
+| Case sensitivity | NTFS, APFS, ext4, etc., differ in configuration and semantics |
+| Separator / path syntax | Windows/Unix and filesystem providers represent paths differently |
+| Symlink / junction / reparse point | Certain OS-specific links do not always report uniformly through the same API |
+| Deleting open files | Sharing/locking semantics differ sharply between Windows and POSIX |
+| Atomic rename | Depends on file store/provider and `ATOMIC_MOVE` support |
+| Timestamp precision | Timestamps may be rounded or updated under different rules |
+| Network filesystems | Caching, credentials, network errors, eventual visibility, remote permissions |
+| Virtual filesystems | ZIP filesystems, in-memory providers, and read-only stores support different operation sets |
 
-Không dùng `System.getProperty("os.name")` rồi hardcode toàn bộ hành vi. Kiểm tra **khả năng cụ thể** trên path/file store và **thử operation thật** khi có quyền. Một OS có thể gắn nhiều store với capability khác nhau, hoặc cùng store thay đổi policy giữa môi trường CI và production.
+Never use `System.getProperty("os.name")` to hardcode all behavior. Inspect **specific capabilities** on the path/file store and **try real operations** when permitted. One OS can mount multiple stores with different capabilities, or the same store can change policy between CI and production.
 
-## 18. Viết bài test portable thay vì test phụ thuộc một máy
+## 18. Writing Portable Tests Instead of Single-Machine Tests
 
-Một kiểm thử tốt:
+A solid test:
 
-- Chỉ tạo file/thư mục **bên trong temp directory** do test sở hữu.
-- Với tính năng optional như symlink/POSIX view, có nhánh **skip/assumption** rõ ràng nếu không hỗ trợ hoặc không có quyền.
-- Khác biệt giữa **không hỗ trợ** và **đã hỗ trợ nhưng thao tác bị lỗi bất ngờ**; không blanket catch mọi exception rồi báo PASS.
-- Không yêu cầu exact POSIX permission string hoặc ACL trên mọi platform.
-- Không thay quyền/chủ sở hữu file có sẵn của người dùng hoặc thư mục shared CI.
-- Sau khi tạo link, kiểm tra bằng API cụ thể như `readAttributes(..., NOFOLLOW_LINKS)`.
-- Kiểm tra broken link, link relative, quyền của target và cleanup.
-- Không dựa vào giả định cùng thứ tự listing/timestamp precision cho mọi filesystem.
-- Khi test security-critical code, bổ sung test có actor thay symlink đồng thời hoặc test ở môi trường kiểm soát; nêu rõ khả năng nondeterministic của race.
+- Creates files and directories **strictly inside a test-owned temp directory**.
+- For optional features like symlinks or POSIX views, uses an explicit **skip/assumption** branch when unsupported or unauthorized.
+- Distinguishes **unsupported** from **supported yet unexpectedly failing**; never catches every exception indiscriminately and reports PASS.
+- Never demands exact POSIX permission strings or ACLs across all platforms.
+- Never mutates permissions or ownership on existing user files or shared CI directories.
+- After creating a link, verifies it with specific APIs such as `readAttributes(..., NOFOLLOW_LINKS)`.
+- Tests broken links, relative links, target survival/permissions, and cleanup.
+- Does not rely on identical listing order or timestamp precision across every filesystem.
+- When testing security-critical code, adds tests with concurrent symlink swaps or controlled environments, explicitly noting race non-determinism.
 
-### Ví dụ Java 17+ hoàn chỉnh: test điều kiện symlink có hỗ trợ
+### Complete Java 17+ Example: Conditionally Testing Symlink Support
 
-Tạo **`SymlinkInvariantTest.java`**:
+Create **`SymlinkInvariantTest.java`**:
 
 ```java
 import java.io.IOException;
@@ -664,25 +664,25 @@ javac -encoding UTF-8 SymlinkInvariantTest.java
 java SymlinkInvariantTest
 ```
 
-Kết quả nếu symlink được hỗ trợ và mọi phép kiểm tra đúng:
+Output if symlinks are supported and all checks pass:
 
 ```text
 PASS: symlink invariants
 ```
 
-Nếu provider/policy không cho tạo link:
+If provider/policy prevents link creation:
 
 ```text
 SKIP: symlink cannot be created
 ```
 
-**Điểm khác với test “luôn PASS”**: nếu việc tạo link thành công nhưng `readAttributes`, `isSameFile` hoặc `readString` thất bại ngoài dự kiến, lỗi không bị nuốt bởi catch tạo link. Nếu dữ liệu sai, `AssertionError` làm test fail. Chỉ giới hạn skip ở bước tạo link optional.
+**How this differs from an "always PASS" test**: if link creation succeeds yet `readAttributes`, `isSameFile`, or `readString` fails unexpectedly, the error is not swallowed by the link-creation `catch`. If data is wrong, `AssertionError` fails the test. Skipping is strictly scoped to the optional link-creation step.
 
-Trong hệ thống test lớn, nên phân loại lý do skip (unsupported/permission/other I/O) để vận hành dễ chẩn đoán; ví dụ tối giản này chỉ in một thông báo chung và không phụ thuộc JUnit.
+In larger test suites, classify the skip reason (unsupported/permission/other I/O) to help operations diagnose issues; this minimal example prints a single generic message and avoids JUnit dependencies.
 
-## 19. Chẩn đoán lỗi quyền mà không lộ thông tin nội bộ
+## 19. Diagnosing Permission Errors Without Leaking Internal Details
 
-Khi một hành động I/O bị từ chối, có thể cần ghi log phục vụ nhân viên vận hành:
+When an I/O action is denied, operational logs may need:
 
 ```text
 event=FILE_ACCESS_FAILED
@@ -691,98 +691,98 @@ reason=ACCESS_DENIED
 requestId=<server-generated-id>
 ```
 
-Không nên tự động trả cho client hoặc log công khai:
+Never automatically return to clients or log publicly:
 
 ```text
 AccessDeniedException:
  /var/run/secrets/app/production/token.key
 ```
 
-`AccessDeniedException.getFile()`, `FileSystemException.getReason()` hoặc `exception.getMessage()` có thể chứa path và chi tiết provider. Nếu cần diagnostic đầy đủ, dùng kênh được bảo vệ, kiểm soát retention và nội dung theo chính sách; **public response** chỉ cần mã lỗi ổn định.
+`AccessDeniedException.getFile()`, `FileSystemException.getReason()`, or `exception.getMessage()` can expose paths and provider details. If full diagnostics are needed, route them to protected channels with policy-controlled retention and content; **public responses** only need stable error codes.
 
-Test phần bảo mật thông báo công khai phải cố tình tạo path có sentinel nhạy cảm và xác minh rằng response/serializer không phản chiếu nó. Hãy phân biệt lỗi quyền truy cập file của process và **authorization nghiệp vụ của user**; hai tầng có thể cùng phát sinh mã 403/404/500 tùy chính sách API.
+Security tests for public error messages should intentionally use paths containing sensitive sentinel strings and verify that responses/serializers never echo them. Distinguish process-level file access errors from **user-level business authorization**; both layers can yield HTTP 403/404/500 depending on API policy.
 
-## 20. Những nhầm lẫn cần tránh
+## 20. Misconceptions to Avoid
 
-1. **“`Files.exists` false chắc chắn tệp không tồn tại.”** Sai: có thể không xác định được do lỗi truy cập.
-2. **“Link bị đứt nghĩa là không có directory entry.”** Sai: `NOFOLLOW_LINKS` có thể chứng minh link vẫn tồn tại.
-3. **“`Files.isSymbolicLink` false chứng minh file không phải symlink.”** Chưa chắc nếu không xác định được loại do I/O lỗi.
-4. **“`NOFOLLOW_LINKS` chặn mọi symlink ở mọi thư mục cha.”** Không đủ: phải hiểu hợp đồng API và thiết kế directory/path security.
-5. **“`readSymbolicLink` trả absolute path.”** Có thể trả relative target được lưu trong link.
-6. **“Xóa symbolic link là xóa cả target.”** Sai với `Files.delete(link)` trong trường hợp bình thường.
-7. **“Hard link chính là symlink khác tên.”** Sai; định danh và nội dung liên quan theo ngữ nghĩa khác.
-8. **“`isReadable` true nghĩa là đọc chắc chắn thành công.”** Sai: TOCTOU và các lý do khác vẫn làm I/O fail.
-9. **“`isWritable` false luôn là do ACL từ chối.”** Sai: có thể do không xác định được hoặc chính sách khác.
-10. **“Mọi hệ điều hành hỗ trợ POSIX permissions.”** Sai; phải kiểm tra view của file store.
-11. **“Windows không bao giờ tạo được symlink.”** Sai; phụ thuộc hệ điều hành, quyền và provider.
-12. **“Mỗi file store trên Linux giống nhau.”** Sai; network/ZIP/FUSE/container stores có thể khác.
-13. **“`normalize` và `toRealPath` là đủ chống path traversal.”** Sai nếu vẫn còn symlink race/authorization.
-14. **“Có view ACL nghĩa là user web đã được cho phép.”** Sai; quyền OS khác policy ứng dụng.
-15. **“`Files.walkFileTree` theo link theo mặc định.”** Sai; phải chủ động truyền `FOLLOW_LINKS`.
-16. **“Symlink cycle sẽ luôn được xử lý im lặng.”** Sai; khi follow có thể xuất hiện `FileSystemLoopException`.
-17. **“Timestamps và thứ tự duyệt luôn ổn định giữa Windows/macOS/Linux.”** Sai; dùng test dựa trên hợp đồng cụ thể.
-18. **“Test không tạo symlink được là code xử lý symlink sai.”** Chưa chắc; feature có thể không hỗ trợ hoặc bị policy chặn.
-19. **“Catch mọi IOException rồi báo SKIP.”** Sai: che lỗi thật sau khi đã xác định feature hỗ trợ.
-20. **“In raw path để debug là vô hại.”** Có thể lộ username, server layout, private storage key.
+1. **"`Files.exists` returning `false` guarantees the file does not exist."** False: access errors can render it indeterminate.
+2. **"A broken link means no directory entry exists."** False: `NOFOLLOW_LINKS` can prove the link entry still exists.
+3. **"`Files.isSymbolicLink` returning `false` proves the file is not a symlink."** Not necessarily if an I/O error prevented determining the type.
+4. **"`NOFOLLOW_LINKS` blocks symlinks in all parent directories."** Insufficient: understand API contracts and directory/path security design.
+5. **"`readSymbolicLink` always returns an absolute path."** It can return the relative target stored in the link.
+6. **"Deleting a symbolic link deletes the target too."** False for `Files.delete(link)` under normal rules.
+7. **"A hard link is just a symlink by another name."** False; file identity and content linkage have different semantics.
+8. **"`isReadable` returning `true` means reading will definitely succeed."** False: TOCTOU and other factors can still fail I/O.
+9. **"`isWritable` returning `false` is always an ACL denial."** False: it can mean indeterminate status or another policy.
+10. **"Every OS supports POSIX permissions."** False; inspect the file store's views.
+11. **"Windows can never create symlinks."** False; depends on OS version, privileges, and provider.
+12. **"Every file store on Linux is identical."** False; network, ZIP, FUSE, and container stores vary.
+13. **"`normalize` and `toRealPath` alone prevent path traversal."** False if symlink races or authorization gaps remain.
+14. **"Having an ACL view means the web user is authorized."** False; OS permissions differ from application policy.
+15. **"`Files.walkFileTree` follows links by default."** False; you must explicitly pass `FOLLOW_LINKS`.
+16. **"Symlink cycles are always ignored silently."** False; following links can throw `FileSystemLoopException`.
+17. **"Timestamps and traversal order are always identical across Windows/macOS/Linux."** False; write contract-based tests.
+18. **"A test failing to create a symlink means symlink-handling code is buggy."** Not necessarily; the feature may be unsupported or blocked by policy.
+19. **"Catch every `IOException` and report SKIP."** False: hides real bugs once the feature is known to be supported.
+20. **"Printing raw paths for debugging is harmless."** It can leak usernames, server layouts, and private storage keys.
 
-## 21. Bài tập vận dụng
+## 21. Practice Exercises
 
-### Bài A — broken link
+### Exercise A — Broken Link
 
-Tạo symlink `broken.txt -> missing.txt` trong thư mục tạm. Dự đoán `exists` có/không `NOFOLLOW_LINKS`, `isSymbolicLink` và `readSymbolicLink`. Vì sao các kết quả có thể khác nhau?
+Create a symlink `broken.txt -> missing.txt` in a temporary directory. Predict `exists` with/without `NOFOLLOW_LINKS`, `isSymbolicLink`, and `readSymbolicLink`. Why can the results differ?
 
-### Bài B — POSIX/ACL capability
+### Exercise B — POSIX/ACL Capabilities
 
-Trên máy bạn, dùng `Files.getFileStore(path)`, `supportsFileAttributeView(PosixFileAttributeView.class)` và `AclFileAttributeView.class`. So sánh hai file store khác nhau nếu có. Vì sao không nên biến một kết quả thành quy tắc chung cho hệ điều hành?
+On your machine, use `Files.getFileStore(path)`, `supportsFileAttributeView(PosixFileAttributeView.class)`, and `AclFileAttributeView.class`. Compare two different file stores if available. Why shouldn't one result be generalized into an OS-wide rule?
 
-### Bài C — race giữa kiểm tra và thao tác
+### Exercise C — Race Between Check and Operation
 
-Một tiến trình gọi `Files.isRegularFile(candidate, NOFOLLOW_LINKS)`, rồi tiến trình khác thay entry thành symbolic link trước `Files.readString(candidate)`. Giải thích rủi ro TOCTOU và đề xuất cách giảm thiểu bằng giới hạn thư mục, open options và handle.
+One process calls `Files.isRegularFile(candidate, NOFOLLOW_LINKS)`, and another process swaps the entry for a symbolic link before `Files.readString(candidate)`. Explain the TOCTOU risk and propose mitigations using directory restrictions, open options, and handles.
 
-### Bài D — directory traversal
+### Exercise D — Directory Traversal
 
-Một file ZIP chứa entry `../../outside.txt`. Tại sao `root.resolve(name).normalize().startsWith(root)` vẫn chưa đủ nếu thư mục trong root có thể bị thay bởi symlink? Nếu cần thao tác trên cây thư mục do người dùng khác sửa đồng thời, cần cân nhắc capability nào của provider?
+A ZIP file contains an entry `../../outside.txt`. Why is `root.resolve(name).normalize().startsWith(root)` still insufficient if a directory inside `root` can be replaced with a symlink? When operating on a directory tree modified concurrently by another user, what provider capabilities should you consider?
 
-### Bài E — test portable trên CI
+### Exercise E — Portable CI Tests
 
-Hãy sửa `SymlinkInvariantTest` để log lý do skip vào kênh nội bộ nhưng không trả path ra output công khai. Trên môi trường không hỗ trợ symlink, tại sao phải skip test thuộc tính symlink thay vì fail cả build (nếu tính năng là optional)?
+Modify `SymlinkInvariantTest` to log the skip reason to an internal channel without printing paths to public output. In an environment that does not support symlinks, why skip symlink-property tests instead of failing the entire build (if the feature is optional)?
 
-### Bài F — file đang mở và cleanup
+### Exercise F — Open Files and Cleanup
 
-Thử mở `FileChannel`, sau đó xóa/rename file trong cùng process ở các OS khác nhau. Ghi nhận hành vi thực tế, nhưng không viết test portable giả định Windows hoặc POSIX luôn cho kết quả giống nhau. Sau test phải đóng channel và xóa dữ liệu tạm an toàn.
+Try opening a `FileChannel`, then deleting or renaming the file in the same process on different OSes. Record actual behavior without writing portable tests that assume Windows and POSIX behave identically. Close the channel and delete temporary data safely afterward.
 
-## 22. Câu hỏi tự kiểm tra
+## 22. Self-Check Questions
 
-1. `Files.isSymbolicLink(path)` khác `Files.isRegularFile(path, NOFOLLOW_LINKS)` thế nào?
-2. Khi target của symlink bị xóa, vì sao `Files.exists(link)` và `Files.exists(link, NOFOLLOW_LINKS)` có thể khác?
-3. `Files.readSymbolicLink(link)` trả Path relative so với đâu?
-4. `NOFOLLOW_LINKS` có ý nghĩa và giới hạn gì trong việc chống symlink attack?
-5. Khi nào nên dùng `Files.readAttributes(..., NOFOLLOW_LINKS)` thay vì chỉ dùng `Files.isSymbolicLink`?
-6. `Files.isReadable(path)` trả true có thay thế việc bắt `IOException` không?
-7. `FileStore.supportsFileAttributeView` cho biết điều gì, và điều gì nó không cam kết?
-8. POSIX permissions và Windows ACL có thể được đồng nhất hoàn toàn không?
-9. Tại sao việc check quyền rồi mở file có thể tạo TOCTOU?
-10. `Files.delete(link)` có tự động xóa nội dung target của symlink không?
-11. Vì sao `Path.normalize()` không phải phép kiểm tra security root chắc chắn?
-12. Khi dùng `FOLLOW_LINKS` trong `walkFileTree`, cần xem xét dạng lỗi nào?
-13. Nếu CI không thể tạo symlink, làm sao tổ chức test để vẫn nhận diện lỗi thật của chức năng khác?
-14. Vì sao cần chạy kiểm thử trên nhiều loại file store, không chỉ nhiều tên hệ điều hành?
-15. Có nên đưa path tuyệt đối hoặc owner name lên trang lỗi HTTP khi một `AccessDeniedException` xảy ra không?
+1. How does `Files.isSymbolicLink(path)` differ from `Files.isRegularFile(path, NOFOLLOW_LINKS)`?
+2. When a symlink's target is deleted, why can `Files.exists(link)` and `Files.exists(link, NOFOLLOW_LINKS)` differ?
+3. What is the relative `Path` returned by `Files.readSymbolicLink(link)` relative to?
+4. What is the meaning and limitation of `NOFOLLOW_LINKS` in defending against symlink attacks?
+5. When should you use `Files.readAttributes(..., NOFOLLOW_LINKS)` instead of `Files.isSymbolicLink` alone?
+6. Does `Files.isReadable(path)` returning `true` replace catching `IOException`?
+7. What does `FileStore.supportsFileAttributeView` tell you, and what does it not promise?
+8. Can POSIX permissions and Windows ACLs be completely unified?
+9. Why can checking permissions before opening a file create a TOCTOU vulnerability?
+10. Does `Files.delete(link)` automatically delete the symlink target's contents?
+11. Why is `Path.normalize()` not a reliable security root check?
+12. When using `FOLLOW_LINKS` in `walkFileTree`, what kind of error must you account for?
+13. If CI cannot create symlinks, how should tests be structured so real bugs in other features are still caught?
+14. Why should tests run across multiple file store types rather than just multiple OS names?
+15. Should you display absolute paths or owner names on an HTTP error page when `AccessDeniedException` occurs?
 
-## 23. Tài liệu tham khảo Java 17
+## 23. Java 17 Reference Documentation
 
-- [`Files` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): create/read symbolic link, exists, readAttributes, access probes, walkFileTree.
-- [`Path` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html): normalize, toAbsolutePath, toRealPath và semantics provider.
+- [`Files` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): creating/reading symbolic links, `exists`, `readAttributes`, access probes, `walkFileTree`.
+- [`Path` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html): `normalize`, `toAbsolutePath`, `toRealPath`, and provider semantics.
 - [`LinkOption` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/LinkOption.html): `NOFOLLOW_LINKS`.
 - [`FileStore` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/FileStore.html): `supportsFileAttributeView`.
 - [`java.nio.file.attribute` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/attribute/package-summary.html): Basic/POSIX/DOS/ACL/User-defined attribute views.
-- [`SecureDirectoryStream` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/SecureDirectoryStream.html): thao tác directory entry giúp giảm race nếu provider hỗ trợ.
-- [`FileVisitOption` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/FileVisitOption.html): `FOLLOW_LINKS` khi duyệt cây.
+- [`SecureDirectoryStream` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/SecureDirectoryStream.html): directory-entry operations reducing races where supported by the provider.
+- [`FileVisitOption` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/FileVisitOption.html): `FOLLOW_LINKS` during tree traversal.
 
-## 24. Ghi nhớ
+## 24. Takeaways
 
-**Symbolic link là một entry riêng với target**, và `NOFOLLOW_LINKS` chỉ có ý nghĩa trong các API hỗ trợ. Với link bị đứt, kiểm tra tồn tại mặc định có thể false trong khi kiểm tra chính link với `NOFOLLOW_LINKS` là true.
+**A symbolic link is a distinct entry pointing to a target**, and `NOFOLLOW_LINKS` applies only to APIs that honor it. For a broken link, a default existence check can return `false` while checking the link itself with `NOFOLLOW_LINKS` returns `true`.
 
-**Quyền truy cập và thuộc tính file phụ thuộc provider/file store, OS, process identity và thời điểm**. `Files.isReadable/isWritable` không thay thế phép mở thật; POSIX/DOS/ACL views cần được phát hiện động. Đối với mã cần bảo mật, tránh TOCTOU bằng quản lý root/handle, quyền thư mục phù hợp, tùy chọn mở không follow và kiểm soát thành phần đường dẫn — không chỉ bằng `normalize()`.
+**Access permissions and file attributes depend on the provider/file store, OS, process identity, and timing.** `Files.isReadable`/`isWritable` do not replace actually opening the file; POSIX/DOS/ACL views must be probed dynamically. For security-sensitive code, avoid TOCTOU by controlling roots and handles, setting proper directory permissions, using non-following open options, and validating path components—not relying on `normalize()` alone.
 
-Bài test chất lượng tốt **chỉ dùng tài nguyên tạm**, nhận diện tính năng optional, phân biệt SKIP với FAIL, không yêu cầu output về quyền/symlink giống nhau ở mọi nền tảng, và không làm lộ đường dẫn nội bộ trong thông báo công khai.
+High-quality tests **use only temporary resources**, recognize optional capabilities, distinguish SKIP from FAIL, never demand identical permission/symlink outputs on every platform, and never leak internal paths in public messages.

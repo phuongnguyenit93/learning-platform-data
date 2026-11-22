@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: mass-assignment-003
     title: Sensitive field exclusion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: mass-assignment-004
     title: Nested property binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: mass-assignment-005
     title: Role field protection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: mass-assignment-006
     title: Mass assignment test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: mass-assignment-007
     title: Binding failure handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1390,7 +1390,7 @@ menu:
   childs:
   - slug: client-trust-001
     title: Untrusted browser state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
     summary: ''
   - slug: client-trust-002
     title: Untrusted mobile state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: client-trust-003
     title: Untrusted cached state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
     summary: ''
   - slug: client-trust-004
     title: Untrusted hidden controls
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: client-trust-005
     title: Untrusted client timestamps
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: client-trust-006
     title: Server authoritative decisions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: client-trust-007
     title: Client trust boundary tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1456,7 +1456,7 @@ menu:
   childs:
   - slug: http-method-semantics-001
     title: Safe method assumptions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1465,7 +1465,7 @@ menu:
     summary: ''
   - slug: http-method-semantics-002
     title: Idempotent method assumptions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1474,7 +1474,7 @@ menu:
     summary: ''
   - slug: http-method-semantics-003
     title: Method override risks
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1483,7 +1483,7 @@ menu:
     summary: ''
   - slug: http-method-semantics-004
     title: Unexpected method rejection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
     summary: ''
   - slug: http-method-semantics-005
     title: Action endpoint semantics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1501,7 +1501,7 @@ menu:
     summary: ''
   - slug: http-method-semantics-006
     title: Method authorization matrix
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
     summary: ''
   - slug: http-method-semantics-007
     title: Method behavior testing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1522,7 +1522,7 @@ menu:
   childs:
   - slug: api-business-rules-001
     title: Business command endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1531,7 +1531,7 @@ menu:
     summary: ''
   - slug: api-business-rules-002
     title: Business query endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1540,7 +1540,7 @@ menu:
     summary: ''
   - slug: api-business-rules-003
     title: Action endpoint authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1549,7 +1549,7 @@ menu:
     summary: ''
   - slug: api-business-rules-004
     title: API state transition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1558,7 +1558,7 @@ menu:
     summary: ''
   - slug: api-business-rules-005
     title: API error consistency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1567,7 +1567,7 @@ menu:
     summary: ''
   - slug: api-business-rules-006
     title: API compatibility rules
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1576,7 +1576,7 @@ menu:
     summary: ''
   - slug: api-business-rules-007
     title: API rule documentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1588,7 +1588,7 @@ menu:
   childs:
   - slug: batch-operations-001
     title: Batch command authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1597,7 +1597,7 @@ menu:
     summary: ''
   - slug: batch-operations-002
     title: Batch item isolation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1606,7 +1606,7 @@ menu:
     summary: ''
   - slug: batch-operations-003
     title: Batch partial success
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1615,7 +1615,7 @@ menu:
     summary: ''
   - slug: batch-operations-004
     title: Batch atomicity policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1624,7 +1624,7 @@ menu:
     summary: ''
   - slug: batch-operations-005
     title: Batch size restriction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1633,7 +1633,7 @@ menu:
     summary: ''
   - slug: batch-operations-006
     title: Batch duplicate handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1642,7 +1642,7 @@ menu:
     summary: ''
   - slug: batch-operations-007
     title: Batch result disclosure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1654,7 +1654,7 @@ menu:
   childs:
   - slug: pagination-security-001
     title: Pagination ownership filter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1663,7 +1663,7 @@ menu:
     summary: ''
   - slug: pagination-security-002
     title: Cursor integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1672,7 +1672,7 @@ menu:
     summary: ''
   - slug: pagination-security-003
     title: Offset abuse
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1681,7 +1681,7 @@ menu:
     summary: ''
   - slug: pagination-security-004
     title: Page size limits
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1690,7 +1690,7 @@ menu:
     summary: ''
   - slug: pagination-security-005
     title: Cross page consistency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1699,7 +1699,7 @@ menu:
     summary: ''
   - slug: pagination-security-006
     title: Deleted item behavior
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1708,7 +1708,7 @@ menu:
     summary: ''
   - slug: pagination-security-007
     title: Pagination authorization tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1720,7 +1720,7 @@ menu:
   childs:
   - slug: search-rules-001
     title: Search scope authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1729,7 +1729,7 @@ menu:
     summary: ''
   - slug: search-rules-002
     title: Search result filtering
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1738,7 +1738,7 @@ menu:
     summary: ''
   - slug: search-rules-003
     title: Search wildcard limits
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1747,7 +1747,7 @@ menu:
     summary: ''
   - slug: search-rules-004
     title: Search ranking manipulation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1756,7 +1756,7 @@ menu:
     summary: ''
   - slug: search-rules-005
     title: Search sensitive fields
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1765,7 +1765,7 @@ menu:
     summary: ''
   - slug: search-rules-006
     title: Search timing leakage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1774,7 +1774,7 @@ menu:
     summary: ''
   - slug: search-rules-007
     title: Search audit trail
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1786,7 +1786,7 @@ menu:
   childs:
   - slug: sorting-rules-001
     title: Allowed sort fields
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1795,7 +1795,7 @@ menu:
     summary: ''
   - slug: sorting-rules-002
     title: Sort field allowlist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1804,7 +1804,7 @@ menu:
     summary: ''
   - slug: sorting-rules-003
     title: Sensitive sort prevention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1813,7 +1813,7 @@ menu:
     summary: ''
   - slug: sorting-rules-004
     title: Stable sort requirement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1822,7 +1822,7 @@ menu:
     summary: ''
   - slug: sorting-rules-005
     title: Sort direction validation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1840,7 +1840,7 @@ menu:
     summary: ''
   - slug: sorting-rules-007
     title: Sort authorization tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

@@ -1,119 +1,119 @@
-# Bảng trách nhiệm đóng tài nguyên theo từng API trong Java I/O
+# Resource Closing Responsibility Table by API in Java I/O
 
-## 1. Cách đọc bảng: ai mở, ai đóng?
+## 1. How to Read This Table: Who Opens, Who Closes?
 
-Trong Java, **quyền sở hữu tài nguyên (resource ownership)** quyết định thành phần nào chịu trách nhiệm gọi **close()**. Một đối tượng có phương thức close() chưa đủ để kết luận rằng đoạn mã đang sử dụng nó được phép đóng: đối tượng có thể được tạo tại đây, được mượn từ bên ngoài hoặc được chuyển giao quyền sở hữu theo hợp đồng API.
+In Java, **resource ownership** determines which component is responsible for calling **close()**. An object having a close() method is not enough to conclude that the code currently using it is allowed to close it: the object may have been created locally, borrowed from an external caller, or had ownership transferred under an API contract.
 
-| Tình huống | Ai phải đóng? | Nguyên tắc |
+| Scenario | Who must close? | Principle |
 |---|---|---|
-| Phương thức tự mở file, socket, channel, directory stream… | Phương thức đã mở | Dùng try-with-resources để đóng trên mọi đường đi, kể cả khi có ngoại lệ. |
-| Phương thức **nhận** một InputStream, OutputStream, Reader, Writer… do caller truyền vào | Thông thường caller | Callee dùng rồi trả lại; chỉ đóng khi API công khai rằng nó nhận quyền sở hữu. |
-| Phương thức trả về một đối tượng còn giữ tài nguyên đang mở | Caller nhận kết quả | Viết rõ trong hợp đồng rằng caller phải đóng; tránh trả về tài nguyên ẩn, khó theo dõi. |
-| Đặt wrapper quanh stream/channel | Bên sở hữu wrapper **và** tài nguyên nền theo hợp đồng | Đóng wrapper thường đóng luôn tài nguyên nền. Nếu nền là tài nguyên mượn, không tự ý đóng wrapper. |
-| API đọc/ghi trọn vẹn trong một lời gọi, chỉ trả về dữ liệu/Path/kết quả | Chính API | Không còn đối tượng tài nguyên để caller đóng; việc xóa file hoặc dọn dữ liệu là trách nhiệm khác. |
+| A method opens a file, socket, channel, directory stream, etc. itself | The method that opened it | Use try-with-resources to close along every path, including when an exception occurs. |
+| A method **receives** an InputStream, OutputStream, Reader, Writer, etc. passed in by the caller | Usually the caller | The callee uses it and returns; close only when the API explicitly documents taking ownership. |
+| A method returns an object holding an open resource | The caller receiving the result | Document clearly in the contract that the caller must close it; avoid returning hidden, hard-to-track resources. |
+| Wrapping a stream/channel in a wrapper | The owner of the wrapper **and** underlying resource per contract | Closing a wrapper usually closes the underlying resource as well. If the underlying resource is borrowed, do not close the wrapper unilaterally. |
+| An API performs the full read/write in a single call and returns only data/Path/result | The API itself | No resource object remains for the caller to close; deleting files or cleaning up data is a separate responsibility. |
 
-**Quy tắc mặc định để tra cứu nhanh:** nếu mã của bạn tự tạo tài nguyên có vòng đời mở/đóng, hãy đưa nó vào try-with-resources; nếu chỉ được truyền vào một tài nguyên có sẵn, **không đóng** khi chưa có hợp đồng chuyển giao. Các ngoại lệ cụ thể cần đọc theo từng API ở dưới.
+**Default rule for quick lookup:** if your own code creates a resource with an open/close lifecycle, put it in try-with-resources; if an existing resource is merely passed in, **do not close it** unless a transfer-of-ownership contract exists. Specific exceptions should be checked per API below.
 
-## 2. Bảng tra cứu java.io: stream, reader, writer và wrapper
+## 2. java.io Reference Table: Streams, Readers, Writers, and Wrappers
 
-| API hoặc cách tạo | Chủ sở hữu thông thường | Cần làm khi xong? | Tác động và lưu ý |
+| API or creation form | Typical owner | What to do when done? | Impact and notes |
 |---|---|---|---|
-| **new FileInputStream(file)**, **new FileOutputStream(file)** | Mã gọi constructor | **close()** | Giải phóng file descriptor; OutputStream.close() đóng luồng ghi, không thay thế cơ chế bảo đảm dữ liệu đã bền vững trên đĩa. |
-| **new FileReader(file, charset)**, **new FileWriter(file, charset)** | Mã mở file | **close()** | Đóng reader/writer và tài nguyên file; chỉ rõ charset nếu nội dung cần tái lập ổn định. |
-| **new BufferedInputStream(input)**, **new BufferedOutputStream(output)** | Mã sở hữu wrapper theo hợp đồng | **close() wrapper** | Đóng wrapper sẽ đóng stream nền; với luồng ghi, close() còn flush dữ liệu được đệm. |
-| **new BufferedReader(reader)**, **new BufferedWriter(writer)** | Mã sở hữu wrapper | **close() wrapper** | Đóng wrapper kéo theo đóng reader/writer bên dưới; với writer, cần đóng hoặc flush để đẩy dữ liệu đệm. |
-| **new InputStreamReader(input, charset)**, **new OutputStreamWriter(output, charset)** | Mã sở hữu wrapper | **close() wrapper** | Đóng tầng chuyển đổi byte ↔ ký tự và đóng stream nền. |
-| **new DataInputStream(input)**, **new DataOutputStream(output)** | Mã sở hữu wrapper | **close() wrapper** | Đóng stream nền; close() của DataOutputStream cũng kết thúc đường ghi. |
-| **new ObjectInputStream(input)**, **new ObjectOutputStream(output)** | Mã sở hữu wrapper | **close() wrapper** | Đóng stream nền; phải hoàn tất/flush chuỗi đối tượng ghi ra trước khi kết thúc. Không dùng ObjectOutputStream cho dữ liệu Java Serialization không đáng tin. |
-| **new PrintStream(output)**, **new PrintWriter(writer/output)** | Mã sở hữu wrapper | **close() nếu sở hữu đầu ra** | Đóng wrapper sẽ đóng đích ghi. Hai lớp này có thể ghi nhận lỗi thay vì ném IOException trong một số thao tác; kiểm tra **checkError()** khi cần phát hiện lỗi ghi. |
-| **new RandomAccessFile(file, mode)** | Mã mở file | **close()** | Giải phóng file; **getChannel()** trả về channel liên kết cùng file, đóng một phía có thể ảnh hưởng phía còn lại. |
-| **new ByteArrayInputStream(bytes)**, **new ByteArrayOutputStream()** | Mã tạo đối tượng | Không có handle hệ điều hành bắt buộc đóng | close() không có tác dụng đối với hai lớp này; cần phân biệt với các wrapper có tài nguyên nền thật. |
-| **new StringReader(text)**, **new StringWriter()** | Mã tạo đối tượng | Không có file/socket cần giải phóng | StringReader.close() đánh dấu đóng, đọc tiếp không hợp lệ; StringWriter.close() không có tác dụng. Không suy từ hai lớp này ra toàn bộ Reader/Writer. |
+| **new FileInputStream(file)**, **new FileOutputStream(file)** | Code calling the constructor | **close()** | Releases the file descriptor; OutputStream.close() closes the write stream and does not replace mechanisms that ensure data is durable on disk. |
+| **new FileReader(file, charset)**, **new FileWriter(file, charset)** | Code opening the file | **close()** | Closes the reader/writer and file resource; specify the charset explicitly if content must be reproduced consistently. |
+| **new BufferedInputStream(input)**, **new BufferedOutputStream(output)** | Code owning the wrapper per contract | **close() the wrapper** | Closing the wrapper closes the underlying stream; for output streams, close() also flushes buffered data. |
+| **new BufferedReader(reader)**, **new BufferedWriter(writer)** | Code owning the wrapper | **close() the wrapper** | Closing the wrapper cascades to closing the underlying reader/writer; for writers, close or flush is needed to push out buffered data. |
+| **new InputStreamReader(input, charset)**, **new OutputStreamWriter(output, charset)** | Code owning the wrapper | **close() the wrapper** | Closes the byte ↔ character conversion layer and closes the underlying stream. |
+| **new DataInputStream(input)**, **new DataOutputStream(output)** | Code owning the wrapper | **close() the wrapper** | Closes the underlying stream; DataOutputStream's close() also finishes the write path. |
+| **new ObjectInputStream(input)**, **new ObjectOutputStream(output)** | Code owning the wrapper | **close() the wrapper** | Closes the underlying stream; the written object stream must be completed/flushed before ending. Do not use ObjectOutputStream on untrusted Java Serialization data. |
+| **new PrintStream(output)**, **new PrintWriter(writer/output)** | Code owning the wrapper | **close() if owning the output** | Closing the wrapper closes the write target. Both classes may record errors rather than throwing IOException on several operations; check **checkError()** when write error detection is needed. |
+| **new RandomAccessFile(file, mode)** | Code opening the file | **close()** | Releases the file; **getChannel()** returns a channel bound to the same file, so closing one side can affect the other. |
+| **new ByteArrayInputStream(bytes)**, **new ByteArrayOutputStream()** | Code creating the object | No OS handle requiring closure | close() has no effect on these two classes; distinguish them from wrappers backed by real system resources. |
+| **new StringReader(text)**, **new StringWriter()** | Code creating the object | No file/socket to release | StringReader.close() marks it closed so subsequent reads fail; StringWriter.close() has no effect. Do not generalize these two classes to all Readers/Writers. |
 
-Ví dụ, đóng BufferedReader được tạo từ FileReader sẽ lan xuống FileReader; không cần đóng từng lớp riêng theo cách thủ công. Ngược lại, một BufferedWriter bọc **System.out** không được tự ý đóng, vì hành động đó sẽ đóng luôn stream chuẩn đang được các thành phần khác sử dụng.
+For example, closing a BufferedReader created from a FileReader propagates down to FileReader; there is no need to close each layer manually. Conversely, a BufferedWriter wrapping **System.out** must not be closed unilaterally, because doing so would close the standard stream shared by other components.
 
-## 3. Bảng tra cứu java.nio.file.Files
+## 3. java.nio.file.Files Reference Table
 
-Phân biệt **phương thức trả về tài nguyên mở** với **phương thức tự thực hiện toàn bộ I/O rồi trả dữ liệu**.
+Distinguish **methods that return an open resource** from **methods that perform all I/O internally and return data**.
 
-| API | Kết quả | Trách nhiệm đóng |
+| API | Return value | Closing responsibility |
 |---|---|---|
-| **Files.newInputStream(path)**, **Files.newOutputStream(path)** | InputStream/OutputStream đang mở | **Caller đóng** stream trả về. |
-| **Files.newBufferedReader(path, charset)**, **Files.newBufferedWriter(path, charset, options…)** | BufferedReader/BufferedWriter đang mở | **Caller đóng** reader/writer trả về. |
-| **Files.newByteChannel(path, options…)** | SeekableByteChannel đang mở | **Caller đóng** channel. |
-| **Files.newDirectoryStream(dir)**, biến thể có glob/filter | DirectoryStream đang mở | **Caller đóng** sau khi duyệt; kể cả khi ngừng duyệt sớm hoặc xảy ra lỗi. |
-| **Files.lines(path, charset)** | Stream&lt;String&gt; gắn với file đang mở | **Caller đóng Stream** bằng try-with-resources. count(), forEach(), findFirst()… **không tự đóng** nguồn. |
-| **Files.list(dir)** | Stream&lt;Path&gt; có thể giữ tài nguyên thư mục | **Caller đóng Stream**. |
-| **Files.walk(start, …)**, **Files.find(start, …)** | Stream&lt;Path&gt; duyệt cây thư mục | **Caller đóng Stream**; nguồn có thể giữ các directory handle trong lúc duyệt. |
-| **Files.readAllBytes(path)**, **Files.readAllLines(path, charset)**, **Files.readString(path, charset)** | byte[], List&lt;String&gt;, String | API tự quản lý I/O bên trong; **caller không có stream phải đóng**. Cân nhắc bộ nhớ nếu file lớn. |
-| **Files.write(path, bytes/lines, …)**, **Files.writeString(path, text, charset, …)** | Path | API tự mở/đóng tài nguyên nội bộ; **caller không phải đóng Path**. |
-| **Files.copy(sourcePath, targetPath, …)**, **Files.move(source, target, …)** | Path | API tự quản lý handle nội bộ; không có stream trả về để đóng. |
-| **Files.copy(inputStream, targetPath, …)** | long (số byte) | API **không đóng inputStream** do caller truyền vào; caller giữ trách nhiệm. |
-| **Files.copy(sourcePath, outputStream)** | long (số byte) | API **không đóng outputStream** do caller truyền vào; caller giữ trách nhiệm. |
-| **Files.walkFileTree(start, visitor)** | Path | API quản lý việc mở/đóng directory trong quá trình duyệt; nhưng mọi tài nguyên mà visitor tự mở vẫn phải được visitor đóng. |
-| **Files.exists/isRegularFile/size/delete/deleteIfExists/createTempFile** | Giá trị/Path, không trả stream | Không có handle để caller đóng; **file tạm vẫn phải được xóa nếu ứng dụng chịu trách nhiệm dọn dẹp**. |
+| **Files.newInputStream(path)**, **Files.newOutputStream(path)** | Open InputStream/OutputStream | **Caller closes** the returned stream. |
+| **Files.newBufferedReader(path, charset)**, **Files.newBufferedWriter(path, charset, options…)** | Open BufferedReader/BufferedWriter | **Caller closes** the returned reader/writer. |
+| **Files.newByteChannel(path, options…)** | Open SeekableByteChannel | **Caller closes** the channel. |
+| **Files.newDirectoryStream(dir)**, glob/filter variants | Open DirectoryStream | **Caller closes** after iteration; even if iteration stops early or an error occurs. |
+| **Files.lines(path, charset)** | Stream&lt;String&gt; backed by an open file | **Caller closes the Stream** via try-with-resources. count(), forEach(), findFirst(), etc. **do not close** the underlying source automatically. |
+| **Files.list(dir)** | Stream&lt;Path&gt; that may hold a directory resource | **Caller closes the Stream**. |
+| **Files.walk(start, …)**, **Files.find(start, …)** | Stream&lt;Path&gt; traversing a directory tree | **Caller closes the Stream**; the source may hold directory handles during traversal. |
+| **Files.readAllBytes(path)**, **Files.readAllLines(path, charset)**, **Files.readString(path, charset)** | byte[], List&lt;String&gt;, String | The API manages I/O internally; **caller has no stream to close**. Consider memory usage if the file is large. |
+| **Files.write(path, bytes/lines, …)**, **Files.writeString(path, text, charset, …)** | Path | The API opens/closes resources internally; **caller does not close the Path**. |
+| **Files.copy(sourcePath, targetPath, …)**, **Files.move(source, target, …)** | Path | The API manages internal handles; no stream is returned to close. |
+| **Files.copy(inputStream, targetPath, …)** | long (byte count) | The API **does not close the inputStream** passed in by the caller; caller retains responsibility. |
+| **Files.copy(sourcePath, outputStream)** | long (byte count) | The API **does not close the outputStream** passed in by the caller; caller retains responsibility. |
+| **Files.walkFileTree(start, visitor)** | Path | The API manages opening/closing directories during traversal; however, any resource opened by the visitor itself must still be closed by the visitor. |
+| **Files.exists/isRegularFile/size/delete/deleteIfExists/createTempFile** | Value/Path, no stream returned | No handle for the caller to close; **temporary files must still be deleted if the application is responsible for cleanup**. |
 
-**Lỗi dễ mắc:** viết Files.lines(path).filter(...).count() mà không đặt Stream trả về vào try-with-resources. Một terminal operation chỉ kết thúc phép tính Stream; nó không đồng nghĩa với close(). Đối với Stream lấy từ collection thuần bộ nhớ như list.stream(), không có tài nguyên ngoài cần giải phóng trong trường hợp thông thường.
+**Common mistake:** writing Files.lines(path).filter(...).count() without placing the returned Stream in try-with-resources. A terminal operation only ends the Stream pipeline evaluation; it does not equal close(). For a Stream created from an in-memory collection like list.stream(), there is normally no external resource to release.
 
-## 4. Bảng tra cứu channel, filesystem và các đối tượng NIO khác
+## 4. Channels, Filesystems, and Other NIO Objects Reference Table
 
-| API | Ai đóng? | Ghi chú quan trọng |
+| API | Who closes? | Important notes |
 |---|---|---|
-| **FileChannel.open(path, options…)** | Caller đóng FileChannel | Đóng channel giải phóng file descriptor. |
-| **AsynchronousFileChannel.open(path, options…)** | Caller đóng AsynchronousFileChannel | Đóng channel sau khi xử lý/đồng bộ các tác vụ bất đồng bộ theo thiết kế; tránh sử dụng sau khi đóng. |
-| **Files.newByteChannel(path)** | Caller đóng SeekableByteChannel | Khi cắt qua lớp abstraction, quyền sở hữu vẫn đi theo đối tượng trả về. |
-| **Channels.newInputStream(channel)** / **Channels.newOutputStream(channel)** | Thành phần sở hữu wrapper | Đóng stream chuyển đổi sẽ đóng channel nền; không làm vậy nếu channel được mượn. |
-| **FileLock** từ FileChannel.lock()/tryLock() | Bên nhận lock giải phóng | Dùng release() hoặc AutoCloseable.close(); đóng channel cũng giải phóng lock liên quan, nhưng không nên dùng thay cho vòng đời lock rõ ràng. |
-| **FileChannel.map(…) → MappedByteBuffer** | Không có phương thức close() công khai trên buffer | Đóng FileChannel **không bảo đảm** vùng nhớ ánh xạ được unmap ngay; việc unmap thường phụ thuộc vòng đời buffer/GC. Không giả định delete/truncate thành công tức thời trên mọi hệ điều hành. |
-| **FileSystems.newFileSystem(…)** (ví dụ ZIP filesystem) | Mã tạo FileSystem | Đóng FileSystem khi dùng xong để giải phóng các tài nguyên của provider. |
-| **FileSystems.getDefault()** | Runtime JVM | **Không đóng** default filesystem. |
-| **FileSystems.getFileSystem(uri)** | Tùy hợp đồng nguồn gốc | Đây là filesystem đang tồn tại; không đóng nếu đang mượn hoặc dùng chung. |
-| **FileSystems.getDefault().newWatchService()** | Mã tạo WatchService | Đóng WatchService để giải phóng hệ thống theo dõi thư mục. |
-| **Path**, **Files.readAttributes(…)**, **BasicFileAttributes** | Không áp dụng | Path và thông tin thuộc tính không phải handle đang mở; không có close() để gọi. |
+| **FileChannel.open(path, options…)** | Caller closes FileChannel | Closing the channel releases the file descriptor. |
+| **AsynchronousFileChannel.open(path, options…)** | Caller closes AsynchronousFileChannel | Close the channel after asynchronous operations are processed/synchronized by design; avoid use after close. |
+| **Files.newByteChannel(path)** | Caller closes SeekableByteChannel | Even when going through an abstraction layer, ownership follows the returned object. |
+| **Channels.newInputStream(channel)** / **Channels.newOutputStream(channel)** | Component owning the wrapper | Closing the adapter stream closes the underlying channel; do not do this if the channel is borrowed. |
+| **FileLock** from FileChannel.lock()/tryLock() | Holder of the lock releases it | Use release() or AutoCloseable.close(); closing the channel also releases associated locks, though it should not replace an explicit lock lifecycle. |
+| **FileChannel.map(…) → MappedByteBuffer** | No public close() method on the buffer | Closing FileChannel **does not guarantee** immediate unmapping of the memory-mapped region; unmapping usually depends on buffer lifetime/GC. Do not assume delete/truncate succeeds immediately on all OSes. |
+| **FileSystems.newFileSystem(…)** (e.g., ZIP filesystem) | Code creating the FileSystem | Close the FileSystem when finished to release the provider's resources. |
+| **FileSystems.getDefault()** | JVM runtime | **Do not close** the default filesystem. |
+| **FileSystems.getFileSystem(uri)** | Depends on origin contract | This returns an existing filesystem; do not close if borrowed or shared. |
+| **FileSystems.getDefault().newWatchService()** | Code creating the WatchService | Close the WatchService to release the directory monitoring system resources. |
+| **Path**, **Files.readAttributes(…)**, **BasicFileAttributes** | Not applicable | Path and attribute snapshots are not open handles; there is no close() to call. |
 
-Channel và các stream được tạo trên cùng một nguồn có thể **chia sẻ vòng đời**. Không mở đồng thời nhiều wrapper rồi giả định có thể đóng một wrapper mà những wrapper còn lại vẫn hoạt động.
+Channels and streams created over the same underlying source may **share a lifecycle**. Do not open multiple wrappers concurrently and assume closing one wrapper leaves the others working.
 
-## 5. Bảng tra cứu API I/O thường dùng ngoài java.io/nio
+## 5. Common I/O APIs Outside java.io/nio Reference Table
 
-| API | Trách nhiệm | Góc cạnh cần tránh |
+| API | Responsibility | Edge cases to avoid |
 |---|---|---|
-| **new Scanner(path, charset)**, **new Scanner(inputStream/reader)** | Đóng Scanner nếu nó sở hữu đầu vào; Scanner.close() sẽ đóng nguồn nếu nguồn là Closeable | Scanner(System.in).close() cũng sẽ đóng **System.in**; thông thường không đóng đầu vào chuẩn dùng chung. |
-| **new ZipInputStream(input)**, **new GZIPInputStream(input)** | Chủ sở hữu wrapper đóng wrapper | Việc đóng lan xuống input bên dưới; mỗi entry trong ZipInputStream kết thúc bằng closeEntry() để chuyển entry, nhưng **closeEntry() không thay thế close() toàn stream**. |
-| **new ZipOutputStream(output)**, **new GZIPOutputStream(output)** | Chủ sở hữu wrapper đóng wrapper | Có thể dùng finish() để hoàn tất định dạng nén mà vẫn giữ stream nền mở theo thiết kế API; **close()** của wrapper còn đóng output nền. |
-| **new ZipFile(path)**, **new JarFile(path)** | Mã mở file archive | Đóng ZipFile/JarFile; InputStream lấy qua getInputStream(entry) cũng nên được đóng trong phạm vi sử dụng, trước khi đóng archive. |
-| **Socket**, **ServerSocket** do ứng dụng tạo/accept | Mã nhận quyền sở hữu socket đóng socket | Đóng socket hoặc stream của socket thường kéo theo đóng kết nối; không đóng một stream của socket khi cần tái sử dụng kết nối. |
-| **URL.openStream()** | Mã gọi | Đóng InputStream nhận được; việc quản lý kết nối HTTP chuyên biệt cần theo hợp đồng thư viện đang dùng. |
-| **Process.getInputStream/getErrorStream/getOutputStream** | Mã quản lý Process và các stream của nó | Đóng stream khi không sử dụng, tiêu thụ stdout/stderr tránh nghẽn và quản lý vòng đời Process riêng; chỉ close stream không đồng nghĩa tiến trình kết thúc. |
+| **new Scanner(path, charset)**, **new Scanner(inputStream/reader)** | Close Scanner if it owns the input; Scanner.close() closes the source if the source is Closeable | Scanner(System.in).close() will also close **System.in**; normally do not close shared standard input. |
+| **new ZipInputStream(input)**, **new GZIPInputStream(input)** | Owner of the wrapper closes the wrapper | Closing propagates to the underlying input; each entry in ZipInputStream ends with closeEntry() to advance entries, but **closeEntry() does not replace close() on the entire stream**. |
+| **new ZipOutputStream(output)**, **new GZIPOutputStream(output)** | Owner of the wrapper closes the wrapper | You can call finish() to complete the compression format while keeping the underlying stream open per the API design; wrapper's **close()** also closes the underlying output. |
+| **new ZipFile(path)**, **new JarFile(path)** | Code opening the archive file | Close ZipFile/JarFile; InputStreams obtained via getInputStream(entry) should also be closed within their usage scope before closing the archive. |
+| **Socket**, **ServerSocket** created/accepted by the application | Code owning the socket closes the socket | Closing a socket or one of its streams typically closes the connection; do not close a socket's stream when the connection must be reused. |
+| **URL.openStream()** | Calling code | Close the returned InputStream; specialized HTTP connection management should follow the contract of the library in use. |
+| **Process.getInputStream/getErrorStream/getOutputStream** | Code managing the Process and its streams | Close streams when no longer used, consume stdout/stderr to avoid deadlocks, and manage Process lifecycle separately; closing streams alone does not terminate the process. |
 
-Đối với tài nguyên mượn từ framework, container, thư viện hoặc callback, **hợp đồng API cụ thể có thể thay đổi quyền sở hữu mặc định**. Ví dụ framework có thể gọi callback với một OutputStream mà framework sẽ tự đóng sau khi callback trả về.
+For resources borrowed from frameworks, containers, libraries, or callbacks, **the specific API contract can override default ownership**. For instance, a framework might invoke a callback with an OutputStream that the framework itself closes after the callback returns.
 
-## 6. Mẫu đúng/sai theo tình huống
+## 6. Right/Wrong Patterns by Scenario
 
-### 6.1. Tự mở: tự đóng
+### 6.1. Self-opened: self-closed
 
 ~~~java
 try (var reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
     String firstLine = reader.readLine();
-    // Sử dụng firstLine tại đây.
-} // reader.close() chạy cả khi readLine() ném IOException.
+    // Use firstLine here.
+} // reader.close() runs even if readLine() throws IOException.
 ~~~
 
-Với FileInputStream bọc BufferedInputStream, đối tượng cần quản lý ở lớp ứng dụng thường là **wrapper ngoài cùng**: đóng wrapper sẽ đóng stream gốc. Nếu việc khởi tạo các lớp phức tạp có thể thất bại giữa chừng, thiết kế từng bước acquisition trong các scope try-with-resources phù hợp để nguồn đã mở không bị rò rỉ.
+When wrapping FileInputStream in BufferedInputStream, the object managed at the application layer is usually the **outermost wrapper**: closing the wrapper closes the underlying stream. If building multi-layer wrappers can fail midway, structure each acquisition step in appropriate try-with-resources scopes so already-opened sources do not leak.
 
-### 6.2. Mượn OutputStream: ghi nhưng không đóng
+### 6.2. Borrowed OutputStream: write without closing
 
 ~~~java
 static void copyToCallerOwnedDestination(Path source, OutputStream destination)
         throws IOException {
     Files.copy(source, destination);
-    destination.flush(); // Chỉ khi hợp đồng cần dữ liệu được đẩy ra lúc này.
-    // Không đóng destination: caller sở hữu nó.
+    destination.flush(); // Only when the contract requires flushing data now.
+    // Do not close destination: the caller owns it.
 }
 ~~~
 
-Ví dụ này thể hiện **hợp đồng caller-owned**; cần ghi rõ điều đó trong JavaDoc của phương thức thực tế. flush() không phải close(), và không bảo đảm dữ liệu đã được đồng bộ bền vững lên thiết bị lưu trữ. Bọc destination trong try-with-resources với BufferedOutputStream rồi đóng wrapper tại đây sẽ vô tình đóng cả destination do caller đang sở hữu.
+This example illustrates a **caller-owned contract**; document this clearly in the real method's JavaDoc. flush() is not close(), and it does not guarantee data has been durably synced to the storage device. Wrapping destination in a try-with-resources BufferedOutputStream and closing the wrapper here would unintentionally close the caller-owned destination as well.
 
-### 6.3. Stream trả về: người nhận phải đóng
+### 6.3. Returned Stream: recipient must close
 
 ~~~java
 static long countLines(Path file) throws IOException {
@@ -123,25 +123,25 @@ static long countLines(Path file) throws IOException {
 }
 ~~~
 
-Sai về vòng đời tài nguyên:
+Wrong resource lifecycle:
 
 ~~~java
-long count = Files.lines(file).count(); // Stream chứa tài nguyên file không được đóng.
+long count = Files.lines(file).count(); // The Stream holding the file resource is never closed.
 ~~~
 
-Khi thiết kế API trả về Stream gắn file, nên tài liệu hóa trách nhiệm close của caller. Nếu dữ liệu nhỏ và không cần lazy evaluation, cân nhắc trả về List đã đọc xong trong một scope try-with-resources để đơn giản hóa ownership.
+When designing an API that returns a file-backed Stream, document the caller's close responsibility. If the data is small and lazy evaluation is unnecessary, consider returning a fully read List inside a try-with-resources scope to simplify ownership.
 
-### 6.4. Hệ thống chuẩn và tài nguyên dùng chung
+### 6.4. Standard streams and shared resources
 
-- **System.in, System.out, System.err** thường là tài nguyên chung của ứng dụng/JVM; tránh đóng trong một helper hoặc bài thực hành. Chỉ flush đầu ra chuẩn khi cần.
-- **Wrapper đóng lan xuống nguồn:** Scanner(System.in), BufferedWriter(new OutputStreamWriter(System.out, …)) và PrintWriter(System.out) đều có thể đóng nguồn chuẩn khi wrapper bị close().
-- **Tài nguyên chia sẻ hoặc pooled:** không đóng nguồn được mượn nếu thư viện/owner chưa chuyển quyền sở hữu. Một adapter không đóng nguồn phải được thiết kế rõ ràng; việc chỉ bỏ qua close() trên một BufferedWriter có thể làm dữ liệu đệm chưa được xuất ra.
+- **System.in, System.out, System.err** are generally shared application/JVM resources; avoid closing them inside a helper or exercise. Only flush standard output when needed.
+- **Wrappers propagate close to the source:** Scanner(System.in), BufferedWriter(new OutputStreamWriter(System.out, …)), and PrintWriter(System.out) can all close the standard stream when the wrapper is closed.
+- **Shared or pooled resources:** do not close a borrowed source unless the library/owner transfers ownership. A non-closing adapter must be designed explicitly; merely skipping close() on a BufferedWriter can leave buffered data unwritten.
 
-## 7. Chương trình Java 17+ có thể chạy
+## 7. Runnable Java 17+ Program
 
-Đây là một ví dụ độc lập chứng minh khác biệt giữa API tự quản lý tài nguyên (**readAllLines**, **writeString**), API trả về handle (**newBufferedReader**, **newDirectoryStream**) và Stream cần đóng (**Files.lines**). File tạm được xóa ở finally; thao tác xóa độc lập với close().
+This is a standalone example demonstrating the difference between APIs that manage resources themselves (**readAllLines**, **writeString**), APIs that return a handle (**newBufferedReader**, **newDirectoryStream**), and Streams that must be closed (**Files.lines**). The temporary file is deleted in finally; deletion is independent of close().
 
-**Tệp: ResourceCloseTableDemo.java**
+**File: ResourceCloseTableDemo.java**
 
 ~~~java
 import java.io.BufferedReader;
@@ -160,23 +160,23 @@ public class ResourceCloseTableDemo {
         try {
             Files.writeString(file, "alpha\nbeta\n", StandardCharsets.UTF_8);
 
-            // Files tự mở/đóng nguồn; kết quả List không cần close().
+            // Files opens/closes the source internally; the resulting List needs no close().
             List<String> all = Files.readAllLines(file, StandardCharsets.UTF_8);
             System.out.println("readAllLines=" + all.size());
 
-            // Caller sở hữu BufferedReader, nên dùng try-with-resources.
+            // The caller owns BufferedReader, so use try-with-resources.
             try (BufferedReader reader =
                     Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
                 System.out.println("first=" + reader.readLine());
             }
 
-            // count() không đóng Stream: try-with-resources mới đóng.
+            // count() does not close the Stream: try-with-resources closes it.
             try (Stream<String> lines = Files.lines(file, StandardCharsets.UTF_8)) {
                 long count = lines.filter(s -> s.startsWith("b")).count();
                 System.out.println("b-lines=" + count);
             }
 
-            // DirectoryStream có handle cần đóng sau khi duyệt.
+            // DirectoryStream holds a handle that must be closed after iteration.
             try (DirectoryStream<Path> entries =
                     Files.newDirectoryStream(
                             file.getParent(), file.getFileName().toString())) {
@@ -195,14 +195,14 @@ public class ResourceCloseTableDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 hoặc mới hơn:
+Run with JDK 17 or newer:
 
 ~~~bash
 javac ResourceCloseTableDemo.java
 java ResourceCloseTableDemo
 ~~~
 
-**stdout dự kiến:**
+**Expected stdout:**
 
 ~~~text
 readAllLines=2
@@ -211,31 +211,31 @@ b-lines=1
 matching-files=1
 ~~~
 
-Giải thích: Files.writeString() và Files.readAllLines() đóng các tài nguyên nội bộ của chúng; Files.newBufferedReader(), Files.lines() và Files.newDirectoryStream() trả về đối tượng cần caller đóng. try-with-resources đóng tài nguyên trước khi finally xóa file tạm, tránh xóa khi handle vẫn đang mở.
+Explanation: Files.writeString() and Files.readAllLines() close their internal resources; Files.newBufferedReader(), Files.lines(), and Files.newDirectoryStream() return objects that the caller must close. try-with-resources closes the resources before finally deletes the temporary file, avoiding deletion while a handle is still open.
 
-## 8. Ngoại lệ, close() và thứ tự giải phóng
+## 8. Exceptions, close(), and Release Order
 
 ~~~java
 try (InputStream input = Files.newInputStream(path);
      BufferedInputStream buffered = new BufferedInputStream(input)) {
-    // Đọc dữ liệu từ buffered.
+    // Read data from buffered.
 }
 ~~~
 
-Đây là ví dụ thể hiện **thứ tự đóng ngược với thứ tự khai báo**: buffered.close() trước, input.close() sau. Vì đóng BufferedInputStream vốn đóng InputStream bên dưới, nguồn có thể bị đóng lần nữa trong ví dụ này; mẫu này hữu ích khi cần bảo đảm InputStream đã mở vẫn được đóng nếu việc tạo wrapper thất bại. Khi chọn thiết kế, kiểm tra tính an toàn của thao tác close nhiều lần ở API cụ thể; nếu không có nhu cầu xử lý lỗi khởi tạo wrapper, thường chỉ cần quản lý wrapper ngoài cùng trong try-with-resources.
+This example demonstrates **closing in reverse order of declaration**: buffered.close() first, input.close() second. Since closing BufferedInputStream already closes the underlying InputStream, the source may be closed again in this example; this pattern is useful when ensuring an opened InputStream is still closed if wrapper construction fails. When choosing a design, verify idempotency of closing multiple times on the specific API; if wrapper initialization failure does not need separate handling, managing only the outermost wrapper in try-with-resources is usually sufficient.
 
-Nếu phần thân try ném ngoại lệ và close() cũng ném, try-with-resources giữ ngoại lệ của thân làm **ngoại lệ chính** và ghi ngoại lệ lúc đóng dưới dạng **suppressed exception** (xem Throwable.getSuppressed()). Khi nhiều tài nguyên đóng, Java thử đóng theo thứ tự ngược dù một lần close có lỗi. Tránh tự viết finally khiến lỗi close che mất lỗi gốc hoặc bỏ qua lỗi mà không có chủ đích.
+If the try body throws an exception and close() also throws, try-with-resources keeps the body's exception as the **primary exception** and attaches the close exception as a **suppressed exception** (see Throwable.getSuppressed()). When closing multiple resources, Java attempts to close them in reverse order even if one close fails. Avoid hand-written finally blocks where a close error masks the original error or silently swallows errors unintentionally.
 
-**Không phụ thuộc vào GC hay finalize() để đóng file/socket/channel.** Thời điểm thu gom không xác định. Tương tự, deleteIfExists() dọn tên file trong hệ thống file; nó không thay thế việc đóng stream/channel đang giữ file.
+**Do not rely on GC or finalize() to close files/sockets/channels.** Collection timing is non-deterministic. Likewise, deleteIfExists() removes the filename in the file system; it does not replace closing a stream/channel holding the file.
 
-## 9. Checklist tra cứu trước khi gọi close()
+## 9. Pre-Close Lookup Checklist
 
-1. **Nguồn gốc:** Tài nguyên được tạo tại đây, được caller truyền vào, hay do framework/connection pool cấp?
-2. **Giá trị trả về:** API trả về dữ liệu thuần (byte[], String, List, Path) hay trả về đối tượng đang mở (Stream, Reader, Writer, Channel, DirectoryStream, Socket…)?
-3. **Wrapper:** close() có lan xuống stream/channel bên dưới không? Nếu có, mình thực sự được quyền đóng nguồn đó chứ?
-4. **Tính lazy:** Stream từ Files.lines/list/walk/find có được đóng trong try-with-resources, kể cả khi duyệt sớm dừng?
-5. **Lỗi và hoàn tất ghi:** Tài nguyên có được đóng khi có ngoại lệ? Dữ liệu buffered/ZIP/object output có được hoàn tất theo hợp đồng API? Có cần checkError() cho PrintStream/PrintWriter?
-6. **Phạm vi chuyển giao:** Nếu trả tài nguyên đang mở cho caller, trách nhiệm close đã được ghi trong hợp đồng? Nếu nhận tài nguyên mượn, phương thức có giữ nguyên trạng thái đóng/mở của nó không?
-7. **Dọn dẹp khác close:** Việc xóa temp file, release lock, quản lý process hoặc đồng bộ bền vững dữ liệu có được xử lý riêng khi cần không?
+1. **Origin:** Was the resource created here, passed in by a caller, or supplied by a framework/connection pool?
+2. **Return value:** Does the API return plain data (byte[], String, List, Path) or an open object (Stream, Reader, Writer, Channel, DirectoryStream, Socket…)?
+3. **Wrapper:** Does close() propagate to the underlying stream/channel? If so, do you actually own the right to close that underlying source?
+4. **Laziness:** Is a Stream from Files.lines/list/walk/find closed inside try-with-resources, even if iteration stops early?
+5. **Errors and write completion:** Will resources close when exceptions occur? Is buffered/ZIP/object output finalized according to the API contract? Is checkError() needed for PrintStream/PrintWriter?
+6. **Transfer scope:** If returning an open resource to the caller, is the close responsibility documented in the contract? If receiving a borrowed resource, does the method leave its open/closed state intact?
+7. **Cleanup beyond close:** Are temp file deletion, lock release, process management, or durable data sync handled separately when required?
 
-Khi cần xác minh một API chưa có trong bảng, tìm kiểu trả về, phần mô tả **close/ownership** trong JavaDoc và hành vi đóng nguồn nền của wrapper. Nguyên tắc quyết định là **hợp đồng vòng đời**, không phải chỉ dựa vào tên phương thức hoặc việc đối tượng có implements AutoCloseable hay không.
+When verifying an API not listed in the tables, check its return type, the **close/ownership** section in JavaDoc, and the wrapper's behavior toward its underlying source. The deciding principle is the **lifecycle contract**, not merely the method name or whether the object implements AutoCloseable.

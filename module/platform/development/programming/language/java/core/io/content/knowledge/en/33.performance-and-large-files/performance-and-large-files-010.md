@@ -1,10 +1,10 @@
-# Giới hạn file descriptor và số tài nguyên đang mở trong Java I/O
+# File Descriptor Limits and Open Resource Counts in Java I/O
 
-## 1. Tại sao một chương trình Java có thể mở được file nhưng lại hết tài nguyên?
+## 1. Why Can a Java Program Open Files Yet Run Out of Resources?
 
-Một ứng dụng xử lý tệp lớn thường không bị giới hạn chỉ bởi dung lượng RAM hoặc tốc độ đọc/ghi. Nó còn phải chia sẻ các **tài nguyên hệ điều hành**: file descriptors, handles, sockets, directory streams, bộ nhớ native và các cấu trúc quản lý I/O.
+An application processing large files is rarely constrained only by RAM capacity or read/write speed. It must also share **operating system resources**: file descriptors, handles, sockets, directory streams, native memory, and I/O management structures.
 
-Khi một chương trình mở tệp, thư mục, kết nối mạng hoặc một số loại channel, hệ điều hành thường cần cấp tài nguyên để theo dõi đối tượng đang mở. Trên các hệ thống giống Unix, ứng dụng tương tác với **file descriptor (FD)**, thường là một số nguyên trong bảng descriptor của tiến trình. Trên Windows, cách biểu diễn thường liên quan đến **handles**; không nên giả định mọi tài nguyên đều có một số FD Unix.
+When a program opens files, directories, network connections, or certain channels, the OS typically allocates a resource to track the open object. On Unix-like systems, the application interacts with a **file descriptor (FD)**, usually an integer index in the process descriptor table. On Windows, the representation generally involves **handles**; do not assume every resource has a Unix FD number.
 
 ~~~text
 Java process / JVM
@@ -13,147 +13,147 @@ Java process / JVM
     +-- FileChannel ─────────┤
     +-- SocketChannel ───────┤
     +-- ServerSocket ────────┤
-    +-- DirectoryStream ─────┤ → tài nguyên của OS / provider
-    +-- ZipFile ─────────────┤ → giới hạn tiến trình hoặc hệ thống
+    +-- DirectoryStream ─────┤ → OS / provider resources
+    +-- ZipFile ─────────────┤ → process or system limits
     +-- Selector / watcher ──┘
     |
-    +-- Threads / ByteBuffers / native memory (tài nguyên khác)
+    +-- Threads / ByteBuffers / native memory (other resources)
 ~~~
 
-Không có quy tắc phổ quát **mỗi object Java tương ứng đúng một descriptor**. Một object có thể dùng chung tài nguyên nền với object khác; một abstraction có thể cần nhiều handle hoặc tài nguyên native; filesystem provider không phải lúc nào cũng triển khai bằng file descriptor của hệ điều hành. Vì vậy, hãy xem số FD/handle là **tài nguyên hữu hạn cần giám sát**, không phải suy ra trực tiếp bằng cách đếm object trong heap.
+There is no universal rule that **one Java object maps to exactly one descriptor**. One object can share underlying resources with another; one abstraction can require multiple handles or native resources; a filesystem provider is not always implemented using OS file descriptors. Therefore, treat FD/handle counts as **finite resources requiring monitoring**, rather than inferring them directly by counting objects on the heap.
 
-**Mục tiêu của bài học:** hiểu ý nghĩa các giới hạn mở tệp, hậu quả khi vượt giới hạn, cách đóng tài nguyên trong Java 17+, công cụ chẩn đoán và cách giới hạn concurrency để ứng dụng phục vụ tải lớn mà không tự làm cạn FD.
+**Lesson goal:** understand open-file limits, consequences of exceeding them, closing resources in Java 17+, diagnostic tools, and bounding concurrency so an application serves high load without exhausting FDs.
 
-## 2. File descriptor là gì?
+## 2. What Is a File Descriptor?
 
-Trên Unix/Linux, một file descriptor là một số nguyên mà tiến trình dùng để tham chiếu một mục trong bảng descriptor. Hệ điều hành quản lý thông tin nền về tài nguyên tương ứng, chẳng hạn file đang mở, socket hoặc pipe.
+On Unix/Linux, a file descriptor is an integer a process uses to reference an entry in its descriptor table. The OS maintains underlying metadata about the corresponding resource, such as an open file, socket, or pipe.
 
-Các descriptor chuẩn thường gặp:
+Common standard descriptors:
 
-| FD | Tên | Vai trò thông thường |
+| FD | Name | Typical Role |
 | ---: | --- | --- |
-| 0 | stdin | Đầu vào chuẩn của tiến trình |
-| 1 | stdout | Đầu ra chuẩn |
-| 2 | stderr | Đầu ra báo lỗi |
+| 0 | stdin | Standard input of the process |
+| 1 | stdout | Standard output |
+| 2 | stderr | Standard error output |
 
-Các descriptor khác có thể được cấp khi ứng dụng mở file, socket, pipe, thư mục hoặc một tài nguyên tương ứng. **Đừng mặc định các số 0–2 luôn trỏ tới terminal**: trong container, service hoặc chương trình có redirect, chúng có thể trỏ tới pipe, file log hoặc bị thay thế.
+Additional descriptors can be allocated when the application opens files, sockets, pipes, directories, or corresponding resources. **Never assume 0–2 always point to a terminal**: inside containers, services, or redirected programs, they may point to pipes, log files, or replacements.
 
-Ví dụ server Java có 800 kết nối TCP đồng thời và vài chục file log/dữ liệu đang mở sẽ tiêu thụ một lượng tài nguyên OS đáng kể, dù các request rất nhỏ. Cài đặt một `Selector` để quản lý nhiều socket bằng một thread **không xóa nhu cầu tài nguyên OS của chính từng socket**.
+For example, a Java server with 800 concurrent TCP connections and dozens of open log/data files consumes substantial OS resources even if individual requests are tiny. Using a `Selector` to manage many sockets on one thread **does not eliminate each individual socket's OS resource demand**.
 
-### FD và Java FileDescriptor không hoàn toàn đồng nghĩa
+### FD and Java FileDescriptor Are Not Fully Synonymous
 
-Java có `java.io.FileDescriptor` và những lớp như `FileInputStream`, `RandomAccessFile`, `FileChannel`. Nhưng việc tồn tại class `FileDescriptor` không có nghĩa đây là một công cụ portable để **đếm mọi file descriptor** đang mở trong JVM.
+Java provides `java.io.FileDescriptor` and classes like `FileInputStream`, `RandomAccessFile`, and `FileChannel`. However, the existence of `FileDescriptor` does not make it a portable tool to **count every open file descriptor** in the JVM.
 
-Tương tự, số lượng object `FileChannel` trong heap không phải phép đo chính xác tổng số FD của tiến trình. Muốn biết áp lực tài nguyên thực, dùng metric hoặc công cụ phù hợp với OS, kết hợp giám sát ở tầng ứng dụng.
+Likewise, counting `FileChannel` objects on the heap is not an accurate measure of total process FDs. To observe real resource pressure, use OS-appropriate metrics or tools alongside application-level instrumentation.
 
-## 3. Những giới hạn nào có thể gây ra lỗi?
+## 3. Which Limits Can Trigger Failures?
 
-Giới hạn thay đổi theo hệ điều hành, user, container, chính sách service và loại tài nguyên.
+Limits vary by operating system, user, container, service policy, and resource type.
 
-### 3.1. Giới hạn trên mỗi tiến trình
+### 3.1. Per-Process Limits
 
-Trên nhiều hệ thống Unix, giới hạn số file descriptor đang mở đồng thời được kiểm soát bởi tài nguyên `RLIMIT_NOFILE`, với các khái niệm **soft limit** và **hard limit**:
+On many Unix systems, the limit on simultaneously open file descriptors is controlled by the `RLIMIT_NOFILE` resource, with **soft limit** and **hard limit** concepts:
 
-- **Soft limit:** ngưỡng mà tiến trình đang chịu khi yêu cầu thêm FD.
-- **Hard limit:** trần điều chỉnh soft limit mà tiến trình không có đặc quyền phù hợp không được vượt qua.
+- **Soft limit:** the threshold currently enforced when the process requests another FD.
+- **Hard limit:** the ceiling for adjusting the soft limit that an unprivileged process cannot exceed.
 
-Các giá trị thực tế khác nhau giữa máy phát triển, CI, container và server. Không nên ghi cứng rằng “Linux cho phép tối đa 1.024 file” hay “mọi JVM có 65.535 FD”.
+Actual values differ across developer machines, CI, containers, and servers. Never hardcode assumptions like "Linux allows at most 1,024 files" or "every JVM gets 65,535 FDs".
 
-Trên Unix/Linux, có thể kiểm tra trong shell:
+On Unix/Linux, you can inspect them in a shell:
 
 ~~~bash
-ulimit -Sn   # soft limit của shell hiện tại
-ulimit -Hn   # hard limit của shell hiện tại
+ulimit -Sn   # soft limit of the current shell
+ulimit -Hn   # hard limit of the current shell
 ~~~
 
-**Chú ý:** hai lệnh này nói về **shell đang chạy**, không nhất thiết phản ánh một JVM đã khởi động từ một service manager khác. Với Linux, xem giới hạn của **tiến trình Java đang chạy** bằng công cụ OS, chẳng hạn `/proc/<PID>/limits` nếu procfs được cho phép.
+**Note:** these two commands inspect the **current running shell**, not necessarily a JVM launched by another service manager. On Linux, inspect the limits of the **running Java process** using OS tools, such as `/proc/<PID>/limits` if procfs is accessible.
 
-### 3.2. Giới hạn toàn hệ thống và tài nguyên khác
+### 3.2. System-Wide Limits and Other Resources
 
-Ngoài giới hạn per-process, OS còn có giới hạn hoặc áp lực toàn hệ thống, quota người dùng, bộ nhớ kernel, bộ nhớ native và giới hạn của filesystem/provider. Một chương trình có thể thất bại dù chưa đạt tới con số soft limit tưởng tượng, ví dụ khi:
+Beyond per-process limits, the OS enforces system-wide limits or pressures, user quotas, kernel memory, native memory, and filesystem/provider limits. A program can fail even before reaching an expected soft limit—for instance, when:
 
-- Nguồn lực chung của kernel không đủ.
-- Container hoặc service có chính sách hạn chế riêng.
-- File system hoặc thiết bị bị lỗi.
-- Quá nhiều socket, mapped regions, native buffers hoặc các tài nguyên đồng thời khác.
-- Permission/quota cấm cấp tài nguyên.
+- Shared kernel resources run low.
+- A container or service imposes stricter policies.
+- The filesystem or storage device errors.
+- Too many sockets, mapped regions, native buffers, or other concurrent resources exist.
+- Permissions/quotas deny resource allocation.
 
-Trên Unix, hai mã lỗi nổi tiếng là:
+On Unix, two well-known error codes are:
 
-| Mã lỗi OS | Ý nghĩa khái quát |
+| OS Error Code | General Meaning |
 | --- | --- |
-| `EMFILE` | Tiến trình đã đạt giới hạn file descriptor của nó |
-| `ENFILE` | Hệ thống đã đạt giới hạn tài nguyên file-open liên quan trên phạm vi rộng hơn |
+| `EMFILE` | The process reached its own file descriptor limit |
+| `ENFILE` | The system reached a broader open-file resource limit |
 
-Java có thể chuyển các lỗi này thành `IOException`, `FileSystemException`, `SocketException` hoặc một ngoại lệ I/O có thông báo chứa `Too many open files`. **Không dựa duy nhất vào text của exception để phân loại lỗi trên mọi hệ điều hành**.
+Java may translate these errors into `IOException`, `FileSystemException`, `SocketException`, or an I/O exception whose message contains `Too many open files`. **Do not rely solely on exception message text to classify errors across every OS.**
 
-Windows sử dụng cơ chế handle với giới hạn và triệu chứng khác; một số công cụ chỉ hiển thị tổng handle count bao gồm nhiều loại tài nguyên **không phải file**. Do đó không so sánh máy Windows và Linux bằng một con số đơn giản mà không biết phép đo là gì.
+Windows uses a handle mechanism with different limits and symptoms; some tools display only a total handle count including many **non-file** resource types. Therefore, never compare Windows and Linux hosts via one raw number without knowing what is being measured.
 
-## 4. Khi quá nhiều file đang mở, điều gì xảy ra?
+## 4. When Too Many Files Are Open, What Happens?
 
-Một lỗi không chỉ ảnh hưởng thao tác mở file gây ra nó. Khi JVM hết khả năng lấy tài nguyên mới:
+One failure does not affect only the file-open operation that triggered it. When the JVM can no longer acquire new resources:
 
-- `Files.newInputStream(path)` hoặc `FileChannel.open(path)` có thể thất bại.
-- Server có thể không `accept()` được socket mới hoặc không mở được kết nối outbound.
-- Bộ ghi log có thể không mở/rotate file.
-- Thread kiểm tra health hay bộ giám sát cũng có thể cần mở socket/file và gặp lỗi.
-- Tác vụ xử lý tệp theo batch có thể bị lỗi dây chuyền, retry liên tục làm tình hình tệ hơn.
+- `Files.newInputStream(path)` or `FileChannel.open(path)` can fail.
+- A server may fail to `accept()` new sockets or open outbound connections.
+- Loggers may fail to open/rotate log files.
+- Health-check threads or monitors may also need sockets/files and fail.
+- Batch file-processing jobs can suffer cascading failures, with uncontrolled retries worsening the situation.
 
 ~~~text
-Nhu cầu xử lý tăng
+Processing demand rises
         |
         v
-Mở 1 channel cho mỗi task
+Open 1 channel per task
         |
         v
-Task bị giữ lâu / quên close
+Tasks held long / forgotten close
         |
         v
-Số tài nguyên đang mở tăng
+Open resource count climbs
         |
         v
-Chạm giới hạn OS
+Hit OS limit
         |
-        +--> open() thất bại
-        +--> socket mới thất bại
-        +--> logger / healthcheck có thể thất bại
+        +--> open() fails
+        +--> new sockets fail
+        +--> logger / healthcheck may fail
         |
         v
-Retry không giới hạn → càng thêm tải
+Unbounded retries → even heavier load
 ~~~
 
-**Không nên chữa nguyên nhân bằng cách chỉ tăng `ulimit`.** Tăng giới hạn có thể cần thiết khi tải hợp lệ thực sự cao, nhưng nếu ứng dụng rò rỉ resource thì một mức trần lớn hơn chỉ làm quá trình lỗi diễn ra chậm hơn.
+**Do not fix the root cause merely by raising `ulimit`.** Raising limits may be necessary when legitimate load is genuinely high, yet if the application leaks resources, a higher ceiling merely delays the failure.
 
-## 5. Những Java API nào cần đóng tài nguyên?
+## 5. Which Java APIs Require Closing Resources?
 
-Một quy tắc học tập quan trọng: **không phải cứ object Java không còn tham chiếu là tài nguyên OS được trả lại ngay**. Garbage collector giải phóng bộ nhớ quản lý, còn thời điểm đóng file/socket không được dùng GC như cơ chế điều khiển vòng đời đáng tin cậy.
+A critical foundational rule: **a Java object becoming unreachable does not immediately return OS resources**. The garbage collector frees managed memory, while file/socket close timing must never rely on GC as a dependable lifecycle mechanism.
 
-Một số loại cần quản lý rõ ràng:
+Types requiring explicit management:
 
-| API / tài nguyên | Cách giải phóng thông thường | Lưu ý |
+| API / Resource | Typical Release Method | Note |
 | --- | --- | --- |
-| `FileInputStream`, `FileOutputStream` | `close()` / try-with-resources | Giải phóng tài nguyên luồng |
-| `BufferedInputStream`, `BufferedOutputStream` | Đóng wrapper | Thường đóng cả stream được bọc; xác định quyền sở hữu |
-| `FileReader`, `FileWriter`, `BufferedReader`, `BufferedWriter` | `close()` | Không để reader/writer sống vô hạn |
-| `FileChannel`, `SeekableByteChannel` | `close()` | Channel đang mở chiếm tài nguyên tương ứng |
-| `RandomAccessFile` | `close()` | Có thể chia sẻ tài nguyên nền với channel liên quan |
-| `Socket`, `ServerSocket`, `SocketChannel`, `ServerSocketChannel` | `close()` | Socket cũng sử dụng tài nguyên OS |
-| `AsynchronousFileChannel` | `close()` | Xử lý tác vụ pending và executor theo thiết kế |
-| `DirectoryStream<Path>` | `close()` | Có thể giữ handle để duyệt thư mục |
-| `Stream<Path>` từ `Files.list/walk/find` | `Stream.close()` | Đây là stream gắn với filesystem, không phải stream dữ liệu thuần RAM |
-| `Stream<String>` từ `Files.lines` | `Stream.close()` | Giữ file mở trong khi stream tồn tại |
-| `ZipFile` | `close()` | Quản lý file archive và dữ liệu nội bộ |
-| `WatchService`, `Selector` | `close()` | Giải phóng tài nguyên theo dõi I/O |
-| `FileSystem` mở mới như ZIP filesystem | `close()` khi sở hữu | Không gọi `close()` bừa bãi lên default filesystem |
-| `MappedByteBuffer` | Không có `close()` chuẩn trực tiếp | Mapping có vòng đời đặc biệt; đóng channel không bảo đảm lập tức unmap |
+| `FileInputStream`, `FileOutputStream` | `close()` / try-with-resources | Releases stream resources |
+| `BufferedInputStream`, `BufferedOutputStream` | Close wrapper | Usually closes wrapped stream too; define ownership |
+| `FileReader`, `FileWriter`, `BufferedReader`, `BufferedWriter` | `close()` | Do not leave readers/writers alive indefinitely |
+| `FileChannel`, `SeekableByteChannel` | `close()` | An open channel holds corresponding resources |
+| `RandomAccessFile` | `close()` | May share underlying resources with an associated channel |
+| `Socket`, `ServerSocket`, `SocketChannel`, `ServerSocketChannel` | `close()` | Sockets also consume OS resources |
+| `AsynchronousFileChannel` | `close()` | Handle pending tasks and executors per design |
+| `DirectoryStream<Path>` | `close()` | May hold handles while traversing a directory |
+| `Stream<Path>` from `Files.list/walk/find` | `Stream.close()` | Filesystem-backed stream, not a pure in-RAM data stream |
+| `Stream<String>` from `Files.lines` | `Stream.close()` | Keeps the file open while the stream exists |
+| `ZipFile` | `close()` | Manages archive file and internal structures |
+| `WatchService`, `Selector` | `close()` | Releases I/O monitoring resources |
+| Newly opened `FileSystem` such as ZIP filesystem | `close()` when owned | Never call `close()` arbitrarily on the default filesystem |
+| `MappedByteBuffer` | No direct standard `close()` | Mapping has a special lifecycle; closing channel does not guarantee immediate unmap |
 
-Các phương thức tiện ích như `Files.readString` và `Files.readAllBytes` tự quản lý luồng bên dưới trong quá trình gọi; bạn không giữ một `InputStream` cần đóng do các phương thức đó trả về. Nhưng chúng có thể cần nhiều RAM nếu tệp rất lớn, là **vấn đề riêng** so với FD.
+Utility methods like `Files.readString` and `Files.readAllBytes` manage their internal streams during the call; you do not receive an `InputStream` to close from them. However, they can consume excessive RAM on huge files—a **separate issue** from FDs.
 
-**Nguyên tắc ownership:** ai mở resource thì phải có trách nhiệm bảo đảm resource được đóng, trừ khi quyền sở hữu đã được bàn giao rõ ràng cho thành phần khác.
+**Ownership rule:** whoever opens a resource is responsible for ensuring it is closed, unless ownership is explicitly transferred to another component.
 
-## 6. try-with-resources: quy tắc quan trọng nhất
+## 6. try-with-resources: The Most Important Rule
 
-Java `try-with-resources` tự gọi `close()` khi ra khỏi khối, kể cả khi có ngoại lệ:
+Java's `try-with-resources` automatically calls `close()` upon exiting the block, even if an exception is thrown:
 
 ~~~java
 Path path = Path.of("input.dat");
@@ -162,31 +162,31 @@ try (InputStream input = Files.newInputStream(path)) {
     byte[] buffer = new byte[8192];
     int n;
     while ((n = input.read(buffer)) != -1) {
-        // Xử lý đúng n byte của từng lần đọc.
+        // Process the exact n bytes of each read.
     }
 }
 ~~~
 
-Đoạn trên là **mảnh Java minh họa trong phương thức**, yêu cầu import `java.io.InputStream` và `java.nio.file.*`; file phải tồn tại nếu chạy trực tiếp.
+This is an **illustrative Java snippet inside a method**, requiring imports `java.io.InputStream` and `java.nio.file.*`; the file must exist if run directly.
 
-Nếu mở nhiều resource trong một khối, Java đóng theo **thứ tự ngược với thứ tự khai báo**:
+When opening multiple resources in one block, Java closes them in **reverse order of declaration**:
 
 ~~~java
 try (InputStream raw = Files.newInputStream(path);
      BufferedInputStream buffered = new BufferedInputStream(raw)) {
-    // Đọc buffered.
+    // Buffered read.
 }
 ~~~
 
-Trong ví dụ này, `buffered.close()` thường đóng cả `raw`; cơ chế try-with-resources vẫn gọi `raw.close()` khi đến lượt. Hầu hết lớp stream chuẩn xử lý close lặp an toàn, nhưng không nên tự tạo wrapper bất thường rồi giả định mọi API đều có cùng semantics.
+In this example, `buffered.close()` usually also closes `raw`; `try-with-resources` still invokes `raw.close()` in turn. Most standard stream classes handle idempotent repeated closes safely, yet do not build unusual custom wrappers assuming every API shares identical semantics.
 
-### Ngoại lệ khi close và suppressed exceptions
+### Exceptions on Close and Suppressed Exceptions
 
-Nếu code trong khối ném lỗi và `close()` cũng ném lỗi, try-with-resources giữ lỗi chính và lưu những lỗi close liên quan dưới dạng **suppressed exceptions**.
+If code inside the block throws an exception and `close()` also throws, `try-with-resources` preserves the primary exception and attaches close errors as **suppressed exceptions**.
 
 ~~~java
 try (InputStream input = Files.newInputStream(path)) {
-    // Xử lý có thể ném IOException.
+    // Processing that may throw IOException.
 } catch (IOException ex) {
     System.err.println("I/O error: " + ex.getMessage());
     for (Throwable suppressed : ex.getSuppressed()) {
@@ -195,21 +195,21 @@ try (InputStream input = Files.newInputStream(path)) {
 }
 ~~~
 
-Đây là mảnh minh họa. Không nên cố ý nuốt mọi ngoại lệ trong `finally` vì có thể mất thông tin về tình trạng tài nguyên và dữ liệu chưa được flush.
+This is an illustrative snippet. Avoid intentionally swallowing all exceptions in `finally`, as you can lose visibility into resource state and unflushed data.
 
-### Không giao trả một resource sắp bị đóng
+### Never Return a Resource About to Be Closed
 
-Sai về ownership:
+Broken ownership:
 
 ~~~java
 InputStream openWrong(Path path) throws IOException {
     try (InputStream in = Files.newInputStream(path)) {
-        return in; // Khi caller nhận thì stream đã đóng!
+        return in; // By the time caller receives it, the stream is already closed!
     }
 }
 ~~~
 
-Mảnh trên chỉ là minh họa anti-pattern. Nếu một phương thức trả về resource mở để caller dùng tiếp, **không đóng ở callee**; phải quy định caller sở hữu và đóng:
+The snippet above illustrates an anti-pattern. If a method returns an open resource for the caller to use, **do not close it in the callee**; establish that the caller owns and closes it:
 
 ~~~java
 InputStream openForCaller(Path path) throws IOException {
@@ -217,19 +217,19 @@ InputStream openForCaller(Path path) throws IOException {
 }
 ~~~
 
-Caller sau đó phải dùng `try-with-resources`. Lựa chọn an toàn hơn nữa là phương thức nhận callback xử lý bên trong khối và không để resource thoát ra ngoài.
+The caller must then use `try-with-resources`. An even safer option is a method accepting a callback that processes inside the block without ever letting the resource escape.
 
-## 7. Đừng bỏ sót resource ẩn trong các stream duyệt file
+## 7. Do Not Miss Hidden Resources in File-Traversal Streams
 
-Một lỗi khó phát hiện là nghĩ rằng Java `Stream` luôn chỉ là pipeline tính toán trong bộ nhớ:
+A subtle bug is assuming Java `Stream`s are always purely in-memory computation pipelines:
 
 ~~~java
-// Có nguy cơ để directory stream mở cho tới khi được giải phóng muộn.
+// Risks leaving the directory stream open until late reclamation.
 Stream<Path> paths = Files.list(root);
 long files = paths.count();
 ~~~
 
-`Files.list(root)` trả `Stream<Path>` **gắn với directory đang mở**; stream đó cần được đóng ngay khi dùng xong. Cách đúng:
+`Files.list(root)` returns a `Stream<Path>` **backed by an open directory**; that stream must be closed as soon as you finish using it. Right way:
 
 ~~~java
 try (Stream<Path> paths = Files.list(root)) {
@@ -238,18 +238,18 @@ try (Stream<Path> paths = Files.list(root)) {
 }
 ~~~
 
-Tương tự:
+Similarly:
 
 ~~~java
 try (Stream<Path> paths = Files.walk(root)) {
     paths.filter(Files::isRegularFile)
          .forEach(path -> {
-             // Xử lý từng path.
+             // Process each path.
          });
 }
 ~~~
 
-`Files.walk(...)` và `Files.find(...)` cũng trả filesystem-backed stream cần đóng. `Files.lines(path)` trả stream các dòng dựa trên file đang mở:
+`Files.walk(...)` and `Files.find(...)` also return filesystem-backed streams that must be closed. `Files.lines(path)` returns a stream of lines backed by an open file:
 
 ~~~java
 try (Stream<String> lines =
@@ -258,90 +258,90 @@ try (Stream<String> lines =
 }
 ~~~
 
-Những đoạn trên là **mảnh mã minh họa**, cần import `java.util.stream.Stream`, `java.nio.file.Files`, `java.nio.file.Path` và `java.nio.charset.StandardCharsets` phù hợp.
+These snippets are **illustrative code**, requiring appropriate imports of `java.util.stream.Stream`, `java.nio.file.Files`, `java.nio.file.Path`, and `java.nio.charset.StandardCharsets`.
 
-Không nên gọi `Files.list(...)` hàng chục lần trong vòng lặp rồi giữ tất cả stream trong một collection cho tới cuối job. Tốt hơn là mở–duyệt–đóng từng thư mục, hoặc xử lý số lượng stream cùng lúc có giới hạn.
+Never call `Files.list(...)` dozens of times in a loop and retain all streams in a collection until job end. Prefer opening–iterating–closing per directory, or bounding the number of simultaneously open streams.
 
-### DirectoryStream khác gì?
+### How Does DirectoryStream Differ?
 
-`DirectoryStream<Path>` cho phép duyệt entry trực tiếp:
+`DirectoryStream<Path>` allows iterating entries directly:
 
 ~~~java
 try (DirectoryStream<Path> entries =
         Files.newDirectoryStream(root)) {
     for (Path entry : entries) {
-        // Xử lý entry.
+        // Process entry.
     }
 }
 ~~~
 
-Cả `DirectoryStream` lẫn stream từ `Files.list` có thể giữ tài nguyên hệ điều hành khi duyệt. Chúng cần vòng đời ngắn, nhất là trong bộ quét cây thư mục lớn.
+Both `DirectoryStream` and streams from `Files.list` can hold OS resources while iterating. Keep their lifetimes short, especially in large directory-tree crawlers.
 
-## 8. Tệp lớn: không nên mở toàn bộ file cùng lúc
+## 8. Large Files: Do Not Open All Files at Once
 
-Giả sử batch xử lý 50.000 file:
+Suppose a batch processes 50,000 files:
 
 ~~~text
-Cách dễ thất bại:
-- lấy danh sách 50.000 file
-- mở FileChannel cho cả 50.000
-- để mở trong khi tính toán
-- đóng sau khi mọi task hoàn thành
+Failure-prone approach:
+- collect a list of 50,000 files
+- open a FileChannel for all 50,000
+- leave them open while computing
+- close after every task finishes
 
-Cách có kiểm soát:
-- duyệt file
-- mở tối đa K channel cùng lúc
-- đọc/ghi theo streaming
-- đóng channel trước khi lấy thêm công việc
-- giữ queue công việc có giới hạn
+Controlled approach:
+- traverse files
+- open at most K channels concurrently
+- read/write via streaming
+- close channel before taking more work
+- keep work queue bounded
 ~~~
 
-Tăng concurrency không tạo tăng thông lượng vô hạn. Ổ lưu trữ có throughput và IOPS hữu hạn; quá nhiều file mở có thể tăng context switching, cache pressure, memory mapping pressure và chi phí scheduling. Với nhiều tệp nhỏ, việc đọc song song ở mức vừa phải thường tốt hơn việc mở tất cả tài nguyên và giữ chúng.
+Increasing concurrency does not produce infinite throughput gains. Storage devices have finite throughput and IOPS; too many open files can increase context switching, cache pressure, memory-mapping pressure, and scheduling overhead. For many small files, moderate parallel reading usually beats opening every resource and holding them open.
 
-Để xử lý dữ liệu lớn, ưu tiên:
+For large-scale data processing, prioritize:
 
-1. **Bounded concurrency:** giới hạn số file/channel/socket được mở đồng thời.
-2. **Streaming:** đọc theo khối thay vì `readAllBytes` vào RAM nếu tệp quá lớn.
-3. **Close sớm:** không giữ descriptor trong lúc CPU-bound processing nếu có thể đóng trước.
-4. **Không lưu stream/channel trong cache vô hạn:** cache phải có max size, eviction và cơ chế đóng.
-5. **Backpressure:** khi worker bận, giảm tốc độ lấy job mới thay vì mở thêm file.
-6. **Dự phòng headroom:** đừng dùng hết mọi FD còn có thể cấp; logging, sockets và thư viện hệ thống cũng cần tài nguyên.
+1. **Bounded concurrency:** cap simultaneously open files/channels/sockets.
+2. **Streaming:** read in chunks instead of `readAllBytes` into RAM if files are large.
+3. **Close early:** do not hold descriptors during CPU-bound work if you can close earlier.
+4. **Never cache streams/channels unboundedly:** caches need max sizes, eviction, and closing hooks.
+5. **Backpressure:** when workers are busy, slow down pulling new jobs instead of opening more files.
+6. **Reserve headroom:** never consume every allocatable FD; logging, sockets, and system libraries also need resources.
 
-Con số K không có một mức tối ưu cho mọi máy. Phải đo throughput, latency, active FD, lỗi I/O và memory footprint trên môi trường vận hành thực tế.
+There is no single optimal number K for every machine. Measure throughput, latency, active FDs, I/O errors, and memory footprint in the real operating environment.
 
-## 9. Semaphore: tạo ngân sách riêng cho số channel đang mở
+## 9. Semaphore: Creating a Dedicated Budget for Open Channels
 
-`java.util.concurrent.Semaphore` là một primitive để điều khiển số permit được sử dụng đồng thời. Một permit có thể đại diện cho quyền **mở một file channel** trong subsystem do ứng dụng quản lý.
+`java.util.concurrent.Semaphore` is a primitive for controlling how many permits can be held concurrently. One permit can represent permission to **open one file channel** within an application-managed subsystem.
 
 ~~~text
 Budget = 3 permits
 
-Task 1 lấy 1 permit → mở channel A
-Task 2 lấy 1 permit → mở channel B
-Task 3 lấy 1 permit → mở channel C
-Task 4 không còn permit → chờ, trả lỗi hoặc retry có kiểm soát
+Task 1 acquires 1 permit → opens channel A
+Task 2 acquires 1 permit → opens channel B
+Task 3 acquires 1 permit → opens channel C
+Task 4 has no permit left → waits, fails, or retries in a controlled way
 
-A đóng channel và trả permit
-Task 4 có thể mở file tiếp
+A closes channel and releases permit
+Task 4 can now open the next file
 ~~~
 
-**Semaphore không thay đổi `ulimit` và không đo FD của hệ điều hành.** Nó chỉ giúp ứng dụng tuân thủ một ngân sách do mình đặt ra. Những file/socket được mở ngoài subsystem vẫn cần tính vào headroom tổng thể.
+**A Semaphore does not change `ulimit` and does not measure OS FDs.** It only enforces a budget you define in your application. Files/sockets opened outside that subsystem must still be counted toward overall headroom.
 
-Một mô hình tốt có ba thuộc tính:
+A sound pattern has three properties:
 
-- Lấy permit **trước khi mở** tài nguyên.
-- Nếu mở thất bại, **trả permit** ngay; không giữ permit bị thất lạc.
-- Nếu mở thành công, resource wrapper trả permit trong `close()`, ngay cả khi quá trình sử dụng có lỗi.
+- Acquire the permit **before opening** the resource.
+- If opening fails, **release the permit** immediately; never leak a permit.
+- If opening succeeds, the resource wrapper releases the permit inside `close()`, even if errors occur during use.
 
-Nếu dùng `Semaphore.acquire()` để đợi permit, cần xác định timeout/interrupt/cancellation. Nếu dùng `tryAcquire()` để trả lỗi nhanh, upstream cần chính sách retry hoặc backpressure thích hợp, không retry tight loop.
+If using `Semaphore.acquire()` to wait for a permit, define timeouts/interrupts/cancellation. If using `tryAcquire()` to fail fast, upstream callers need proper retry or backpressure policies—never a tight retry loop.
 
-## 10. Ví dụ Java 17+ chạy độc lập: giới hạn hai FileChannel
+## 10. Standalone Runnable Java 17+ Example: Bounding to Two FileChannels
 
-Ví dụ dưới dùng một **ngân sách nhân tạo** gồm hai permit, không cố tạo hàng nghìn FD hoặc đẩy máy tới giới hạn thật. Nó mở hai file channel, thử mở cái thứ ba (bị từ chối an toàn), đóng một channel rồi mở cái thứ ba thành công.
+The example below uses an **artificial budget** of two permits, without trying to open thousands of FDs or push the host to real limits. It opens two file channels, attempts to open a third (safely rejected), closes one channel, and then opens the third successfully.
 
-Kết quả là deterministic và không phụ thuộc giới hạn file descriptor của hệ điều hành, miễn là môi trường cho phép tạo ba file tạm và mở hai channel thông thường.
+Output is deterministic and independent of OS file descriptor limits, provided the environment allows creating three temp files and opening two regular channels.
 
-Lưu thành `FileDescriptorBudgetDemo.java`:
+Save as `FileDescriptorBudgetDemo.java`:
 
 ~~~java
 import java.io.IOException;
@@ -438,7 +438,7 @@ public class FileDescriptorBudgetDemo {
 
                     boolean rejected = false;
                     try (Lease extra = budget.open(third)) {
-                        // Không tới đây khi budget đã hết.
+                        // Never reached when budget is exhausted.
                     } catch (IllegalStateException ex) {
                         rejected = true;
                     }
@@ -469,14 +469,14 @@ public class FileDescriptorBudgetDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run on JDK 17+:
 
 ~~~bash
 javac FileDescriptorBudgetDemo.java
 java FileDescriptorBudgetDemo
 ~~~
 
-Stdout trong môi trường đọc/ghi tệp tạm bình thường:
+Stdout in a normal temp-file environment:
 
 ~~~text
 available with two open=0
@@ -486,33 +486,33 @@ third content=three
 available after all closes=2
 ~~~
 
-Diễn giải:
+Interpretation:
 
-1. `Budget(2)` tạo hai permit: tối đa hai channel do **subsystem này** sở hữu được mở đồng thời.
-2. Mở `one` lấy permit đầu; mở `two` lấy permit thứ hai. `available() == 0`.
-3. Lần mở `third` tiếp theo bị từ chối **trước khi gọi FileChannel.open** vì hết permit, tránh cố chạm ngưỡng OS.
-4. Khối try-with-resources của `two` kết thúc, `Lease.close()` đóng channel và trả một permit. `available() == 1` trong khi `one` vẫn mở.
-5. Mở `three` dùng lại permit vừa được trả; đọc file `three.txt` và in `three`.
-6. `three` rồi `one` được đóng; tất cả permit được trả về, `available() == 2`.
-7. Nếu `FileChannel.open` thất bại, khối `finally` trong `Budget.open` cũng trả permit để không gây rò rỉ ngân sách.
-8. Nếu thao tác trong khối try ném lỗi, try-with-resources vẫn gọi `close()`. Ví dụ dùng `boolean closed` đơn giản phù hợp khi mỗi `Lease` thuộc quyền sở hữu một luồng; trong hệ thống đa luồng có thể dùng `AtomicBoolean` nếu nhiều thread có khả năng đóng cùng lease.
+1. `Budget(2)` creates two permits: at most two channels owned by **this subsystem** can be open concurrently.
+2. Opening `one` takes the first permit; opening `two` takes the second. `available() == 0`.
+3. Opening `third` next is rejected **before calling `FileChannel.open`** because permits are exhausted, avoiding hitting OS thresholds.
+4. Exiting `two`'s `try-with-resources` block invokes `Lease.close()`, closing the channel and releasing one permit. `available() == 1` while `one` stays open.
+5. Opening `third` reuses the returned permit; reads `three.txt` and prints `three`.
+6. `three` and then `one` close; all permits return, `available() == 2`.
+7. If `FileChannel.open` throws, the `finally` block inside `Budget.open` also releases the permit so the budget never leaks.
+8. If code inside the try block throws, `try-with-resources` still invokes `close()`. Using a simple `boolean closed` suits single-thread ownership per `Lease`; in multi-threaded scenarios, use `AtomicBoolean` if multiple threads could close the same lease.
 
-**Giới hạn ví dụ:** permit không tương đương số lượng FD chính xác của OS. `available()==2` chỉ chứng minh không còn lease mở do wrapper này theo dõi, **không** khẳng định JVM không có file descriptor nào khác. Nếu `channel.close()` ném IOException, mã vẫn hoàn trả permit của ngân sách ứng dụng; ứng dụng production cần log/chẩn đoán lỗi close và không tự khẳng định tài nguyên OS đã giải phóng thành công trong mọi trường hợp.
+**Example limitations:** permits do not equal exact OS FD counts. `available()==2` only proves no open leases remain tracked by this wrapper—it **does not** assert the JVM holds no other file descriptors. If `channel.close()` throws `IOException`, the code still releases the application budget permit; production apps should log/diagnose close errors and never assume OS resources were freed in every error case.
 
-## 11. Lỗi mở file thất bại giữa chừng: phải trả permit và đóng thứ đã mở
+## 11. Mid-Way File Open Failure: Release Permits and Close Already-Open Resources
 
-Khi job cần nhiều resource, các lỗi có thể xuất hiện ở bước thứ hai hoặc thứ ba:
+When a job requires multiple resources, failures can happen on the second or third step:
 
 ~~~text
-acquire permit A → open file A thành công
-acquire permit B → open file B thất bại
+acquire permit A → open file A succeeds
+acquire permit B → open file B fails
                     |
-                    └── nếu không finally:
-                           permit B bị mất
-                           file A có thể bị giữ mở
+                    └── without finally:
+                           permit B is lost
+                           file A may stay open
 ~~~
 
-Một cách tổ chức tốt là **cấu trúc ownership theo lexical scope**:
+A clean structure is **lexical-scope ownership**:
 
 ~~~java
 try (FileChannel input = FileChannel.open(inPath,
@@ -520,51 +520,51 @@ try (FileChannel input = FileChannel.open(inPath,
      FileChannel output = FileChannel.open(outPath,
              StandardOpenOption.CREATE,
              StandardOpenOption.WRITE)) {
-    // Chuyển dữ liệu với vòng read/write kiểm tra số byte.
+    // Transfer data with a byte-checking read/write loop.
 }
 ~~~
 
-Đây là mảnh minh họa, có `Path inPath`/`outPath` hợp lệ. Nếu lần mở `output` thất bại, resource `input` đã mở sẽ được đóng tự động theo ngữ nghĩa try-with-resources.
+This is an illustrative snippet with valid `Path` `inPath`/`outPath`. If opening `output` fails, the already-open `input` resource is closed automatically under `try-with-resources` semantics.
 
-Nếu job giữ channel trong queue tới lúc worker chạy thì việc đếm resource cần bao gồm **thời gian chờ trong queue**. Thường tốt hơn là đưa **Path**/ID vào queue, và chỉ mở channel **khi worker thực sự sẵn sàng xử lý**.
+If a job holds open channels inside a queue until a worker runs, resource accounting must include **queue wait time**. It is usually far better to enqueue **`Path`/IDs** and open channels **only when a worker is genuinely ready to process**.
 
-## 12. Giám sát số FD trên Linux
+## 12. Monitoring FD Counts on Linux
 
-Trên Linux, một số nguồn quan sát hữu ích (cần quyền truy cập phù hợp):
+On Linux, useful observation sources (requiring appropriate permissions):
 
 ~~~bash
-# Xem soft/hard limit của shell đang chạy:
+# Check soft/hard limits of the current shell:
 ulimit -Sn
 ulimit -Hn
 
-# Xem giới hạn được hệ điều hành công bố cho tiến trình:
+# Check OS-published limits for a process:
 cat /proc/<PID>/limits
 
-# Liệt kê descriptor hiện đang mở của tiến trình:
+# List currently open descriptors of the process:
 ls -l /proc/<PID>/fd
 
-# Đếm các entry trong /proc/<PID>/fd:
+# Count entries in /proc/<PID>/fd:
 ls -1 /proc/<PID>/fd | wc -l
 
-# Lệnh lsof (nếu được cài) để xem tài nguyên của tiến trình:
+# lsof command (if installed) to inspect process resources:
 lsof -p <PID>
 ~~~
 
-`<PID>` là placeholder cho process ID thực tế, không gõ nguyên chuỗi có dấu ngoặc nhọn vào shell. Những lệnh này là hướng dẫn cho Linux/Unix, **không chạy trực tiếp trên Windows PowerShell**.
+`<PID>` is a placeholder for the actual process ID—do not type angle brackets literally into the shell. These commands are guidance for Linux/Unix and **do not run directly on Windows PowerShell**.
 
-Cẩn thận với phép đếm từ `/proc/<PID>/fd`: số lượng có thể thay đổi trong lúc đọc; permission hoặc container namespace có thể che một phần dữ liệu. Đếm bằng `lsof` và bằng procfs đôi khi cho kết quả khác do cách hiển thị resource và thời điểm quan sát. Dùng một nguồn metric nhất quán để xem **xu hướng**, không kết luận “không có leak” từ một snapshot duy nhất.
+Be careful with counting `/proc/<PID>/fd`: counts can change mid-read, and permissions or container namespaces may hide some details. Counting with `lsof` versus procfs can also differ due to resource presentation and timing. Use a consistent metric source to observe **trends**, never concluding "no leak" from a single snapshot.
 
-### Trên macOS và Windows
+### On macOS and Windows
 
-- **macOS/Unix:** `lsof -p PID` thường hữu ích để xem open files/sockets; giới hạn launch context có thể khác giữa shell và service.
-- **Windows:** dùng Process Explorer, Resource Monitor hoặc công cụ giám sát handle của tiến trình. **Handle count** thường bao gồm cả loại handle khác file; đừng gọi số đó là “số file descriptor Unix”.
-- **Trong container/service:** so sánh đúng process limit đang áp dụng, không chỉ cấu hình của interactive shell mà lập trình viên đang đăng nhập.
+- **macOS/Unix:** `lsof -p PID` is commonly helpful for inspecting open files/sockets; launch context limits can differ between interactive shells and services.
+- **Windows:** use Process Explorer, Resource Monitor, or process handle monitoring tools. **Handle count** typically includes non-file handle types as well; never call that number "Unix file descriptor count".
+- **In containers/services:** compare the actual applied process limit, not just the developer's interactive shell settings.
 
-Khi xảy ra lỗi “Too many open files”, thu thập **thời điểm**, **PID**, **loại resource tăng**, **số resource đang mở**, **giới hạn của chính process** và **stack trace của thao tác thất bại** để khoanh vùng nguyên nhân.
+When "Too many open files" occurs, capture **timestamp**, **PID**, **which resource type grew**, **open resource count**, **the process's actual limit**, and **the failing operation's stack trace** to isolate the cause.
 
-## 13. Quan sát FD từ Java trên hệ thống Unix hỗ trợ
+## 13. Observing FDs from Java on Supported Unix Systems
 
-JDK có một extension monitoring bean trên các nền tảng hỗ trợ Unix, thường qua `com.sun.management.UnixOperatingSystemMXBean`:
+The JDK includes an extension monitoring bean on supported Unix platforms, typically via `com.sun.management.UnixOperatingSystemMXBean`:
 
 ~~~java
 import java.lang.management.ManagementFactory;
@@ -586,151 +586,151 @@ public class FdMetricDemo {
 }
 ~~~
 
-Đây là **chương trình Java 17+ chạy độc lập**, nhưng stdout phụ thuộc hệ điều hành và trạng thái tiến trình:
+This is a **standalone runnable Java 17+ program**, though stdout depends on OS and process state:
 
 ~~~bash
 javac FdMetricDemo.java
 java FdMetricDemo
 ~~~
 
-Trên một runtime có hỗ trợ Unix bean, kết quả là hai con số động `open FDs=...` và `max FDs=...`. Trên platform không có extension đó, output là:
+On a runtime supporting the Unix bean, output shows two dynamic numbers `open FDs=...` and `max FDs=...`. On platforms lacking that extension, output is:
 
 ~~~text
 Unix FD metric unavailable
 ~~~
 
-Các phương thức `getOpenFileDescriptorCount()` và `getMaxFileDescriptorCount()` là extension JDK/platform, **không phải phần có thể giả định luôn tồn tại trên mọi Java implementation**. Ở một số nền tảng, metric có thể không khả dụng hoặc có cách diễn giải/giá trị đặc biệt theo implementation.
+`getOpenFileDescriptorCount()` and `getMaxFileDescriptorCount()` are JDK/platform extensions, **not guaranteed to exist on every Java implementation**. On some platforms, metrics may be unavailable or carry implementation-specific semantics/special values.
 
-Đừng log hai con số mỗi microsecond chỉ để kiểm tra leak; sampling theo chu kỳ có mục tiêu, alert theo tỉ lệ `open/max` và theo xu hướng sau khi tải ngừng sẽ hữu ích hơn.
+Do not log these two numbers every microsecond just to check for leaks; periodic targeted sampling, alerting on the `open/max` ratio, and checking trends after load stops are far more useful.
 
-## 14. Làm sao phân biệt FD leak với tải đồng thời hợp lệ?
+## 14. How to Distinguish an FD Leak from Legitimate Concurrent Load?
 
-Giả sử monitor báo:
+Suppose monitoring reports:
 
 ~~~text
-Thời gian    Active requests    Open FDs
+Time         Active requests    Open FDs
 10:00             10               120
 10:05            500               610
 10:10             10               125
 ~~~
 
-Số FD tăng khi tải tăng, rồi gần trở về baseline có thể là hành vi bình thường. Nhưng:
+FDs climbing under load and returning near baseline is likely normal behavior. However:
 
 ~~~text
-Thời gian    Active requests    Open FDs
+Time         Active requests    Open FDs
 10:00             10               120
 10:05            500               610
 10:10             10               605
 10:20             10               900
 ~~~
 
-Nếu số tài nguyên tiếp tục cao hoặc tăng khi lưu lượng đã thấp, cần điều tra leak hoặc cache/pool mở quá rộng. Tuy nhiên, **chỉ ba số đo không tự chứng minh leak**: resource pooling, idle socket timeout hoặc startup behavior cũng có thể khiến baseline thay đổi. Phải kết hợp với stack traces, thông tin active resources và thiết kế ứng dụng.
+If resource counts stay elevated or keep rising after traffic drops, investigate leaks or overly permissive caches/pools. Still, **three measurements alone do not prove a leak**: resource pooling, idle socket timeouts, or startup behavior can shift baselines. Combine counts with stack traces, active resource listings, and application design.
 
-Một quy trình:
+A practical workflow:
 
-1. Ghi nhận baseline sau startup và sau warm-up.
-2. Chạy workload có mức đồng thời biết trước.
-3. Đo active FD/handle và số channel/socket do ứng dụng quản lý.
-4. Chờ job hoàn tất, theo dõi các resource có quay về mức kỳ vọng hay không.
-5. Nếu không, khoanh vùng theo API (file, socket, directory stream, ZipFile...).
-6. Dùng profiling, metrics ownership hoặc log tạm có stack mở/đóng với sampling để truy vị trí quên close.
-7. Xác minh bằng bài test lặp nhiều vòng mà không phải tăng tải vô hạn.
+1. Record baseline after startup and warm-up.
+2. Run a workload with known concurrency.
+3. Measure active FDs/handles and application-managed channels/sockets.
+4. Wait for jobs to finish and observe whether resources return to expected levels.
+5. If not, narrow down by API (files, sockets, directory streams, ZipFile...).
+6. Use profiling, ownership metrics, or temporary sampled open/close stack logging to find unclosed paths.
+7. Verify with multi-iteration tests rather than cranking load infinitely.
 
-Nếu cần instrument việc tạo resource, nên để một factory/wrapper hoặc resource manager chịu trách nhiệm cấp và đóng tài nguyên, tránh rải lệnh `FileChannel.open` trong hàng chục lớp mà không có nơi ghi nhận.
+If you need to instrument resource creation, route allocation and closing through a factory/wrapper or resource manager rather than scattering `FileChannel.open` across dozens of untracked classes.
 
-## 15. File descriptor có liên quan gì đến memory mapping?
+## 15. How Do File Descriptors Relate to Memory Mapping?
 
-`FileChannel.map(...)` tạo một `MappedByteBuffer` gắn với một vùng dữ liệu file thông qua cơ chế memory mapping. Đây là kỹ thuật hữu ích khi xử lý file lớn nhưng nó có giới hạn riêng.
+`FileChannel.map(...)` creates a `MappedByteBuffer` tied to a file data region through memory mapping. It is useful for large files yet has distinct constraints.
 
-Điều cần tránh:
+Things to avoid:
 
-- Không giả định mỗi mapping dùng đúng một FD suốt vòng đời; OS có cơ chế mapping khác nhau.
-- `FileChannel.close()` **không bảo đảm** mapping tự biến mất ngay khi channel đóng.
-- `MappedByteBuffer` không cung cấp `close()` chuẩn như `FileChannel`.
-- Vòng đời mapping có thể liên quan đến GC, bộ nhớ địa chỉ, tài nguyên native và khả năng sửa/xóa tệp trên một số hệ điều hành.
-- Mapping hàng nghìn vùng rất lớn có thể gây áp lực tài nguyên khác ngay cả khi không tăng open FD theo cách trực tiếp.
+- Never assume each mapping consumes exactly one FD for its entire lifetime; OSes implement mappings differently.
+- `FileChannel.close()` **does not guarantee** the mapping disappears immediately upon closing the channel.
+- `MappedByteBuffer` provides no standard `close()` like `FileChannel`.
+- Mapping lifetimes can tie into GC, virtual address space, native resources, and file deletion/modification behavior on some OSes.
+- Mapping thousands of huge regions can create other resource pressure even without raising open FD counts directly.
 
-Nếu không thật sự cần random access mapping, streaming `FileChannel.read(ByteBuffer)` với buffer hữu hạn thường có vòng đời tài nguyên dễ kiểm soát hơn. Nếu cần mapping, giới hạn số vùng map đồng thời và thiết kế ownership/vòng đời rõ ràng; không ép gọi những API unmap nội bộ không được hỗ trợ mà không hiểu rủi ro.
+If you do not genuinely need random-access mapping, streaming `FileChannel.read(ByteBuffer)` with a bounded buffer usually gives much cleaner resource lifecycles. When mapping is needed, cap concurrently mapped regions and define clear ownership/lifecycles; never invoke unsupported internal unmap APIs without understanding the risks.
 
-## 16. Connection pools, Selector và giới hạn tài nguyên
+## 16. Connection Pools, Selectors, and Resource Limits
 
-### Một Selector quản lý nhiều SocketChannel
+### One Selector Managing Many SocketChannels
 
-NIO Selector giúp một thread xử lý readiness của nhiều socket, cải thiện mô hình thread-per-connection trong một số workload. Tuy nhiên **mỗi SocketChannel vẫn có tài nguyên kết nối**. Đừng suy luận “một Selector nghĩa là chỉ một FD cho mọi client”.
+An NIO `Selector` lets one thread monitor readiness across many sockets, improving on thread-per-connection in some workloads. However, **each `SocketChannel` still holds connection resources**. Never reason "one Selector means only one FD for all clients".
 
-Nên có các giới hạn:
+Enforce limits for:
 
-- Số kết nối TCP đang hoạt động tối đa.
-- Số kết nối pending/handshake đang chờ tối đa.
-- Timeout cho kết nối idle và tác vụ không tiến triển.
-- Queue outbound/backpressure per connection.
-- Phạm vi nhận client mới khi nguồn lực gần ngưỡng.
-- Đóng `SocketChannel` ở tất cả đường thoát, kể cả handshake lỗi, timeout hoặc `SelectionKey` bị cancel.
+- Maximum active TCP connections.
+- Maximum pending/handshaking connections.
+- Timeouts for idle connections and stalled operations.
+- Per-connection outbound queues/backpressure.
+- Admission bounds for new clients as resources near thresholds.
+- Closing `SocketChannel` along every exit path, including failed handshakes, timeouts, or cancelled `SelectionKey`s.
 
-`key.cancel()` chỉ hủy đăng ký selection; nếu vòng đời socket kết thúc, chương trình còn phải đóng channel phù hợp. Không dùng cancel như sự thay thế mặc định cho close.
+`key.cancel()` only deregisters from the selector; when a socket's lifecycle ends, the program must still close the channel properly. Never treat cancel as a default substitute for close.
 
-### Pool không phải leak, nhưng cũng có giới hạn
+### Pools Are Not Leaks, Yet Still Need Limits
 
-Một pool socket/file handle giữ resource mở để tái sử dụng có thể giảm chi phí open/close nhưng tiêu tốn FD lâu hơn. Pool cần max size, eviction, idle timeout và policy khi hệ thống quá tải.
+A socket/file-handle pool keeps resources open for reuse, cutting open/close overhead while holding FDs longer. Pools need max sizes, eviction, idle timeouts, and overload policies.
 
-Nếu mỗi tenant hoặc request tự tạo một pool riêng không có giới hạn tổng, sự cố trông giống resource leak ngay cả khi từng pool có cơ chế close đầy đủ trên lý thuyết.
+If every tenant or request creates its own pool without a global cap, the failure looks identical to a resource leak even when each pool implements `close()` properly on paper.
 
-## 17. Khi gặp Too many open files nên làm gì?
+## 17. What Should You Do When Hitting "Too many open files"?
 
-Một quy trình ứng phó an toàn:
+A safe incident response procedure:
 
-1. **Giữ thông tin chẩn đoán**: stack trace của các thao tác mở thất bại, OS error, PID, FD count/limit, active requests, loại tài nguyên.
-2. **Dừng/giảm việc tạo resource mới** nếu có thể: áp dụng backpressure, từ chối job mới, giới hạn accept/retry.
-3. **Không retry vòng lặp nóng**: retry liên tục khi không có FD trống sẽ làm CPU và log pressure tăng.
-4. **Xác định resource được giữ bởi ai**: thử tìm stream/channel/directory listing chưa close, socket idle, pool không giới hạn, watcher/selector chưa giải phóng.
-5. **Sửa ownership**: try-with-resources, close ở failure path, factory/wrapper quản lý tài nguyên, timeout/eviction.
-6. **Đo lại dưới tải đại diện**: open count có quay về baseline thích hợp, số lỗi có giảm, throughput ổn không.
-7. **Chỉ điều chỉnh giới hạn OS khi thật sự cần**: cân nhắc mức concurrent workload, dự phòng hệ thống, container/service policy và khả năng tài nguyên khác.
+1. **Preserve diagnostic data**: stack traces of failed opens, OS error, PID, FD count/limit, active requests, and resource types.
+2. **Stop/reduce new resource creation** if possible: apply backpressure, reject new jobs, throttle accept/retries.
+3. **Avoid hot retry loops**: retrying endlessly when zero FDs are free spikes CPU and log pressure.
+4. **Identify who holds the resources**: look for unclosed streams/channels/directory listings, idle sockets, unbounded pools, unreleased watchers/selectors.
+5. **Fix ownership**: `try-with-resources`, close on failure paths, resource-managing factories/wrappers, timeouts/eviction.
+6. **Re-measure under representative load**: verify open counts return to baseline, errors vanish, and throughput stabilizes.
+7. **Adjust OS limits only when genuinely warranted**: weigh concurrent workload needs, system reserves, container/service policies, and other resource capacities.
 
-Một kỹ thuật production nâng cao là giữ một ít headroom hoặc một descriptor dự phòng để có thể xử lý tình huống hết FD khi accept socket; cách làm cụ thể phụ thuộc OS và server architecture. Đây không phải phép sửa căn nguyên thay cho giới hạn admission và xử lý leak.
+One advanced production technique reserves small headroom or a spare descriptor to gracefully handle FD exhaustion when accepting sockets; exact details depend on OS and server architecture. That is never a root-cause substitute for admission limits and leak fixes.
 
-## 18. Những lỗi thường gặp
+## 18. Common Mistakes
 
-**Lỗi 1 — Nghĩ JVM có GC nên không cần close().** GC không cung cấp thời điểm đóng file/socket đáng tin. Dùng try-with-resources và ownership rõ ràng.
+**Mistake 1 — Thinking the JVM has GC so `close()` is optional.** GC gives no dependable close timing for files/sockets. Use `try-with-resources` and explicit ownership.
 
-**Lỗi 2 — Đếm số FileChannel object để suy ra toàn bộ FD.** Một số tài nguyên có thể dùng chung, nằm ngoài Java heap hoặc thuộc các API khác. Dùng OS/JMX metric phù hợp.
+**Mistake 2 — Counting `FileChannel` objects to deduce total FDs.** Some resources are shared, live outside the Java heap, or come from other APIs. Use proper OS/JMX metrics.
 
-**Lỗi 3 — Mở stream Files.list/Files.walk/Files.lines mà không đóng.** Đây là filesystem-backed stream; phải try-with-resources.
+**Mistake 3 — Opening `Files.list/Files.walk/Files.lines` streams without closing.** These are filesystem-backed streams; always use `try-with-resources`.
 
-**Lỗi 4 — Mở hết hàng chục nghìn file cùng lúc rồi mới xử lý.** Chạm giới hạn FD và tăng áp lực hệ thống. Giới hạn concurrency, mở resource sát lúc dùng.
+**Mistake 4 — Opening tens of thousands of files upfront before processing.** Hits FD limits and strains the system. Bound concurrency and open resources just in time.
 
-**Lỗi 5 — Tăng ulimit là xong.** Với leak, chỉ kéo dài thời gian tới khi lỗi. Trước tiên sửa ownership/close và đo lại.
+**Mistake 5 — Assuming raising `ulimit` fixes everything.** For leaks, it only delays the crash. Fix ownership/closing first and re-measure.
 
-**Lỗi 6 — Không trả permit khi FileChannel.open thất bại.** Semaphore mất permit dần, tự làm nghẽn ứng dụng dù OS còn tài nguyên.
+**Mistake 6 — Not returning permits when `FileChannel.open` fails.** The semaphore gradually loses permits, starving the app even while the OS has spare resources.
 
-**Lỗi 7 — Dùng semaphore nhưng code khác mở FD ngoài budget không kiểm soát.** Budget chỉ bảo vệ subsystem đi qua nó; phải dành headroom cho socket, logger, thư viện và hệ thống.
+**Mistake 7 — Using a semaphore while other code opens FDs outside the budget unchecked.** A budget protects only the subsystem routed through it; leave headroom for sockets, loggers, libraries, and OS overhead.
 
-**Lỗi 8 — Chỉ đóng khi xử lý thành công.** Exception path là nơi phổ biến bị leak. Dùng finally/try-with-resources.
+**Mistake 8 — Closing only on the success path.** Exception paths are prime leak sources. Use `finally`/`try-with-resources`.
 
-**Lỗi 9 — Đóng FileChannel rồi kết luận mọi MappedByteBuffer đã unmap.** Mapping có vòng đời riêng, không được kiểm soát chỉ bằng việc channel đóng.
+**Mistake 9 — Closing `FileChannel` and concluding all `MappedByteBuffer`s are unmapped.** Mappings have their own lifecycle not governed solely by channel close.
 
-**Lỗi 10 — Chỉ dựa vào handle count trên Windows rồi cho rằng đó là số Unix FD.** Handle count bao gồm nhiều loại tài nguyên, cần giải thích metric đúng nền tảng.
+**Mistake 10 — Relying on Windows handle count and calling it Unix FD count.** Handle counts span many resource categories; interpret metrics per platform.
 
-**Lỗi 11 — Cancel SelectionKey nhưng quên close channel.** Cancel chỉ thay đăng ký với selector; channel có thể vẫn mở.
+**Mistake 11 — Cancelling a `SelectionKey` yet forgetting to close the channel.** Cancel only updates selector registration; the channel may remain open.
 
-**Lỗi 12 — Retry liên tục ngay khi EMFILE.** Retry không giới hạn làm tăng tải/log mà không giải phóng FD. Cần điều phối admission, backoff và khắc phục resource owner.
+**Mistake 12 — Retrying immediately in a tight loop on `EMFILE`.** Unbounded retries spike load/logs without freeing FDs. Coordinate admission, backoff, and fix resource owners.
 
-## 19. Câu hỏi tự kiểm tra
+## 19. Self-Check Questions
 
-1. File descriptor là gì? **Tham chiếu số nguyên của tiến trình tới tài nguyên I/O trên Unix/Linux**, với chi tiết quản lý do OS thực hiện.
-2. Mọi `FileChannel` có tương ứng đúng một FD không? **Không thể khẳng định chung cho mọi provider/implementation**.
-3. `EMFILE` khác `ENFILE` thế nào? **EMFILE thường liên quan giới hạn descriptor của tiến trình; ENFILE liên quan giới hạn tài nguyên file-open rộng hơn ở cấp hệ thống**.
-4. Vì sao tạo một `Selector` không làm vô hạn số socket có thể mở? **Mỗi kết nối vẫn sử dụng tài nguyên OS**, Selector chủ yếu thay cách theo dõi readiness.
-5. `Files.list` có cần đóng stream trả về không? **Có**, vì nó dựa trên tài nguyên thư mục.
-6. Dùng `Files.readString` có trả ra InputStream phải tự close không? **Không**; phương thức trả về String và tự quản lý resource nội bộ.
-7. Tại sao `try-with-resources` tốt hơn close() chỉ ở dòng cuối hàm? **Resource được đóng trên các đường thoát có ngoại lệ**, và lỗi close được lưu phù hợp.
-8. Budget semaphore có nâng `RLIMIT_NOFILE` không? **Không**; nó giới hạn số resource do ứng dụng tự cấp qua subsystem.
-9. Nếu lấy permit rồi `FileChannel.open` thất bại, phải làm gì? **Trả permit trong finally/catch**.
-10. Số FD tăng từ 100 lên 600 khi tải tăng rồi trở về 110 khi tải giảm có tự chứng minh leak không? **Không**; có thể là tải đồng thời hợp lệ.
-11. `FileChannel.close()` có luôn unmap ngay mọi `MappedByteBuffer` không? **Không có bảo đảm đó**.
-12. Trên Linux, muốn biết soft limit của **JVM đang chạy** thì chỉ nhìn `ulimit -Sn` trong shell khác có đủ không? **Không**; cần xem giới hạn của chính process hoặc service context.
-13. Vì sao xử lý 10.000 file theo batch nên giới hạn số channel mở đồng thời? **Để không chạm giới hạn FD, kiểm soát áp lực OS và đạt throughput có thể dự đoán**.
-14. Chạm giới hạn FD trong một server có thể ảnh hưởng logger/healthcheck không? **Có**, vì những thành phần đó cũng có thể cần mở file hoặc socket.
-15. Lựa chọn ưu tiên khi ứng dụng thường xuyên báo “Too many open files” là gì? **Đo FD usage, tìm resource bị giữ quá lâu/không đóng, giới hạn concurrency và chỉ sau đó cân nhắc tăng OS limit**.
+1. What is a file descriptor? **A process's integer reference to an I/O resource on Unix/Linux**, with underlying management handled by the OS.
+2. Does every `FileChannel` map to exactly one FD? **Cannot be asserted generally across all providers/implementations**.
+3. How does `EMFILE` differ from `ENFILE`? **`EMFILE` typically relates to the process's descriptor limit; `ENFILE` relates to broader system-wide open-file resource limits**.
+4. Why doesn't creating one `Selector` allow infinite open sockets? **Each connection still consumes OS resources**; `Selector` primarily changes how readiness is monitored.
+5. Must the stream returned by `Files.list` be closed? **Yes**, because it is backed by a directory resource.
+6. Does `Files.readString` return an `InputStream` you must close? **No**; it returns a `String` and manages its internal resources itself.
+7. Why is `try-with-resources` better than calling `close()` only at the end of a method? **Resources close along exception exit paths**, and close errors are preserved as suppressed exceptions.
+8. Does a budget semaphore raise `RLIMIT_NOFILE`? **No**; it limits resources allocated by the application through that subsystem.
+9. If you acquire a permit and `FileChannel.open` fails, what must you do? **Release the permit in `finally`/`catch`**.
+10. Does FDs rising from 100 to 600 under load and dropping back to 110 afterward prove a leak? **No**; that can be normal concurrent load.
+11. Does `FileChannel.close()` always immediately unmap every `MappedByteBuffer`? **No such guarantee exists**.
+12. On Linux, to know the soft limit of a **running JVM**, is checking `ulimit -Sn` in another shell enough? **No**; inspect the limits of the actual process or service context.
+13. Why should batch processing 10,000 files bound concurrently open channels? **To avoid hitting FD limits, control OS pressure, and achieve predictable throughput**.
+14. Can hitting the FD limit in a server affect loggers or health checks? **Yes**, because those components may also need to open files or sockets.
+15. What is the top priority when an app frequently reports "Too many open files"? **Measure FD usage, locate long-held/unclosed resources, bound concurrency, and only afterward consider raising OS limits**.
 
-**Ghi nhớ:** file descriptor/handle là tài nguyên hữu hạn của hệ điều hành. Khi xử lý file lớn hoặc phục vụ nhiều kết nối đồng thời, ứng dụng Java phải **quản lý vòng đời bằng try-with-resources**, đóng cả các filesystem-backed streams, giới hạn số resource mở đồng thời, chừa headroom cho thành phần khác và theo dõi FD theo đúng môi trường. **Tăng giới hạn OS không thay thế sửa leak hoặc thiết kế concurrency có kiểm soát.**
+**Key Takeaway:** file descriptors/handles are finite OS resources. When processing large files or serving many concurrent connections, a Java app must **manage lifecycles with `try-with-resources`**, close filesystem-backed streams too, bound concurrently open resources, reserve headroom for other components, and monitor FDs accurately for the target platform. **Raising OS limits never replaces fixing leaks or designing bounded concurrency.**

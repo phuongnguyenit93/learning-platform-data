@@ -1,61 +1,61 @@
-# Cập nhật tệp bằng ghi tạm và thay thế trong Java NIO.2
+# Updating Files via Write-Temp-Then-Replace in Java NIO.2
 
-## 1. Bài toán thực hành
+## 1. Practice Problem
 
-Giả sử ứng dụng đang có `config.txt` chứa một bản cấu hình hoạt động ổn định. Muốn lưu cấu hình mới, cách đơn giản là ghi đè trực tiếp:
+Suppose an application has a `config.txt` file containing a stable working configuration. To save a new configuration, the simple approach is to overwrite directly:
 
 ~~~java
 Files.writeString(target, newContent, StandardCharsets.UTF_8);
 ~~~
 
-Đây là **mảnh mã minh họa** có biến `target` và `newContent` được khai báo bên ngoài. Nếu ứng dụng bị ngắt sau khi truncate file cũ nhưng trước khi ghi đủ nội dung mới, file đích có thể rỗng hoặc chỉ chứa một phần bản mới. Nguy cơ tương tự xảy ra khi thiếu dung lượng, serialization lỗi giữa chừng hoặc quá trình bị dừng.
+This is an **illustrative snippet** with `target` and `newContent` variables declared outside. If the application is interrupted after truncating the old file but before writing all the new content, the target file may become empty or contain only a partial new version. The same risk occurs on disk full, mid-serialization errors, or process termination.
 
-Mẫu **write-temp-then-replace** tách việc chuẩn bị dữ liệu với việc công bố dữ liệu:
+The **write-temp-then-replace** pattern separates preparing data from publishing data:
 
 ~~~text
-Ban đầu:
+Initially:
   config.txt = VERSION_1
 
-Bước 1, tạo ứng viên:
-  .update-xxxxx.tmp = (trống)
+Step 1, create candidate:
+  .update-xxxxx.tmp = (empty)
   config.txt        = VERSION_1
 
-Bước 2, ghi/kiểm tra bản mới:
+Step 2, write/validate new version:
   .update-xxxxx.tmp = VERSION_2
   config.txt        = VERSION_1
 
-Bước 3, thay tên bằng move nguyên tử khi provider hỗ trợ:
+Step 3, rename via atomic move when supported by provider:
   config.txt        = VERSION_2
-  .update-xxxxx.tmp = không còn tên cũ
+  .update-xxxxx.tmp = old name no longer exists
 ~~~
 
-**Nếu lỗi xảy ra trước bước publish và không có writer khác**, target cũ vẫn chưa bị thao tác thay thế ảnh hưởng. Nếu thao tác move được thực hiện nguyên tử theo hợp đồng và thành công, reader mở theo tên target sẽ không phải quan sát quá trình ghi bản mới từng byte dưới tên đó.
+**If a failure happens before the publish step and no other writer exists**, the old target remains untouched by the replacement operation. If the move executes atomically per contract and succeeds, a reader opening the target by name will never observe byte-by-byte writing of the new version under that name.
 
-Nhưng cần hiểu bốn bảo đảm khác nhau:
+However, four distinct guarantees must be understood:
 
-1. **Hoàn tất serialize:** bản ứng viên có đủ byte và format hợp lệ.
-2. **Atomic visibility:** việc công bố tên target diễn ra như một thao tác nguyên tử, nếu được filesystem hỗ trợ.
-3. **Durability:** dữ liệu và thay đổi tên có tồn tại đúng sau crash/mất điện hay không.
-4. **Concurrency control:** nhiều writer có được phép vô tình ghi đè cập nhật của nhau không.
+1. **Serialization completion:** the candidate version has all bytes and a valid format.
+2. **Atomic visibility:** publishing the target name happens as an atomic operation, if supported by the filesystem.
+3. **Durability:** whether the data and name change survive a crash or power loss intact.
+4. **Concurrency control:** whether multiple writers are prevented from accidentally overwriting each other's updates.
 
-Một lời gọi `Files.move` chỉ góp phần giải quyết mục tiêu thứ hai. Không mặc nhiên coi nó là transaction nhiều file, fsync toàn bộ metadata hoặc cơ chế khóa giữa các tiến trình.
+A single `Files.move` call only helps address the second goal. Do not assume it provides multi-file transactions, full metadata fsync, or inter-process locking.
 
-## 2. Luồng cập nhật đúng thứ tự
+## 2. Properly Ordered Update Flow
 
-Với một file đơn, quy trình nền tảng là:
+For a single file, the foundational workflow is:
 
-1. Chọn `target` có parent đáng tin cậy và đã kiểm tra quyền của caller.
-2. Tạo file tạm **cùng thư mục đích** bằng `Files.createTempFile(parent, prefix, suffix)`.
-3. Ghi **toàn bộ** nội dung/serialized representation vào file tạm; nếu dùng `FileChannel` thì lặp theo số byte thực ghi.
-4. Kiểm tra tính hợp lệ của bản ứng viên: cú pháp, kích thước, checksum/version nếu nghiệp vụ cần.
-5. Yêu cầu đồng bộ nội dung temp theo mức durability mong muốn bằng `FileChannel.force(...)` và **đóng channel**.
-6. Gọi `Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE)` để yêu cầu publish nguyên tử.
-7. Nếu move thành công, coi bản mới đã công bố theo semantics của filesystem. Nếu thất bại, không xóa target cũ để “giúp move chạy”; dọn temp trong `finally`.
-8. Nếu `ATOMIC_MOVE` không được hỗ trợ, áp dụng **chính sách đã quyết định**: fail closed hoặc cố ý cho phép fallback non-atomic, không đánh đồng hai mức bảo đảm.
+1. Choose a `target` with a trusted parent and verified caller permissions.
+2. Create a temporary file **in the same destination directory** using `Files.createTempFile(parent, prefix, suffix)`.
+3. Write the **entire** content/serialized representation into the temporary file; if using `FileChannel`, loop over the actual bytes written.
+4. Validate the candidate: syntax, size, checksum/version if required by business logic.
+5. Request synchronization of the temp content to the desired durability level using `FileChannel.force(...)` and **close the channel**.
+6. Call `Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE)` to request atomic publication.
+7. If the move succeeds, treat the new version as published per filesystem semantics. If it fails, do not delete the old target to "help the move work"; clean up the temp file in `finally`.
+8. If `ATOMIC_MOVE` is unsupported, apply your **decided policy**: fail closed or deliberately allow a non-atomic fallback, without equating the two levels of guarantee.
 
-Không nên đặt `Files.delete(target)` giữa bước 5 và bước 6. Thao tác đó phá tính liên tục: ứng dụng chết sau delete sẽ để target biến mất dù temp đã chuẩn bị xong.
+Do not place `Files.delete(target)` between step 5 and step 6. That breaks continuity: if the process dies after deleting, the target disappears even though the temp file was ready.
 
-### 2.1. Chọn đúng vị trí cho temp
+### 2.1. Choosing the Right Location for Temp
 
 ~~~java
 Path absolute = target.toAbsolutePath().normalize();
@@ -63,22 +63,22 @@ Path parent = absolute.getParent();
 Path temp = Files.createTempFile(parent, ".update-", ".tmp");
 ~~~
 
-Đây là mảnh mã, không chạy độc lập nếu chưa có biến `target`, import và xử lý lỗi. Tạo cùng parent thường giúp temp và target nằm cùng filesystem, cần thiết cho atomic rename trong nhiều hệ thống. Tạo temp bằng `Files.createTempFile("update-", ".tmp")` không có parent có thể đưa nó sang thư mục tạm mặc định trên **filesystem khác**, khiến atomic move không khả thi.
+This is a code snippet; it will not run standalone without a `target` variable, imports, and error handling. Creating under the same parent usually keeps temp and target on the same filesystem, which is required for atomic rename on many systems. Creating temp with `Files.createTempFile("update-", ".tmp")` without a parent may place it in the default temp directory on a **different filesystem**, making an atomic move impossible.
 
-`createTempFile` tạo entry mới với tên không trùng, nhưng không loại bỏ mọi rủi ro nếu thư mục cho phép attacker xóa/đổi entry; thư mục staging phải thuộc quyền kiểm soát phù hợp.
+`createTempFile` creates a new entry with a unique name, yet does not eliminate all risks if the directory allows an attacker to delete/swap entries; the staging directory must have proper access controls.
 
-### 2.2. Không đặt tên temp cố định
+### 2.2. Do Not Use a Fixed Temp Filename
 
 ~~~java
-// Anti-pattern khi nhiều tiến trình cập nhật đồng thời:
+// Anti-pattern when multiple processes update concurrently:
 Path temp = target.resolveSibling("config.tmp");
 ~~~
 
-Tên cố định dễ gây tranh chấp, bị chiếm sẵn hoặc bị hai lượt ghi đè lên nhau. Dùng `createTempFile` để mỗi lượt có ứng viên riêng và dọn đúng Path của lượt đó.
+A fixed name easily causes contention, pre-existing file conflicts, or two runs overwriting each other. Use `createTempFile` so each run gets its own candidate and cleans up that exact `Path`.
 
-## 3. Ghi đầy đủ dữ liệu và xử lý short write
+## 3. Writing All Data and Handling Short Writes
 
-Một file tạm chỉ an toàn khi **không được publish trước lúc toàn bộ dữ liệu mới đã ghi xong**. Có thể dùng `Files.writeString` hoặc `Files.write` cho dữ liệu nhỏ. Với nội dung lớn hoặc cần đồng bộ trực tiếp, `FileChannel` cho quyền kiểm soát rõ:
+A temporary file is only safe if **it is never published before all new data has finished writing**. You can use `Files.writeString` or `Files.write` for small payloads. For large content or direct syncing, `FileChannel` gives explicit control:
 
 ~~~java
 static void writeCandidate(Path temp, byte[] bytes) throws IOException {
@@ -100,19 +100,19 @@ static void writeCandidate(Path temp, byte[] bytes) throws IOException {
 }
 ~~~
 
-Đây là **phương thức minh họa**, cần import `IOException`, `Path`, `ByteBuffer`, `FileChannel` và `StandardOpenOption`.
+This is an **illustrative method**, requiring imports for `IOException`, `Path`, `ByteBuffer`, `FileChannel`, and `StandardOpenOption`.
 
-- `FileChannel.write(src)` trả số byte thực chuyển và tăng `src.position()` tương ứng; không giả định mỗi lần luôn ghi hết.
-- `src.hasRemaining()` xác định khi toàn bộ byte trong bản ứng viên đã được tiêu thụ.
-- `force(true)` yêu cầu đồng bộ thay đổi file theo hợp đồng JDK; mục đích là chuẩn bị dữ liệu ứng viên trước khi publish.
-- Đóng channel bằng `try-with-resources` đảm bảo không còn code serializer tiếp tục ghi vào temp sau bước chuẩn bị.
+- `FileChannel.write(src)` returns the actual bytes transferred and advances `src.position()` accordingly; never assume a single call writes everything.
+- `src.hasRemaining()` determines when all bytes in the candidate have been consumed.
+- `force(true)` requests synchronizing file changes per the JDK contract; the goal is preparing the candidate data before publishing.
+- Closing the channel via `try-with-resources` ensures no serializer code keeps writing to temp after the preparation step.
 
-Nếu deserialize/serialize cần giữ byte liên tục rất lớn, hãy đưa dữ liệu qua `InputStream`/`OutputStream` để không giữ toàn bộ trong RAM, đồng thời xác định rõ bước nào flush, sync, verify và close.
+If serialization/deserialization involves very large contiguous byte payloads, stream data via `InputStream`/`OutputStream` instead of holding everything in RAM, while clearly defining which steps flush, sync, verify, and close.
 
-### 3.1. Ghi vào temp khác với ghi vào target
+### 3.1. Writing to Temp vs. Writing to Target
 
 ~~~java
-// Nguy hiểm với mục tiêu bảo toàn file cũ nếu serialize lỗi:
+// Dangerous for preserving the old file if serialization fails:
 try (OutputStream out = Files.newOutputStream(
         target, StandardOpenOption.WRITE,
         StandardOpenOption.TRUNCATE_EXISTING)) {
@@ -120,27 +120,27 @@ try (OutputStream out = Files.newOutputStream(
 }
 ~~~
 
-Đây là pseudocode, `serializer` do ứng dụng cung cấp. `TRUNCATE_EXISTING` đã thay đổi file đích ngay khi bắt đầu. Nếu `serializer` ném lỗi giữa chừng, file cũ không còn nguyên vẹn.
+This is pseudocode; `serializer` is supplied by the application. `TRUNCATE_EXISTING` alters the target file the moment it opens. If `serializer` throws mid-write, the old file is no longer intact.
 
-Cách đúng trong mô hình này là thực hiện toàn bộ thao tác ghi trên `temp`, sau đó dùng move để thay tên vào cuối.
+The right approach in this pattern is to perform all write operations on `temp`, then rename via move at the end.
 
-## 4. ATOMIC_MOVE không đồng nghĩa REPLACE_EXISTING
+## 4. `ATOMIC_MOVE` Does Not Imply `REPLACE_EXISTING`
 
-API `Files.move(source, target, options...)` hỗ trợ các option phổ biến:
+The `Files.move(source, target, options...)` API supports common options:
 
-| Option | Ý nghĩa | Giới hạn cần nhớ |
+| Option | Meaning | Limit to Remember |
 | --- | --- | --- |
-| `StandardCopyOption.ATOMIC_MOVE` | Yêu cầu move được thực hiện như thao tác filesystem nguyên tử. | Có thể ném `AtomicMoveNotSupportedException`. |
-| `StandardCopyOption.REPLACE_EXISTING` | Cho phép thay target đã tồn tại trong move thông thường. | Không tự làm thao tác thành nguyên tử. |
-| `StandardCopyOption.COPY_ATTRIBUTES` | Chủ yếu dùng với `Files.copy` cho metadata. | Không phải lời giải cho atomic publication. |
+| `StandardCopyOption.ATOMIC_MOVE` | Requests the move be performed as an atomic filesystem operation. | May throw `AtomicMoveNotSupportedException`. |
+| `StandardCopyOption.REPLACE_EXISTING` | Allows replacing an existing target in a normal move. | Does not by itself make the operation atomic. |
+| `StandardCopyOption.COPY_ATTRIBUTES` | Mainly used with `Files.copy` for metadata. | Not a solution for atomic publication. |
 
-Ví dụ:
+Example:
 
 ~~~java
 Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE);
 ~~~
 
-Điều rất dễ bỏ qua trong **Javadoc Java 17**: khi có `ATOMIC_MOVE`, **các option khác bị bỏ qua**; nếu target đã tồn tại, việc nó được thay thế hay thao tác thất bại là **implementation-specific**. Do đó:
+An easily overlooked detail in the **Java 17 Javadoc**: when `ATOMIC_MOVE` is present, **other options are ignored**; if the target already exists, whether it is replaced or the operation fails is **implementation-specific**. Therefore:
 
 ~~~java
 Files.move(
@@ -149,11 +149,11 @@ Files.move(
         StandardCopyOption.REPLACE_EXISTING);
 ~~~
 
-không chứng minh mọi provider đều hỗ trợ **atomic replacement của target đã tồn tại**, dù source và target cùng thư mục. Lệnh trên thường được dùng trên filesystem có atomic rename replacement, nhưng production phải kiểm tra hành vi thực tế và có chính sách xử lý khi provider từ chối.
+does not prove every provider supports **atomic replacement of an existing target**, even when source and target share a directory. The call above is commonly used on filesystems with atomic rename replacement, yet production code must test actual behavior and define a policy when the provider rejects it.
 
-**Không dùng `Files.deleteIfExists(target)` trước move** để giải quyết `FileAlreadyExistsException`. Điều đó tạo một khoảng trống mà reader có thể thấy target không tồn tại; nếu tiến trình chết sau delete, bản cũ cũng mất.
+**Never call `Files.deleteIfExists(target)` before moving** to work around `FileAlreadyExistsException`. Doing so opens a gap where readers see the target missing; if the process dies after deletion, the old version is lost too.
 
-### 4.1. Khi không hỗ trợ ATOMIC_MOVE
+### 4.1. When `ATOMIC_MOVE` Is Unsupported
 
 ~~~java
 try {
@@ -167,54 +167,54 @@ try {
 }
 ~~~
 
-Đây là mảnh code, cần `Path`, `AtomicMoveNotSupportedException`, `StandardCopyOption` và biến `allowNonAtomicFallback`.
+This is a code snippet requiring `Path`, `AtomicMoveNotSupportedException`, `StandardCopyOption`, and an `allowNonAtomicFallback` variable.
 
-Hai lựa chọn có ý nghĩa khác nhau:
+The two options have different semantics:
 
-- **Fail closed:** nếu nguyên tử là yêu cầu bắt buộc (cấu hình quan trọng, file trạng thái), báo lỗi và không publish. Target cũ được giữ theo giả định không có writer khác.
-- **Fallback có chủ đích:** chỉ với tài nguyên cho phép mức bảo đảm thấp hơn (ví dụ cache tái tạo được), mới move thông thường với `REPLACE_EXISTING`. Thao tác fallback **không được bảo đảm nguyên tử**, có thể thất bại giữa các bước do provider.
+- **Fail closed:** if atomicity is mandatory (critical config, state files), report an error and do not publish. The old target is preserved assuming no other writer intervenes.
+- **Deliberate fallback:** only for resources permitting weaker guarantees (e.g., regenerable caches), fall back to a regular move with `REPLACE_EXISTING`. The fallback **is not guaranteed atomic** and can fail mid-step depending on the provider.
 
-Không catch **mọi IOException** rồi fallback vào `Files.copy(temp, target, REPLACE_EXISTING)`. Một lỗi permission/storage/target đang mở không đồng nghĩa thiếu atomic support; copy thẳng có thể làm target bị cập nhật dở dang.
+Do not catch **every `IOException`** and fall back to `Files.copy(temp, target, REPLACE_EXISTING)`. A permission/storage/locked-target error does not mean missing atomic support; direct copying can leave the target half-updated.
 
-## 5. Phân biệt atomic visibility và crash durability
+## 5. Distinguishing Atomic Visibility and Crash Durability
 
-**Atomic visibility**: thao tác publish thay entry target một cách nguyên tử khi filesystem đáp ứng yêu cầu.
+**Atomic visibility**: publishing swaps the target entry atomically when the filesystem satisfies the requirement.
 
-**Durability**: thay đổi dữ liệu và tên còn đúng sau khi máy mất điện, kernel crash hoặc thiết bị gặp sự cố.
+**Durability**: data and name changes remain intact after power loss, kernel crash, or hardware failure.
 
 ~~~text
 write temp
     |
     v
-file.force(true)    <- yêu cầu đồng bộ dữ liệu/metadata của TEMP
+file.force(true)    <- requests syncing TEMP data/metadata
     |
     v
 Files.move(temp, target, ATOMIC_MOVE)
     |
     v
-Metadata entry trong THƯ MỤC có durable sau crash không?
+Is the entry metadata in the DIRECTORY durable after a crash?
     |
     v
-Phụ thuộc OS, filesystem, storage và protocol đồng bộ.
+Depends on OS, filesystem, storage, and sync protocol.
 ~~~
 
-`FileChannel.force(boolean metaData)` trên file tạm:
+`FileChannel.force(boolean metaData)` on the temp file:
 
-- `force(false)` yêu cầu đồng bộ nội dung file (không nhất thiết mọi metadata).
-- `force(true)` yêu cầu đồng bộ nội dung và metadata theo hợp đồng.
-- Bảo đảm API mạnh nhất áp dụng cho file trên thiết bị lưu trữ **cục bộ**; remote filesystem/provider có giới hạn riêng.
+- `force(false)` requests syncing file content (not necessarily all metadata).
+- `force(true)` requests syncing content and metadata per contract.
+- The strongest API guarantees apply to files on **local** storage devices; remote filesystems/providers have their own limitations.
 
-Nhưng **`force(true)` trên file tạm không tự đảm bảo rename của directory entry đã durable**. Trong Java 17 không có một thủ tục portable chung buộc mọi directory provider đồng bộ metadata tên sau rename. Nếu cần crash-safety nghiêm ngặt, phải thiết kế và kiểm chứng trên OS/filesystem mục tiêu hoặc chọn tầng lưu trữ transactional.
+However, **`force(true)` on the temp file does not automatically guarantee the directory entry rename is durable**. Java 17 has no universal portable procedure forcing every directory provider to sync name metadata after a rename. If strict crash-safety is required, design and verify on the target OS/filesystem or choose a transactional storage layer.
 
-`OutputStream.flush()` chỉ đẩy bộ đệm Java đến downstream, không phải cam kết dữ liệu đã xuống thiết bị. `close()` cũng không thay thế một giao thức crash-consistency hoàn chỉnh.
+`OutputStream.flush()` only pushes Java buffers downstream; it does not promise data reached the device. `close()` likewise does not replace a full crash-consistency protocol.
 
-## 6. Chương trình hoàn chỉnh Java 17+: thử lỗi trước publish, rồi cập nhật thành công
+## 6. Complete Java 17+ Program: Testing Failure Before Publish, Then Succeeding
 
-Chương trình sử dụng **thư mục tạm thuộc sở hữu ứng dụng**. Nó tạo file `config.txt` chứa `OLD`, cố tình gây lỗi **trước move** để xác minh target chưa bị thay, rồi ghi `NEW` và kiểm tra cleanup.
+The program uses an **application-owned temporary directory**. It creates `config.txt` containing `OLD`, intentionally injects an error **before moving** to verify the target is untouched, then writes `NEW` and checks cleanup.
 
-Để ví dụ có thể chạy trên nhiều provider, phương thức nhận cờ `allowNonAtomicFallback`. Trong demo đặt `true` nhằm cho phép fallback nếu `ATOMIC_MOVE` không được hỗ trợ; **đây là lựa chọn cho bài thực hành, không phải khuyến nghị mặc định cho file quan trọng**. Khi sản phẩm bắt buộc atomicity, truyền `false`.
+To let the example run across multiple providers, the method accepts an `allowNonAtomicFallback` flag. The demo passes `true` to allow fallback if `ATOMIC_MOVE` is unsupported; **this is a choice for the exercise, not a default recommendation for critical files**. When production requires atomicity, pass `false`.
 
-Lưu thành `AtomicFileUpdateDemo.java`:
+Save as `AtomicFileUpdateDemo.java`:
 
 ~~~java
 import java.io.IOException;
@@ -332,14 +332,14 @@ public class AtomicFileUpdateDemo {
 }
 ~~~
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run with JDK 17 or newer:
 
 ~~~bash
 javac -encoding UTF-8 AtomicFileUpdateDemo.java
 java AtomicFileUpdateDemo
 ~~~
 
-**Stdout dự kiến trên filesystem cho phép thay thế target đã tồn tại bằng atomic move hoặc nhánh fallback đã bật:**
+**Expected stdout on filesystems allowing replacement of an existing target via atomic move or with the fallback branch enabled:**
 
 ~~~text
 failureInjected=true
@@ -348,75 +348,75 @@ afterSuccess=NEW
 tempFiles=0
 ~~~
 
-Nếu provider không cho phép thay thế target đang tồn tại bằng `ATOMIC_MOVE` và ném ngoại lệ khác `AtomicMoveNotSupportedException`, hoặc filesystem/permission không cho move, chương trình có thể ném `IOException` thay vì in bốn dòng trên. Không hứa hẹn behavior như nhau trên mọi nền tảng.
+If the provider disallows replacing an existing target via `ATOMIC_MOVE` and throws an exception other than `AtomicMoveNotSupportedException`, or if filesystem/permissions disallow the move, the program may throw `IOException` instead of printing the four lines above. Identical behavior across all platforms is not promised.
 
-### 6.1. Vì sao sau injected failure, target vẫn là OLD?
+### 6.1. Why Does Target Remain OLD After the Injected Failure?
 
-Lỗi được tạo ra **sau khi đã ghi và đóng temp, nhưng trước move**. Quy trình chưa hề mở target để truncate hay ghi, vì vậy trong bài demo không có tác nhân khác, `config.txt` vẫn chứa `OLD`. `finally` dọn temp đã ghi dở hoặc ghi đủ mà chưa được publish.
+The error is triggered **after writing and closing temp, but before moving**. The workflow never opened `target` to truncate or write, so in this demo with no concurrent actors, `config.txt` still contains `OLD`. `finally` cleans up the temp file that was partially written or complete yet unpublished.
 
-Đây là phép thử **lỗi xử lý khi tiến trình còn chạy**, không phải phép mô phỏng mất điện; không suy ra file chắc chắn còn tồn tại với đúng nội dung sau mọi crash OS.
+This tests **error handling while the process is still running**, not a power-loss simulation; do not conclude the file is guaranteed to exist with exact contents after every OS crash.
 
-### 6.2. Vì sao có thể chạy mà không in phương án move?
+### 6.2. Why Does It Run Without Printing the Move Strategy?
 
-Chương trình không in `atomic=true/false` để stdout không gắn với một provider cụ thể. Nếu `ATOMIC_MOVE` được hỗ trợ thì nhánh đó chạy; nếu chỉ ném `AtomicMoveNotSupportedException` và cho phép fallback thì dùng `REPLACE_EXISTING`. Hai nhánh có **mức bảo đảm khác nhau** dù kết quả kiểm tra file trong một lượt chạy đơn giản giống nhau.
+The program does not print `atomic=true/false` so stdout is not tied to a specific provider. If `ATOMIC_MOVE` is supported, that branch runs; if it throws `AtomicMoveNotSupportedException` and fallback is enabled, `REPLACE_EXISTING` is used. The two branches carry **different guarantee levels** even though the file-check output in a simple single run looks identical.
 
-Ứng dụng production nên log/metric sự kiện hạ cấp này và thường không cho fallback với dữ liệu quan trọng.
+Production applications should log/emit metrics on this downgrade event and generally forbid fallback for critical data.
 
-### 6.3. Cleanup trong finally
+### 6.3. Cleanup in `finally`
 
-`Files.deleteIfExists(temp)` sau move thành công thường không tìm thấy đường dẫn temp vì entry đã được chuyển. Nếu bước ghi/move thất bại, nó cố dọn file ứng viên.
+`Files.deleteIfExists(temp)` after a successful move normally finds no temp path because the entry has already been moved. If writing or moving fails, it attempts to delete the candidate file.
 
-**Điểm cần cải thiện trong production:** nếu cleanup ném IOException trong `finally`, nó có thể che lỗi gốc. Một implementation cứng cáp nên thu lỗi cleanup, gắn như **suppressed exception** vào lỗi chính khi có thể, và không để cleanup làm chương trình báo nhầm trạng thái publish. Cũng cần xử lý trường hợp tiến trình chết trước khi chạy finally: nên có quy trình dọn temp mồ côi theo tuổi/version một cách an toàn.
+**Area for production improvement:** if cleanup throws `IOException` inside `finally`, it can mask the original error. A resilient implementation should catch cleanup errors, attach them via `addSuppressed(...)` to the primary error where possible, and never let cleanup cause the program to misreport publication status. You must also handle cases where the process dies before running `finally`: implement a safe orphan-temp cleanup job based on age/version.
 
-## 7. Reader quan sát gì khi replace?
+## 7. What Do Readers Observe During Replacement?
 
-Khi provider có atomic rename replacement:
+When the provider supports atomic rename replacement:
 
 ~~~text
-Trước publish: target -> bản A
-Đang ghi temp: target -> bản A, temp -> bản B
-Sau publish:   target -> bản B
+Before publish: target -> version A
+Writing temp:   target -> version A, temp -> version B
+After publish:  target -> version B
 ~~~
 
-Reader mở `target` **sau khi** publish thành công có thể đọc bản B. Reader đã mở một handle tới bản A trước đó **không tự chuyển** handle sang bản B. Trên nhiều filesystem kiểu POSIX, reader cũ có thể đọc tiếp inode cũ; trên Windows, quyền sharing của open handles còn có thể làm move thất bại.
+Readers opening `target` **after** publication succeeds can read version B. Readers that already opened a handle to version A beforehand **do not automatically switch** handles to version B. On many POSIX-style filesystems, old readers can keep reading the old inode; on Windows, sharing locks on open handles can even cause the move to fail.
 
-Không dùng giả định “mọi reader trên mọi hệ điều hành luôn thấy bản A hoặc B theo cùng cách”; behavior cụ thể phụ thuộc provider, phương thức reader mở file và lifetime file handle.
+Never assume "every reader on every OS always sees A or B the same way"; exact behavior depends on the provider, how the reader opens the file, and handle lifetimes.
 
-Nếu client đọc nửa file, đóng handle, rồi mở lại và đọc tiếp theo offset, hai nửa có thể thuộc hai phiên bản khác nhau. Hãy đọc toàn bộ một phiên bản qua **một handle** hoặc sử dụng version ID/giao thức nhất quán.
+If a client reads half a file, closes the handle, then reopens and reads from an offset, the two halves can belong to two different versions. Read an entire version through **one handle** or use version IDs / a consistent protocol.
 
-## 8. Hai writer vẫn có thể gây lost update
+## 8. Two Writers Can Still Cause Lost Updates
 
 ~~~text
-target đang là A
-Writer 1: đọc A -> tính B1 -> ghi temp1
-Writer 2: đọc A -> tính B2 -> ghi temp2
+target is currently A
+Writer 1: reads A -> computes B1 -> writes temp1
+Writer 2: reads A -> computes B2 -> writes temp2
 Writer 1: atomic move temp1 -> target = B1
 Writer 2: atomic move temp2 -> target = B2
 
-B1 bị thay bởi B2, dù từng move có thể atomic.
+B1 is overwritten by B2, even though each move may be atomic.
 ~~~
 
-`ATOMIC_MOVE` không có semantics “chỉ thay nếu target vẫn là bản mà tôi vừa đọc”. Vì vậy nó **không tự giải quyết concurrency control**.
+`ATOMIC_MOVE` does not mean "replace only if target is still the version I just read". Therefore, it **does not solve concurrency control by itself**.
 
-Có thể chọn:
+Options include:
 
-- **Single writer**: một process/thread sở hữu file và tuần tự hóa mọi cập nhật.
-- **File lock hợp tác**: tất cả writer tuân thủ cùng giao thức khóa trong toàn bộ đoạn read → compute → publish. Tính bắt buộc/khả dụng tùy OS/filesystem.
-- **Versioned files + manifest**: ghi các file bất biến theo version, rồi publish một pointer/manifest; vẫn cần giải quyết việc hai writer cùng cập nhật manifest.
-- **Transactional storage/CAS**: khi cần ngăn lost update một cách chắc chắn ở cấp hệ thống, sử dụng kho dữ liệu hỗ trợ compare-and-swap hoặc transaction thực sự.
+- **Single writer**: one process/thread owns the file and serializes all updates.
+- **Cooperative file locks**: all writers obey the same locking protocol across the entire read → compute → publish cycle. Enforcement/availability varies by OS/filesystem.
+- **Versioned files + manifest**: write immutable versioned files, then publish a pointer/manifest; you still need to coordinate two writers updating the manifest.
+- **Transactional storage/CAS**: when lost updates must be strictly prevented at the system level, use a data store supporting compare-and-swap or real transactions.
 
-`Files.size()`, `getLastModifiedTime()` hoặc checksum kiểm tra trước move chỉ mô tả trạng thái tại thời điểm đọc. Writer khác vẫn có thể đổi file **sau check nhưng trước move** (*TOCTOU*). Không biến check-then-move thành CAS chỉ bằng một câu lệnh if.
+Checking `Files.size()`, `getLastModifiedTime()`, or checksums before moving only describes the state at read time. Another writer can still modify the file **after the check and before the move** (*TOCTOU*). A plain `if` statement does not turn check-then-move into CAS.
 
-## 9. Giữ nguyên metadata, quyền và ownership
+## 9. Preserving Metadata, Permissions, and Ownership
 
-Một bản update bằng rename thường đưa một **object file mới** vào tên target. Vì thế thông tin của file cũ có thể không còn được giữ nguyên tự động:
+Updating via rename typically puts a **new file object** under the target name. Thus attributes of the old file may not be preserved automatically:
 
-- Quyền POSIX (rwx), owner, group.
-- ACL của filesystem/provider.
+- POSIX permissions (rwx), owner, group.
+- Filesystem/provider ACLs.
 - Modified time, creation time, extended attributes, security labels.
-- Hard links: các tên khác trỏ inode cũ có thể vẫn giữ bản cũ.
+- Hard links: other names pointing to the old inode may still retain the old version.
 
-Ví dụ chỉ sao chép permission khi provider thực sự hỗ trợ POSIX:
+Example copying permissions only when the provider actually supports POSIX:
 
 ~~~java
 Set<PosixFilePermission> permissions =
@@ -425,43 +425,43 @@ Set<PosixFilePermission> permissions =
 Files.setPosixFilePermissions(temp, permissions);
 ~~~
 
-Đây là **mảnh mã minh họa**, cần `PosixFilePermission` và import `Files`/`Set`. API có thể ném `UnsupportedOperationException` trên provider không có POSIX view. Sao chép mode bit **không đủ** bảo toàn ACL, owner, xattrs và chính sách bảo mật. Nếu file thuộc dữ liệu nhạy cảm, lựa chọn tốt có thể là đặt permission theo cấu hình đáng tin **khi tạo temp**, thay vì mù quáng thừa kế từ target không tin cậy.
+This is an **illustrative snippet**, requiring `PosixFilePermission` and `Files`/`Set` imports. The API may throw `UnsupportedOperationException` on providers without a POSIX view. Copying mode bits **is not enough** to preserve ACLs, owner, xattrs, and security policies. If the file holds sensitive data, a better choice may be setting permissions from trusted configuration **at temp creation time** rather than blindly inheriting from an untrusted target.
 
-Đọc metadata của target rồi áp vào temp cũng có TOCTOU nếu actor khác có thể đổi target giữa hai bước. Đảm bảo parent directory tin cậy và authorization theo quy trình của hệ thống.
+Reading target metadata and applying it to temp also suffers from TOCTOU if another actor can swap target between the two calls. Ensure a trusted parent directory and proper system authorization.
 
-## 10. Symlink, hard link và vùng thư mục không tin cậy
+## 10. Symlinks, Hard Links, and Untrusted Directories
 
-Mẫu ghi tạm không tự tạo sandbox đường dẫn:
+The temporary-write pattern does not automatically create a path sandbox:
 
-1. Nếu user nhập `../../config.txt`, `Path.normalize()` đơn độc không đủ chứng minh thao tác bị giữ trong vùng cho phép.
-2. Nếu attacker có thể sửa parent directory, họ có thể thay thế entry, symlink hoặc temp giữa hai lời gọi API.
-3. Khi target có symbolic link hoặc hard link, ngữ nghĩa thay entry với ngữ nghĩa sửa nội dung inode không giống nhau. Cần xác định chính sách của ứng dụng, không suy diễn tất cả provider như nhau.
-4. `Files.exists(...)`/`isRegularFile(...)` rồi `Files.move(...)` không phải một giao dịch kiểm tra-và-thay thế nguyên tử.
-5. Nếu cần chống path-race trong thư mục chia sẻ không tin cậy, kiểm tra `SecureDirectoryStream`, quyền thư mục, directory-handle-relative API và khả năng provider; nếu không đáp ứng bảo đảm cần thiết phải fail closed hoặc đổi kiến trúc.
+1. If a user supplies `../../config.txt`, `Path.normalize()` alone does not prove the operation stays inside an allowed root.
+2. If an attacker can modify the parent directory, they can swap entries, symlinks, or temp files between API calls.
+3. When the target involves symbolic links or hard links, replacing a directory entry has different semantics from modifying inode content. Define application policy explicitly rather than assuming all providers behave alike.
+4. `Files.exists(...)`/`isRegularFile(...)` followed by `Files.move(...)` is not an atomic check-and-replace transaction.
+5. If path-race resistance in shared untrusted directories is required, inspect `SecureDirectoryStream`, directory permissions, directory-handle-relative APIs, and provider capabilities; if required guarantees cannot be met, fail closed or change architecture.
 
-**Phạm vi bảo vệ chính của mẫu này là không công bố output mới khi còn đang ghi**, không tự chặn mọi actor có quyền sửa tên tệp.
+**This pattern's primary protection is preventing readers from seeing half-written new output**, not blocking actors who already have permission to rename files.
 
-## 11. Cập nhật file rất lớn hoặc định dạng phức tạp
+## 11. Updating Very Large Files or Complex Formats
 
-Khi file có thể lớn hơn RAM:
+When a file can exceed RAM:
 
 ~~~text
-Ứng dụng cung cấp dữ liệu mới
+Application supplies new data
      |
      v
 Stream serializer -> temporary file
      |
      v
-Parse/validate lại temp khi cần
+Re-parse/validate temp as needed
      |
      v
-Sync temp theo hợp đồng
+Sync temp per contract
      |
      v
-Đóng writer -> atomic move -> target
+Close writer -> atomic move -> target
 ~~~
 
-Ví dụ serializer streaming:
+Streaming serializer example:
 
 ~~~java
 try (OutputStream out = Files.newOutputStream(
@@ -469,158 +469,158 @@ try (OutputStream out = Files.newOutputStream(
         StandardOpenOption.WRITE,
         StandardOpenOption.TRUNCATE_EXISTING)) {
 
-    // serializer.writeTo(out) là API của ứng dụng.
+    // serializer.writeTo(out) is an application-provided API.
     serializer.writeTo(out);
 }
 ~~~
 
-Đây là **pseudocode** vì `serializer` chưa được khai báo. Sau khi đóng output, cần có bước đồng bộ file temp phù hợp nếu yêu cầu durability, rồi mới công bố; không được xem việc đóng stream là bằng chứng mọi dữ liệu đã nằm bền vững trên đĩa.
+This is **pseudocode** because `serializer` is undeclared. After closing output, run an appropriate temp-file sync step if durability is required, and only then publish; never treat closing a stream as proof that all bytes are durable on disk.
 
-Lưu ý phương án có temp phải giữ đồng thời **bản cũ và bản mới**, gây chi phí dung lượng lớn. `Files.getFileStore(path).getUsableSpace()` chỉ cung cấp thông tin tại thời điểm gọi và không đặt chỗ độc quyền; vẫn phải bắt `IOException` nếu disk-full.
+Note that the temp-file approach requires holding **both the old and new versions** simultaneously, incurring significant disk-space overhead. `Files.getFileStore(path).getUsableSpace()` only reports space at call time and does not reserve storage exclusively; you must still catch `IOException` on disk full.
 
-## 12. Ma trận sự cố
+## 12. Failure Matrix
 
-| Lỗi xảy ra ở đâu? | Ảnh hưởng trong tiến trình còn chạy, nếu không có writer khác | Cách xử lý |
+| Where Did Failure Occur? | Impact While Process Is Running (Assuming No Other Writer) | How to Handle |
 | --- | --- | --- |
-| Trước tạo temp | Target cũ chưa bị thay. | Báo lỗi. |
-| Đang ghi temp | Target cũ chưa publish thay đổi; temp có thể dở dang. | Không move, dọn temp. |
-| Kiểm tra candidate thất bại | Target cũ chưa publish. | Bỏ candidate, dọn temp. |
-| `force(temp)` ném lỗi | Chưa đi tới publish theo flow đúng. | Không move, giữ target cũ. |
-| Fault injection trước move | Target cũ còn nguyên trong demo. | Bắt lỗi, kiểm tra cleanup. |
-| `ATOMIC_MOVE` không được hỗ trợ | Bảo đảm yêu cầu chưa được đáp ứng. | Fail closed hoặc fallback được cho phép trước. |
-| Move thành công nhưng caller chưa nhận response | Target có thể đã publish bản mới. | Retry cần idempotency/version. |
-| Mất điện/cra​​sh | Không thể suy luận đầy đủ chỉ từ Java API. | Thử nghiệm recovery và durability theo filesystem. |
+| Before creating temp | Old target untouched. | Report error. |
+| While writing temp | Old target has not published changes; temp may be incomplete. | Do not move; clean up temp. |
+| Candidate validation fails | Old target unpublished. | Discard candidate; clean up temp. |
+| `force(temp)` throws error | Proper flow has not reached publish. | Do not move; keep old target. |
+| Fault injection before move | Old target remains intact in demo. | Catch error; verify cleanup. |
+| `ATOMIC_MOVE` unsupported | Requested guarantee cannot be met. | Fail closed or pre-approved fallback. |
+| Move succeeds but caller misses response | Target may already have published the new version. | Retries need idempotency/versioning. |
+| Power loss / crash | Cannot be inferred solely from Java APIs. | Test recovery and durability per filesystem. |
 
-Nếu response cho caller bị mất **sau khi commit**, caller có thể retry cùng yêu cầu. Thiết kế cần cân nhắc request ID, version token hoặc cơ chế xử lý lặp thay vì giả định lần trước chắc chắn thất bại.
+If the response to the caller is lost **after commit**, the caller may retry the same request. Designs should consider request IDs, version tokens, or idempotent handling rather than assuming the prior attempt definitely failed.
 
-### 12.1. Atomic move không phải transaction nhiều file
+### 12.1. Atomic Move Is Not a Multi-File Transaction
 
-Muốn cập nhật `users.json` và `permissions.json` cùng một phiên bản, hai lệnh atomic rename **không tạo giao dịch nguyên tử cho cả hai file**. Reader có thể quan sát một file đã đổi, file kia chưa đổi.
+To update `users.json` and `permissions.json` to the same version, two atomic rename calls **do not form an atomic transaction across both files**. A reader may observe one file updated and the other still old.
 
-Có thể giải quyết bằng file phiên bản hóa và một manifest/pointer tới phiên bản hoàn chỉnh, hoặc lưu dữ liệu trong một transaction store. Bản thân manifest cũng cần quy trình publish và recovery phù hợp.
+This can be addressed with versioned files plus a manifest/pointer to the complete version, or by storing data in a transactional store. The manifest itself also needs proper publish and recovery procedures.
 
-## 13. Kiểm thử đúng bảo đảm
+## 13. Testing the Right Guarantees
 
-### 13.1. Unit test serialization bằng stream bộ nhớ
+### 13.1. Unit Testing Serialization with In-Memory Streams
 
-Tách core serializer khỏi phần mở file:
+Separate core serialization from file opening:
 
 ~~~java
 void writeRepresentation(OutputStream out, Config config)
         throws IOException {
-    // API của ứng dụng: ghi theo thứ tự định dạng đã định.
+    // Application API: write in the defined format order.
 }
 ~~~
 
-Đây là **pseudocode**, chưa đủ để biên dịch vì `Config` và phần thân chưa có. Kiểm thử serializer bằng `ByteArrayOutputStream` hoặc `StringWriter` cho trường hợp dữ liệu rỗng, Unicode, bản ghi lớn, lỗi encode và invalid input.
+This is **pseudocode**, not compilable as-is because `Config` and the body are omitted. Test the serializer using `ByteArrayOutputStream` or `StringWriter` for empty data, Unicode, large records, encoding errors, and invalid inputs.
 
-### 13.2. Integration test file tạm
+### 13.2. Integration Testing Temporary Files
 
-Với `Files.move`, phải chạy trên filesystem thật. Các tình huống quan trọng:
+For `Files.move`, tests must run on a real filesystem. Important scenarios:
 
-- Target ban đầu chứa `OLD`, lỗi trước move: vẫn là `OLD`.
-- Update bình thường: target là `NEW` và không có temp mồ côi.
-- Atomic move unsupported: với flag fail-closed phải ném lỗi, không thay target.
-- Fallback được cho phép: ghi nhận chất lượng bảo đảm thấp hơn, không gọi nó atomic.
-- Metadata permissions/ACL sau replace đúng chính sách.
-- Writer đồng thời: test quy tắc chống last-writer-wins.
-- Reader mở trước và sau publish: hành vi thực tế theo OS.
-- Không đủ dung lượng, không có quyền, target đang mở, directory read-only, lỗi cleanup.
+- Target initially holds `OLD`, failure before move: remains `OLD`.
+- Normal update: target becomes `NEW` with zero orphan temp files.
+- Atomic move unsupported: with fail-closed flag must throw and leave target unchanged.
+- Fallback enabled: record the weaker guarantee level; do not label it atomic.
+- Metadata permissions/ACLs after replacement match policy.
+- Concurrent writers: test rules preventing silent last-writer-wins.
+- Readers opened before and after publish: verify actual OS behavior.
+- Disk full, permission denied, target locked open, read-only directory, cleanup errors.
 
-JUnit Jupiter có `@TempDir` để tạo thư mục test riêng. Test unit stream bộ nhớ không đủ kiểm chứng OS-specific rename, ACL, lock và crash recovery.
+JUnit Jupiter provides `@TempDir` for isolated test directories. In-memory stream unit tests are insufficient to verify OS-specific renames, ACLs, locks, and crash recovery.
 
-### 13.3. Kiểm tra crash durability cần hạ tầng riêng
+### 13.3. Testing Crash Durability Requires Dedicated Infrastructure
 
-Một phép thử Java thành công không chứng minh điều gì xảy ra khi thiết bị mất điện ở microsecond giữa các bước. Với yêu cầu độ bền mạnh, cần protocol đã kiểm chứng cho filesystem/OS mục tiêu hoặc hệ thống có giao dịch, cùng test recovery và fault injection cô lập. Không xem `ATOMIC_MOVE` + `force(true)` là bằng chứng tuyệt đối cho mọi storage.
+A passing Java test does not prove what happens if hardware loses power at an arbitrary microsecond between steps. For strong durability requirements, use protocols proven on the target filesystem/OS or a transactional system, alongside recovery testing and isolated fault injection. Never treat `ATOMIC_MOVE` + `force(true)` as absolute proof across every storage stack.
 
-## 14. Các lỗi phổ biến
+## 14. Common Mistakes
 
-### Lỗi 1: ghi trực tiếp vào file gốc
+### Mistake 1: writing directly to the original file
 
-`TRUNCATE_EXISTING` làm target mất nội dung cũ trước khi ghi đủ. **Sửa:** ghi candidate trong temp, validate, sync rồi mới publish.
+`TRUNCATE_EXISTING` destroys the target's old content before writing completes. **Fix:** write candidate to temp, validate, sync, and only then publish.
 
-### Lỗi 2: tạo temp ở ổ khác
+### Mistake 2: creating temp on a different volume
 
-Temp nằm trên `java.io.tmpdir` có thể khác filesystem. **Sửa:** dùng `Files.createTempFile(parent,...)`.
+Temp under `java.io.tmpdir` may reside on another filesystem. **Fix:** use `Files.createTempFile(parent,...)`.
 
-### Lỗi 3: dùng filename tạm cố định
+### Mistake 3: using a fixed temp filename
 
-Tạo `config.tmp` cố định dễ va chạm/race. **Sửa:** createTempFile tạo entry mới và luôn cleanup.
+A fixed `config.tmp` invites collisions and races. **Fix:** use `createTempFile` for a unique entry and always clean up.
 
-### Lỗi 4: xóa target rồi mới ATOMIC_MOVE
+### Mistake 4: deleting target before calling `ATOMIC_MOVE`
 
-Tạo khoảng trống và có thể mất bản cũ. **Sửa:** không xóa target trước, dùng semantics replace được provider hỗ trợ.
+Creates a visibility gap and risks losing the old version. **Fix:** never pre-delete target; rely on provider-supported replacement semantics.
 
-### Lỗi 5: cho rằng REPLACE_EXISTING đảm bảo atomic replace khi đi kèm ATOMIC_MOVE
+### Mistake 5: assuming `REPLACE_EXISTING` guarantees atomic replace alongside `ATOMIC_MOVE`
 
-Khi có `ATOMIC_MOVE`, option khác bị bỏ qua; target đã có hành vi implementation-specific. **Sửa:** xử lý exception, xác minh provider thực tế.
+When `ATOMIC_MOVE` is present, other options are ignored; existing-target behavior is implementation-specific. **Fix:** handle exceptions and verify actual provider behavior.
 
-### Lỗi 6: catch mọi IOException rồi copy vào target
+### Mistake 6: catching all `IOException`s and copying onto target
 
-Có thể làm target dở dang và che mất lỗi chính. **Sửa:** fallback chỉ theo chính sách rõ ràng, không được tự động hạ bảo đảm.
+Can leave target half-written and mask the root error. **Fix:** fall back only per explicit policy; never silently downgrade guarantees.
 
-### Lỗi 7: không xử lý short write
+### Mistake 7: failing to handle short writes
 
-`FileChannel.write` không hứa luôn ghi đủ buffer trong một lần. **Sửa:** lặp theo `remaining()`.
+`FileChannel.write` does not promise to write the whole buffer in one call. **Fix:** loop while `remaining()` > 0.
 
-### Lỗi 8: tưởng force trước move đảm bảo crash durability
+### Mistake 8: thinking `force` before move guarantees crash durability
 
-Sync temp không mặc định sync directory rename. **Sửa:** có chiến lược crash-consistency riêng nếu cần.
+Syncing temp does not automatically sync directory rename metadata. **Fix:** implement a dedicated crash-consistency strategy when needed.
 
-### Lỗi 9: không xét permission của file mới
+### Mistake 9: ignoring permissions on the new file
 
-Temp có metadata riêng; replace không nhất thiết giữ ACL/owner của target cũ. **Sửa:** áp policy metadata lên temp trước publish và kiểm tra.
+Temp has its own metadata; replacement does not necessarily preserve the old target's ACLs/owner. **Fix:** apply metadata policies to temp before publishing and verify.
 
-### Lỗi 10: hai writer cùng ghi mà không phối hợp
+### Mistake 10: two writers updating without coordination
 
-Atomic rename không ngăn lost update. **Sửa:** single-writer, lock hoặc version/CAS/transaction.
+Atomic rename does not prevent lost updates. **Fix:** single-writer, locks, or versioning/CAS/transactions.
 
-### Lỗi 11: bỏ qua symlink và path traversal
+### Mistake 11: ignoring symlinks and path traversal
 
-Ghi tạm cùng directory không tự chặn attacker thay directory entry. **Sửa:** root tin cậy, validate tên, kiểm soát quyền và cơ chế secure directory handle khi cần.
+Writing temp in the same directory does not stop an attacker who can modify directory entries. **Fix:** trusted root, name validation, permission checks, and secure directory handles when needed.
 
-### Lỗi 12: dọn temp sau khi ghi thất bại nhưng che lỗi gốc
+### Mistake 12: cleaning up temp after a write failure while masking the original error
 
-`finally` có thể ném lỗi dọn. **Sửa:** giữ ngoại lệ gốc và thêm ngoại lệ cleanup vào `addSuppressed(...)` khi thích hợp; log temp mồ côi.
+`finally` can throw a cleanup error. **Fix:** preserve the original exception and attach cleanup errors via `addSuppressed(...)` where appropriate; log orphan temps.
 
-### Lỗi 13: không giới hạn dung lượng temp
+### Mistake 13: not bounding temp storage usage
 
-Cần chỗ cho cả bản cũ và bản mới. **Sửa:** hạn mức dung lượng/size và xử lý disk-full.
+Space is needed for both old and new versions. **Fix:** size/disk quotas and disk-full handling.
 
-### Lỗi 14: báo success trước khi publish
+### Mistake 14: reporting success before publish
 
-Nếu move thất bại sau khi server gửi ACK, caller có thông tin sai. **Sửa:** chỉ báo sau khi đạt điều kiện commit theo nghiệp vụ, có idempotency khi retry.
+If the move fails after the server sends an ACK, the caller receives false confirmation. **Fix:** acknowledge only after business commit conditions are met, with idempotency for retries.
 
-## 15. Bài tập tự kiểm tra
+## 15. Self-Check Exercises
 
-1. **Tại sao không nên dùng `Files.writeString(target, text)` trực tiếp với cấu hình quan trọng?** Có thể truncate/ghi dở nếu lỗi.
-2. **Tại sao temp nên ở cùng parent?** Tăng cơ hội cùng filesystem để atomic move.
-3. **`Files.createTempFile` tốt hơn filename cố định như thế nào?** Tạo entry mới không trùng, tránh nhiều lượt ghi vào cùng temp.
-4. **`ATOMIC_MOVE` có luôn được hỗ trợ không?** Không; có thể ném `AtomicMoveNotSupportedException`.
-5. **`ATOMIC_MOVE` đi cùng `REPLACE_EXISTING` có chắc thay target đã có?** Không; các option khác bị bỏ qua theo Java 17, việc thay target là implementation-specific.
-6. **Có nên xóa target trước khi move?** Không, vì tạo khoảng không có target.
-7. **Nếu atomicity là yêu cầu bắt buộc, xử lý unsupported thế nào?** Fail closed, không hạ xuống non-atomic.
-8. **Vì sao cần vòng lặp ghi FileChannel?** `write` trả số byte thực ghi, có thể ít hơn remaining.
-9. **`force(true)` trước rename có chứng minh rename durable khi mất điện không?** Không.
-10. **Hai writer có thể gây lost update dù mỗi move atomic không?** Có.
-11. **File mới có chắc kế thừa ACL/owner của target cũ không?** Không.
-12. **Reader đã mở bản cũ có tự đổi sang bản mới sau rename không?** Không nên giả định.
-13. **Fallback bằng Files.copy có bảo đảm tránh file dở không?** Không, có thể cập nhật từng phần.
-14. **Nếu update ba file, ba atomic move có tạo transaction không?** Không.
-15. **Nếu serializer thất bại, target phải ở trạng thái nào trước publish?** Vẫn là bản cũ theo giả định không có writer khác.
-16. **Vì sao cần xác thực đường dẫn user nhập?** Temp strategy không ngăn path traversal/symlink race.
-17. **Muốn kiểm thử lỗi trước publish nên làm thế nào?** Fault injection ở điểm sau khi ghi temp, trước move; đối chiếu file target và cleanup.
-18. **Tại sao mất điện sau move nhưng trước response khó xử lý?** Caller có thể không biết commit đã xảy ra; cần version/idempotency.
-19. **Khi nào nên chọn database?** Khi cần transaction nhiều đối tượng, optimistic locking/CAS hoặc durability mạnh.
-20. **Việc file mới lớn gấp đôi gây vấn đề gì?** Cần thêm dung lượng tạm thời để giữ cả bản cũ và bản mới.
+1. **Why shouldn't `Files.writeString(target, text)` be used directly for critical config?** It can truncate/leave partial content on error.
+2. **Why should temp be in the same parent?** Increases the chance of sharing the same filesystem for atomic move.
+3. **How is `Files.createTempFile` better than a fixed filename?** Creates a unique entry, preventing multiple runs from overwriting the same temp file.
+4. **Is `ATOMIC_MOVE` always supported?** No; it can throw `AtomicMoveNotSupportedException`.
+5. **Does `ATOMIC_MOVE` paired with `REPLACE_EXISTING` guarantee replacing an existing target?** No; other options are ignored per Java 17, and replacing an existing target is implementation-specific.
+6. **Should target be deleted before moving?** No, as it creates a gap with no target.
+7. **If atomicity is mandatory, how should unsupported providers be handled?** Fail closed; do not downgrade to non-atomic.
+8. **Why is a write loop needed for `FileChannel`?** `write` returns actual bytes written, which may be fewer than remaining.
+9. **Does `force(true)` before rename prove the rename is durable on power loss?** No.
+10. **Can two writers cause lost updates even if every move is atomic?** Yes.
+11. **Does the new file automatically inherit the old target's ACLs/owner?** No.
+12. **Do readers that already opened the old version automatically switch to the new version after rename?** Do not assume so.
+13. **Does falling back to `Files.copy` guarantee avoiding partial files?** No; it can update partially.
+14. **If updating three files, do three atomic moves form a transaction?** No.
+15. **If the serializer fails, what state must target be in prior to publish?** Still the old version, assuming no other writer.
+16. **Why must user-supplied paths be validated?** The temp strategy does not prevent path traversal or symlink races.
+17. **How should failures before publish be tested?** Fault injection right after writing temp and before moving; verify target content and cleanup.
+18. **Why is power loss after move but before response tricky?** The caller may not know commit occurred; versioning/idempotency is required.
+19. **When should a database be chosen instead?** When multi-object transactions, optimistic locking/CAS, or strong durability are required.
+20. **What issue arises if the new file is twice as large?** Extra temporary disk space is needed to hold both old and new versions simultaneously.
 
-## 16. Tài liệu Java 17 tham khảo
+## 16. Java 17 Reference Documentation
 
-- [Files.move](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html#move(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)): hợp đồng move và ATOMIC_MOVE.
-- [StandardCopyOption](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/StandardCopyOption.html): ATOMIC_MOVE, REPLACE_EXISTING.
-- [Files.createTempFile](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html#createTempFile(java.nio.file.Path,java.lang.String,java.lang.String,java.nio.file.attribute.FileAttribute...)): tạo temp trong directory chỉ định.
-- [FileChannel.force](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/FileChannel.html#force(boolean)): yêu cầu đồng bộ dữ liệu và metadata file.
-- [FileChannel.write](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/FileChannel.html#write(java.nio.ByteBuffer)): số byte thực ghi.
-- [SecureDirectoryStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/SecureDirectoryStream.html): thao tác theo directory handle khi provider hỗ trợ.
+- [Files.move](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html#move(java.nio.file.Path,java.nio.file.Path,java.nio.file.CopyOption...)): move contract and `ATOMIC_MOVE`.
+- [StandardCopyOption](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/StandardCopyOption.html): `ATOMIC_MOVE`, `REPLACE_EXISTING`.
+- [Files.createTempFile](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html#createTempFile(java.nio.file.Path,java.lang.String,java.lang.String,java.nio.file.attribute.FileAttribute...)): creating temp files in a specified directory.
+- [FileChannel.force](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/FileChannel.html#force(boolean)): requesting sync of file data and metadata.
+- [FileChannel.write](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/FileChannel.html#write(java.nio.ByteBuffer)): actual bytes written.
+- [SecureDirectoryStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/SecureDirectoryStream.html): directory-handle operations when supported by the provider.
 
-**Ghi nhớ:** Để cập nhật một file mà không đưa bản đang ghi dở tới reader, hãy **tạo temp cùng thư mục → ghi/verify/force phù hợp → đóng → move nguyên tử nếu được hỗ trợ → dọn temp**. Không tự xóa target trước, không tự hạ bảo đảm sang copy/non-atomic và không đồng nhất atomic visibility với crash durability, transaction hay kiểm soát multi-writer.
+**Remember:** To update a file without exposing half-written versions to readers, **create temp in the same directory → write/verify/force appropriately → close → atomic move if supported → clean up temp**. Never pre-delete the target, never silently downgrade guarantees to copy/non-atomic, and never equate atomic visibility with crash durability, transactions, or multi-writer concurrency control.

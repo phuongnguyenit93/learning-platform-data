@@ -1,18 +1,18 @@
-# serialVersionUID và tương thích lớp trong Java Serialization
+# serialVersionUID and Class Compatibility in Java Serialization
 
-Khi một đối tượng Java được ghi bằng `ObjectOutputStream`, dữ liệu có thể tồn tại trên đĩa hoặc truyền sang một chương trình khác lâu hơn vòng đời của phiên bản lớp đã tạo ra nó. Nếu cấu trúc lớp thay đổi trước khi dữ liệu được đọc lại bằng `ObjectInputStream`, Java phải quyết định liệu dữ liệu cũ còn đọc được với lớp hiện tại hay không. `serialVersionUID` là một phần của cơ chế kiểm tra đó.
+When a Java object is written with `ObjectOutputStream`, the data may persist on disk or be transmitted to another program beyond the lifetime of the class version that produced it. If the class structure changes before the data is read back with `ObjectInputStream`, Java must decide whether the old data is still readable by the current class. `serialVersionUID` is part of that verification mechanism.
 
-Bài này áp dụng cho **Java Object Serialization** (`java.io.Serializable`), không phải cơ chế đổi phiên bản dữ liệu của JSON, JDBC, protobuf hay Java Records theo một giao thức khác.
+This lesson applies to **Java Object Serialization** (`java.io.Serializable`), not data versioning mechanisms for JSON, JDBC, protobuf, or Java Records under a different protocol.
 
-## 1. Vai trò của serialVersionUID
+## 1. The Role of serialVersionUID
 
-Một lớp muốn tham gia Java Object Serialization thường triển khai marker interface `Serializable`. Khi ghi đối tượng, `ObjectOutputStream` ghi thông tin mô tả lớp (class descriptor), trong đó có tên lớp, mô tả các trường được tuần tự hóa và **serial version UID**. Khi đọc, Java tìm lớp hiện có tương ứng và so sánh UID trong stream với UID của lớp cục bộ.
+A class wishing to participate in Java Object Serialization typically implements the marker interface `Serializable`. When writing an object, `ObjectOutputStream` writes class metadata (the class descriptor), including the class name, descriptions of serialized fields, and the **serial version UID**. When reading, Java locates the matching local class and compares the UID in the stream against the local class's UID.
 
-- **UID khớp:** Java tiếp tục kiểm tra cấu trúc và giải mã dữ liệu theo các quy tắc tương thích. Khớp UID **không bảo đảm** mọi thay đổi lớp đều tương thích.
-- **UID khác:** Với lớp `Serializable` thông thường, quá trình đọc thất bại với `java.io.InvalidClassException` (thông báo thường chứa “local class incompatible” cùng hai UID).
-- **Lớp không tìm thấy:** Có thể nhận `ClassNotFoundException` trước khi có đối tượng; đặt cùng UID không giải quyết tên lớp/package sai hoặc thiếu classpath.
+- **UID matches:** Java proceeds to check structure and decode data according to compatibility rules. Matching UIDs **do not guarantee** every class change is compatible.
+- **UID differs:** For a regular `Serializable` class, reading fails with `java.io.InvalidClassException` (the message typically mentions "local class incompatible" along with both UIDs).
+- **Class not found:** You may receive `ClassNotFoundException` before any object is created; setting the same UID does not resolve a mismatched class/package name or missing classpath entry.
 
-Khai báo được khuyến nghị:
+Recommended declaration:
 
 ```java
 import java.io.Serializable;
@@ -25,30 +25,30 @@ public class Invoice implements Serializable {
 }
 ```
 
-`serialVersionUID` phải là trường có tên chính xác, kiểu `long`, `static` và `final`; thông thường dùng `private`. Đây là **metadata về phiên bản lớp**, không phải trường dữ liệu của từng đối tượng. UID không mã hóa, xác thực hay kiểm tra tính toàn vẹn dữ liệu. Không cần tăng UID sau *mọi* lần sửa mã nguồn; chỉ đổi có chủ đích khi quyết định rằng dữ liệu serialized từ phiên bản trước **không còn được phép/không thể** đọc theo cấu trúc mới.
+`serialVersionUID` must be a field with that exact name, of type `long`, `static`, and `final`; `private` is conventionally used. It is **class version metadata**, not a data field on each object. The UID does not encrypt, authenticate, or verify data integrity. You do not need to increment the UID after *every* source edit; change it intentionally when deciding that serialized data from an earlier version **must no longer be allowed/cannot be read** under the new structure.
 
-Nếu **không** khai báo UID, JVM tính UID mặc định dựa trên một số đặc điểm của lớp (tên lớp, modifiers, interfaces, các trường/phương thức/constructor tham gia thuật toán). Vì vậy, những thay đổi mã nguồn tưởng như không liên quan đến dữ liệu có thể làm UID tính toán thay đổi và khiến việc đọc stream cũ thất bại. Khai báo UID tường minh giúp giữ ổn định hợp đồng tương thích nhưng không biến thay đổi cấu trúc nguy hiểm thành an toàn.
+If you **do not** declare a UID, the JVM computes a default UID based on several characteristics of the class (class name, modifiers, interfaces, and participating fields/methods/constructors). Consequently, source changes seemingly unrelated to data can alter the computed UID and break reading older streams. Declaring an explicit UID helps keep the compatibility contract stable, though it does not turn dangerous structural edits into safe ones.
 
-> Hai lớp đều ghi `serialVersionUID = 1L` không có nghĩa chúng hoán đổi đối tượng cho nhau được. Việc giải tuần tự hóa còn dựa vào tên lớp nhị phân, cấu trúc lớp và mô tả các trường.
+> Two classes both declaring `serialVersionUID = 1L` does not mean their objects are interchangeable. Deserialization also relies on the binary class name, class structure, and field descriptors.
 
-## 2. Java thực sự lưu gì?
+## 2. What Does Java Actually Save?
 
-Với cách tuần tự hóa mặc định của một lớp `Serializable`, Java lưu các trường instance **không phải `static` và không phải `transient`** trong các lớp serializable thuộc đồ thị đối tượng, cộng thông tin nhận dạng lớp và tham chiếu đối tượng cần thiết. Các đối tượng được tham chiếu từ những trường được lưu cũng phải tuần tự hóa được; nếu không, lúc ghi có thể xảy ra `NotSerializableException`.
+Under default serialization of a `Serializable` class, Java saves **non-`static`, non-`transient`** instance fields across serializable classes in the object graph, along with necessary class identity and object reference metadata. Objects referenced by saved fields must also be serializable; otherwise, writing can fail with `NotSerializableException`.
 
-- `static` thuộc về lớp, nên không nằm trong trạng thái instance được lưu. Khi đọc, giá trị của nó lấy từ lớp/JVM đang chạy.
-- `transient` chủ động loại trường khỏi dữ liệu mặc định. Khi đọc, trường nhận giá trị mặc định của Java (ví dụ `null`, `0`, `false`) trừ khi code khôi phục riêng.
-- Constructor và field initializer của chính lớp `Serializable` **không được gọi/chạy để tạo lại trạng thái** trong quá trình giải tuần tự hóa mặc định. Constructor không đối số của superclass đầu tiên **không** Serializable được gọi, theo cơ chế của Java.
-- `serialVersionUID` là trường `static final` nên không phải field instance được ghi; giá trị UID thuộc **class descriptor**.
+- `static` belongs to the class, so it is not part of saved instance state. When reading, its value comes from the running class/JVM.
+- `transient` intentionally excludes a field from default data. When reading, the field receives its Java default value (e.g., `null`, `0`, `false`) unless custom code restores it.
+- Constructors and field initializers of the `Serializable` class itself **are not called/executed to recreate state** during default deserialization. The no-argument constructor of the first **non**-Serializable superclass is called per Java's rules.
+- `serialVersionUID` is a `static final` field so it is not written as an instance field; its UID value belongs to the **class descriptor**.
 
-`Serializable` không có phương thức bắt buộc. `writeObject`, `readObject`, `serialPersistentFields` hoặc `Externalizable` là các cơ chế tùy biến riêng, làm thay đổi hợp đồng dữ liệu và cần được quản lý cẩn thận.
+`Serializable` has no mandatory methods. `writeObject`, `readObject`, `serialPersistentFields`, or `Externalizable` are separate customization mechanisms that alter the data contract and must be managed carefully.
 
-## 3. Thực hành: ghi bằng phiên bản 1, đọc bằng phiên bản 2
+## 3. Hands-On: Write with Version 1, Read with Version 2
 
-Ta dùng hai bộ nguồn cùng tên lớp `Customer` và cùng UID, nhưng **biên dịch ở hai thư mục riêng và chạy trong hai tiến trình khác nhau**. Không đặt hai file `Customer.java` cùng một classpath khi chạy.
+We use two source sets with the same class name `Customer` and the same UID, but **compiled into two separate directories and run in two separate processes**. Never place both `Customer.java` files on the same classpath when running.
 
-### Bước A — phiên bản 1 ghi file
+### Step A — Version 1 Writes the File
 
-Tạo `v1/Customer.java`:
+Create `v1/Customer.java`:
 
 ```java
 import java.io.Serializable;
@@ -66,7 +66,7 @@ public class Customer implements Serializable {
 }
 ```
 
-Tạo `v1/Writer.java`:
+Create `v1/Writer.java`:
 
 ```java
 import java.io.FileOutputStream;
@@ -83,7 +83,7 @@ public class Writer {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa `v1` (cần JDK 17+; Java 17 và 21 đều dùng được):
+Compile and run from the directory containing `v1` (requires JDK 17+; both Java 17 and 21 work):
 
 ```bash
 javac -encoding UTF-8 -d v1-classes v1/Customer.java v1/Writer.java
@@ -96,11 +96,11 @@ Stdout:
 Da ghi customer.ser
 ```
 
-Lệnh tạo `customer.ser` trong thư mục làm việc hiện tại. Đây là **định dạng serialization nhị phân của Java**, không phải file text; đừng sửa bằng text editor. Giữ nguyên file để kiểm tra bản đọc v2.
+This command creates `customer.ser` in the current working directory. It uses **Java's binary serialization format**, not a text file; do not edit it with a text editor. Keep the file to test the v2 reader.
 
-### Bước B — phiên bản 2 thêm trường nhưng giữ UID
+### Step B — Version 2 Adds a Field While Keeping the UID
 
-Tạo `v2/Customer.java`:
+Create `v2/Customer.java`:
 
 ```java
 import java.io.Serializable;
@@ -114,7 +114,7 @@ public class Customer implements Serializable {
 }
 ```
 
-Tạo `v2/Reader.java`:
+Create `v2/Reader.java`:
 
 ```java
 import java.io.FileInputStream;
@@ -132,71 +132,71 @@ public class Reader {
 }
 ```
 
-Biên dịch v2 **riêng**, đọc chính file `customer.ser` đã ghi ở bước A:
+Compile v2 **separately**, and read the same `customer.ser` written in Step A:
 
 ```bash
 javac -encoding UTF-8 -d v2-classes v2/Customer.java v2/Reader.java
 java -cp v2-classes Reader
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 name=Lan, points=120, level=null
 ```
 
-Giải thích:
+Explanation:
 
-1. `Customer` ở hai phía có cùng tên lớp và `serialVersionUID = 1L`.
-2. Hai trường `name` và `points` có tên/kiểu tương ứng nên dữ liệu cũ được khôi phục.
-3. `level` **không tồn tại trong stream phiên bản 1**, vì thế khi đọc bằng v2, Java gán mặc định `null`. Dòng khởi tạo `String level = "BASIC";` của lớp Serializable không chạy lúc giải tuần tự hóa, nên không có giá trị `"BASIC"`.
+1. `Customer` on both sides shares the same class name and `serialVersionUID = 1L`.
+2. Both `name` and `points` match in name and type, so the old data is restored.
+3. `level` **did not exist in the version 1 stream**, so when read by v2, Java assigns the default `null`. The `String level = "BASIC";` field initializer of the `Serializable` class does not run during deserialization, so it does not get `"BASIC"`.
 
-Đây là ví dụ về một thay đổi **tương thích ở mức cơ chế serialization**, nhưng có thể vẫn gây lỗi nghiệp vụ nếu code mới giả định `level` luôn khác `null`.
+This illustrates a change that is **compatible at the serialization-mechanism level**, yet can still cause business errors if new code assumes `level` is always non-`null`.
 
-### Bước C — cố ý đổi UID và quan sát lỗi
+### Step C — Intentionally Change the UID and Observe the Error
 
-Trong `v2/Customer.java`, chỉ đổi:
+In `v2/Customer.java`, change only:
 
 ```java
 private static final long serialVersionUID = 2L;
 ```
 
-Biên dịch lại rồi đọc file cũ:
+Recompile and read the old file:
 
 ```bash
 javac -encoding UTF-8 -d v2-classes v2/Customer.java v2/Reader.java
 java -cp v2-classes Reader
 ```
 
-Lệnh thứ hai thất bại với `java.io.InvalidClassException`; thông báo sẽ nêu stream UID `1` và local UID `2`. Đây là **lỗi có chủ đích** minh họa “không chấp nhận dữ liệu phiên bản cũ”. Muốn chạy lại B, khôi phục UID v2 về `1L` rồi biên dịch lại. Chỉ đổi UID về đúng số cũng **không sửa được** mọi thay đổi field bất tương thích.
+The second command fails with `java.io.InvalidClassException`; the message cites stream UID `1` and local UID `2`. This is an **intentional error** illustrating "rejecting older-version data." To re-run B, restore v2's UID back to `1L` and recompile. Merely changing the UID back to the matching number **cannot fix** genuinely incompatible field changes.
 
-## 4. Những thay đổi lớp nào tương thích?
+## 4. Which Class Changes Are Compatible?
 
-Các quy tắc sau nói về **default serialization của Serializable**, giả sử tên lớp được tìm thấy và UID tương ứng được giữ nguyên. “Tương thích” nghĩa là stream có thể được đọc theo các quy tắc serialization; không tự bảo đảm dữ liệu còn đúng nghĩa nghiệp vụ.
+The following rules apply to **default `Serializable` serialization**, assuming the class name resolves and the matching UID is preserved. "Compatible" means the stream can be read per serialization rules; it does not automatically guarantee business-meaning correctness.
 
-| Thay đổi ở phiên bản mới | Kết quả thông thường khi đọc dữ liệu cũ | Hệ quả cần xử lý |
+| Change in new version | Typical result when reading old data | Consequence to handle |
 | --- | --- | --- |
-| Thêm trường instance được serialize | Tương thích; trường mới mang giá trị mặc định `null`/`0`/`false` | Chuẩn hóa giá trị khi đọc nếu nghiệp vụ cần |
-| Xóa trường instance | Tương thích; dữ liệu của trường cũ trong stream bị bỏ qua | Mất phần trạng thái cũ khi đọc bằng lớp mới |
-| Đổi tên trường instance | Tương đương xóa tên cũ và thêm tên mới | Giá trị tên cũ không tự chuyển sang tên mới |
-| Đổi `private`/`public` của trường nhưng giữ tên/kiểu | Thông thường tương thích khi UID cố định | Vẫn cần xem tác động về đóng gói |
-| Biến trường instance thành `static` hoặc `transient` | Tương tự xóa field khỏi serialized form | Không khôi phục giá trị cũ vào trường ấy |
-| Biến trường `static`/`transient` thành trường instance được serialize | Tương tự thêm field | Dữ liệu cũ không chứa field này; nhận mặc định |
-| Đổi kiểu trường (ví dụ `int` sang `long`, hoặc `String` sang `Integer`) | **Không được coi là tương thích**; có thể `InvalidClassException` | Thiết kế chuyển đổi dữ liệu có phiên bản |
-| Thêm/sửa phương thức bình thường | Thường không thay đổi serialized form mặc định nếu UID cố định | Có thể thay đổi logic dùng dữ liệu cũ |
-| Đổi tên lớp, package hay chuyển classpath thiếu lớp | Việc ánh xạ tên lớp thất bại; có thể `ClassNotFoundException` | Cần chiến lược migration hoặc đọc bằng code cũ |
-| Đổi từ `Serializable` sang `Externalizable` (hoặc ngược lại) | Bất tương thích định dạng/cơ chế | Không áp dụng cùng quy tắc field mặc định |
-| Thay superclass, cấp kế thừa, cách ghi custom data | Phụ thuộc trường hợp và có thể bất tương thích | Kiểm thử trên file thật của các phiên bản |
+| Adding a serialized instance field | Compatible; new field gets default `null`/`0`/`false` | Normalize the value on read if business logic requires |
+| Removing an instance field | Compatible; old field's data in stream is ignored | Old state is lost when read by the new class |
+| Renaming an instance field | Equivalent to removing old name and adding new name | Value under old name does not transfer automatically |
+| Changing field `private`/`public` while keeping name/type | Usually compatible when UID is fixed | Still evaluate encapsulation impact |
+| Turning an instance field into `static` or `transient` | Equivalent to removing field from serialized form | Old value is not restored into that field |
+| Turning a `static`/`transient` field into a serialized instance field | Equivalent to adding a field | Old data lacks this field; receives default |
+| Changing a field's type (e.g., `int` to `long`, or `String` to `Integer`) | **Considered incompatible**; may throw `InvalidClassException` | Design versioned data conversion |
+| Adding/modifying normal methods | Normally does not alter default serialized form if UID is fixed | May change logic operating on old data |
+| Renaming class, package, or moving off classpath | Class name mapping fails; may throw `ClassNotFoundException` | Requires a migration strategy or reading via older code |
+| Switching from `Serializable` to `Externalizable` (or vice versa) | Incompatible format/mechanism | Default field rules no longer apply |
+| Changing superclass, inheritance levels, or custom data layout | Case-dependent and potentially incompatible | Test against real files across versions |
 
-**Phân biệt hai tầng:** UID khác thường chặn đọc ngay ở bước nhận diện version; UID giống chỉ cho phép Java thử đối chiếu dữ liệu theo quy tắc của serialization. Vì thế *giữ UID* phải đi cùng quyết định bảo toàn cấu trúc có thể đọc được và ý nghĩa dữ liệu.
+**Distinguish two layers:** a differing UID usually blocks reading right at version verification; an identical UID only lets Java attempt matching data according to serialization rules. Therefore, *keeping the UID* must go hand in hand with preserving a readable structure and valid data semantics.
 
-Java định nghĩa chi tiết trong tài liệu **Java Object Serialization Specification**, mục *Versioning of Serializable Objects*. Với những thay đổi phức tạp về cây thừa kế, `writeObject/readObject`, `readResolve`, proxy hoặc enum/record, cần xem chính đặc tả và kiểm chứng bằng fixture hai chiều.
+Java specifies the details in the **Java Object Serialization Specification**, section *Versioning of Serializable Objects*. For complex changes to inheritance trees, `writeObject`/`readObject`, `readResolve`, proxies, or enums/records, consult the specification directly and verify with bidirectional fixtures.
 
-## 5. Khi thêm trường cần giá trị mặc định nghiệp vụ
+## 5. When an Added Field Needs a Business Default
 
-Một trường mới không có dữ liệu trong stream cũ nên chỉ nhận giá trị mặc định của kiểu Java, **không nhận initializer** của chính lớp Serializable. Nếu `null` không hợp lệ cho `level`, có thể sửa logic sử dụng dữ liệu cũ, hoặc tùy biến `readObject` để bù giá trị thiếu.
+A new field has no data in an old stream, so it receives only the Java type's default value, **not the initializer** of the `Serializable` class. If `null` is invalid for `level`, you can update consuming logic for legacy data or customize `readObject` to supply the missing value.
 
-Ví dụ đoạn sau **thay thế logic đọc mặc định trong lớp `Customer` v2** (đặt vào thân lớp; cần `import java.io.IOException;` và `import java.io.ObjectInputStream;`). Không phải chương trình độc lập:
+The following snippet **replaces default reading logic in `Customer` v2** (placed inside the class body; requires `import java.io.IOException;` and `import java.io.ObjectInputStream;`). It is not a standalone program:
 
 ```java
 private void readObject(ObjectInputStream in)
@@ -211,41 +211,41 @@ private void readObject(ObjectInputStream in)
 }
 ```
 
-`GetField.defaulted("level")` kiểm tra field có vắng mặt khỏi stream đang đọc không; nhờ vậy có thể phân biệt “bản cũ chưa có field” với “bản mới chủ động lưu `null`”. Với yêu cầu đơn giản hơn, có thể dùng `in.defaultReadObject()` rồi kiểm tra và chuẩn hóa field, nhưng khi đó không phân biệt hai trường hợp nói trên. Nếu đã có `writeObject/readObject` riêng hoặc `serialPersistentFields`, phải duy trì cẩn thận định dạng đã công bố.
+`GetField.defaulted("level")` checks whether the field is absent from the stream being read; this distinguishes "old version lacked the field" from "new version intentionally saved `null`." For simpler needs, you can call `in.defaultReadObject()` and then validate/normalize the field, though that cannot distinguish those two cases. If custom `writeObject`/`readObject` or `serialPersistentFields` are already present, carefully maintain the published format.
 
-Không nên âm thầm đổi UID để “sửa” dữ liệu hay dùng ép kiểu để vượt qua lỗi. Đối với dữ liệu cần sống lâu, giải pháp bền vững thường là **định dạng dữ liệu có schema/version rõ ràng** với bước migration và bài kiểm thử dữ liệu lưu từ các phiên bản đã phát hành.
+Do not silently change the UID to "fix" data or rely on casts to bypass errors. For long-lived data, the sustainable solution is usually an **explicit schema/versioned data format** with migration steps and compatibility tests against saved files from released versions.
 
-## 6. Tạo, kiểm tra và quản lý UID
+## 6. Generating, Inspecting, and Managing UIDs
 
-- **Khai báo UID tường minh** cho các lớp Serializable mà ứng dụng thật sự lưu, cache bền vững hoặc gửi qua ranh giới phiên bản. Ví dụ `private static final long serialVersionUID = 1L;`.
-- **Giữ UID** khi thay đổi vẫn tương thích và chương trình mới vẫn hiểu dữ liệu cũ. Kiểm tra từ cả cấp dữ liệu và cấp nghiệp vụ.
-- **Đổi UID có chủ đích** khi cần từ chối file cũ và chấp nhận `InvalidClassException`. Sau đó có kế hoạch xóa cache cũ, migration hoặc hỗ trợ phiên bản cũ nếu cần.
-- **Không coi UID là số phiên bản ứng dụng** hay timestamp. Không có quy tắc bắt buộc phải dùng `1L`, `2L` theo mỗi release.
-- **Công cụ `serialver`** của JDK có thể in `serialVersionUID` của class đã biên dịch, ví dụ `serialver -classpath v1-classes Customer`. API `ObjectStreamClass.lookup(Customer.class).getSerialVersionUID()` cũng cho biết UID class theo runtime.
-- **Không dựa vào UID tự tính** nếu yêu cầu tương thích dữ liệu lâu dài. Một thay đổi chữ ký, modifier hoặc toolchain có thể làm UID mặc định khác.
-- **Kiểm thử bằng file fixture thật:** ghi bằng v1 và đọc bằng v2 (cân nhắc cả chiều ngược nếu hỗ trợ rollback); kiểm tra cả giá trị, invariant và lỗi mong đợi. Giữ fixture trong bộ kiểm thử tương thích khi schema thay đổi.
+- **Declare an explicit UID** for `Serializable` classes that the application genuinely persists, caches durably, or sends across version boundaries—for example, `private static final long serialVersionUID = 1L;`.
+- **Keep the UID** when changes remain compatible and new code still understands old data. Verify at both data and business levels.
+- **Change the UID intentionally** when old files must be rejected and `InvalidClassException` is expected. Plan cache clearing, migration, or legacy support as needed.
+- **Do not treat the UID as an application version number** or timestamp. There is no rule requiring `1L`, `2L` per release.
+- **The JDK `serialver` tool** can print the `serialVersionUID` of a compiled class, e.g., `serialver -classpath v1-classes Customer`. The API `ObjectStreamClass.lookup(Customer.class).getSerialVersionUID()` also reports a class's UID at runtime.
+- **Do not rely on auto-computed UIDs** when long-term compatibility is required. Changes to signatures, modifiers, or toolchains can alter the default UID.
+- **Test with real fixture files:** write with v1 and read with v2 (also consider the reverse direction if rollbacks are supported); assert values, invariants, and expected errors. Keep fixtures in your compatibility test suite as schemas evolve.
 
-Lưu ý: một số kiểu Java có quy tắc serialization đặc biệt, ví dụ `enum` được biểu diễn chủ yếu theo tên hằng và `record` có quy tắc versioning riêng. Không suy diễn toàn bộ ví dụ class Serializable thông thường sang những kiểu đó.
+Note: certain Java types follow special serialization rules—for example, `enum` is represented primarily by constant name, and `record` has its own versioning rules. Do not extrapolate every ordinary `Serializable` class rule onto those types.
 
-## 7. Sự cố thường gặp và cách phân biệt
+## 7. Common Issues and How to Tell Them Apart
 
-| Triệu chứng | Nguyên nhân cần kiểm tra | Hướng xử lý |
+| Symptom | Cause to check | How to resolve |
 | --- | --- | --- |
-| `InvalidClassException: local class incompatible` | UID trong stream khác UID của lớp đang chạy | Kiểm tra classpath/build thực tế, UID hai phía và chính sách migration |
-| `InvalidClassException` dù UID bằng nhau | Thay đổi cấu trúc hoặc yêu cầu serialization không hợp lệ | Đối chiếu field type, hierarchy, Serializable/Externalizable, custom format |
-| `ClassNotFoundException` khi `readObject()` | Không tìm thấy tên lớp trong stream | Bổ sung đúng classpath, duy trì lớp cũ hoặc chuyển đổi định dạng |
-| `NotSerializableException` khi `writeObject()` | Một đối tượng trong graph không Serializable | Sửa model hoặc đánh dấu `transient` nếu có chủ đích |
-| Trường mới trả về `null` dù đã có initializer | Initializer Serializable không chạy lúc đọc object cũ | Migrate/khôi phục ở `readObject` hoặc lớp nghiệp vụ |
-| Dữ liệu cũ đọc được nhưng hành vi sai | Tương thích binary không đồng nghĩa tương thích ngữ nghĩa | Validate invariant, cung cấp giá trị mặc định, migrate dữ liệu |
+| `InvalidClassException: local class incompatible` | UID in stream differs from running class UID | Check actual classpath/build, both UIDs, and migration policy |
+| `InvalidClassException` even with matching UID | Structural edit or violated serialization requirement | Check field types, hierarchy, `Serializable`/`Externalizable`, custom format |
+| `ClassNotFoundException` during `readObject()` | Class name in stream cannot be found | Add proper classpath, retain legacy class, or convert format |
+| `NotSerializableException` during `writeObject()` | An object in the graph is not `Serializable` | Fix model or mark `transient` if intentional |
+| New field returns `null` despite having an initializer | `Serializable` initializers do not run when reading old objects | Migrate/populate in `readObject` or business layer |
+| Old data reads cleanly yet behaves wrongly | Binary compatibility does not equal semantic compatibility | Validate invariants, supply defaults, migrate data |
 
-Vì `ObjectInputStream.readObject()` có thể tạo đối tượng, kích hoạt cơ chế khôi phục tùy biến và tiếp cận cả đồ thị đối tượng, **không bao giờ coi dữ liệu Java serialized từ nguồn không tin cậy là an toàn**. Với hệ thống mới, ưu tiên định dạng dữ liệu có schema và kiểm soát kiểu. Nếu bắt buộc đọc Java serialization, kiểm soát nguồn dữ liệu, đặt giới hạn kích thước/độ sâu/tham chiếu và allowlist class bằng `ObjectInputFilter` (Java 9+), đồng thời áp dụng quy trình bảo mật phù hợp. UID không cung cấp bảo vệ bảo mật.
+Because `ObjectInputStream.readObject()` can instantiate objects, invoke custom restoration hooks, and traverse entire object graphs, **never treat Java serialized data from untrusted sources as safe**. For new systems, prefer schema-defined formats with strict type control. If reading Java serialization is unavoidable, verify data sources, enforce size/depth/reference limits and class allowlists with `ObjectInputFilter` (Java 9+), and apply appropriate security controls. A UID provides zero security protection.
 
-## 8. Câu hỏi tự kiểm tra
+## 8. Self-Check Questions
 
-1. V1 có `int points`, v2 thêm `boolean active` và giữ UID. Khi đọc dữ liệu từ v1, `active` là gì? **Đáp án:** `false` (nếu không tùy biến khôi phục).
-2. V1 lưu `String fullName`, v2 đổi tên thành `name` và giữ UID. Giá trị cũ có tự gán sang `name` không? **Không**; cần migration/ánh xạ cụ thể.
-3. V1 và v2 giống field nhưng đổi UID từ `1L` thành `2L`. `readObject()` sẽ làm gì? **Ném `InvalidClassException`** đối với Serializable class thông thường.
-4. Có thể giữ UID để biến field `int` thành `long` rồi kỳ vọng Java tự chuyển đổi không? **Không**. Cần thiết kế thay đổi serialized form hoặc migration.
-5. Vì sao ví dụ `level = "BASIC"` vẫn in `null` ở bản v2? **Vì initializer của lớp Serializable không thực thi khi đối tượng v1 được giải tuần tự hóa**.
+1. V1 has `int points`; v2 adds `boolean active` and keeps the UID. When reading V1 data, what is `active`? **Answer:** `false` (unless custom restoration runs).
+2. V1 saves `String fullName`; v2 renames it to `name` and keeps the UID. Does the old value automatically map to `name`? **No**; explicit migration/mapping is needed.
+3. V1 and v2 have identical fields, but the UID changed from `1L` to `2L`. What will `readObject()` do? **Throw `InvalidClassException`** for a standard `Serializable` class.
+4. Can you keep the UID, change an `int` field to `long`, and expect Java to convert it automatically? **No**. You must design a serialized-form transition or migration.
+5. Why did the `level = "BASIC"` example still print `null` in v2? **Because initializers on a `Serializable` class do not execute when a v1 object is deserialized**.
 
-**Tài liệu gốc:** Java Object Serialization Specification — các phần *Class Descriptors*, *Versioning of Serializable Objects* và *Input*; Java API docs cho `Serializable`, `ObjectInputStream`, `ObjectStreamClass` và `ObjectInputFilter`.
+**Primary sources:** Java Object Serialization Specification — sections *Class Descriptors*, *Versioning of Serializable Objects*, and *Input*; Java API docs for `Serializable`, `ObjectInputStream`, `ObjectStreamClass`, and `ObjectInputFilter`.

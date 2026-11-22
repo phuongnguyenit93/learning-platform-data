@@ -1,76 +1,76 @@
-# Kiểm tra tính toàn vẹn bằng hash khi bài toán yêu cầu (Java I/O)
+# Verifying Integrity with Hashes When the Problem Requires It (Java I/O)
 
-Khi ứng dụng đọc, sao chép, tải xuống, giải nén hoặc lưu trữ tệp, câu hỏi quan trọng đôi khi không chỉ là **I/O có kết thúc không**, mà còn là: **“Những byte nhận được có đúng là những byte mình mong đợi không?”**. Nếu bài toán yêu cầu phát hiện nội dung bị thay đổi, mất byte, trộn byte hoặc sai phiên bản, ta có thể dùng **hàm băm mật mã** như SHA-256 để tính **digest** của dữ liệu và so sánh với một digest tham chiếu.
+When an application reads, copies, downloads, extracts, or stores files, the crucial question is sometimes not merely **whether I/O finished**, but also: **“Are the bytes received the exact bytes we expected?”**. When the problem requires detecting altered content, missing bytes, mixed bytes, or the wrong version, you can use a **cryptographic hash function** such as SHA-256 to compute a **digest** of the data and compare it against a reference digest.
 
-Tuy nhiên, **hash không phải lời giải cho mọi vấn đề an toàn**. Một giá trị SHA-256 chỉ giúp kiểm tra tính khớp khi có **digest tham chiếu đủ đáng tin**; nếu kẻ tấn công có thể thay cả file **lẫn hash đính kèm**, việc so sánh vẫn cho kết quả đúng với dữ liệu đã bị thay. Khi cần xác thực ai tạo dữ liệu, sử dụng HMAC/chữ ký số với quản lý khóa và xác thực nguồn thích hợp.
+However, **a hash is not the solution to every security problem**. A SHA-256 value only verifies a match when you have a **sufficiently trusted reference digest**; if an attacker can replace both the file **and the attached hash**, the comparison will still pass for the tampered data. When you need to authenticate who created the data, use an HMAC/digital signature with proper key management and source authentication.
 
-Bài này trình bày: chọn đúng lúc cần hash, khác biệt giữa hash/CRC/HMAC/chữ ký, cách tính SHA-256 theo luồng bằng `MessageDigest`, `DigestInputStream`, `FileChannel` và `ByteBuffer`, cách kiểm tra sau sao chép, đối phó dữ liệu thay đổi đồng thời, chi phí I/O, bảo mật và bài tập Java 17+.
+This article covers: choosing the right time to hash, differences between hash/CRC/HMAC/signatures, computing streaming SHA-256 with `MessageDigest`, `DigestInputStream`, `FileChannel`, and `ByteBuffer`, verifying after copying, handling concurrently modified data, I/O cost, security, and Java 17+ exercises.
 
-## 1. Hash là gì và kiểm tra điều gì?
+## 1. What Is a Hash and What Does It Verify?
 
-Hàm băm mật mã `H` nhận một chuỗi byte độ dài bất kỳ và tạo ra digest độ dài cố định:
+A cryptographic hash function `H` takes a byte sequence of arbitrary length and produces a fixed-length digest:
 
 ```text
-Bytes nguồn                    SHA-256                      Digest 32 byte
+Source bytes                   SHA-256                      32-byte Digest
 "abc" (ASCII)          ──────────────────────>    ba7816bf8f01cfea...
 "abd" (ASCII)          ──────────────────────>    a52d159f262b2c6d...
 
-Khi kiểm tra:
-actual = SHA-256(bytes đọc thực tế)
-expected = digest tham chiếu đã được xác thực/đáng tin
-PASS chỉ khi actual và expected khớp nhau.
+When verifying:
+actual = SHA-256(bytes actually read)
+expected = authenticated/trusted reference digest
+PASS only when actual and expected match.
 ```
 
-SHA-256 có đầu ra **256 bit = 32 byte**, thường hiển thị thành **64 ký tự hexadecimal**. Đây không phải thuật toán nén có thể đảo ngược: không thể “giải mã hash” để lấy lại file. Một thay đổi nhỏ ở đầu vào thông thường làm digest thay đổi rõ rệt.
+SHA-256 produces a **256-bit = 32-byte** output, commonly displayed as **64 hexadecimal characters**. It is not a reversible compression algorithm: you cannot “decrypt a hash” to recover the file. A small change in the input typically changes the digest dramatically.
 
-Các thuộc tính của một hàm băm mật mã tốt gồm khả năng chống tìm preimage, second preimage và collision trong phạm vi độ an toàn phù hợp; không nên viết phần mềm dựa vào giả định **không bao giờ** có collision về mặt toán học. Với SHA-256, xác suất collision ngẫu nhiên là cực nhỏ trong các quy mô thực tế thông thường, nhưng đánh giá bảo mật còn tùy mô hình đe dọa.
+Properties of a good cryptographic hash function include resistance to preimage, second-preimage, and collision attacks within an appropriate security margin; never write software assuming a collision is mathematically **impossible**. For SHA-256, random collision probability is negligible at ordinary practical scales, though security evaluation still depends on the threat model.
 
-Điều kiện kiểm tra đúng phải rõ:
+A proper verification condition must specify:
 
-- **Đối tượng được hash**: raw bytes file, dữ liệu sau giải nén, payload đã giải mã hay serialized representation?
-- **Thời điểm**: trước sao chép, sau sao chép, sau tải xuống, trước tiêu thụ hay khi khởi động?
-- **Nguồn của expected digest**: manifest đã ký, cơ sở dữ liệu tin cậy, hash độc lập qua kênh an toàn hay chỉ một file `.sha256` tải cùng chỗ không được bảo vệ?
-- **Kết quả khi mismatch**: từ chối dùng file, xóa bản tạm, retry từ nguồn tin cậy, cảnh báo hay tiếp tục theo chính sách?
+- **What is hashed**: raw file bytes, decompressed data, decrypted payload, or serialized representation?
+- **When**: before copying, after copying, after downloading, before consumption, or at startup?
+- **Source of the expected digest**: signed manifest, trusted database, independent hash over a secure channel, or just an unprotected `.sha256` file downloaded from the same location?
+- **Action on mismatch**: refuse to use the file, delete the temporary copy, retry from a trusted source, alert, or proceed per policy?
 
-## 2. Khi nào thực sự cần hash?
+## 2. When Do You Actually Need a Hash?
 
-Hash rất hữu ích khi sự **khớp byte-for-byte** có giá trị đối với quyết định nghiệp vụ:
+Hashing is very useful when a **byte-for-byte match** matters for a business decision:
 
-| Tình huống | Hash giúp gì? | Cần bổ sung gì? |
+| Scenario | How Hashing Helps | What Must Be Added |
 | --- | --- | --- |
-| Tải artifact/plugin từ nguồn phát hành | Kiểm tra file tải có đúng digest phát hành. | Digest phải qua kênh tin cậy hoặc có chữ ký số; không tin file hash tùy ý. |
-| Sao chép file quan trọng | So source/copy để phát hiện sai byte hoặc thiếu byte. | Quản lý file thay đổi đồng thời, lỗi ghi, snapshot và việc sử dụng sau kiểm tra. |
-| Đồng bộ, lưu trữ, backup | Phát hiện content drift, dedup theo nội dung. | Manifest, versioning, identity, recovery; hash không thay thế backup. |
-| Pipeline ingest dữ liệu | Xác minh payload trước khi commit/xử lý. | Giới hạn kích thước, schema validation, auth, transaction. |
-| Chuyển dữ liệu qua nhiều bước | Đối chiếu hash đầu vào và đầu ra cùng representation. | Định nghĩa rõ có bước chuyển đổi hợp lệ (nén, mã hóa, newline) hay không. |
-| Xác minh cache | Đảm bảo giá trị cache tương ứng nội dung mong đợi. | Key/version, chống race và chiến lược invalidation. |
+| Downloading an artifact/plugin from a release source | Checks whether the downloaded file matches the published digest. | Digest must arrive via a trusted channel or digital signature; never trust an arbitrary hash file. |
+| Copying critical files | Compares source/copy to detect wrong or missing bytes. | Handle concurrently changing files, write errors, snapshots, and post-check usage. |
+| Syncing, archiving, backup | Detects content drift; content-based deduplication. | Manifests, versioning, identity, recovery; hashes do not replace backups. |
+| Data ingestion pipelines | Verifies payload before commit/processing. | Size limits, schema validation, auth, transactions. |
+| Passing data across multiple stages | Compares input and output hashes of the same representation. | Clearly define whether valid transformations (compression, encryption, newlines) occur. |
+| Cache verification | Ensures cached values correspond to expected content. | Key/versioning, race protection, and invalidation strategy. |
 
-Không nên tính SHA-256 cho mọi lần đọc file nếu bài toán không cần sự đảm bảo ấy và chi phí CPU/I/O không đáng. Chẳng hạn một bản ghi log tạm không quan trọng có thể chỉ cần kiểm tra kết quả write và retry; một artifact được dùng chạy code hoặc cập nhật phần mềm cần xác thực mạnh hơn một checksum.
+Do not compute SHA-256 on every file read if the problem does not need that guarantee and the CPU/I/O cost is unjustified. For example, a non-critical temporary log entry might only need write-result checks and retries; an artifact used to execute code or update software needs stronger authentication than a plain checksum.
 
-**Hash không thay thế** việc kiểm tra số byte thực sự đọc/ghi, `IOException`, close/flush, permission, file format, schema hay input validation. Một file bị lỗi định dạng vẫn có thể có SHA-256 khớp với hash của chính nó.
+**A hash does not replace** checking actual bytes read/written, `IOException`, close/flush, permissions, file format, schema, or input validation. A malformed file can still have a SHA-256 matching its own hash.
 
-## 3. Hash, checksum, CRC, HMAC và chữ ký số khác nhau thế nào?
+## 3. How Do Hash, Checksum, CRC, HMAC, and Digital Signatures Differ?
 
-| Công cụ | Mục đích chính | Có chống sửa đổi có chủ đích khi đối thủ thay được dữ liệu và checksum không? |
+| Tool | Primary Purpose | Resists Intentional Tampering When an Adversary Can Alter Both Data and Checksum? |
 | --- | --- | --- |
-| Tổng byte/kích thước file | Phát hiện thiếu dữ liệu thô sơ. | Không. Hai file khác nhau vẫn cùng kích thước. |
-| CRC-32 (`java.util.zip.CRC32`) | Phát hiện lỗi truyền/lưu trữ tình cờ với chi phí thấp. | Không. CRC không phải cryptographic MAC. |
-| SHA-256/SHA-512 (`MessageDigest`) | Digest mật mã cho so khớp nội dung. | Chỉ có ý nghĩa xác thực nếu expected digest được bảo vệ đáng tin. |
-| HMAC-SHA-256 (`javax.crypto.Mac`) | Xác thực toàn vẹn với **khóa bí mật chung**. | Có, với điều kiện khóa an toàn, protocol đúng và thuật toán còn phù hợp. |
-| Chữ ký số (`Signature`) | Xác thực dữ liệu bằng private key, kiểm tra bằng public key được tin cậy. | Có, nếu khóa công khai/chuỗi tin cậy được xác minh đúng. |
-| AEAD (ví dụ AES-GCM) | Mã hóa và kiểm tra tag xác thực kèm context dữ liệu. | Có, nếu khóa/nonce/AAD được dùng theo thiết kế đúng. |
+| Byte count / file size | Crude detection of missing data. | No. Two different files can have the same size. |
+| CRC-32 (`java.util.zip.CRC32`) | Low-cost detection of accidental transmission/storage errors. | No. CRC is not a cryptographic MAC. |
+| SHA-256/SHA-512 (`MessageDigest`) | Cryptographic digest for content matching. | Only meaningful for authentication if the expected digest is reliably protected. |
+| HMAC-SHA-256 (`javax.crypto.Mac`) | Integrity authentication with a **shared secret key**. | Yes, provided the key is secure, the protocol is sound, and the algorithm remains suitable. |
+| Digital signature (`Signature`) | Authenticates data with a private key, verified via a trusted public key. | Yes, if the public key/trust chain is properly verified. |
+| AEAD (e.g., AES-GCM) | Encryption plus authentication tag over data context. | Yes, if key/nonce/AAD are used per sound design. |
 
-Ví dụ **không an toàn** để chứng minh tính xác thực: tải `program.jar` cùng `program.jar.sha256` từ cùng một vị trí mà kẻ tấn công có thể sửa cả hai, sau đó nói file “đã được xác thực”. Kẻ tấn công có thể tạo digest mới cho file giả.
+An **unsafe** example claiming authenticity: downloading `program.jar` alongside `program.jar.sha256` from the same location where an attacker can modify both, then saying the file is “authenticated”. The attacker can generate a new digest for the forged file.
 
-Ví dụ có ý nghĩa hơn: ứng dụng đã có **expected SHA-256 được phân phối qua kênh tin cậy độc lập**, hoặc manifest được ký bởi publisher với khóa công khai đã xác thực trước. Khi so sánh digest, ứng dụng phát hiện bytes nhận không khớp bản đã phát hành.
+A more meaningful example: the application already holds an **expected SHA-256 distributed over an independent trusted channel**, or a manifest signed by the publisher with a pre-verified public key. When comparing digests, the application detects that received bytes do not match the released build.
 
-**CRC-32** phù hợp kiểm tra lỗi ngẫu nhiên của ZIP và nhiều protocol; không dùng CRC thay SHA-256/HMAC cho quyết định bảo mật.
+**CRC-32** is suited for accidental-error checks in ZIPs and many protocols; never use CRC in place of SHA-256/HMAC for security decisions.
 
-**MD5 và SHA-1** có những vấn đề collision đã biết, không nên lựa chọn cho hệ thống mới có đối thủ chủ động. Đối với kiểm tra toàn vẹn file hiện đại, SHA-256 là mặc định thực dụng; chính sách thuật toán dài hạn có thể cần cập nhật theo yêu cầu tổ chức.
+**MD5 and SHA-1** have known collision weaknesses and should not be chosen for new systems facing active adversaries. For modern file integrity checks, SHA-256 is a pragmatic default; long-term algorithm policies may need updates per organizational requirements.
 
-## 4. Java API cơ bản: MessageDigest và SHA-256
+## 4. Basic Java API: `MessageDigest` and SHA-256
 
-`java.security.MessageDigest` là API tiêu chuẩn:
+`java.security.MessageDigest` is the standard API:
 
 ```java
 MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -79,74 +79,74 @@ byte[] result = digest.digest();
 String hex = HexFormat.of().formatHex(result);
 ```
 
-Đây là **snippet** cần import `java.security.MessageDigest`, `java.util.HexFormat` và xử lý `NoSuchAlgorithmException`. Bytes `0x61, 0x62, 0x63` là chuỗi ASCII `abc`. Với Java 17+, `HexFormat` là tiện ích chuẩn để in/đọc hexadecimal.
+This is a **snippet** requiring imports for `java.security.MessageDigest`, `java.util.HexFormat`, and handling `NoSuchAlgorithmException`. Bytes `0x61, 0x62, 0x63` are the ASCII string `abc`. In Java 17+, `HexFormat` is the standard utility for formatting/parsing hexadecimal.
 
-Hai cách sử dụng:
+Two usage modes:
 
-- **Một lần**: `digest.digest(allBytes)`, chỉ phù hợp khi dữ liệu đã nằm sẵn trong bộ nhớ với kích thước an toàn.
-- **Nhiều chunk**: gọi `digest.update(chunk...)` nhiều lần theo **đúng thứ tự byte**, sau đó gọi `digest.digest()` một lần để lấy kết quả.
+- **One-shot**: `digest.digest(allBytes)`, suitable only when data is already in memory with a safe size.
+- **Chunked**: call `digest.update(chunk...)` multiple times in **exact byte order**, then call `digest.digest()` once to obtain the result.
 
-Ví dụ về tính nối tiếp:
+Example of incremental feeding:
 
 ```java
 MessageDigest digest = MessageDigest.getInstance("SHA-256");
 digest.update("a".getBytes(StandardCharsets.US_ASCII));
 digest.update("bc".getBytes(StandardCharsets.US_ASCII));
-byte[] result = digest.digest(); // Cùng SHA-256 với bytes "abc".
+byte[] result = digest.digest(); // Same SHA-256 as bytes "abc".
 ```
 
-Phần này là snippet, cần imports và handling checked exception. Không cần nối mọi chunk thành một mảng lớn: `MessageDigest` xử lý trạng thái băm tăng dần.
+This is a snippet requiring imports and checked-exception handling. There is no need to concatenate all chunks into one large array: `MessageDigest` maintains hash state incrementally.
 
-**Chú ý lifecycle:** `digest()` kết thúc phép tính và reset trạng thái digest theo hợp đồng API. Nếu tiếp tục gọi `update` sau khi đã `digest()` thì đang băm một thông điệp mới, không phải nối tiếp thông điệp cũ. `MessageDigest` cũng không phải một đối tượng tự động thread-safe: dùng instance riêng cho từng luồng/tác vụ trừ khi có đồng bộ hóa rõ ràng.
+**Watch the lifecycle:** `digest()` completes the computation and resets the digest state per the API contract. Calling `update` again after `digest()` hashes a brand-new message rather than continuing the old one. `MessageDigest` is also not automatically thread-safe: use a separate instance per thread/task unless explicitly synchronized.
 
-## 5. Hash của byte, không phải “ký tự nhìn giống nhau”
+## 5. Hash of Bytes, Not “Visually Identical Characters”
 
-SHA-256 làm việc trên **byte sequence**. Với text, cùng một câu hiển thị có thể có bytes khác nhau do:
+SHA-256 operates on a **byte sequence**. For text, the exact same displayed sentence can have different bytes due to:
 
-- Charset: UTF-8, UTF-16, legacy code page.
-- Unicode normalization: NFC và NFD có thể biểu diễn ký tự có dấu khác nhau.
-- Dấu xuống dòng: `\n`, `\r\n`, hoặc file có BOM.
-- Khoảng trắng cuối dòng, tabs, encoding khác nhau, byte thừa/thiếu.
-- JSON có thay đổi thứ tự key, spacing hoặc number serialization; XML có canonicalization riêng.
+- Charset: UTF-8, UTF-16, legacy code pages.
+- Unicode normalization: NFC and NFD can represent accented characters differently.
+- Line endings: `\n`, `\r\n`, or files with a BOM.
+- Trailing whitespace, tabs, differing encodings, extra/missing bytes.
+- JSON with reordered keys, spacing, or number serialization; XML has its own canonicalization.
 
-Ví dụ:
+Example:
 
 ```java
 byte[] a = "abc".getBytes(StandardCharsets.UTF_8);
 byte[] b = "abc\n".getBytes(StandardCharsets.UTF_8);
-// Hai mảng khác độ dài nên SHA-256 phải được tính độc lập.
+// Two arrays of different lengths, so SHA-256 must be computed independently.
 ```
 
-Đây là snippet. Nếu yêu cầu **tính toàn vẹn file**, hash **raw bytes** như được lưu thực tế; đừng tự đọc text rồi ghi lại để chuẩn hóa mà không có yêu cầu rõ. Nếu bài toán yêu cầu tương đương **về nội dung logic**, hãy định nghĩa quy tắc canonicalization rõ ràng và áp dụng giống nhau ở bên phát hành/nhận trước khi hash.
+This is a snippet. If the requirement is **file integrity**, hash the **raw bytes** as actually stored; do not read text and re-serialize it to normalize without an explicit requirement. If the problem requires equivalence of **logical content**, define clear canonicalization rules and apply them identically on both publisher and receiver before hashing.
 
-Với định dạng nén/mã hóa, phải xác định hash là của:
+For compressed/encoded formats, specify whether the hash covers:
 
-1. **Bytes ZIP/đã nén** (kiểm tra chính xác archive nhận), hay
-2. **Bytes entry sau giải nén** (kiểm tra chính xác nội dung gốc), hay
-3. **Object đã parse/canonicalize** (kiểm tra tương đương logic).
+1. **ZIP/compressed bytes** (verifies the exact archive received), or
+2. **Decompressed entry bytes** (verifies the exact original content), or
+3. **Parsed/canonicalized objects** (verifies logical equivalence).
 
-Ba digest đó không thể thay thế nhau. Một ZIP được tạo lại với timestamp khác có thể có raw archive hash khác dù payload file giống nhau.
+Those three digests are not interchangeable. A ZIP rebuilt with different timestamps can have a different raw archive hash even when the file payloads are identical.
 
-## 6. Hash file lớn theo luồng với DigestInputStream
+## 6. Streaming Hashes of Large Files with `DigestInputStream`
 
-Không dùng `Files.readAllBytes(file)` cho file rất lớn hoặc không tin cậy chỉ để tính SHA-256. Hãy đọc theo chunk và cập nhật digest:
+Do not use `Files.readAllBytes(file)` on very large or untrusted files just to compute SHA-256. Read in chunks and update the digest:
 
 ```java
-// Snippet: file là Path có quyền đọc và đã được kiểm soát.
+// Snippet: file is a readable, validated Path.
 MessageDigest digest = MessageDigest.getInstance("SHA-256");
 try (InputStream in = new DigestInputStream(
         Files.newInputStream(file), digest)) {
     byte[] buffer = new byte[8192];
     while (in.read(buffer) != -1) {
-        // DigestInputStream đã cập nhật digest theo byte thực được đọc.
+        // DigestInputStream already updated the digest for the actual bytes read.
     }
 }
 byte[] actual = digest.digest();
 ```
 
-Đoạn trên cần các imports `java.io.InputStream`, `java.security.DigestInputStream`, `java.security.MessageDigest`, `java.nio.file.Files` và xử lý exceptions. `DigestInputStream` được dùng để cập nhật digest **trong lúc read**, không cần gọi `digest.update(buffer)` thêm lần nữa; gọi thêm sẽ băm bytes **hai lần** và kết quả sai.
+The snippet above requires imports for `java.io.InputStream`, `java.security.DigestInputStream`, `java.security.MessageDigest`, `java.nio.file.Files`, and exception handling. `DigestInputStream` updates the digest **during `read`**, so you must not call `digest.update(buffer)` again; doing so would hash the bytes **twice** and produce a wrong result.
 
-Nếu tự dùng InputStream thuần:
+If using a plain `InputStream` directly:
 
 ```java
 try (InputStream in = Files.newInputStream(file)) {
@@ -160,20 +160,20 @@ try (InputStream in = Files.newInputStream(file)) {
 }
 ```
 
-Đây là snippet dùng `digest` mới, chưa finalize; việc đọc phải có logic phù hợp loại stream. Cần luôn dùng **n**, không update toàn bộ mảng `buffer`: lần đọc cuối thường có ít byte hơn `buffer.length`; phần đuôi chứa byte cũ từ lần trước không thuộc dữ liệu mới.
+This snippet uses a fresh, unfinalized `digest`; reading logic must match the stream type. Always use **`n`**, never update the whole `buffer` array: the final read usually yields fewer bytes than `buffer.length`, and the tail still holds old bytes from the previous read that do not belong to the new data.
 
-Kích thước chunk như 8 KiB hoặc 64 KiB ảnh hưởng hiệu năng, nhưng không ảnh hưởng kết quả nếu thứ tự và tập bytes giống hệt nhau.
+Chunk sizes such as 8 KiB or 64 KiB affect performance, not the hash result, provided the exact same byte sequence and order are fed.
 
-## 7. FileChannel và ByteBuffer: băm cùng bytes được ghi ra
+## 7. `FileChannel` and `ByteBuffer`: Hashing the Exact Bytes Written Out
 
-Với NIO, `FileChannel.read(ByteBuffer)` cập nhật `position` theo số byte đọc thực tế; sau `flip()`, vùng `[position, limit)` là dữ liệu vừa nhận. Muốn **vừa copy vừa hash**, có thể tạo view của chunk để đọc byte cho digest mà không thay đổi `position` của buffer gốc dùng cho `FileChannel.write()`:
+With NIO, `FileChannel.read(ByteBuffer)` advances `position` by the actual bytes read; after `flip()`, the range `[position, limit)` holds the newly received data. To **copy and hash simultaneously**, create a view of the chunk to feed the digest without advancing the `position` of the original buffer used for `FileChannel.write()`:
 
 ```java
-// Snippet: in/out là FileChannel; chunk là ByteBuffer ở pha ghi.
+// Snippet: in/out are FileChannels; chunk is a ByteBuffer in write phase.
 int n = in.read(chunk);
 if (n > 0) {
     chunk.flip();
-    digest.update(chunk.asReadOnlyBuffer()); // View có position riêng.
+    digest.update(chunk.asReadOnlyBuffer()); // View has its own position.
     while (chunk.hasRemaining()) {
         int written = out.write(chunk);
         if (written == 0) {
@@ -184,29 +184,29 @@ if (n > 0) {
 }
 ```
 
-Đây là snippet; với file blocking thông thường chính sách fail-fast khi write trả 0 giúp tránh busy loop. Không sao chép nguyên chính sách cho `SocketChannel` non-blocking: `write() == 0` có thể là trạng thái hợp lệ và cần chờ `OP_WRITE`.
+This is a snippet; for ordinary blocking files, a fail-fast policy when `write` returns 0 avoids busy loops. Do not copy this policy verbatim to a non-blocking `SocketChannel`: `write() == 0` can be a normal state requiring waiting for `OP_WRITE`.
 
-Điểm cốt lõi:
+Key points:
 
-- `asReadOnlyBuffer()` tạo **view dùng chung bytes nhưng position/limit độc lập** với buffer gốc; `digest.update(ByteBuffer)` tiêu thụ view từ position đến limit.
-- `FileChannel.write(chunk)` vẫn thấy position gốc ở 0 và gửi **đúng các byte vừa được hash**.
-- Vì `write` có thể partial, lặp `while (chunk.hasRemaining())` trước khi `clear()`.
-- Nếu gặp `n == -1`, đó là EOF; stop. Nếu `n == 0` trên đường đọc file blocking mà buffer vẫn có chỗ, ứng dụng cần chính sách không tiến triển.
-- Đừng hash toàn bộ buffer capacity thay cho dữ liệu thực vừa đọc.
+- `asReadOnlyBuffer()` creates a **view sharing the same bytes with an independent position/limit** from the original buffer; `digest.update(ByteBuffer)` consumes the view from position to limit.
+- `FileChannel.write(chunk)` still sees the original position at 0 and writes **the exact bytes that were hashed**.
+- Because `write` can be partial, loop `while (chunk.hasRemaining())` before calling `clear()`.
+- If `n == -1`, that is EOF; stop. If `n == 0` on a blocking file read while the buffer still has space, the application needs a no-progress policy.
+- Never hash the full buffer capacity instead of the actual data just read.
 
-**Giới hạn an toàn:** digest tính lúc copy xác nhận tập byte mà ứng dụng đã **định ghi**, không tự bảo đảm các bytes thực sự tồn tại ở file đích sau lỗi hệ thống hoặc bị process khác sửa. Nếu cần quyết định sử dụng file đích, phải **đọc lại file đích để hash và đối chiếu với digest tham chiếu** trước khi commit/tiêu thụ theo chính sách.
+**Safety limitation:** a digest computed during copy confirms the byte sequence the application **attempted to write**, without guaranteeing those bytes actually persist in the destination file after a system crash or modification by another process. If deciding whether to consume the destination file, **re-read the destination file to hash it and compare against the reference digest** before committing/consuming per policy.
 
-## 8. Ví dụ Java 17+ chạy độc lập: copy, đối chiếu, phát hiện thay đổi
+## 8. Standalone Runnable Java 17+ Example: Copy, Verify, Detect Tampering
 
-Bài thử dùng known-answer vector `SHA-256("abc")` với giá trị hex chuẩn:
+This exercise uses the known-answer vector `SHA-256("abc")` with the standard hex value:
 
 ```text
 ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
 ```
 
-Chương trình tạo hai file tạm, ghi `abc` vào file nguồn, dùng `FileChannel` và buffer **2 byte** để buộc dữ liệu được xử lý thành nhiều lượt, tính SHA-256 khi copy. Sau đó nó kiểm tra digest nguồn và digest file đích. Cuối cùng đổi dữ liệu đích thành `abd` để chứng minh digest không còn khớp. Trong ví dụ, giá trị SHA-256 tham chiếu được **hardcode để thực hành**; trong ứng dụng thật phải lấy giá trị mong đợi từ một nguồn được xác thực.
+The program creates two temporary files, writes `abc` to the source file, uses `FileChannel` and a **2-byte** buffer to force multi-pass chunk processing, and computes SHA-256 while copying. It then checks the source digest and destination digest. Finally, it changes the destination data to `abd` to prove the digest no longer matches. In the example, the reference SHA-256 is **hardcoded for practice**; in real applications, obtain the expected value from a verified source.
 
-Lưu thành **`FileHashIntegrityDemo.java`**:
+Save as **`FileHashIntegrityDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -303,14 +303,14 @@ public class FileHashIntegrityDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 FileHashIntegrityDemo.java
 java FileHashIntegrityDemo
 ```
 
-Stdout đã được đối chiếu bằng biên dịch và chạy trên JDK 17+:
+Stdout verified by compiling and running on JDK 17+:
 
 ```text
 sha256=ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
@@ -320,24 +320,24 @@ destination-valid=true
 after-tamper-valid=false
 ```
 
-**Giải thích:**
+**Explanation:**
 
-1. `Files.writeString(source, "abc", US_ASCII)` tạo đúng ba byte `61 62 63`. Digest chuẩn được dùng như expected từ một test vector đã biết.
-2. `copyAndHash` mở hai `FileChannel` trong `try-with-resources`, đọc tối đa hai byte một lượt và cập nhật `MessageDigest` bằng read-only view.
-3. `while (chunk.hasRemaining())` đảm bảo mỗi chunk được chuyển trọn sang file đích theo vị trí `ByteBuffer` trước khi đọc chunk tiếp.
-4. `MessageDigest.isEqual` so sánh hai mảng digest thực. `source-valid=true` và `copied-valid=true` cho biết data nguồn và các byte đã đưa qua quy trình copy khớp expected.
-5. `destination-valid=true` vì chương trình **đọc lại file đích** rồi băm độc lập; điều này bổ sung một phép kiểm soát so với chỉ tin số byte đã write.
-6. Khi thay `abc` bằng `abd`, digest của file đích thay đổi; so sánh với expected cũ cho `after-tamper-valid=false`.
-7. Hai file tạm được xóa ở `finally`, channel/input stream được đóng an toàn trước cleanup.
+1. `Files.writeString(source, "abc", US_ASCII)` writes the exact three bytes `61 62 63`. The standard digest is used as expected from a known test vector.
+2. `copyAndHash` opens two `FileChannel`s inside `try-with-resources`, reads at most two bytes per iteration, and updates `MessageDigest` via a read-only view.
+3. `while (chunk.hasRemaining())` ensures each chunk is transferred completely to the destination file according to `ByteBuffer` position before reading the next chunk.
+4. `MessageDigest.isEqual` compares two raw digest arrays. `source-valid=true` and `copied-valid=true` indicate that the source data and the bytes passed through the copy pipeline match `expected`.
+5. `destination-valid=true` because the program **re-reads the destination file** and hashes it independently; this adds a verification step beyond merely trusting the written byte count.
+6. When `abc` is replaced with `abd`, the destination file's digest changes; comparing against the old `expected` produces `after-tamper-valid=false`.
+7. Both temporary files are deleted in `finally`, with channels/input streams safely closed before cleanup.
 
-**Giới hạn demo:** chỉ một chương trình thao tác trên các file temp, không có writer ngoài đồng thời. Nó minh họa đúng kỹ thuật băm và so khớp, **không** tự đảm bảo chống TOCTOU, file đã fsync, hoặc dữ liệu không thể bị sửa sau thời điểm kiểm tra. Trong production, cần xem phần quản lý vòng đời và nguồn tin cậy bên dưới.
+**Demo limitation:** only a single program operates on the temp files, with no concurrent external writers. It properly demonstrates hashing and matching, **without** automatically guaranteeing TOCTOU immunity, fsynced durability, or immutability after the check time. In production, see the lifecycle and trust-source sections below.
 
-## 9. So sánh digest đúng cách và đọc expected hash
+## 9. Comparing Digests Properly and Parsing Expected Hashes
 
-Một digest SHA-256 thực có **32 byte**. Với nguồn tham chiếu ở dạng hex, xác minh độ dài/encoding trước khi dùng:
+An actual SHA-256 digest is **32 bytes**. When the reference comes in hex form, validate length/encoding before use:
 
 ```java
-// Snippet: expectedHex lấy từ manifest đã xác thực.
+// Snippet: expectedHex comes from a verified manifest.
 String expectedHex = expectedHexFromTrustedManifest;
 if (!expectedHex.matches("[0-9a-fA-F]{64}")) {
     throw new IOException("Expected SHA-256 không hợp lệ");
@@ -349,225 +349,225 @@ if (!MessageDigest.isEqual(expected, actual)) {
 }
 ```
 
-Đây là snippet với `downloadedFile`, `expectedHexFromTrustedManifest` và `sha256(...)` đã được khai báo bên ngoài; `HexFormat` có trong Java 17. Nếu manifest chứa thuật toán `SHA-512`, độ dài digest khác; không đoán độ dài từ một chuỗi hash tùy ý.
+This is a snippet with `downloadedFile`, `expectedHexFromTrustedManifest`, and `sha256(...)` declared externally; `HexFormat` is included in Java 17. If the manifest specifies `SHA-512`, the digest length differs; never guess the length from an arbitrary hash string.
 
-`MessageDigest.isEqual(byte[], byte[])` là tiện ích so sánh digest thích hợp hơn việc tự ghép chuỗi và so theo code nhiều nhánh; tuyệt đối không khẳng định từ API này rằng cả quy trình đã có chống timing side-channel hoàn hảo. Nếu xác thực dùng secret và giao thức nhạy timing, tuân thủ thiết kế MAC/chữ ký đã được kiểm tra chuyên sâu.
+`MessageDigest.isEqual(byte[], byte[])` is a cleaner digest-comparison utility than building strings and branching manually; never claim from this API alone that the whole workflow has perfect timing side-channel resistance. When authentication uses secrets and timing-sensitive protocols, follow thoroughly reviewed MAC/signature designs.
 
-Tính **hash bằng một `MessageDigest` mới cho mỗi đối tượng/tác vụ**; tránh dùng một instance toàn cục rồi nhiều thread `update` đồng thời. Ghi hash ra log nên kèm thuật toán, phiên bản schema, identity file/version và bối cảnh; đừng vô tình dùng digest như password hashing hoặc kho lưu token bí mật.
+Compute the **hash with a fresh `MessageDigest` per object/task**; avoid sharing a global instance updated concurrently by multiple threads. When logging hashes, include the algorithm, schema version, file/version identity, and context; never accidentally use plain digests as password hashing or secret token storage.
 
-## 10. Hash được lưu ở đâu và độ tin cậy đến từ đâu?
+## 10. Where Are Hashes Stored and Where Does Trust Come From?
 
-Bảng quyết định:
+Decision table:
 
-| Expected hash lấy từ | Có thể tin để chống sửa file không? | Lý do |
+| Expected Hash Obtained From | Trustworthy Against File Tampering? | Reason |
 | --- | --- | --- |
-| SHA-256 cùng tải từ URL do attacker kiểm soát | **Không**. | Đối thủ có thể tạo đồng thời file và hash giả. |
-| Hash trong DB tin cậy có phân quyền/kiểm toán | Có thể dùng, tùy mức bảo vệ DB và quy trình tạo hash. | Integrity của reference là yếu tố then chốt. |
-| Hash hardcode trong bản ứng dụng được phân phối tin cậy | Có thể dùng cho artifact/version cụ thể. | Hash không tự bảo vệ binary ứng dụng khỏi bị sửa. |
-| Manifest ký số có public key được ghim/xác minh tin cậy | Có thể cho xác thực publisher nếu protocol và khóa đúng. | Chữ ký bảo vệ manifest hash và metadata gắn kết. |
-| HMAC của payload với secret key không lộ | Có thể cho xác thực giữa các bên biết khóa. | Không phù hợp nếu mọi bên được phát hành public đều phải kiểm chứng mà không biết secret. |
+| SHA-256 downloaded alongside from an attacker-controlled URL | **No**. | Adversary can forge both the file and the hash simultaneously. |
+| Hash in a trusted DB with access control/auditing | Usable, depending on DB protection and hash-generation workflow. | Integrity of the reference is the decisive factor. |
+| Hash hardcoded in a reliably distributed application build | Usable for a specific artifact/version. | The hash itself does not protect the app binary from modification. |
+| Digitally signed manifest with pinned/reliably verified public key | Suitable for publisher authentication if protocol and keys are sound. | Signature protects the manifest hashes and bound metadata. |
+| HMAC of payload with an unexposed secret key | Suitable for authentication among parties sharing the key. | Unsuitable if any public recipient must verify without knowing the secret. |
 
-Cần gắn digest với đúng **đối tượng**. Nếu chỉ có danh sách SHA-256 mà không biết digest tương ứng với tên artifact, version, kích thước hoặc ngữ cảnh nào, người kiểm tra có thể xác nhận một file hợp lệ nhưng **sai phiên bản**. Manifest nên xác thực cả đường dẫn logic, version, thuật toán, digest và những metadata định danh quan trọng theo nhu cầu.
+Bind the digest to the right **object**. If you only have a list of SHA-256 hashes without knowing which digest corresponds to which artifact name, version, size, or context, the verifier might accept a valid file of the **wrong version**. A manifest should authenticate logical path, version, algorithm, digest, and critical identifying metadata as needed.
 
-**Hash đơn lẻ không chứng minh người gửi là ai.** Nó chỉ là một phép tính xác định trên bytes; phần **nguồn tin cậy** đến từ protected manifest, MAC, signature, TLS/authentication và quyền truy cập được thiết kế riêng.
+**A standalone hash does not prove who the sender is.** It is merely a deterministic calculation over bytes; **source trust** comes from protected manifests, MACs, signatures, TLS/authentication, and properly designed access controls.
 
-## 11. HMAC và chữ ký số khi cần chống giả mạo
+## 11. HMAC and Digital Signatures When Forgery Resistance Is Required
 
-Khi hai hệ thống giữ **khóa bí mật chung**, HMAC giúp kiểm tra dữ liệu có do bên biết khóa tạo ra và không bị đổi trên đường đi:
+When two systems share a **secret key**, HMAC verifies that data was produced by a key holder and was not altered in transit:
 
 ```java
-// Snippet minh họa: secret là byte[] lấy từ kho khóa an toàn,
-// không hardcode khóa trong code hoặc log.
+// Illustrative snippet: secret is a byte[] retrieved from a secure key store,
+// never hardcode keys in code or logs.
 Mac mac = Mac.getInstance("HmacSHA256");
 SecretKeySpec key = new SecretKeySpec(secret, "HmacSHA256");
 mac.init(key);
 byte[] tag = mac.doFinal(payload);
 ```
 
-Snippet cần imports `javax.crypto.Mac`, `javax.crypto.spec.SecretKeySpec` và xử lý exceptions; `payload` là bytes. Không dùng cùng một khóa bí mật cho nhiều mục đích không liên quan; định nghĩa protocol gắn cả identity/version/nonce hoặc context tùy threat model. Một HMAC hợp lệ không tự cung cấp chống replay nếu ứng dụng chấp nhận lặp lại cùng một thông điệp mà không kiểm tra sequence/expiry/idempotency.
+The snippet requires `javax.crypto.Mac`, `javax.crypto.spec.SecretKeySpec`, and exception handling; `payload` is bytes. Do not reuse the same secret key across unrelated purposes; define a protocol binding identity/version/nonce or context per threat model. A valid HMAC alone does not prevent replay if the application accepts repeated copies of the same message without checking sequence/expiry/idempotency.
 
-Khi cần phát hành cho nhiều người có thể kiểm chứng mà **không** tiết lộ private key, dùng **chữ ký số**. Người phát hành ký manifest hoặc digest có cấu trúc; người nhận kiểm tra chữ ký bằng public key/chuỗi tin cậy đúng. Đừng lấy public key từ cùng nguồn không được xác thực rồi coi như đã giải quyết bài toán giả mạo.
+When distributing to many verifiers **without** sharing a private key, use **digital signatures**. The publisher signs a structured manifest or digest; recipients verify the signature with the right public key/trust chain. Never fetch the public key from the same unauthenticated source and consider forgery solved.
 
-**Đừng phát minh chữ ký bằng cách viết `SHA-256(key || message)`.** Dùng HMAC hoặc signature algorithms được định nghĩa và thư viện crypto chuẩn. Với lưu password, không dùng SHA-256 trực tiếp: password hashing cần salt và thuật toán chuyên dụng có chi phí phù hợp (ví dụ Argon2id, scrypt, PBKDF2 theo chính sách).
+**Do not invent signatures by writing `SHA-256(key || message)`.** Use standardized HMAC or signature algorithms and standard crypto libraries. For storing passwords, never use plain SHA-256: password hashing requires salts and specialized algorithms with appropriate work factors (e.g., Argon2id, scrypt, PBKDF2 per policy).
 
-## 12. Hash trong quy trình tải xuống/sao chép an toàn
+## 12. Hashes in a Safe Download/Copy Workflow
 
-Một quy trình mẫu để xuất bản file đích:
+A template workflow for publishing a target file:
 
 ```text
-expected hash đã xác thực + identity/version
+verified expected hash + identity/version
              |
              v
-Tạo file đích TẠM trong thư mục/quyền được kiểm soát
+Create TEMP target file in a controlled directory/permissions
              |
              v
-Tải hoặc copy bytes theo chunk, kiểm tra n và quota
+Download or copy bytes in chunks, check n and quota
              |
              v
-Đóng/flush các resource tương ứng, kiểm tra I/O error
+Close/flush resources, check for I/O errors
              |
              v
-Băm lại file tạm, so với expected SHA-256
+Re-hash temp file, compare with expected SHA-256
              |
      +-------+--------+
      |                |
   MISMATCH           MATCH
      |                |
-Xóa/quarantine    Tùy yêu cầu: force/sync và atomic publish
-Không commit      file đã xác thực, quản lý quyền truy cập
+Delete/quarantine  As required: force/sync and atomically publish
+Do not commit      verified file, manage access permissions
                       |
                       v
-                Người tiêu thụ sử dụng đúng version đó
+                Consumers use that exact version
 ```
 
-Nguyên tắc:
+Principles:
 
-1. Viết vào file **tạm chưa được client khác coi là bản hợp lệ**; không ghi đè trực tiếp bản sản xuất trước khi verify.
-2. Dùng expected digest đáng tin; lấy qua một cơ chế riêng hoặc manifest được ký.
-3. Chỉ xử lý file sau khi kiểm tra actual digest khớp; thất bại phải **fail closed** đối với dữ liệu quan trọng.
-4. Chọn cơ chế publish có atomicity theo nền tảng, ví dụ `Files.move(..., ATOMIC_MOVE)` nếu provider hỗ trợ và hợp đồng replace phù hợp. Phải xử lý `AtomicMoveNotSupportedException`, lỗi permission và khả năng thay file đích khác nhau.
-5. Nếu cần độ bền sau mất điện, xem xét `FileChannel.force(true)` cho file và cơ chế sync thư mục mà hệ điều hành/provider cho phép. Atomic rename không tự đồng nghĩa dữ liệu đã được fsync.
-6. Không để producer khác sửa file tạm sau kiểm tra; điều phối ownership, quyền truy cập, lock/rename và thời điểm sử dụng.
+1. Write to a **temporary file not yet visible to clients as a valid artifact**; never overwrite production files directly before verification.
+2. Use a trusted expected digest obtained via a separate mechanism or signed manifest.
+3. Process the file only after verifying the actual digest matches; failures must **fail closed** for critical data.
+4. Choose a publish mechanism with platform-appropriate atomicity, such as `Files.move(..., ATOMIC_MOVE)` if supported by the provider and replacement contract matches. Handle `AtomicMoveNotSupportedException`, permission errors, and different target-replacement semantics.
+5. If durability across power loss is needed, consider `FileChannel.force(true)` on the file and whatever directory sync mechanism the OS/provider allows. Atomic rename does not automatically mean data was fsynced.
+6. Prevent other producers from modifying the temp file after checking; coordinate ownership, access permissions, lock/rename, and consumption timing.
 
-**TOCTOU:** kiểm tra hash tại T1 rồi đọc lại cùng đường dẫn tại T2 **không bảo đảm** bytes vẫn như cũ nếu file bị thay thế/ghi đè giữa hai mốc. Ưu tiên lưu file verified trong vùng bất biến theo chính sách, dùng định danh version/content-addressed storage, quản lý handle và quyền ghi, xác minh gần thời điểm dùng khi cần.
+**TOCTOU:** checking a hash at T1 and then re-reading the same path at T2 **does not guarantee** the bytes remain unchanged if the file was replaced/overwritten between those times. Prefer storing verified files in policy-immutable areas, using versioned/content-addressed storage identifiers, managing handles and write permissions, and verifying close to use time when needed.
 
-## 13. Dữ liệu nguồn thay đổi trong lúc hash/copy
+## 13. Source Data Changing During Hashing/Copying
 
-Bài toán khó xuất hiện khi file lớn và có writer khác đang cập nhật:
+A hard case arises when a file is large and another writer is updating it concurrently:
 
 ```text
-T0: SHA-256 bắt đầu đọc file X
-T1: Writer khác thay đổi đoạn giữa của X
-T2: SHA-256 đọc phần còn lại
-T3: Digest thu được từ một chuỗi byte có thể không
-    tương ứng với snapshot nhất quán của file ở bất kỳ thời điểm nào.
+T0: SHA-256 starts reading file X
+T1: Another writer modifies the middle of X
+T2: SHA-256 reads the remainder
+T3: Resulting digest comes from a byte stream that may not
+    correspond to a consistent snapshot of the file at any point in time.
 ```
 
-Một số lưu ý quan trọng:
+Important notes:
 
-- Đọc file theo chunk không cung cấp **snapshot isolation**.
-- Kiểm tra `Files.size()` và `Files.getLastModifiedTime()` trước/sau có thể hỗ trợ phát hiện thay đổi, nhưng không phải chứng minh an toàn: timestamps có độ phân giải, có thể bị chỉnh và file có thể đổi rồi đổi lại.
-- `FileChannel.lock()` có tác dụng theo OS/file system và mức hợp tác của writer; không đảm bảo mọi chương trình đều tôn trọng.
-- Nếu cần khẳng định hash của một **phiên bản bất biến**, dùng snapshot, copy-on-write, quy trình producer hoàn tất rồi rename/publish, content-addressed object hoặc giao thức đồng bộ được kiểm soát.
-- File được mở bằng một handle cũng không mặc nhiên chặn mọi thay đổi của process khác tới nội dung; phải hiểu đúng locking và sharing semantics trên OS.
+- Chunked file reading does not provide **snapshot isolation**.
+- Checking `Files.size()` and `Files.getLastModifiedTime()` before/after can assist in detecting changes, but it is not a safety proof: timestamps have coarse granularity, can be altered, and a file can change and change back.
+- `FileChannel.lock()` works according to OS/filesystem rules and writer cooperation; it does not guarantee every program obeys it.
+- If you need the hash of an **immutable version**, use snapshots, copy-on-write, a producer write-then-rename/publish workflow, content-addressed objects, or a controlled synchronization protocol.
+- Even holding an open file handle does not automatically block all modifications by other processes to file contents; you must understand OS locking and sharing semantics.
 
-Ví dụ với backup: không nên dùng SHA-256 của file đang bị update liên tục rồi suy rằng bạn đã sao lưu phiên bản hợp lệ của database. Cần backup snapshot hoặc protocol riêng của database.
+For backups: never hash a file being continuously modified and assume you backed up a valid database state. Use database snapshots or the database's dedicated backup protocol.
 
-## 14. Chi phí hiệu năng và chiến lược tối ưu
+## 14. Performance Cost and Optimization Strategies
 
-SHA-256 được tính tuyến tính theo số byte đầu vào: **O(n)** về thời gian và có thể dùng **O(1)** bộ nhớ phụ với buffer kích thước cố định. Tuy nhiên, công cụ thực tế còn chịu overhead đọc đĩa, I/O mạng và đối chiếu file đích.
+SHA-256 is computed linearly in input size: **O(n)** time and can use **O(1)** auxiliary memory with a fixed-size buffer. However, real tools also pay disk-read overhead, network I/O, and target verification costs.
 
-| Cách làm | Số lần đi qua dữ liệu | Điểm mạnh | Điểm yếu |
+| Approach | Data Passes | Strengths | Weaknesses |
 | --- | --- | --- | --- |
-| Copy rồi hash file nguồn và đích | Copy + ít nhất hai lượt đọc để băm | Phát hiện sai lệch ở cả hai phía, dễ giải thích. | Tốn I/O đọc thêm. |
-| Hash khi copy qua `MessageDigest.update` | Hash phần bytes đang copy | Ít lượt xử lý hơn, thuận tiện streaming. | Chưa xác minh bytes đã persist tại đích sau write. |
-| Hash lại file đích sau copy | Thêm một lượt đọc file đích | Kiểm tra độc lập nội dung đã đọc lại. | Có thêm I/O; vẫn có race với writer khác. |
-| Hash theo block/chunk có manifest | Mỗi block có digest riêng | Hỗ trợ resume/dedup/kiểm tra cục bộ. | Phải xác thực manifest và thứ tự/index chunk. |
-| Hash toàn file trước mỗi lần dùng | Đọc hết bytes mỗi lần | Kiểm tra nội dung gần thời điểm sử dụng. | Tốn chi phí cho dữ liệu lớn, không loại trừ TOCTOU hoàn toàn. |
+| Copy then hash both source and target | Copy + at least two read passes to hash | Detects discrepancies on both sides; easy to explain. | Extra read I/O cost. |
+| Hash while copying via `MessageDigest.update` | Hashes bytes being copied | Fewer passes; streaming-friendly. | Does not verify bytes persisted at target after write. |
+| Re-hash target file after copy | One extra target read pass | Independently verifies re-read content. | Extra I/O; still races with concurrent writers. |
+| Block/chunk hashing with manifest | Each block has its own digest | Supports resume/dedup/local verification. | Must authenticate manifest and chunk order/index. |
+| Hash entire file before every use | Reads all bytes each time | Checks content close to use time. | Expensive for large data; does not fully eliminate TOCTOU. |
 
-Không nên tối ưu bằng cách bỏ kiểm tra nếu rủi ro nghiệp vụ yêu cầu nó. Mặt khác, với cache nội bộ có semantics rõ, có thể dùng metadata/version/content ID để tránh băm lại khi đã có bằng chứng bất biến đáng tin; đo workload trước khi chọn.
+Do not optimize by skipping verification when business risk requires it. On the other hand, for internal caches with clear semantics, metadata/version/content IDs can avoid re-hashing when trustworthy immutability proof already exists; measure workloads before choosing.
 
-Một `MessageDigest` dùng chung không có lý do phải cập nhật theo từng byte; đọc buffer đủ lớn để giảm syscall overhead. Trong Java 17, `MessageDigest.update(ByteBuffer)` hỗ trợ trực tiếp buffer heap/direct; không nhất thiết phải copy sang `byte[]`.
+A shared `MessageDigest` has no reason to be updated byte by byte; read reasonably sized buffers to reduce syscall overhead. In Java 17, `MessageDigest.update(ByteBuffer)` directly supports heap/direct buffers without needing to copy into `byte[]`.
 
-## 15. Những giới hạn hash không giải quyết
+## 15. Limitations That Hashing Does Not Solve
 
-**Hash không kiểm chứng định dạng.** Một file có SHA-256 khớp expected vẫn có thể chứa lệnh nguy hiểm hoặc dữ liệu không tuân thủ schema. Vì vậy validate JSON/ZIP/protocol sau integrity check.
+**Hashing does not validate format.** A file whose SHA-256 matches `expected` can still contain dangerous instructions or schema-invalid data. Always validate JSON/ZIP/protocols after integrity checks.
 
-**Hash không mã hóa dữ liệu.** SHA-256 không giấu bytes, không tạo confidentiality. Nếu cần bảo mật nội dung, dùng encryption/authenticated encryption phù hợp.
+**Hashing does not encrypt data.** SHA-256 does not hide bytes or provide confidentiality. When content secrecy is needed, use appropriate encryption/authenticated encryption.
 
-**Hash không chứng minh timestamp hay filename.** Hai file khác tên nhưng cùng bytes sẽ có cùng SHA-256. Nếu identity/version/name quan trọng, bảo vệ và kiểm tra metadata đó bằng manifest được xác thực.
+**Hashing does not prove timestamps or filenames.** Two differently named files with identical bytes share the exact same SHA-256. If identity/version/name matter, protect and verify that metadata via an authenticated manifest.
 
-**Hash không đồng nghĩa durability.** Digest khớp khi đọc lại không xác nhận ổ đĩa sẽ giữ nguyên sau mất điện; `force` và storage protocol là một trách nhiệm riêng.
+**Hashing does not equal durability.** A matching digest upon re-reading does not confirm the disk will retain it across power loss; `force` and storage protocols are a separate responsibility.
 
-**Hash không chống replay.** Bên gửi có thể gửi lại bản hợp lệ cũ kèm digest hợp lệ; chống downgrade/replay cần version monotonic, expiry, nonce, signature context và quy tắc ứng dụng.
+**Hashing does not prevent replay.** A sender can re-transmit an older valid artifact with its valid digest; preventing downgrade/replay requires monotonic versions, expiry, nonces, signature context, and application rules.
 
-**Hash không chống đường dẫn độc hại.** Dù archive ZIP có SHA-256 khớp, việc giải nén vẫn phải bảo vệ khỏi Zip Slip, symlink, zip bomb và resource exhaustion.
+**Hashing does not stop malicious paths.** Even if a ZIP archive has a matching SHA-256, extraction must still defend against Zip Slip, symlinks, zip bombs, and resource exhaustion.
 
-**Hash không sửa lỗi tự động.** Nếu mismatch, không được “bỏ qua cảnh báo để tiếp tục”. Hệ thống cần retry/quarantine/khôi phục từ nguồn an toàn; bản hash không chứa thông tin để dựng lại dữ liệu hỏng.
+**Hashing does not auto-repair errors.** On mismatch, never “ignore the warning and continue”. The system must retry/quarantine/recover from a safe source; a hash contains no information to reconstruct corrupted data.
 
-## 16. Lỗi thường gặp và cách khắc phục
+## 16. Common Mistakes and Fixes
 
-| Hiện tượng | Nguyên nhân | Cách sửa |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| Hash thay đổi dù text nhìn giống nhau | Charset, BOM, newline, Unicode normalization, whitespace khác. | Xác định hash raw bytes hay canonicalized content; thống nhất quy tắc. |
-| Hash sai ở chunk cuối | Gọi `digest.update(buffer)` với cả mảng thay vì đúng `n` byte mới. | Dùng `update(buffer, 0, n)` hoặc `DigestInputStream`. |
-| Hash khác khi dùng NIO | Hash cả capacity/thừa byte, hoặc buffer position đã bị `write` tiêu thụ. | `flip()` đúng; dùng duplicate/read-only view trước write. |
-| Kết quả hash chỉ đúng lần đầu | Gọi `digest()` rồi tiếp tục update trên state đã reset, hoặc reuse chung giữa threads. | Instance mới cho mỗi phép hash; finalize một lần. |
-| File copy bị thiếu byte | Chỉ gọi `FileChannel.write()` một lần, không xử lý partial write. | `while (buffer.hasRemaining())` trước `clear()`. |
-| Không phát hiện file bị đổi | Expected digest bị thay cùng file. | Bảo vệ expected bằng chữ ký/HMAC/kênh tin cậy. |
-| Reader coi SHA-256 khớp là bằng chứng người gửi | Hash không có khóa/xác thực. | HMAC hoặc chữ ký số, xác thực khóa đúng. |
-| Hash file nguồn khớp nhưng đích sai | File đích bị đổi sau copy hoặc write lỗi. | Băm lại đích, giữ file tạm riêng và publish sau verify. |
-| Digest khớp nhưng khi dùng nội dung khác | TOCTOU giữa hash và open/consume, đường dẫn bị thay. | Quản lý immutable artifact/handle/ownership, verify gần lúc dùng. |
-| File đang ghi cho kết quả không nhất quán | Không có snapshot và writer sửa trong lúc đọc. | Dùng snapshot/producer publish protocol. |
-| Dùng MD5/CRC cho xác thực tải code | Không chống giả mạo có chủ đích. | SHA-256 tham chiếu tin cậy + chữ ký/HMAC theo mô hình đe dọa. |
-| Dùng SHA-256 của mật khẩu để lưu trữ | Hash quá nhanh, thiếu thiết kế chống brute-force. | Password hashing chuyên dụng với salt/cost theo policy. |
-| Chuỗi hex không parse được | Dính newline, dấu cách, prefix hoặc độ dài sai. | Chuẩn hóa đầu vào theo format có kiểm soát, validate đúng 64 hex cho SHA-256. |
-| Hash sau decompression khác hash file ZIP | Băm hai representation khác nhau. | Xác định lớp dữ liệu và thứ tự xử lý thống nhất. |
+| Hash changes even though text looks identical | Different charset, BOM, newline, Unicode normalization, whitespace. | Decide whether to hash raw bytes or canonicalized content; unify rules. |
+| Wrong hash on final chunk | Calling `digest.update(buffer)` on whole array instead of just `n` new bytes. | Use `update(buffer, 0, n)` or `DigestInputStream`. |
+| Different hash when using NIO | Hashing full capacity/extra bytes, or buffer position already consumed by `write`. | `flip()` properly; use duplicate/read-only view before `write`. |
+| Hash only right the first time | Calling `digest()` then continuing updates on reset state, or sharing across threads. | Fresh instance per hash; finalize once. |
+| Copied file missing bytes | Calling `FileChannel.write()` once without handling partial writes. | `while (buffer.hasRemaining())` before `clear()`. |
+| Modified file goes undetected | Expected digest was altered alongside the file. | Protect `expected` with signature/HMAC/trusted channel. |
+| Reader treats matching SHA-256 as proof of sender | Hash lacks keys/authentication. | HMAC or digital signature with proper key verification. |
+| Source file hash matches yet target is wrong | Target modified after copy or write failed. | Re-hash target, write to private temp file, publish after verification. |
+| Digest matches yet content differs when used | TOCTOU between hash and open/consume; path swapped. | Manage immutable artifacts/handles/ownership; verify close to use. |
+| File being written yields inconsistent results | No snapshot and writer mutates during read. | Use snapshots/producer publish protocol. |
+| Using MD5/CRC to verify code downloads | Does not resist intentional tampering. | Trusted reference SHA-256 + signature/HMAC per threat model. |
+| Storing raw SHA-256 of passwords | Too fast; lacks brute-force resistance design. | Dedicated password hashing with salt/cost per policy. |
+| Hex string fails to parse | Stray newline, spaces, prefix, or wrong length. | Normalize input under strict format control; validate exact 64 hex chars for SHA-256. |
+| Hash after decompression differs from ZIP file hash | Hashing two different representations. | Define data layer and processing order consistently. |
 
-## 17. Kiểm thử hệ thống có hash
+## 17. Testing Systems That Use Hashes
 
-Một bộ kiểm thử tốt cần bao gồm:
+A solid test suite should cover:
 
-1. **Known answer:** `SHA-256("abc")` đúng giá trị hex trong bài. Dùng fixture chuẩn, không lấy expected bằng chính hàm vừa viết rồi tự gọi đó là test độc lập.
-2. **Roundtrip:** copy dữ liệu, hash source, hash target, so với expected đã xác thực. Kiểm tra size, bytes và hash.
-3. **Tài liệu trống:** hash của file rỗng cũng là một digest SHA-256 hợp lệ, không phải chuỗi rỗng.
-4. **File không cùng size:** ứng dụng nhận ra mismatch không chỉ qua digest mà còn lỗi I/O/size khi phù hợp.
-5. **Sửa một byte:** thay một byte ở đầu, giữa và cuối; digest so expected không khớp.
-6. **Sửa tên file nhưng giữ bytes:** digest raw bytes không đổi; manifest phải định nghĩa policy cho tên/đường dẫn.
-7. **Chunking:** tính với buffer 1, 2, 8192 byte và direct buffer; digest phải giống nhau.
-8. **Quyền truy cập và disk full:** bắt `IOException`, không publish file tạm chưa verify.
-9. **Concurrent writer:** mô phỏng file bị sửa trong lúc copy để kiểm tra chính sách snapshot hoặc từ chối commit.
-10. **Expected bị thay:** chứng minh hash thuần của file + hash giả **không** tạo xác thực; kiểm thử signature/HMAC path thật sự.
-11. **TOCTOU:** sau verify, thay file/đường dẫn trước khi tiêu thụ; thiết kế kiểm soát việc sử dụng artifact đã kiểm tra.
-12. **Giới hạn nguồn lực:** file lớn, đọc chậm, network timeout, deadline, queue backlog và quota.
-13. **Replay/version:** file bản cũ vẫn có hash hợp lệ nhưng không được chấp nhận nếu policy yêu cầu bản mới hơn.
+1. **Known answer:** `SHA-256("abc")` matches the exact hex value in the article. Use standard test vectors rather than generating expected values with your own function and calling it an independent test.
+2. **Roundtrip:** copy data, hash source, hash target, compare against verified expected. Verify size, bytes, and hash.
+3. **Empty file:** hashing an empty file still produces a valid SHA-256 digest, not an empty string.
+4. **Mismatched file sizes:** the application detects mismatch not only via digest but also via I/O/size errors when appropriate.
+5. **Single-byte modification:** alter one byte at the start, middle, and end; digest must fail to match `expected`.
+6. **Renamed file with identical bytes:** raw byte digest does not change; the manifest must define policy for names/paths.
+7. **Chunking:** compute with buffer sizes 1, 2, 8192 bytes and direct buffers; digests must be identical.
+8. **Permissions and disk full:** catch `IOException` and never publish an unverified temporary file.
+9. **Concurrent writer:** simulate a file modified mid-copy to verify snapshot policies or commit rejection.
+10. **Tampered expected:** demonstrate that plain file hash + forged hash **does not** authenticate; test the real signature/HMAC path.
+11. **TOCTOU:** after verification, swap the file/path before consumption; design controls around using the verified artifact.
+12. **Resource limits:** large files, slow reads, network timeouts, deadlines, queue backlogs, and quotas.
+13. **Replay/version:** an older file version still has a valid hash yet must be rejected when policy requires a newer version.
 
-Nếu chương trình xuất ra `hash-valid=true`, cần định nghĩa rõ “valid so với expected nào và expected đến từ đâu”. Test chỉ hash cùng một input hai lần rồi so chúng với nhau **không chứng minh** integrity so với nguồn độc lập.
+If a program outputs `hash-valid=true`, clearly define “valid against which expected, and where did expected come from”. A test that hashes the same input twice and compares the two **proves nothing** about integrity relative to an independent source.
 
-## 18. Bài tập thực hành
+## 18. Practice Exercises
 
-**Bài tập 1 — Hash các bytes file thay vì text.** Tạo hai file: một file chứa `"Xin chào\n"` UTF-8, file kia chứa `"Xin chào\r\n"` UTF-8. Tính SHA-256 bằng `DigestInputStream`; giải thích vì sao hash khác dù khi hiển thị có thể trông tương tự.
+**Exercise 1 — Hash file bytes instead of text.** Create two files: one containing `"Xin chào\n"` in UTF-8, the other containing `"Xin chào\r\n"` in UTF-8. Compute SHA-256 with `DigestInputStream`; explain why the hashes differ even though they may look identical when displayed.
 
-**Bài tập 2 — Streaming chunk sizes.** Chỉnh `ByteBuffer.allocate(2)` thành `allocate(1)`, `allocate(16)` và `allocate(8192)`. Kiểm tra digest của `abc` và việc copy file luôn giống nhau; nêu điều kiện `flip/clear/hasRemaining` bảo vệ khỏi mất/trùng byte.
+**Exercise 2 — Streaming chunk sizes.** Change `ByteBuffer.allocate(2)` to `allocate(1)`, `allocate(16)`, and `allocate(8192)`. Verify that the digest of `abc` and the copied file stay identical; state how `flip/clear/hasRemaining` prevent missing or duplicated bytes.
 
-**Bài tập 3 — Sửa một byte.** Trong chương trình mẫu, thử `"abc"` → `"aBc"`, `"abd"` và `"abc\n"`. So SHA-256 trước/sau. Vì sao chỉ dùng `Files.size()` sẽ bỏ qua thay đổi `abc → abd`?
+**Exercise 3 — Single-byte modification.** In the sample program, try `"abc"` → `"aBc"`, `"abd"`, and `"abc\n"`. Compare SHA-256 before and after. Why would checking only `Files.size()` miss the `abc → abd` change?
 
-**Bài tập 4 — Xác thực manifest.** Định nghĩa một manifest có `artifactId`, `version`, `length`, `algorithm`, `digest`. Nêu cách lấy manifest có chữ ký và xác minh public key đáng tin; không coi file manifest tải cùng nguồn không bảo vệ là bằng chứng.
+**Exercise 4 — Manifest authentication.** Define a manifest containing `artifactId`, `version`, `length`, `algorithm`, `digest`. Describe how to obtain a signed manifest and verify it with a trusted public key; never treat a manifest downloaded from the same unprotected source as proof.
 
-**Bài tập 5 — Download an toàn.** Viết hàm nhận dữ liệu qua stream vào file tạm, có quota tổng 50 MiB, deadline và đếm bytes. Sau tải xuống, băm lại file tạm, so expected SHA-256 và chỉ publish bằng move có kiểm tra atomicity; khi mismatch phải xóa/quarantine.
+**Exercise 5 — Safe download.** Write a method receiving streamed data into a temporary file with a 50 MiB total quota, a deadline, and byte counting. After downloading, re-hash the temp file, compare against expected SHA-256, and publish only via a move checking atomicity; on mismatch, delete/quarantine.
 
-**Bài tập 6 — Phân biệt CRC32 và SHA-256.** Tính cả hai trên cùng payload. Giải thích vì sao CRC32 phù hợp kiểm tra lỗi ZIP thông thường nhưng không làm người sửa archive có chủ đích thất bại nếu họ cũng tính lại CRC.
+**Exercise 6 — Distinguish CRC32 and SHA-256.** Compute both on the same payload. Explain why CRC32 works for routine ZIP error checks yet fails to stop an intentional archive tamperer who also recomputes the CRC.
 
-**Bài tập 7 — Race và immutable source.** Cho một thread/tiến trình sửa file trong lúc thread khác hash; quan sát sự khác biệt. Thiết kế producer tạo tệp tạm → flush/đóng → publish tên cố định → gửi manifest tin cậy, để consumer không hash file còn đang bị ghi.
+**Exercise 7 — Race and immutable source.** Have one thread/process modify a file while another hashes it; observe the discrepancy. Design a producer that creates a temp file → flushes/closes → publishes to a fixed name → sends a trusted manifest, so consumers never hash a file still being written.
 
-**Bài tập 8 — HMAC.** Dùng `javax.crypto.Mac` và key lấy từ nơi quản lý key thử nghiệm để tạo HMAC-SHA-256 cho payload. Thay đổi một byte rồi kiểm tra tag không còn đúng; giải thích tại sao HMAC cần khóa bí mật còn SHA-256 thuần không.
+**Exercise 8 — HMAC.** Use `javax.crypto.Mac` and a key from a test key store to generate HMAC-SHA-256 for a payload. Flip one byte and verify the tag no longer matches; explain why HMAC requires a secret key while plain SHA-256 does not.
 
-**Bài tập 9 — Bảo vệ chống replay.** Tạo hai artifact v1/v2 đều có chữ ký/hash hợp lệ. Thiết kế policy không chấp nhận v1 sau khi đã kích hoạt v2. Vì sao digest khớp không đủ để quyết định phiên bản được phép sử dụng?
+**Exercise 9 — Replay protection.** Create two artifacts v1/v2 that both have valid signatures/hashes. Design a policy rejecting v1 once v2 is activated. Why is a matching digest insufficient to decide whether a version is allowed?
 
-**Bài tập 10 — Hash ZIP.** Tạo hai ZIP chứa cùng file text nhưng timestamp của entry khác nhau. So SHA-256 **toàn ZIP** và SHA-256 **bytes entry giải nén**; giải thích sự khác biệt và chọn representation phù hợp yêu cầu.
+**Exercise 10 — Hashing ZIPs.** Create two ZIPs containing the same text file but with different entry timestamps. Compare the SHA-256 of the **entire ZIP** and the SHA-256 of the **decompressed entry bytes**; explain the difference and choose the right representation for the requirement.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-- `MessageDigest.update` nhận bytes theo luồng khác gì đọc toàn bộ file vào mảng?
-- Khi read chỉ trả `n=7` vào mảng 8192 byte, phải cập nhật digest bao nhiêu byte?
-- `DigestInputStream` có cần gọi `digest.update(buffer)` thêm sau mỗi lần đọc không?
-- Vì sao hash file nguồn trong lúc copy không tự chứng minh file đích không bị thay?
-- Nếu expected digest do attacker cung cấp cùng file, so sánh có tạo authentication không?
-- Khi muốn xác nhận chính publisher đã phát hành artifact, dùng HMAC hay chữ ký số trong bối cảnh nào?
-- CRC32 có chức năng gì so với SHA-256?
-- Vì sao file đang được writer sửa có thể không có snapshot ổn định khi hash?
-- Hash khớp có đồng nghĩa file format hợp lệ, bản không bị replay và dữ liệu đã fsync không?
-- Tại sao raw ZIP bytes và bytes giải nén từ entry thường có SHA-256 khác nhau?
+- How does streaming `MessageDigest.update` differ from reading the entire file into an array?
+- When `read` returns only `n=7` into an 8192-byte array, how many bytes must be fed to the digest?
+- With `DigestInputStream`, do you also need to call `digest.update(buffer)` after each read?
+- Why does hashing the source file during copy not by itself prove the destination file was not altered?
+- If the expected digest is supplied by an attacker alongside the file, does comparing them provide authentication?
+- When confirming that the true publisher released an artifact, in which contexts do you use HMAC vs. digital signatures?
+- What is the role of CRC32 compared to SHA-256?
+- Why might a file being modified by a writer lack a stable snapshot while hashing?
+- Does a matching hash mean the file format is valid, the version is not replayed, and the data has been fsynced?
+- Why do raw ZIP bytes and decompressed entry bytes usually have different SHA-256 hashes?
 
-## 19. Tài liệu tham khảo chính thức
+## 19. Official References
 
-- [Java SE 21 — MessageDigest](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/MessageDigest.html): tạo SHA-256, `update`, `digest`, `isEqual`.
-- [Java SE 21 — DigestInputStream](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/DigestInputStream.html): băm tự động dữ liệu đọc từ stream.
-- [Java SE 21 — FileChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html): read/write, buffer position, force và lifecycle.
+- [Java SE 21 — MessageDigest](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/MessageDigest.html): creating SHA-256, `update`, `digest`, `isEqual`.
+- [Java SE 21 — DigestInputStream](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/DigestInputStream.html): automatically hashing data read from a stream.
+- [Java SE 21 — FileChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html): read/write, buffer position, force, and lifecycle.
 - [Java SE 21 — ByteBuffer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/ByteBuffer.html): `flip`, `remaining`, `asReadOnlyBuffer`.
-- [Java SE 21 — HexFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HexFormat.html): chuyển digest sang và từ chuỗi hexadecimal.
-- [Java SE 21 — Mac](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Mac.html): HMAC với khóa bí mật.
-- [Java SE 21 — Signature](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Signature.html): ký và xác minh chữ ký số.
-- [NIST FIPS 180-4 — Secure Hash Standard](https://csrc.nist.gov/pubs/fips/180-4/upd1/final): đặc tả SHA-256 và họ Secure Hash Algorithm.
+- [Java SE 21 — HexFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HexFormat.html): converting digests to and from hexadecimal strings.
+- [Java SE 21 — Mac](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/javax/crypto/Mac.html): HMAC with a secret key.
+- [Java SE 21 — Signature](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Signature.html): signing and verifying digital signatures.
+- [NIST FIPS 180-4 — Secure Hash Standard](https://csrc.nist.gov/pubs/fips/180-4/upd1/final): specification of SHA-256 and the Secure Hash Algorithm family.
 
-**Ghi nhớ:** Khi bài toán yêu cầu byte-for-byte integrity, tính SHA-256 của **đúng bytes** theo luồng và so với **digest tham chiếu đáng tin**. Hash có thể giúp phát hiện khác biệt, nhưng không tự xác thực nguồn, ngăn sửa đổi sau kiểm tra, tránh replay hoặc đảm bảo độ bền vật lý. Hãy gắn nó vào quy trình quản lý file tạm, quyền truy cập, phiên bản, chữ ký/HMAC và chính sách fail-closed phù hợp rủi ro.
+**Remember:** When the problem requires byte-for-byte integrity, compute SHA-256 over the **exact bytes** in a streaming fashion and compare against a **trusted reference digest**. A hash helps detect differences, yet it does not by itself authenticate the source, prevent post-check modification, stop replay, or guarantee physical durability. Integrate it into a workflow with temp file management, access controls, versioning, signatures/HMAC, and a risk-appropriate fail-closed policy.

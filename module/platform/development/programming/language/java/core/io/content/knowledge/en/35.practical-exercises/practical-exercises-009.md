@@ -1,56 +1,56 @@
-# Thực hành: Theo dõi thư mục bằng WatchService có xử lý OVERFLOW
+# Practice: Watching a Directory with `WatchService` and Handling `OVERFLOW`
 
-## 1. Kết quả cần đạt
+## 1. Expected Outcomes
 
-Bài thực hành xây dựng một bộ theo dõi thư mục với Java NIO.2, sử dụng `WatchService` để nhận **tín hiệu thay đổi** và bổ sung cơ chế **rescan/reconciliation** để khôi phục trạng thái khi sự kiện bị mất, đặc biệt khi có `StandardWatchEventKinds.OVERFLOW`.
+This exercise builds a directory watcher with Java NIO.2, using `WatchService` to receive **change signals** and adding a **rescan/reconciliation** mechanism to recover state when events are lost, particularly when `StandardWatchEventKinds.OVERFLOW` occurs.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Tạo và đăng ký `WatchService` theo dõi các mục trực tiếp trong một thư mục.
-2. Nhận `WatchKey` bằng `take()` hoặc `poll(timeout, unit)`.
-3. Xử lý `ENTRY_CREATE`, `ENTRY_MODIFY`, `ENTRY_DELETE` và `OVERFLOW`.
-4. Dùng `WatchEvent.context()` đúng như **đường dẫn tương đối** so với thư mục đã đăng ký.
-5. Gọi `pollEvents()`, xử lý và `reset()` cho từng key.
-6. Xây dựng snapshot trạng thái thư mục bằng `Files.newDirectoryStream` và `BasicFileAttributes`.
-7. Khi nhận `OVERFLOW`, quét lại trạng thái hiện tại để hòa giải cache thay vì tưởng rằng có thể tái tạo từng thao tác đã mất.
-8. Viết ví dụ Java 17+ độc lập, có stdout dự đoán được mà **không phải giả định thứ tự/số lượng sự kiện ổn định trên mọi OS**.
-9. Biết cách mở rộng thành watcher chạy lâu dài, hỗ trợ nhiều thư mục, dừng sạch, kiểm thử và bảo vệ tài nguyên.
+1. Create and register a `WatchService` to monitor direct entries inside a directory.
+2. Retrieve `WatchKey` instances via `take()` or `poll(timeout, unit)`.
+3. Handle `ENTRY_CREATE`, `ENTRY_MODIFY`, `ENTRY_DELETE`, and `OVERFLOW`.
+4. Use `WatchEvent.context()` accurately as a **relative path** against the registered directory.
+5. Call `pollEvents()`, process events, and invoke `reset()` for each key.
+6. Build a directory-state snapshot using `Files.newDirectoryStream` and `BasicFileAttributes`.
+7. Upon receiving `OVERFLOW`, rescan the current state to reconcile the cache instead of assuming lost operations can be replayed individually.
+8. Write a standalone Java 17+ example with predictable stdout **without assuming identical event ordering or counts across all OSes**.
+9. Understand how to extend this into a long-running watcher supporting multiple directories, clean shutdown, testing, and resource protection.
 
-> **Ý chính:** WatchService không phải một transaction log hay audit log đáng tin cậy. Nó cung cấp tín hiệu để ứng dụng biết **nên kiểm tra lại filesystem khi nào**. Trạng thái thực tế của thư mục, không phải từng notification riêng lẻ, mới là nguồn sự thật khi cần đồng bộ nội dung hiện thời.
+> **Key takeaway:** `WatchService` is not a reliable transaction log or audit log. It provides signals telling the application **when to re-check the filesystem**. The actual directory state—not individual notifications—is the source of truth when synchronizing current contents.
 
-## 2. Chuẩn bị môi trường
+## 2. Environment Setup
 
-Ví dụ sử dụng **JDK 17 trở lên** và các API trong Java Standard Library, không cần Maven/Gradle hay dependency ngoài.
+The example uses **JDK 17 or newer** and standard Java library APIs, with no Maven/Gradle or external dependencies.
 
-Kiểm tra môi trường:
+Check your environment:
 
 ```bash
 java -version
 javac -version
 ```
 
-Cần có quyền tạo, đọc, sửa và xóa trong thư mục tạm mà JVM đang dùng. Hầu hết phần thực hành có thể chạy trên Windows, Linux hoặc macOS, nhưng:
+You need permissions to create, read, modify, and delete inside the temporary directory used by the JVM. Most of the exercise runs on Windows, Linux, or macOS, though:
 
-- Nền tảng/provider có thể khác nhau về thời điểm, thứ tự và số lượng `ENTRY_MODIFY`.
-- WatchService có thể không hỗ trợ đầy đủ trên network filesystem, mount đặc biệt hoặc môi trường sandbox.
-- Không cố ép hệ điều hành phát `OVERFLOW` thật bằng cách tạo một lượng tệp khổng lồ; điều đó có thể gây quá tải mà không cho kết quả lặp lại.
-- Các bài kiểm tra quan trọng cần chạy trên **filesystem triển khai thực tế**, không chỉ trên máy phát triển.
+- Platforms/providers may differ in timing, ordering, and count of `ENTRY_MODIFY` events.
+- `WatchService` may not be fully supported on network filesystems, special mounts, or sandboxed environments.
+- Do not try to force the OS to emit a real `OVERFLOW` by creating massive numbers of files; that can overload the system without reproducible results.
+- Critical tests must run on the **actual deployment filesystem**, not only on a developer machine.
 
-Các loại import cần thiết thường từ `java.nio.file`, `java.nio.file.attribute`, `java.util` và `java.util.concurrent`.
+Required imports typically come from `java.nio.file`, `java.nio.file.attribute`, `java.util`, and `java.util.concurrent`.
 
-## 3. Nhắc lại WatchService hoạt động ra sao
+## 3. Recap: How `WatchService` Works
 
-Một `WatchService` giữ hàng đợi **WatchKey đã được signalled**. Khi ứng dụng đăng ký một thư mục, filesystem/provider có thể ghi nhận thay đổi trực tiếp bên trong nó và đưa key tương ứng vào hàng đợi.
+A `WatchService` maintains a queue of **signaled `WatchKey`s**. Once an application registers a directory, the filesystem/provider can detect direct changes inside it and enqueue the corresponding key.
 
 ```text
                    Filesystem
           create / modify / delete
                       |
                       v
-              Đăng ký thư mục
+              Register directory
                 WatchKey K1
                       |
-              key được signalled
+               key is signaled
                       |
                       v
               WatchService queue
@@ -65,7 +65,7 @@ Một `WatchService` giữ hàng đợi **WatchKey đã được signalled**. Kh
              |                  |
          ENTRY_*             OVERFLOW
              |                  |
-         event hint         mất sự kiện?
+         event hint         events lost?
              |                  |
              +--------+---------+
                       |
@@ -75,92 +75,92 @@ Một `WatchService` giữ hàng đợi **WatchKey đã được signalled**. Kh
                       v
                 key.reset()
                       |
-           true: tiếp tục theo dõi
+           true: continue watching
            false: registration invalid
 ```
 
-Với `Path.register(watcher, kinds...)`, một `WatchKey` đại diện cho registration của path đã theo dõi. Một key có thể gom **nhiều events**; một lần `take()` trả **key**, không nhất thiết trả đúng một thay đổi.
+With `Path.register(watcher, kinds...)`, a `WatchKey` represents the registration of a watched path. One key can batch **multiple events**; a single `take()` returns a **key**, not necessarily a single change.
 
-### Các event kinds
+### Event Kinds
 
-| Event kind | Nghĩa thường gặp | Việc nên làm |
+| Event kind | Typical Meaning | What to Do |
 |---|---|---|
-| `ENTRY_CREATE` | Một mục trực tiếp trong thư mục xuất hiện | Kiểm tra trạng thái mục ở thời điểm xử lý |
-| `ENTRY_MODIFY` | Provider quan sát có sửa đổi | Đọc lại metadata/nội dung nếu nghiệp vụ yêu cầu |
-| `ENTRY_DELETE` | Mục trực tiếp không còn tồn tại dưới tên đã theo dõi | Cập nhật cache từ trạng thái hiện tại |
-| `OVERFLOW` | Provider báo có thể đã mất/bỏ một số events | **Quét lại thư mục**, đối chiếu cache; không cố khôi phục thứ tự mọi thay đổi |
+| `ENTRY_CREATE` | A direct entry in the directory appeared | Inspect the entry's state at processing time |
+| `ENTRY_MODIFY` | Provider observed a modification | Re-read metadata/content if business logic requires |
+| `ENTRY_DELETE` | Direct entry no longer exists under the watched name | Update cache from current state |
+| `OVERFLOW` | Provider warns some events may have been lost/dropped | **Rescan the directory** and reconcile cache; do not try to reconstruct every lost operation's order |
 
-**Không có bảo đảm một lần user nhấn Save = một `ENTRY_MODIFY`.** Editor có thể tạo file tạm rồi rename; một lần ghi lớn có thể tạo nhiều modify events; hệ thống có thể gộp chúng.
+**There is no guarantee that one user Save = one `ENTRY_MODIFY`.** Editors may write a temp file and rename; a large write may emit multiple modify events; the system may coalesce them.
 
-## 4. OVERFLOW thực sự có ý nghĩa gì?
+## 4. What Does `OVERFLOW` Actually Mean?
 
-`OVERFLOW` là tín hiệu cho biết event stream **có thể không còn đầy đủ**. Những thay đổi đã bị bỏ không nhất thiết có thể được hỏi lại từ WatchService.
+`OVERFLOW` signals that the event stream **may no longer be complete**. Dropped changes cannot necessarily be queried back from `WatchService`.
 
-Ví dụ:
+Example:
 
 ```text
-Trạng thái ứng dụng nghĩ đang có:
+State the application thinks exists:
   A.txt, B.txt
 
-Filesystem thay đổi rất nhanh:
+Filesystem changes rapidly:
   delete A.txt
   create C.txt
   modify B.txt
   create D.txt
   delete C.txt
 
-Hàng đợi sự kiện bị tràn:
+Event queue overflows:
   ... OVERFLOW ...
 
-Filesystem hiện tại:
+Actual current filesystem:
   B.txt, D.txt
 ```
 
-Nếu chỉ dựa vào các events còn sót, cache có thể vẫn tin `A.txt` tồn tại hoặc bỏ lỡ `D.txt`. Khi thấy overflow, cần quét thư mục để biết **cái gì đang tồn tại hiện nay**.
+Relying only on surviving events might leave the cache believing `A.txt` still exists or missing `D.txt`. Seeing overflow requires scanning the directory to see **what currently exists**.
 
-Không thể dùng một snapshot cuối để suy luận đầy đủ chuỗi thao tác trung gian. Ví dụ file `C.txt` từng được tạo rồi xóa trước lúc rescan: trạng thái cuối không còn dấu vết của C. Nếu nghiệp vụ yêu cầu audit **mọi sự kiện**, cần nhật ký giao dịch/journal ở tầng nguồn hoặc một hệ thống theo dõi có hợp đồng bền, không thể chỉ thêm `rescan` vào WatchService là đạt exactly-once.
+You cannot infer the full sequence of intermediate operations from a final snapshot. For example, `C.txt` was created and deleted before the rescan: the final state retains no trace of C. If business rules require auditing **every event**, you need a source-level transaction log/journal or a tracking system with durable delivery contracts—merely adding `rescan` to `WatchService` does not yield exactly-once delivery.
 
-### Chính sách phục hồi phù hợp
+### Appropriate Recovery Policy
 
-- Đánh dấu registration/thư mục cần **full rescan**.
-- Lấy snapshot mới từ filesystem.
-- So với cache ứng dụng ở trạng thái trước đó.
-- Xử lý các mục xuất hiện/biến mất/thay đổi theo logic **idempotent**.
-- Thay cache bằng snapshot mới sau khi các bước cần thiết hoàn tất.
-- Tiếp tục theo dõi bằng `reset()` nếu key còn hợp lệ.
-- Ghi metrics/log về overflow, thời gian rescan, số mục và lỗi I/O.
+- Mark the registration/directory as needing a **full rescan**.
+- Capture a fresh snapshot from the filesystem.
+- Diff against the application's previous cached state.
+- Process appeared/disappeared/changed entries with **idempotent** logic.
+- Replace the cache with the new snapshot once required steps complete.
+- Continue watching via `reset()` if the key remains valid.
+- Record metrics/logs for overflow occurrences, rescan duration, entry counts, and I/O errors.
 
-Với hệ thống chỉ quan tâm **trạng thái hiện tại**, đây là một chiến lược hợp lý. Với hệ thống cần lịch sử đầy đủ, phải dùng nguồn sự kiện có độ tin cậy cao hơn.
+For systems caring only about **current state**, this is a sound strategy. For systems needing complete history, use a higher-reliability event source.
 
-## 5. Thiết kế giải pháp: notification là hint, snapshot là trạng thái
+## 5. Solution Design: Notifications Are Hints, Snapshot Is State
 
-Để bài thực hành có thể phục hồi cả trường hợp mất notification, ta chọn một thiết kế đơn giản nhưng vững:
+To recover even when notifications are lost, we choose a simple yet solid design:
 
-1. Tạo `WatchService`, đăng ký thư mục trước.
-2. Tạo snapshot ban đầu từ các mục trực tiếp trong thư mục.
-3. Chờ WatchKey.
-4. Lấy danh sách events. `OVERFLOW` được nhận diện **trước** khi ép `context` thành `Path`.
-5. Với **bất kỳ key nào có event**, ta **rescan toàn bộ một thư mục** thay vì chỉ cập nhật từng item dựa trên event. Nhờ vậy, nhánh overflow đương nhiên thực hiện reconciliation.
-6. So snapshot cũ và mới, xác định mục mới, mục đã mất và mục có metadata khác.
-7. Reset key; nếu key invalid, dừng hoặc lên lịch đăng ký lại theo policy.
-8. Định kỳ rescan cả khi không có notification nếu yêu cầu phát hiện trạng thái chệch do sự cố hoặc mất event.
+1. Create `WatchService` and register the directory first.
+2. Take an initial snapshot of direct entries inside the directory.
+3. Wait for a `WatchKey`.
+4. Drain events. `OVERFLOW` is detected **before** casting `context` to `Path`.
+5. For **any key with events**, we **rescan the entire directory** instead of updating single items purely from events. That way, the overflow branch naturally performs reconciliation.
+6. Compare old and new snapshots to identify added, removed, and metadata-changed entries.
+7. Reset the key; if invalid, stop or schedule re-registration per policy.
+8. Periodically rescan even without notifications if detecting drift from crashes or lost events is required.
 
-**Đánh đổi:** full rescan cho mỗi notification dễ hiểu, hữu ích cho thư mục nhỏ/vừa và bài học; nó có thể tốn tài nguyên với thư mục hàng triệu entries. Trong production có thể tối ưu cập nhật từng entry cho event bình thường, chỉ full rescan khi OVERFLOW, lúc khởi động và định kỳ. Dù tối ưu, vẫn phải giữ cơ chế reconciliation đầy đủ.
+**Trade-off:** a full rescan per notification is easy to understand and works well for small/medium directories and lessons; it can be costly for directories with millions of entries. Production systems can optimize by updating single entries on normal events and running full rescans on `OVERFLOW`, startup, and periodic intervals. Even when optimized, full reconciliation must still be kept.
 
-### Snapshot bao gồm gì?
+### What Does a Snapshot Include?
 
-Ví dụ lưu một dấu vết metadata (**fingerprint**) cho mỗi mục:
+For example, store a metadata **fingerprint** per entry:
 
-- Tên/`Path` tương đối.
+- Relative name/`Path`.
 - `size()`.
 - `lastModifiedTime()`.
 - `isDirectory()`.
 
-Đây là **heuristic quan sát trạng thái**, không phải cryptographic digest. Có thể không phát hiện nội dung bị thay đổi nếu kích thước và mtime cuối vẫn giống nhau hoặc filesystem có độ phân giải thời gian thấp. Nếu ứng dụng cần biết nội dung có đổi một cách chắc hơn, phải thêm hash/checksum hoặc version do producer cung cấp, cân nhắc chi phí và race khi file đang ghi.
+This is an **observational state heuristic**, not a cryptographic digest. It may miss content edits if size and final mtime remain unchanged or if the filesystem has coarse timestamp resolution. If the application must detect content edits with higher certainty, add a hash/checksum or producer-supplied version, weighing I/O cost and mid-write races.
 
-## 6. Trình tự đăng ký và snapshot ban đầu
+## 6. Registration and Initial Snapshot Sequence
 
-Mẫu cơ bản:
+Basic pattern:
 
 ```java
 try (WatchService watcher =
@@ -173,52 +173,52 @@ try (WatchService watcher =
             StandardWatchEventKinds.ENTRY_DELETE);
 
     Map<Path, Stamp> known = scanDirectory(root);
-    // Vòng lấy keys và đối chiếu snapshots...
+    // Loop taking keys and reconciling snapshots...
 }
 ```
 
-Đây là **mã minh họa**, cần khai báo `root` và các helper/import. Lý do đăng ký **trước** lần scan đầu tiên: nếu quét trước, sau đó một file thay đổi trong khoảng chưa đăng ký, bạn có thể không nhận được notification cho thay đổi ấy.
+This is **illustrative code**; `root` and helpers/imports must be declared. The reason for registering **before** the initial scan: if you scan first and a file changes in the window before registration, you might miss the notification for that change.
 
-Tuy nhiên, đăng ký trước rồi scan **chưa biến hai bước thành một transaction nguyên tử**. Một mục có thể đổi trong khi đang quét; các event được queue trong lúc đó cần được tiêu thụ tiếp, và đối với dữ liệu quan trọng nên có thêm periodic reconciliation hoặc một snapshot protocol chuyên biệt.
+Still, registering before scanning **does not make the two steps an atomic transaction**. An entry may change mid-scan; events queued during the scan must still be consumed, and critical data should also have periodic reconciliation or a dedicated snapshot protocol.
 
-Trong ví dụ bài học, mọi thay đổi được tạo trong cùng tiến trình sau khi đã đăng ký, nên trình tự dễ kiểm soát hơn.
+In the lesson example, all changes happen inside the same process after registration, making the sequence easier to control.
 
-## 7. WatchKey: take, poll và reset
+## 7. `WatchKey`: `take`, `poll`, and `reset`
 
-Ba cách lấy key:
+Three ways to retrieve a key:
 
 ```java
-WatchKey a = watcher.take();                          // Chờ.
-WatchKey b = watcher.poll();                          // Không chờ.
-WatchKey c = watcher.poll(1, TimeUnit.SECONDS);       // Chờ tối đa 1 s.
+WatchKey a = watcher.take();                          // Wait.
+WatchKey b = watcher.poll();                          // Do not wait.
+WatchKey c = watcher.poll(1, TimeUnit.SECONDS);       // Wait up to 1 s.
 ```
 
-Các dòng là minh họa, **không gọi liên tiếp cả ba như một thủ tục bắt buộc**. Nếu `take()` được gọi khi không có event, thread có thể chờ không giới hạn.
+These lines are illustrative; **do not call all three back-to-back as a required procedure**. Calling `take()` when no events exist can block the thread indefinitely.
 
-- `take()` phù hợp watcher thread chuyên dụng, có shutdown qua interrupt/close.
-- `poll()` phù hợp tích hợp vào một loop đã có công việc khác; tránh busy spin.
-- `poll(timeout, unit)` thuận tiện cho watcher cần thời gian kiểm tra cờ dừng, metrics và periodic rescan.
-- `pollEvents()` đọc/drain các events tích lũy cho key.
-- `reset()` chuyển key về trạng thái sẵn sàng nếu registration hợp lệ.
+- `take()` fits a dedicated watcher thread with shutdown via interrupt/close.
+- `poll()` fits integration into a loop that already has other work; avoid busy spinning.
+- `poll(timeout, unit)` suits watchers that periodically check stop flags, emit metrics, and run periodic rescans.
+- `pollEvents()` reads/drains accumulated events for the key.
+- `reset()` returns the key to the ready state if the registration is still valid.
 
-Cần đặc biệt tránh quên `reset()`: một key đã được lấy có thể không tiếp tục cung cấp tín hiệu như mong đợi. Nếu `reset()` trả `false`, registration đã mất hiệu lực; không tiếp tục chờ nó như thể vẫn hoạt động.
+Be careful never to forget `reset()`: a retrieved key may stop signaling further events as expected. If `reset()` returns `false`, the registration is invalid; do not keep waiting on it as if it were still active.
 
-## 8. Ví dụ Java 17+ hoàn chỉnh: WatchService và phục hồi snapshot
+## 8. Complete Java 17+ Example: `WatchService` and Snapshot Recovery
 
-Ví dụ này được thiết kế **tự chạy trong một tiến trình**:
+This example is designed to **run self-contained in one process**:
 
-- Tạo thư mục riêng trong temp.
-- Đăng ký sự kiện tạo/sửa/xóa.
-- Chụp snapshot trống.
-- Tạo file `item.txt`.
-- Dùng `WatchService.poll(timeout)` để có cơ hội tiêu thụ WatchKey; nếu chưa nhận notification trong thời gian chờ, vẫn rescan để đối chiếu.
-- Cố ý xóa **cache trong bộ nhớ** để mô phỏng việc chương trình đã bỏ lỡ thông báo; một full rescan tìm lại file.
-- Xóa file, rescan xác nhận thư mục trở về trống.
-- Dọn tài nguyên.
+- Creates a dedicated folder in temp.
+- Registers create/modify/delete events.
+- Captures an empty initial snapshot.
+- Creates `item.txt`.
+- Uses `WatchService.poll(timeout)` to give itself a chance to consume a `WatchKey`; if no notification arrives within the timeout, rescans anyway to reconcile.
+- Deliberately clears the **in-memory cache** to simulate missed events; a full rescan rediscovers the file.
+- Deletes the file, and rescans to confirm the directory is empty again.
+- Cleans up resources.
 
-**Điểm chính:** bài thử **không giả mạo một `OVERFLOW` thật**, vì không thể ép provider phát overflow một cách ổn định. Nhưng nhánh khi OVERFLOW xuất hiện thật sử dụng **cùng cơ chế full rescan**, và bài thử chủ động xác minh chức năng reconciliation độc lập với tín hiệu OS.
+**Key point:** the test **does not fake a real `OVERFLOW`**, because providers cannot reliably be forced to emit overflow. However, the branch when `OVERFLOW` actually occurs uses the **same full-rescan mechanism**, and the test explicitly verifies reconciliation independently of OS signals.
 
-Tạo file **`WatchOverflowRecoveryDemo.java`**:
+Create **`WatchOverflowRecoveryDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -280,19 +280,19 @@ public class WatchOverflowRecoveryDemo {
                         throw new IOException("Watch registration invalid");
                     }
 
-                    // Thông tin overflow có thể được log/đếm trong
-                    // ứng dụng thật; bài demo không in vì khác OS.
+                    // Overflow info can be logged/counted in a real
+                    // application; the demo omits it due to OS differences.
                 } else {
-                    // Không có event trong deadline: vẫn có thể
-                    // đối chiếu trạng thái hiện tại.
+                    // No event within deadline: can still reconcile
+                    // the current state.
                     known = scan(directory);
                 }
 
                 System.out.println("Exists after create: "
                         + known.containsKey(item.getFileName()));
 
-                // Mô phỏng cache mất dữ liệu/sự kiện bị bỏ lỡ.
-                // KHÔNG tuyên bố OS đã phát một OVERFLOW thật.
+                // Simulate cache data loss / missed events.
+                // Does NOT claim the OS emitted a real OVERFLOW.
                 Map<Path, Stamp> stale = Map.of();
                 Map<Path, Stamp> recovered = scan(directory);
                 System.out.println("Rescan restored entry: "
@@ -333,8 +333,8 @@ public class WatchOverflowRecoveryDemo {
                                     attrs.isDirectory()));
 
                 } catch (NoSuchFileException ignored) {
-                    // Mục biến mất giữa list và readAttributes:
-                    // vòng rescan khác sẽ nhìn trạng thái mới.
+                    // Entry disappeared between list and readAttributes:
+                    // the next rescan pass will observe the new state.
                 }
             }
         }
@@ -357,10 +357,10 @@ public class WatchOverflowRecoveryDemo {
             }
 
             if (event.context() instanceof Path relativeName) {
-                // Chỉ là gợi ý; có thể đã sửa/xóa/rename
-                // trước khi ta thực sự truy cập tới mục này.
+                // Hint only; may have been modified/deleted/renamed
+                // before we actually access this entry.
                 Path candidate = directory.resolve(relativeName);
-                // Không cần mở candidate trong bài demo.
+                // No need to open candidate in this demo.
             }
         }
 
@@ -368,30 +368,30 @@ public class WatchOverflowRecoveryDemo {
         boolean valid;
 
         try {
-            // Quét đầy đủ cho mọi key; nếu OVERFLOW,
-            // đây chính là nhánh recovery.
+            // Full scan on every key; on OVERFLOW,
+            // this serves directly as the recovery branch.
             latest = scan(directory);
         } finally {
-            // Trả key về trạng thái ready khi có thể,
-            // kể cả khi scan ném IOException.
+            // Return key to ready state whenever possible,
+            // even if scan throws IOException.
             valid = key.reset();
         }
 
-        // oldSnapshot có thể so với latest để tìm
-        // added/removed/changed tùy bài toán.
+        // oldSnapshot can be compared against latest to find
+        // added/removed/changed entries depending on the task.
         return new KeyResult(latest, valid, overflow);
     }
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac WatchOverflowRecoveryDemo.java
 java WatchOverflowRecoveryDemo
 ```
 
-**Stdout dự kiến khi filesystem hỗ trợ watch, tiến trình có quyền I/O trong temp directory và không xảy ra lỗi:**
+**Expected stdout when the filesystem supports watching, the process has temp-directory I/O permissions, and no errors occur:**
 
 ```text
 Initial entries: 0
@@ -400,21 +400,21 @@ Rescan restored entry: true
 Entries after delete: 0
 ```
 
-Chương trình không in `ENTRY_CREATE` hay số lượng `ENTRY_MODIFY`, vì số lần/số kiểu event **không ổn định giữa các provider/OS**. `watcher.poll(1500, MILLISECONDS)` có thể nhận key hoặc trả null; cả hai nhánh vẫn lấy snapshot hiện thời nên các dòng output trên có ý nghĩa độc lập với việc notification tới đúng lúc hay không.
+The program does not print `ENTRY_CREATE` or `ENTRY_MODIFY` counts, because event counts/types **vary inconsistently across providers/OSes**. `watcher.poll(1500, MILLISECONDS)` may return a key or null; either branch still takes a current snapshot, making these output lines meaningful regardless of whether notifications arrive on time.
 
-### Tại sao code vẫn có giới hạn?
+### Why Does the Code Still Have Limitations?
 
-- `Map<Path,Stamp>` là **cache trạng thái**, không phải nhật ký mọi thao tác.
-- Fingerprint chỉ dựa trên `size`, `lastModifiedTime`, `isDirectory`; không phát hiện chắc chắn mọi sửa đổi nếu metadata không đổi.
-- Việc scan có thể bị ảnh hưởng bởi concurrent rename/delete. Chỉ có một writer trong bài demo nên dễ kiểm chứng.
-- Nếu directory bị xóa hoặc WatchKey trở thành invalid, chương trình ném lỗi thay vì im lặng treo.
-- Đoạn code **không xử lý đệ quy** thư mục con.
-- Demo dùng polling trong thời hạn hữu hạn để chạy xong. Watcher server thực tế thường có event loop lâu dài và hệ thống shutdown/cancel rõ ràng.
-- Code không gây OVERFLOW thật; nhánh `event.kind() == OVERFLOW` đã được triển khai, còn cơ chế mất trạng thái được thử bằng cách làm cache `stale` rỗng.
+- `Map<Path,Stamp>` is a **state cache**, not a log of every operation.
+- Fingerprints rely solely on `size`, `lastModifiedTime`, and `isDirectory`; edits that leave metadata unchanged cannot be reliably detected.
+- Scanning can be affected by concurrent renames/deletes. Having a single writer in the demo keeps verification simple.
+- If the directory is deleted or the `WatchKey` becomes invalid, the program throws an error instead of hanging silently.
+- The code **does not recursively watch** subdirectories.
+- The demo uses bounded-timeout polling so it finishes cleanly. Real watcher servers usually run a long-lived event loop with explicit shutdown/cancellation.
+- The code does not trigger a real `OVERFLOW`; the `event.kind() == OVERFLOW` branch is implemented, while lost-state recovery is tested by emptying the `stale` cache.
 
-## 9. Giải thích bước một: đăng ký trước rồi scan
+## 9. Explaining Step One: Register First, Then Scan
 
-Trong `main`:
+In `main`:
 
 ```java
 directory.register(watcher,
@@ -425,19 +425,19 @@ directory.register(watcher,
 Map<Path, Stamp> known = scan(directory);
 ```
 
-Việc đăng ký trước giúp WatchService có cơ hội ghi nhận những thay đổi đến sau lúc registration thành công. Khi lấy initial snapshot, ta biết các mục **đang có ở thời điểm quá trình quét quan sát**.
+Registering first gives `WatchService` the chance to record changes occurring after registration succeeds. Capturing the initial snapshot shows the entries **present at the time the scan observes them**.
 
-Điểm cần phân biệt:
+Points to distinguish:
 
-- `WatchService` là nguồn notification.
-- `scan(directory)` là cách đọc trạng thái hiện thời của các directory entries.
-- Khi một event đến sau scan, xử lý key sẽ rescan.
-- Khi đã mất một event, periodic rescan có thể sửa lại cache nếu thay đổi còn được phản ánh ở trạng thái hiện tại.
-- Cả scan lẫn WatchService đều không tạo một snapshot filesystem **nguyên tử toàn thư mục** trước writer khác. Nếu yêu cầu snapshot nhất quán tuyệt đối, cần đồng bộ writer hoặc thiết kế lưu trữ/version phù hợp.
+- `WatchService` is the notification source.
+- `scan(directory)` is how the current state of directory entries is read.
+- When an event arrives after the scan, processing the key triggers a rescan.
+- When an event was missed, a periodic rescan can repair the cache if the change is still reflected in current state.
+- Neither `scan` nor `WatchService` produces a **whole-directory atomic** filesystem snapshot against other writers. If strictly consistent snapshots are required, synchronize writers or use proper storage/versioning designs.
 
-## 10. Giải thích bước hai: nhận key và kiểm tra overflow
+## 10. Explaining Step Two: Receiving Keys and Checking Overflow
 
-Mã cốt lõi:
+Core code:
 
 ```java
 WatchKey key = watcher.poll(1500, TimeUnit.MILLISECONDS);
@@ -448,9 +448,9 @@ if (key != null) {
 }
 ```
 
-`poll(timeout, unit)` chờ có giới hạn, thuận tiện để demo không đứng chờ vô hạn nếu platform không phát notification. Khi không có key, nó trả null; điều đó **không chứng minh thư mục không thay đổi**.
+`poll(timeout, unit)` waits for a bounded period, preventing the demo from hanging forever if a platform emits no notification. When no key is returned, it yields `null`; that **does not prove the directory did not change**.
 
-Trong `consumeAndRescan`, phải kiểm tra:
+Inside `consumeAndRescan`, you must check:
 
 ```java
 if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
@@ -459,19 +459,19 @@ if (event.kind() == StandardWatchEventKinds.OVERFLOW) {
 }
 ```
 
-**Trước** khi ép `event.context()` sang `Path`. Với `OVERFLOW`, không giả định `context` chứa tên file có thể resolve. `OVERFLOW` không xác định chính xác file nào đã thay đổi; không thể suy ra trạng thái từ nó.
+**Before** casting `event.context()` to `Path`. For `OVERFLOW`, never assume `context` holds a resolvable filename. `OVERFLOW` does not identify which exact files changed; state cannot be inferred from it.
 
-`ENTRY_*` bình thường thì `context()` đối với Path watcher thường là **tên/path tương đối**, nên:
+For normal `ENTRY_*` events, `context()` on a `Path` watcher is typically a **relative name/path**, so:
 
 ```java
 Path candidate = directory.resolve(relativeName);
 ```
 
-chỉ là candidate tại thời điểm xử lý. File có thể đã bị rename/delete, nên mọi thao tác mở/đọc phải sẵn sàng xử lý `NoSuchFileException` và các lỗi khác.
+is merely a candidate at processing time. The file may already have been renamed/deleted, so any open/read call must be prepared for `NoSuchFileException` and other errors.
 
-## 11. Giải thích bước ba: quét directory an toàn hơn
+## 11. Explaining Step Three: Safer Directory Scanning
 
-Trong helper `scan`:
+In the `scan` helper:
 
 ```java
 try (DirectoryStream<Path> entries =
@@ -483,49 +483,49 @@ try (DirectoryStream<Path> entries =
 }
 ```
 
-Đây là đoạn trích đã rút gọn; trong chương trình hoàn chỉnh có bắt `NoSuchFileException` cho từng entry.
+This excerpt is abbreviated; the full program catches `NoSuchFileException` per entry.
 
-Tại sao dùng `DirectoryStream`?
+Why use `DirectoryStream`?
 
-- Không bắt buộc đưa tất cả Path vào một danh sách trước khi bắt đầu vòng lặp.
-- Dễ đóng tài nguyên bằng try-with-resources.
-- Có thể kết hợp với `readAttributes` để lấy metadata cần so sánh.
+- Does not force loading every `Path` into a list before iteration begins.
+- Easy resource closing via try-with-resources.
+- Pairs cleanly with `readAttributes` to gather metadata for comparison.
 
-### TOCTOU trong lúc rescan
+### TOCTOU During Rescans
 
-Giữa `Files.newDirectoryStream` và `Files.readAttributes`, một mục có thể bị xóa. Demo bắt `NoSuchFileException` và bỏ mục đó trong lượt quét hiện tại. Một rescan sau sẽ giúp tiến gần trạng thái mới.
+Between `Files.newDirectoryStream` and `Files.readAttributes`, an entry might be deleted. The demo catches `NoSuchFileException` and skips that entry in the current pass. A subsequent rescan converges toward the new state.
 
-Nếu không đọc được directory vì permission hoặc lỗi I/O, **không tự đánh dấu thư mục rỗng**. Một cache chuyển từ “có 1.000 file” sang “rỗng” chỉ vì bị `AccessDeniedException` là lỗi nghiêm trọng. Nên giữ cache cũ ở trạng thái cần retry, báo metrics/error và có policy phục hồi. Code demo cho phép lỗi khác propagate.
+If the directory cannot be read due to permissions or I/O errors, **do not mark the directory as empty**. Having a cache flip from "1,000 files" to "empty" simply due to `AccessDeniedException` is a severe bug. Retain the old cache in a needs-retry state, emit metrics/errors, and follow a recovery policy. The demo code lets other errors propagate.
 
-### NOFOLLOW_LINKS
+### `NOFOLLOW_LINKS`
 
-`LinkOption.NOFOLLOW_LINKS` yêu cầu thao tác metadata trên **mục link** thay vì tự đi theo symbolic link. Điều này giúp tránh vô tình đi theo symlink tới mục nằm ngoài root trong giai đoạn snapshot metadata. Nhưng nó không tự tạo một sandbox hoàn chỉnh; nếu ứng dụng sau đó mở nội dung file theo path, vẫn cần chính sách path/symlink và quyền OS phù hợp.
+`LinkOption.NOFOLLOW_LINKS` inspects metadata on the **link entry itself** rather than following symbolic links automatically. This helps avoid accidentally traversing symlinks outside the root during metadata snapshotting. Yet it does not create a complete sandbox; if the application later opens file contents by path, proper path/symlink policies and OS permissions are still needed.
 
-## 12. So sánh snapshot: mục mới, mục biến mất, mục có dấu vết khác
+## 12. Comparing Snapshots: Added, Removed, and Changed Fingerprints
 
-Giả sử trước:
+Suppose previously:
 
 ```text
-Snapshot cũ:
+Old snapshot:
   A.txt -> size=10, mtime=100
   B.txt -> size=20, mtime=100
 ```
 
-Và sau rescan:
+And after rescanning:
 
 ```text
-Snapshot mới:
+New snapshot:
   B.txt -> size=35, mtime=110
   C.txt -> size=8,  mtime=105
 ```
 
-Đối chiếu:
+Comparison:
 
-- `A.txt`: không còn trong snapshot mới → **removed**.
-- `B.txt`: vẫn tồn tại nhưng metadata khác → **changed**.
-- `C.txt`: chỉ có trong snapshot mới → **added**.
+- `A.txt`: absent from new snapshot → **removed**.
+- `B.txt`: still present yet metadata differs → **changed**.
+- `C.txt`: only in new snapshot → **added**.
 
-Ví dụ helper minh họa:
+Illustrative helper example:
 
 ```java
 static void describeDifference(
@@ -550,31 +550,31 @@ static void describeDifference(
 }
 ```
 
-Đây là một **method minh họa bổ sung** dùng record `Stamp` của chương trình chính, không thuộc stdout cố định của demo. `HashMap` không quy định thứ tự iteration, nên nếu in danh sách thay đổi có thể sort tên trước khi in cho test deterministic.
+This is an **additional illustrative method** using the main program's `Stamp` record, not part of the demo's fixed stdout. `HashMap` does not define iteration order, so if printing change lists, sort names first for deterministic tests.
 
-### Không khẳng định phát hiện mọi sửa đổi
+### Never Claim Every Modification Is Detected
 
-Metadata fingerprint không bảo đảm phát hiện mọi thay đổi:
+Metadata fingerprints do not guarantee catching every change:
 
-- Writer có thể ghi nội dung khác với **cùng kích thước**.
-- Độ phân giải `mtime` có thể không đủ tinh trong một số filesystem.
-- Thao tác restore timestamp có thể khiến metadata trông như cũ.
-- File có thể bị thay bằng object khác mà dấu metadata tương tự.
-- Entry có thể bị tạo rồi xóa giữa hai lần scan mà không xuất hiện trong snapshot.
+- A writer might overwrite different content of the **exact same size**.
+- `mtime` resolution may be too coarse on some filesystems.
+- Timestamp restoration can make metadata look unchanged.
+- A file might be swapped for another object with similar metadata.
+- An entry could be created and deleted between two scans without ever appearing in a snapshot.
 
-Nếu nghiệp vụ cần phát hiện nội dung thực, có thể hash file với `MessageDigest`; nhưng hash tốn I/O, và file có thể thay đổi ngay trong khi hash. Muốn snapshot bất biến, nên yêu cầu producer công bố file đã đóng/immutable, dùng versioned directory hoặc một cơ chế giao dịch phù hợp.
+If business logic requires true content-change detection, you can hash files with `MessageDigest`; however, hashing costs I/O, and files can change mid-hash. For immutable snapshots, require producers to publish closed/immutable files, use versioned directories, or use a transactional mechanism.
 
-## 13. Vì sao cần reconcile ngay cả khi không có OVERFLOW?
+## 13. Why Reconcile Even Without `OVERFLOW`?
 
-Có hai cách triển khai watcher:
+There are two watcher implementation styles:
 
-**A. Event-driven incremental:** chỉ cập nhật mục được event nhắc đến. Nhanh hơn với thư mục lớn, nhưng nhạy cảm hơn với việc bỏ sót, coalescing và race.
+**A. Event-driven incremental:** update only the entry named by the event. Faster on huge directories, yet more sensitive to missed events, coalescing, and races.
 
-**B. Rescan-driven:** event chỉ là tín hiệu để quét lại directory. Chậm hơn, nhưng dễ suy luận về **trạng thái cuối cùng** và phù hợp với bài học.
+**B. Rescan-driven:** events act purely as signals to rescan the directory. Slower, yet easier to reason about for **final state** and well suited to this lesson.
 
-Khi filesystem provider phát `OVERFLOW`, cả hai phương án phải có cơ chế **full rescan**. Với A, có thể dùng snapshot hiện tại rồi diff; với B, handler đã dùng full rescan nên chỉ cần đánh dấu/log lý do và bảo đảm cache được cập nhật.
+When the filesystem provider emits `OVERFLOW`, both approaches must fall back to a **full rescan**. With A, take a current snapshot and diff; with B, the handler already runs full rescans, so just flag/log the reason and ensure the cache updates.
 
-Một watcher production có thể dùng:
+A production watcher may use:
 
 ```text
 START
@@ -595,11 +595,11 @@ START
          remove/re-register per policy
 ```
 
-Periodic full scan là lớp **chống lệch trạng thái** bổ sung; nó không biến WatchService thành log đầy đủ hay bảo đảm thấy mọi trạng thái trung gian.
+Periodic full scans serve as an extra **anti-drift layer**; they do not turn `WatchService` into a complete log or guarantee seeing every intermediate state.
 
-## 14. Xây watcher chạy liên tục
+## 14. Building a Continuous Watcher
 
-Ví dụ event loop minh họa (không phải class độc lập):
+Illustrative event-loop example (not a standalone class):
 
 ```java
 while (running.get()) {
@@ -623,53 +623,53 @@ while (running.get()) {
                     overflow = true;
                     continue;
                 }
-                // Thu thập path hints; không mở file mù quáng.
+                // Collect path hints; do not open files blindly.
             }
 
             if (overflow) {
                 // Full rescan + reconcile.
             } else {
-                // Incremental handling hoặc rescan theo thiết kế.
+                // Incremental handling or rescan per design.
             }
         } finally {
             if (!key.reset()) {
-                // Hủy/loại bỏ registration invalid.
+                // Cancel/remove invalid registration.
             }
         }
     }
 
-    // Theo lịch: kiểm tra health, cờ dừng, periodic rescan.
+    // On schedule: check health, stop flag, periodic rescan.
 }
 ```
 
-Đây là **mã minh họa**, biến `running` (ví dụ `AtomicBoolean`), `watcher` và các hành động nội bộ cần được khai báo. Khi chạy lâu dài, phải có chính sách kiểm soát ngoại lệ I/O, backpressure và state.
+This is **illustrative code**; `running` (e.g., `AtomicBoolean`), `watcher`, and internal actions must be declared. For long-running operation, add policies for I/O exceptions, backpressure, and state control.
 
-### Dừng watcher
+### Stopping the Watcher
 
-- Với `take()`, shutdown thường cần `Thread.interrupt()` hoặc đóng `WatchService` từ thread điều khiển.
-- Với `poll(timeout)`, thread có thể kiểm tra cờ dừng sau timeout; vẫn nên đóng service khi thoát.
-- `ClosedWatchServiceException` sau chủ động `close()` thường là tình huống shutdown hợp lệ, không nhất thiết là lỗi.
-- `InterruptedException` cần được xử lý đúng, thường khôi phục interrupt flag nếu không có lý do nuốt tín hiệu.
-- `finally` không chạy khi mất điện/kill tiến trình đột ngột; khi khởi động lại nên **rescan ban đầu**, không tin rằng events thời gian downtime còn được lưu.
+- With `take()`, shutdown typically requires `Thread.interrupt()` or closing the `WatchService` from a control thread.
+- With `poll(timeout)`, the thread can check the stop flag after timeout; still close the service upon exiting.
+- `ClosedWatchServiceException` after an intentional `close()` is normally an expected shutdown condition, not necessarily an error.
+- `InterruptedException` must be handled properly, typically restoring the interrupt flag unless there is a reason to swallow it.
+- `finally` does not run on power loss or abrupt process kills; on restart, perform an **initial rescan** rather than assuming downtime events were queued.
 
-## 15. WatchKey invalid: phải phục hồi registration
+## 15. Invalid `WatchKey`: Recovering Registrations
 
-Nếu `key.reset()` trả `false`, `WatchKey` không còn hợp lệ. Một số nguyên nhân:
+If `key.reset()` returns `false`, the `WatchKey` is no longer valid. Causes include:
 
-- Thư mục được theo dõi bị xóa hoặc trở nên không còn truy cập được theo cơ chế provider.
-- Ứng dụng hủy registration bằng `key.cancel()`.
-- `WatchService` đã đóng.
-- Provider mất khả năng theo dõi mục.
+- The watched directory was deleted or became inaccessible per the provider.
+- The application cancelled the registration via `key.cancel()`.
+- The `WatchService` was closed.
+- The provider lost the ability to watch the target.
 
-Đừng chỉ `continue` vòng lặp và mong có thêm events từ key đó. Với watcher nhiều thư mục, cần loại key khỏi map và xác định có phải đăng ký lại hay không.
+Do not simply `continue` the loop expecting more events from that key. In a multi-directory watcher, remove the key from your map and decide whether re-registration is required.
 
-Nếu thư mục bị xóa rồi được tạo lại cùng đường dẫn, **registration cũ không phải lúc nào cũng tự phục hồi**. Một ứng dụng cần giám sát liên tục phải có timer kiểm tra parent/root, re-register path mới sau khi nó tồn tại trở lại và rescan lại.
+If a directory is deleted and later recreated at the same path, **the old registration does not always recover automatically**. An application needing continuous monitoring must have a timer checking the parent/root, re-registering the new path once it reappears, and rescanning.
 
-Chú ý race: thư mục có thể thay đổi ngay giữa lúc kiểm tra tồn tại và register; luôn xử lý ngoại lệ và retry có giới hạn.
+Watch out for races: the directory can change right between existence check and registration; always handle exceptions and retry with bounds.
 
-## 16. Khi theo dõi nhiều thư mục
+## 16. Watching Multiple Directories
 
-Có thể đăng ký nhiều `Path` vào cùng `WatchService`. Gắn `WatchKey` với thư mục:
+Multiple `Path`s can be registered on the same `WatchService`. Map each `WatchKey` to its directory:
 
 ```java
 Map<WatchKey, Path> registrations = new HashMap<>();
@@ -683,15 +683,15 @@ WatchKey key = directory.register(
 registrations.put(key, directory);
 ```
 
-Đây là đoạn minh họa cần biến `directory`, `watcher` và imports tương ứng.
+This is an illustrative snippet requiring `directory`, `watcher`, and corresponding imports.
 
-Khi xử lý:
+When handling events:
 
 ```java
 Path root = registrations.get(key);
 if (root != null) {
-    // Resolve event context với đúng root tương ứng.
-    // Nếu có OVERFLOW: rescan đúng root này.
+    // Resolve event context against the matching root.
+    // On OVERFLOW: rescan this exact root.
 }
 
 if (!key.reset()) {
@@ -699,116 +699,116 @@ if (!key.reset()) {
 }
 ```
 
-Một sự kiện từ thư mục A **không** được resolve trên root B. Nếu muốn một cache snapshot cho mỗi thư mục, dùng `Map<Path, Snapshot>` hoặc state object gắn key.
+An event from directory A must **never** be resolved against root B. To keep a snapshot cache per directory, use `Map<Path, Snapshot>` or a state object associated with the key.
 
-Không dùng cùng một `WatchService` với nhiều consumer threads mà giả định **mọi thread đều nhận cùng một event**. Hàng đợi WatchKey thông thường được tiêu thụ bởi một trong các consumer; nên chọn một consumer loop có ownership rõ, rồi phân phối công việc nặng tới worker pool nếu cần.
+Do not share one `WatchService` across multiple consumer threads expecting **every thread to receive the same event**. A `WatchKey` queue is normally consumed by one consumer at a time; pick a single consumer loop with clear ownership, then dispatch heavy work to a worker pool if needed.
 
-## 17. Theo dõi cây thư mục đệ quy
+## 17. Watching a Directory Tree Recursively
 
-Trong Java NIO.2 chuẩn, đăng ký thư mục thường chỉ nhận sự kiện với **các mục trực tiếp**:
+In standard Java NIO.2, registering a directory normally delivers events only for **direct entries**:
 
 ```text
-root/                  <- đăng ký root
-  a.txt                <- quan sát trực tiếp
-  sub/                 <- biết sub xuất hiện
-    b.txt              <- KHÔNG tự nhận modify b.txt
+root/                  <- registered root
+  a.txt                <- observed directly
+  sub/                 <- notifies that sub appeared
+    b.txt              <- does NOT automatically notify on b.txt modify
 ```
 
-Để theo dõi đệ quy:
+To watch recursively:
 
-1. Duyệt toàn bộ thư mục con hiện có và đăng ký **từng thư mục**.
-2. Khi `ENTRY_CREATE` báo tên mới, kiểm tra mục đó có là directory không (và xử lý symlink policy).
-3. Đăng ký directory mới và rescan nó.
-4. Khi `OVERFLOW` ở một directory, rescan directory đó. Nếu không chắc cây đăng ký còn đầy đủ, cần tái duyệt cây để phát hiện thư mục con mới/đã mất.
-5. Khi registration invalid, loại bỏ khỏi map và có kế hoạch tái đăng ký.
-6. Giới hạn số watch registrations và chi phí I/O trên cây lớn.
+1. Walk all existing subdirectories and register **each directory**.
+2. When `ENTRY_CREATE` reports a new name, check whether it is a directory (applying your symlink policy).
+3. Register the new directory and rescan it.
+4. When `OVERFLOW` hits a directory, rescan that directory. If unsure whether the registration tree is still complete, re-walk the tree to discover newly added or removed subdirectories.
+5. When a registration becomes invalid, remove it from the map and plan re-registration.
+6. Cap the number of watch registrations and I/O cost on large trees.
 
-Có race giữa việc duyệt và đăng ký thư mục con; một watcher recursive **không** có transaction bảo đảm nhìn thấy mọi biến động xảy ra cùng lúc. Đối với nghiệp vụ cần phát hiện trạng thái, periodic tree rescan là một lớp phục hồi hữu ích.
+A race exists between walking and registering subdirectories; a recursive watcher **has no transaction** guaranteeing visibility of simultaneous changes. For workflows that must observe current state, periodic tree rescans provide a useful recovery layer.
 
-## 18. Debounce và file chưa ghi xong
+## 18. Debouncing and Half-Written Files
 
-Một `ENTRY_CREATE` không bảo đảm producer đã đóng file. Ví dụ:
+An `ENTRY_CREATE` does not guarantee the producer has closed the file. Example:
 
 ```text
 Producer:
   create report.csv
   write header
-  write 10.000 rows
+  write 10,000 rows
   close file
 
 Consumer:
-  thấy ENTRY_CREATE ngay sau create
-  đọc report.csv lúc producer mới ghi 10 dòng
+  sees ENTRY_CREATE right after create
+  reads report.csv when producer has written only 10 rows
 ```
 
-Nếu nghiệp vụ import file cần nhận nội dung hoàn chỉnh, có thể thỏa thuận **giao thức công bố**:
+If file ingestion requires complete contents, establish a **publication protocol**:
 
-- Producer ghi vào file tạm trong thư mục staging.
-- Producer hoàn tất write/flush/close và kiểm tra.
-- Producer rename/move sang tên đích chính thức khi sẵn sàng; nếu yêu cầu atomicity, chỉ tuyên bố bảo đảm khi provider thực sự hỗ trợ.
-- Consumer theo dõi tên file final, không parse temp file đang ghi.
+- Producer writes to a temporary file in a staging directory.
+- Producer completes write/flush/close and checks.
+- Producer renames/moves to the official target name when ready; if atomicity is required, rely on that guarantee only when the provider truly supports it.
+- Consumer watches for the final filename and ignores temp files being written.
 
-Một chiến lược khác là **debounce** `ENTRY_MODIFY`: đợi file không thay đổi metadata trong một khoảng thời gian nhất định trước khi đọc. Nhưng debounce không chứng minh file đã hoàn chỉnh trong mọi trường hợp: producer có thể tạm ngừng lâu giữa các batch.
+Another strategy is **debouncing** `ENTRY_MODIFY`: waiting until a file's metadata stays unchanged for a set quiet window before reading. Yet debouncing does not prove completeness in all cases: a producer might pause longer between batches.
 
-Điều này liên quan trực tiếp tới OVERFLOW: khi rescan thấy một file mới, vẫn cần xác định **file đã sẵn sàng** theo giao thức nghiệp vụ trước khi xử lý.
+This ties directly to `OVERFLOW`: when a rescan discovers a new file, you still must confirm **the file is ready** per the business protocol before processing.
 
-## 19. Idempotency: xử lý trùng tín hiệu không gây kết quả sai
+## 19. Idempotency: Preventing Duplicate Signals from Causing Wrong Results
 
-WatchService có thể báo cùng file nhiều lần. Nếu mỗi event dẫn tới “gửi email” hoặc “trừ tiền” thì kết quả sẽ sai.
+`WatchService` can report the same file multiple times. If every event triggers "send email" or "debit account", results will be wrong.
 
-Thiết kế idempotency:
+Designing for idempotency:
 
-- Với mục tiêu đồng bộ cache, cập nhật theo trạng thái cuối cùng có thể lặp lại an toàn.
-- Với import tệp, lưu file/version/hash/transaction ID đã xử lý để không import hai lần.
-- Với một tác vụ có side effect, sử dụng queue/job state có trạng thái `PENDING/RUNNING/COMPLETED` và nguyên tắc retry rõ ràng.
-- Nếu file bị thay dưới cùng tên, phân biệt phiên bản file dựa trên metadata đáng tin hoặc content version do producer công bố.
-- Không coi `event.count()` là số lần nghiệp vụ cần thực hiện. Count có thể thể hiện sự gộp events, không phải số thao tác logic.
+- For cache synchronization, applying final-state updates repeatedly is safe.
+- For file ingestion, record processed file/version/hash/transaction IDs so files are not imported twice.
+- For tasks with side effects, use a queue/job state machine (`PENDING/RUNNING/COMPLETED`) and explicit retry rules.
+- If a file is replaced under the same name, distinguish file versions using trusted metadata or producer-published content versions.
+- Do not treat `event.count()` as the number of business actions to execute. Count can reflect coalesced events, not logical operations.
 
-Khi overflow khiến mất thứ tự sự kiện, một state-based/idempotent consumer thường phục hồi dễ hơn một consumer cố thực hiện side effect trên từng notification.
+When overflow loses event ordering, a state-based/idempotent consumer recovers far more easily than a consumer executing side effects per notification.
 
-## 20. Test OVERFLOW một cách xác định: mô phỏng mất sự kiện ở tầng xử lý
+## 20. Testing `OVERFLOW` Deterministically: Simulating Event Loss in the Processing Layer
 
-`OVERFLOW` thật phụ thuộc giới hạn hệ thống/provider; ép tạo hàng chục nghìn tệp vừa không portable vừa rủi ro. Thay vì đó, kiểm thử **hành vi phục hồi** bằng cách inject trạng thái “cache stale” hoặc một abstraction event handler.
+Real `OVERFLOW` depends on system/provider limits; forcing tens of thousands of files is neither portable nor safe. Instead, test **recovery behavior** by injecting a "stale cache" state or an event-handler abstraction.
 
-Trong chương trình hoàn chỉnh, ta cố ý làm:
+In the complete program, we deliberately do:
 
 ```java
-Map<Path, Stamp> stale = Map.of();       // Cache mất một entry.
-Map<Path, Stamp> recovered = scan(dir);  // Trạng thái thực tế.
+Map<Path, Stamp> stale = Map.of();       // Cache missed an entry.
+Map<Path, Stamp> recovered = scan(dir);  // Actual state.
 
 boolean restored = recovered.containsKey(Path.of("item.txt"));
 ```
 
-Đây là snippet minh họa, biến `dir` được khai báo trong bối cảnh phù hợp; ví dụ độc lập dùng `directory`.
+This is an illustrative snippet, with `dir` declared in the appropriate context; the standalone example uses `directory`.
 
-Cách này **không chứng minh OS phát OVERFLOW**, nhưng chứng minh logic rescan có thể tái phát hiện file hiện hữu khi cache thiếu mục. Có thể mở rộng test:
+This **does not prove the OS emitted `OVERFLOW`**, yet it proves the rescan logic rediscovers existing files when the cache is missing entries. You can expand tests:
 
-1. Cache cũ có `deleted.txt` nhưng file thực tế đã bị xóa → rescan phải loại nó.
-2. Cache cũ thiếu `new.txt` → rescan phải thêm nó.
-3. Cache cũ có metadata cũ của `edited.txt` → rescan thấy fingerprint mới.
-4. Một số file vừa tạo rồi xóa trước rescan → không thể tái tạo lịch sử, phải chấp nhận giới hạn này.
-5. Scan thất bại vì `AccessDeniedException` → giữ cache ở trạng thái **không chắc chắn** và báo lỗi; không chuyển sang empty map.
-6. Event handler nhận synthetic `OVERFLOW` qua abstraction test/stub (không giả là event thật từ OS) → đảm bảo gọi rescan và metrics.
+1. Old cache holds `deleted.txt` though the real file was deleted → rescan must remove it.
+2. Old cache lacks `new.txt` → rescan must add it.
+3. Old cache holds stale metadata for `edited.txt` → rescan observes the new fingerprint.
+4. Files created and deleted before rescan → history cannot be reconstructed; accept this boundary.
+5. Scan fails with `AccessDeniedException` → keep cache in an **uncertain** state and report error; do not swap to an empty map.
+6. Event handler receives a synthetic `OVERFLOW` through a test/stub abstraction (without pretending it came from the OS) → verify rescan and metrics are triggered.
 
-Điểm cần kiểm thử là **reconciliation được kích hoạt và tính đúng của trạng thái cuối**, không phải “bao nhiêu events” mà một OS tình cờ phát trong vài mili-giây.
+What must be tested is **that reconciliation is triggered and the final state is accurate**, not "how many events" a particular OS happens to emit in a few milliseconds.
 
-## 21. Kiểm thử thực tế khi thay đổi diễn ra liên tục
+## 21. Practical Testing Under Continuous Changes
 
-Một bộ tích hợp có thể:
+An integration suite can:
 
-- Tạo/sửa/xóa file giữa nhiều lượt `poll`.
-- Rename file trong cùng thư mục.
-- Tạo file ở thư mục con (xác nhận không tự watch recursive).
-- Tạo nhiều file theo batch.
-- Thay file trong khi handler đang quét.
-- Khởi động watcher lại sau khi thay đổi đã xảy ra.
-- Rút quyền đọc thư mục **chỉ trong test environment**, xác nhận không ghi nhận trạng thái rỗng giả.
-- Dừng watcher bằng interrupt/close rồi kiểm tra giải phóng tài nguyên.
-- Thực thi trên Linux/Windows/macOS và filesystem thật nếu sản phẩm hỗ trợ.
+- Create/modify/delete files across multiple `poll` cycles.
+- Rename files within the same directory.
+- Create files in subdirectories (verifying watches are not automatically recursive).
+- Create files in batches.
+- Modify files while the handler is scanning.
+- Restart the watcher after changes occurred offline.
+- Revoke directory read permission **only inside a test environment**, confirming no false empty state is recorded.
+- Stop the watcher via interrupt/close and verify resource release.
+- Run on Linux/Windows/macOS and real deployment filesystems if supported.
 
-**Không viết assertion** rằng một lần `Files.writeString` luôn phát chính xác một `ENTRY_CREATE` và một `ENTRY_MODIFY` theo thứ tự cố định. Kiểm thử integration nên chờ **eventual state** trong một deadline hợp lý; kiểm thử thuật toán diff/recovery thì dùng snapshot giả lập để có output deterministic.
+**Never write assertions** expecting a single `Files.writeString` to always emit exactly one `ENTRY_CREATE` and one `ENTRY_MODIFY` in a fixed order. Integration tests should wait for **eventual state** within a reasonable deadline; diff/recovery algorithms should be unit-tested with synthetic snapshots for deterministic output.
 
-### Chuỗi thao tác ví dụ
+### Example Sequence of Operations
 
 ```text
 t0  register root
@@ -821,224 +821,224 @@ t6  delete a.txt
 t7  rescan: {}
 ```
 
-`t3` và `t5` có thể không tương ứng đúng một WatchKey trên mọi provider. Do đó test nên tập trung vào việc cuối cùng cache phản ánh `{a.txt}`, rồi `{}` khi file đã bị xóa, thay vì cố so event count.
+`t3` and `t5` may not correspond one-to-one with single `WatchKey`s across all providers. Therefore, tests should assert that the cache eventually reflects `{a.txt}` and then `{}` after deletion, rather than comparing raw event counts.
 
-## 22. Khi OVERFLOW nhiều lần: hiệu năng và backpressure
+## 22. Repeated `OVERFLOW`: Performance and Backpressure
 
-Một `OVERFLOW` lặp lại thường là tín hiệu rằng ứng dụng không theo kịp cường độ thay đổi, event processing quá chậm hoặc provider có giới hạn riêng.
+Repeated `OVERFLOW` events usually signal that the application cannot keep up with change rates, event processing is too slow, or the provider has tight limits.
 
-Các biện pháp:
+Mitigations:
 
-1. **Rút ngắn công việc trong watch loop:** chỉ thu nhận event hint và đưa công việc nặng sang queue có giới hạn.
-2. **Gộp công việc theo đường dẫn:** nếu cùng file xuất hiện 100 modify events, chỉ lên lịch một lần kiểm tra trạng thái cuối theo policy.
-3. **Thêm debouncing hợp lý** khi input producer có nhiều thao tác nhỏ.
-4. **Giới hạn concurrency** của worker để không làm quá tải ổ đĩa/CPU.
-5. **Rescan có điều phối:** không để 1.000 overflow events khởi tạo đồng thời 1.000 full scans cùng directory. Coalesce thành một “dirty” flag và một rescan đang chạy.
-6. **Đo metrics:** overflow count, queue delay, scan duration, number of watched dirs, number of entries, error rate.
-7. **Chạy periodic reconciliation** để bù đắp missed events hoặc downtime.
-8. **Đánh giá kiến trúc:** nếu một directory có hàng triệu thay đổi/giây, WatchService + full rescan có thể không phải công cụ đáp ứng đúng nhu cầu. Chọn message queue, database change log hoặc upstream protocol thích hợp.
+1. **Shorten work inside the watch loop:** only collect event hints and offload heavy work to a bounded queue.
+2. **Coalesce work by path:** if the same file produces 100 modify events, schedule only one final-state check per policy.
+3. **Add sensible debouncing** when producers perform bursts of small edits.
+4. **Cap worker concurrency** so disk/CPU are not saturated.
+5. **Coordinate rescans:** never let 1,000 overflow events launch 1,000 concurrent full scans of the same directory. Coalesce into one "dirty" flag and one in-flight rescan.
+6. **Track metrics:** overflow count, queue delay, scan duration, watched directory count, entry count, and error rates.
+7. **Run periodic reconciliation** to recover from missed events or downtime.
+8. **Re-evaluate architecture:** if a directory sees millions of changes/sec, `WatchService` + full rescan may be the wrong tool. Pick a message queue, database change log, or proper upstream protocol.
 
-Không cố giải quyết overflow chỉ bằng cách **tăng kích thước ByteBuffer** trong Java; cơ chế queue/watch notification phụ thuộc OS/provider và không có một nút cấu hình portable cho mọi giới hạn.
+Do not try to solve overflow merely by **increasing a `ByteBuffer` size** in Java; watch notification queues are managed by the OS/provider and lack a single portable knob for all limits.
 
-## 23. Xử lý lỗi và trạng thái không chắc chắn
+## 23. Error Handling and Uncertain States
 
-Một watcher chạy production cần phân biệt:
+A production watcher must distinguish:
 
-| Tình huống | Hành vi đề xuất |
+| Scenario | Recommended Behavior |
 |---|---|
-| `watcher.poll(...) == null` | Chưa có key trong thời hạn; có thể periodic rescan |
-| `OVERFLOW` | Đánh dấu dirty, full rescan, reconcile |
-| `key.reset() == false` | Registration invalid; loại bỏ, cân nhắc đăng ký lại |
-| `Files.newDirectoryStream` thất bại | Không tự coi thư mục rỗng; giữ cache cũ và báo lỗi |
-| Mục biến mất khi `readAttributes` | Bỏ qua mục đó trong lượt hiện tại, retry/reconcile theo policy |
-| `AccessDeniedException` | Kiểm tra process OS permissions, parent directory ACL, mount |
-| `ClosedWatchServiceException` | Thường là shutdown; nếu không chủ đích, điều tra lifecycle |
-| `InterruptedException` | Phục hồi interrupt flag và thoát/retry theo policy |
-| `ENTRY_CREATE` trên file chưa hoàn tất | Chờ publish protocol, retry có giới hạn hoặc debounce |
-| Hết bộ nhớ vì lưu snapshot lớn | Giới hạn dữ liệu, dùng index/state store, phân vùng watcher |
-| File bị sửa trong khi hash | Dữ liệu không phải snapshot nguyên tử; cần producer contract |
+| `watcher.poll(...) == null` | No key within timeout; periodic rescan may run |
+| `OVERFLOW` | Mark dirty, full rescan, reconcile |
+| `key.reset() == false` | Registration invalid; remove, consider re-registering |
+| `Files.newDirectoryStream` fails | Do not treat directory as empty; keep old cache and report error |
+| Entry vanishes during `readAttributes` | Skip that entry on this pass; retry/reconcile per policy |
+| `AccessDeniedException` | Check process OS permissions, parent directory ACLs, mount |
+| `ClosedWatchServiceException` | Usually shutdown; if unintended, investigate lifecycle |
+| `InterruptedException` | Restore interrupt flag and exit/retry per policy |
+| `ENTRY_CREATE` on incomplete file | Wait for publish protocol, bounded retries, or debounce |
+| Out of memory storing large snapshots | Bound data, use an index/state store, partition watchers |
+| File modified during hashing | Data is not an atomic snapshot; requires producer contract |
 
-Nếu full rescan thất bại, một thiết kế chặt nên đưa watcher vào trạng thái **DEGRADED/NEEDS_RESCAN**, không cập nhật cache theo một snapshot chưa đầy đủ. Để chạy ổn định, log lỗi và lập lịch retry có backoff; đừng loop nóng khiến lỗi I/O liên tục chiếm CPU.
+If a full rescan fails, a strict design puts the watcher into **DEGRADED/NEEDS_RESCAN** state rather than replacing the cache with an incomplete snapshot. For stability, log errors and schedule retries with backoff; never spin in a hot loop where persistent I/O errors burn CPU.
 
-## 24. Bảo mật khi xử lý file từ thư mục được theo dõi
+## 24. Security When Handling Files from Watched Directories
 
-Một số nguy cơ mà OVERFLOW recovery không giải quyết:
+Risks that `OVERFLOW` recovery does not eliminate:
 
-- **Path traversal / symlink escape:** `directory.resolve(event.context())` không phải ranh giới an ninh nếu attacker có thể thay namespace; xác thực root và giới hạn quyền process.
-- **Symlink races:** file có thể bị thay giữa lúc kiểm tra metadata và lúc mở. `NOFOLLOW_LINKS` trong một lệnh readAttributes không đảm bảo mọi I/O sau đó an toàn.
-- **Không tin file vừa xuất hiện:** một producer không tin cậy có thể tạo content sai, quá lớn, zip bomb hoặc file chứa script; phải validate định dạng và quota.
-- **Các quyền OS:** WatchService không cấp quyền đọc file. Process có thể nhận notification nhưng bị từ chối đọc nội dung.
-- **Tệp bí mật:** đừng in toàn bộ nội dung hoặc path chứa dữ liệu nhạy cảm trong logs.
-- **Multi-tenant:** xác nhận quyền nghiệp vụ trước khi xử lý file của người khác. OS chỉ biết process identity, không tự biết tenant của từng request.
-- **Chạy code từ watcher:** tuyệt đối không tự thực thi file mới được phát hiện mà không có kiểm soát nguồn tin cậy, chữ ký/approval và isolation.
-- **Xóa nhầm:** reconciliation không phải lệnh `delete` tự động. Khi một entry vắng mặt trong scan, trước khi xóa dữ liệu tại database/backup nên có policy xác nhận trạng thái và xử lý lỗi I/O hợp lý.
+- **Path traversal / symlink escape:** `directory.resolve(event.context())` is not a security boundary if an attacker controls the namespace; validate against root and restrict process permissions.
+- **Symlink races:** a file can be swapped between metadata inspection and opening. `NOFOLLOW_LINKS` on a single `readAttributes` call does not secure subsequent I/O.
+- **Distrust newly appeared files:** an untrusted producer may drop malformed content, oversized payloads, zip bombs, or scripts; validate format and quotas.
+- **OS permissions:** `WatchService` grants no file read access. A process can receive notifications yet be denied content reads.
+- **Confidential files:** never log full file contents or paths carrying sensitive data.
+- **Multi-tenant:** verify business authorization before processing another tenant's files. The OS tracks process identity, not per-request tenants.
+- **Executing code from watchers:** never auto-execute newly discovered files without trusted origin checks, signatures/approvals, and isolation.
+- **Accidental deletion:** reconciliation is not an automatic `delete` command. When an entry disappears in a scan, apply confirmation policies and handle I/O errors before deleting records in databases or backups.
 
-File system events là **tín hiệu đầu vào không đáng tin về mặt nghiệp vụ**. Hãy validate nguồn, schema và trạng thái trước khi tạo side effects.
+Filesystem events are **untrusted business inputs**. Validate origin, schema, and state before triggering side effects.
 
-## 25. Mở rộng: thiết kế theo mô hình “dirty directory”
+## 25. Extension: Designing Around a "Dirty Directory" Model
 
-Đối với watcher có nhiều thay đổi liên tục, một cách tổ chức tốt là quản lý **dirty flag**:
+For watchers facing rapid continuous changes, a clean architecture is managing **dirty flags**:
 
 ```text
 WatchService consumer:
   on ENTRY_*:
-      đánh dấu path/dir cần kiểm tra
+      mark path/dir as needing inspection
   on OVERFLOW:
-      đánh dấu directory FULL_RESCAN_REQUIRED
+      mark directory FULL_RESCAN_REQUIRED
   reset key
 
 Reconciliation worker:
   if FULL_RESCAN_REQUIRED:
       scan directory
-      so snapshot
+      diff snapshot
       apply idempotent changes
-      clear flag khi scan + commit thành công
+      clear flag only when scan + commit succeed
   else:
-      kiểm tra paths dirty
+      inspect dirty paths
       apply state changes
 ```
 
-Quy tắc quan trọng với đồng thời:
+Key concurrency rules:
 
-- Không xóa cờ dirty khi một thay đổi mới đã đến **trong lúc** rescan/commit. Cần version/generation counter hoặc cơ chế queue có khóa để không làm mất tín hiệu.
-- Không chạy nhiều full rescans đồng thời cùng một directory nếu không có lý do.
-- Retry scan/commit thất bại mà không tuyên bố dữ liệu đã đồng bộ.
-- Có lịch periodic scan độc lập để bắt missed events.
-- Nếu một entry được tạo và xóa trong lúc scan, không suy ra lịch sử đầy đủ từ snapshot cuối.
-- Backpressure: khi công việc downstream chậm, không để queue unbounded gây OOM.
+- Never clear a dirty flag if a new change arrived **during** the rescan/commit. Use a version/generation counter or locked queue to avoid losing signals.
+- Do not run multiple concurrent full rescans on the same directory without reason.
+- Retry failed scans/commits without declaring data synchronized.
+- Keep an independent periodic scan schedule to catch missed events.
+- If an entry is created and deleted mid-scan, do not infer full history from the final snapshot.
+- Backpressure: when downstream work slows down, prevent unbounded queues from causing OOM.
 
-Đây là bước nâng cao từ demo single-thread. Không cần triển khai toàn bộ concurrency framework để hiểu trọng tâm WatchService và overflow.
+This is an advancement over the single-thread demo. You do not need a full concurrency framework to grasp the core of `WatchService` and overflow handling.
 
-## 26. Các lỗi phổ biến trong bài thực hành
+## 26. Common Mistakes in Practice Exercises
 
-1. **Không xử lý `OVERFLOW`**: cache có thể lệch vĩnh viễn sau khi mất event.
-2. **Ép `event.context()` sang `Path` trước khi kiểm tra OVERFLOW**: dữ liệu overflow không đại diện cho file path hợp lệ.
-3. **Tin rằng từng event là lịch sử chính xác**: có thể bị gộp hoặc mất, không có exactly-once.
-4. **Không gọi `key.reset()`**: bỏ lỡ các tín hiệu tiếp theo.
-5. **Không kiểm tra `reset() == false`**: registration invalid vẫn bị giữ trong cấu trúc quản lý.
-6. **Dùng `take()` trong thread chính mà không có shutdown**: chờ vô hạn khi không còn sự kiện.
-7. **Dùng `poll()` trong vòng busy loop**: CPU tăng cao khi không có key.
-8. **Đăng ký sau khi đã scan rồi tưởng không có race**: thay đổi ở khoảng trước registration có thể bị bỏ lỡ.
-9. **Đọc `ENTRY_CREATE` như “file đã ghi xong”**: producer có thể đang ghi nội dung.
-10. **Chạy tác vụ nặng trực tiếp trong watcher event loop**: backlog tăng và dễ overflow.
-11. **Dùng snapshot metadata để tuyên bố mọi nội dung luôn phát hiện được**: hash/version có thể cần thiết.
-12. **Nếu scan lỗi thì trả `Map.of()` và xóa toàn bộ cache**: nhầm “không đọc được” với “thư mục rỗng”.
-13. **Coi watch root là recursive**: directory con cần đăng ký riêng.
-14. **Giải quyết OVERFLOW bằng cách tăng read buffer**: không sửa giới hạn provider event queue.
-15. **Tạo hàng triệu file để “unit test overflow”**: không portable, gây áp lực máy; test recovery bằng injection/synthetic state.
-16. **Chỉ tin output test ở một OS**: số lượng/thứ tự events thay đổi theo provider.
-17. **Không quản lý symlink/TOCTOU**: có thể đọc nhầm file ngoài phạm vi.
-18. **Không dùng idempotency**: một file modify có thể kích hoạt xử lý nhiều lần.
-19. **Không khôi phục khi restart**: notification thời gian downtime không được WatchService lưu bền.
-20. **Đóng watcher nhưng không xử lý ClosedWatchServiceException**: báo lỗi shutdown không cần thiết.
-21. **Giữ các keys invalid trong map**: rò reference và mất khả năng theo dõi đúng.
-22. **Dùng WatchService làm audit log tài chính/pháp lý**: không có bảo đảm đầy đủ mọi thao tác trung gian.
-23. **Không giới hạn queue/concurrency**: memory/CPU exhaustion khi thư mục đổi nhanh.
-24. **Xem kết quả scan là snapshot nguyên tử**: filesystem có thể đổi trong lúc duyệt, cần giao thức writer.
-25. **Hòa giải cache xong nhưng không reset key đúng lúc**: mất khả năng nhận notification tiếp theo.
+1. **Ignoring `OVERFLOW`**: caches can drift permanently after missed events.
+2. **Casting `event.context()` to `Path` before checking `OVERFLOW`**: overflow data does not represent a valid file path.
+3. **Believing individual events form an exact history**: events can be coalesced or lost; there is no exactly-once guarantee.
+4. **Forgetting `key.reset()`**: misses all subsequent notifications.
+5. **Not checking `reset() == false`**: invalid registrations linger in tracking structures.
+6. **Using `take()` on the main thread with no shutdown path**: blocks forever when no events arrive.
+7. **Using `poll()` in a busy loop**: spikes CPU when idle.
+8. **Registering after scanning and assuming no race**: changes right before registration can be missed.
+9. **Treating `ENTRY_CREATE` as "file finished writing"**: producer may still be writing.
+10. **Running heavy work inside the watcher event loop**: increases backlog and triggers overflows.
+11. **Using metadata snapshots and claiming all content edits are detected**: hashes/versions may be necessary.
+12. **Returning `Map.of()` and wiping cache when scan fails**: confuses "unreadable" with "empty directory".
+13. **Assuming watching the root is recursive**: subdirectories must be registered individually.
+14. **Trying to fix `OVERFLOW` by increasing a read buffer**: does not change provider event-queue limits.
+15. **Creating millions of files to "unit test overflow"**: non-portable and stresses the machine; test recovery via injection/synthetic state.
+16. **Trusting test behavior on a single OS**: event counts and ordering vary across providers.
+17. **Ignoring symlinks/TOCTOU**: risks reading files outside intended scope.
+18. **Skipping idempotency**: a single file edit can trigger duplicate processing.
+19. **Failing to recover across restarts**: downtime notifications are not persisted by `WatchService`.
+20. **Closing the watcher without handling `ClosedWatchServiceException`**: raises spurious shutdown errors.
+21. **Keeping invalid keys in maps**: leaks references and breaks tracking.
+22. **Using `WatchService` as a financial/legal audit log**: lacks guarantees for intermediate operations.
+23. **Leaving queues/concurrency unbounded**: memory/CPU exhaustion under rapid directory churn.
+24. **Treating scan output as an atomic snapshot**: the filesystem can change mid-walk without a writer protocol.
+25. **Reconciling cache yet forgetting to reset the key timely**: stops future notifications.
 
-## 27. Bài tập mở rộng
+## 27. Extension Exercises
 
-### Bài 1 — Diff added/removed/changed
+### Exercise 1 — Added/Removed/Changed Diff
 
-Viết hàm `diff(oldSnapshot, newSnapshot)` trả ba tập `added`, `removed`, `changed`. Dùng record `Stamp` trong ví dụ. Thử dữ liệu giả lập để stdout không phụ thuộc WatchService.
+Write `diff(oldSnapshot, newSnapshot)` returning three sets: `added`, `removed`, `changed`. Reuse the `Stamp` record from the example. Test with synthetic data so stdout does not depend on `WatchService`.
 
-### Bài 2 — Force reconciliation khi mất sự kiện
+### Exercise 2 — Force Reconciliation on Missed Events
 
-Tạo file `A.txt` rồi không đưa event vào cache; gọi `scan` và cập nhật cache. Tiếp tục xóa file và quét lại để loại mục bị mất. Giải thích tại sao đây là test recovery nhưng **không khẳng định OS đã phát OVERFLOW**.
+Create `A.txt` without feeding its event into the cache; call `scan` and update the cache. Next delete the file and rescan to remove the missing entry. Explain why this tests recovery yet **does not prove the OS emitted `OVERFLOW`**.
 
-### Bài 3 — Watch loop chạy 30 giây
+### Exercise 3 — 30-Second Watch Loop
 
-Dùng `poll(500, TimeUnit.MILLISECONDS)`, trong 30 giây cho phép bạn tạo/sửa/xóa file thủ công. Đừng in mỗi event không kiểm soát; tổng hợp số key, số overflow và số lần rescan.
+Use `poll(500, TimeUnit.MILLISECONDS)` for 30 seconds while you manually create/edit/delete files. Do not print every raw event uncontrolled; summarize key count, overflow count, and rescan count.
 
-### Bài 4 — Debounce
+### Exercise 4 — Debounce
 
-Thêm map `Path → lastHintTime`, gộp nhiều modify hints trong 300–500 ms và chỉ xử lý khi đã đủ thời gian; sau cùng vẫn validate file complete bằng producer contract.
+Add a `Path → lastHintTime` map, coalesce multiple modify hints within 300–500 ms, and process only after the quiet window elapses; still verify file completeness using a producer contract.
 
-### Bài 5 — Theo dõi đệ quy
+### Exercise 5 — Recursive Watching
 
-Duyệt cây và đăng ký từng thư mục. Khi `ENTRY_CREATE` là directory, đăng ký rồi scan nội dung. Khi key invalid, loại khỏi map. Thêm periodic full tree rescan để phục hồi khoảng race.
+Walk the tree and register every directory. When `ENTRY_CREATE` is a directory, register it and scan its contents. Remove keys from the map when invalid. Add periodic full-tree rescans to cover race windows.
 
-### Bài 6 — Khôi phục sau restart
+### Exercise 6 — Recovery After Restart
 
-Chạy watcher, tạo file, tắt tiến trình, sửa/xóa/thêm file trong lúc watcher tắt, bật lại. Chứng minh initial scan tái lập **trạng thái cuối**, nhưng không cho biết chính xác mỗi thao tác xảy ra trong downtime.
+Start the watcher, create files, stop the process, modify/delete/add files while offline, then restart. Demonstrate that the initial scan restores **final state**, while not revealing the exact intermediate operations performed during downtime.
 
-### Bài 7 — Giới hạn tài nguyên
+### Exercise 7 — Resource Bounding
 
-Giả lập 10.000 event hints cho cùng một tên file bằng unit test abstraction (không tạo 10.000 file thật). Đảm bảo scheduling coalesce thành một công việc kiểm tra trạng thái cuối và queue không tăng không giới hạn.
+Simulate 10,000 event hints for the same filename via a unit-test abstraction (without creating 10,000 real files). Verify scheduling coalesces into one final-state check and the queue never grows unboundedly.
 
-## 28. Câu hỏi tự kiểm tra
+## 28. Self-Check Questions
 
-**1.** `OVERFLOW` có cung cấp tên những file đã bị mất event không?  
-**Không.** Nó chỉ báo khả năng mất notification; phải rescan trạng thái hiện tại.
+**1.** Does `OVERFLOW` provide the names of files whose events were lost?  
+**No.** It only warns of potential lost notifications; you must rescan current state.
 
-**2.** Sau full rescan, có thể biết file nào đã được tạo rồi xóa giữa hai lần scan không?  
-**Không chắc.** Trạng thái cuối có thể không lưu dấu vết thao tác trung gian.
+**2.** After a full rescan, can you always tell which files were created and deleted between two scans?  
+**Not reliably.** The final state may leave no trace of intermediate operations.
 
-**3.** Vì sao event handler cần gọi `key.reset()`?  
-**Để key có thể tiếp tục nhận báo hiệu** nếu registration còn hợp lệ.
+**3.** Why must the event handler call `key.reset()`?  
+**So the key can continue receiving signals** if the registration remains valid.
 
-**4.** `key.reset() == false` nghĩa là gì?  
-**Registration invalid**, cần loại khỏi watcher state và cân nhắc đăng ký lại.
+**4.** What does `key.reset() == false` mean?  
+**The registration is invalid**; remove it from watcher state and consider re-registering.
 
-**5.** `poll(timeout)` trả null có chứng minh không có file đổi không?  
-**Không.** Chỉ là chưa có key được lấy trong khoảng đợi, với mọi giới hạn của provider.
+**5.** Does `poll(timeout)` returning null prove no files changed?  
+**No.** It only means no key was dequeued within the wait period, subject to provider limits.
 
-**6.** Vì sao snapshot nên đọc trực tiếp từ filesystem thay vì tin vào danh sách events?  
-**Vì events có thể gộp, đến trễ hoặc bị mất**, còn snapshot phản ánh trạng thái được quan sát tại thời điểm scan.
+**6.** Why should snapshots be read directly from the filesystem rather than trusting the event list?  
+**Because events can be coalesced, delayed, or lost**, whereas a snapshot reflects state observed at scan time.
 
-**7.** Có thể xử lý `ENTRY_CREATE` bằng cách parse file ngay không?  
-**Không nên mặc định.** Producer có thể còn ghi; dùng publish protocol/validation/debounce phù hợp.
+**7.** Can `ENTRY_CREATE` be handled by parsing the file immediately?  
+**Not by default.** The producer may still be writing; use an appropriate publish protocol, validation, or debounce.
 
-**8.** `Files.newDirectoryStream(root)` có tự quét đệ quy không?  
-**Không.** Nó liệt kê các mục trực tiếp trong root.
+**8.** Does `Files.newDirectoryStream(root)` scan recursively?  
+**No.** It lists only direct entries inside `root`.
 
-**9.** Fingerprint size + mtime có phát hiện mọi lần thay nội dung không?  
-**Không.** Có thể cần digest/version/snapshot protocol khi yêu cầu cao hơn.
+**9.** Does a size + mtime fingerprint detect every content modification?  
+**No.** A digest, version, or snapshot protocol may be required for stricter guarantees.
 
-**10.** Vì sao không nên stress tạo hàng triệu file chỉ để unit test overflow?  
-**Vì kết quả phụ thuộc provider và có thể làm quá tải môi trường**; nên test recovery độc lập với nguồn event.
+**10.** Why shouldn't you stress-create millions of files just to unit-test overflow?  
+**Because results depend on the provider and can overload the environment**; test recovery independently of the event source.
 
-**11.** Khi full rescan ném `AccessDeniedException` có nên gán cache bằng empty map không?  
-**Không.** “Không đọc được” không đồng nghĩa “không có entry”; giữ trạng thái không chắc chắn và retry.
+**11.** When a full rescan throws `AccessDeniedException`, should you set the cache to an empty map?  
+**No.** "Unreadable" does not mean "no entries"; maintain an uncertain state and retry.
 
-**12.** `WatchService` có thể dùng làm exactly-once audit log không?  
-**Không.** Nó không bảo đảm lưu bền và phát lại mọi thay đổi.
+**12.** Can `WatchService` act as an exactly-once audit log?  
+**No.** It does not guarantee durable persistence and replay of every change.
 
-## 29. Checklist trước khi triển khai
+## 29. Pre-Deployment Checklist
 
-- [ ] Xác định directory root và file types cần theo dõi.
-- [ ] Xác định permission của process và filesystem/provider hỗ trợ.
-- [ ] Đăng ký root trước initial scan khi phù hợp.
-- [ ] Định nghĩa snapshot cache và mức chính xác cần thiết của metadata/hash/version.
-- [ ] Nhận `WatchKey` bằng take hoặc timed poll, có shutdown policy.
-- [ ] Drain `pollEvents()` và **xử lý OVERFLOW trước context cast**.
-- [ ] Với OVERFLOW, full rescan và reconcile theo trạng thái thực tế.
-- [ ] Có periodic reconciliation/initial scan khi cần phục hồi missed events.
-- [ ] Bảo đảm `key.reset()` và xử lý key invalid.
-- [ ] Định nghĩa registration map nếu theo dõi nhiều thư mục.
-- [ ] Không giả định recursive watch; đăng ký subdirectories riêng.
-- [ ] Dùng idempotent processing, queue có giới hạn và debounce phù hợp.
-- [ ] Xử lý file chưa hoàn tất, rename, symlink và TOCTOU.
-- [ ] Không biến scan failure thành trạng thái rỗng giả.
-- [ ] Thống kê overflow, latency, rescan errors, queue depth.
-- [ ] Kiểm thử đúng/tái lập bằng synthetic state và trên OS thật cho integration.
-- [ ] Không xác nhận số lượng hay thứ tự `ENTRY_MODIFY` cố định.
-- [ ] Thử restart để xác nhận cache được xây lại từ snapshot.
-- [ ] Đóng WatchService, xử lý interrupt, cancel keys khi không cần nữa.
-- [ ] Nếu yêu cầu mọi thao tác chính xác, chọn journal/transaction log khác.
+- [ ] Identify root directories and file types to watch.
+- [ ] Verify process permissions and filesystem/provider support.
+- [ ] Register roots before initial scan where appropriate.
+- [ ] Define snapshot cache and required accuracy of metadata/hashes/versions.
+- [ ] Receive `WatchKey`s via `take` or timed `poll`, with a shutdown policy.
+- [ ] Drain `pollEvents()` and **check `OVERFLOW` before casting context**.
+- [ ] On `OVERFLOW`, run a full rescan and reconcile against actual state.
+- [ ] Schedule periodic reconciliation/initial scans when recovery from missed events is needed.
+- [ ] Guarantee `key.reset()` and handle invalid keys.
+- [ ] Maintain a registration map when watching multiple directories.
+- [ ] Never assume recursive watches; register subdirectories individually.
+- [ ] Use idempotent processing, bounded queues, and proper debouncing.
+- [ ] Handle half-written files, renames, symlinks, and TOCTOU races.
+- [ ] Never turn scan failures into false empty states.
+- [ ] Track metrics for overflows, latency, rescan errors, and queue depth.
+- [ ] Unit-test recovery deterministically via synthetic state and integration-test on real target OSes.
+- [ ] Never assert fixed counts or ordering of `ENTRY_MODIFY` events.
+- [ ] Test restarts to verify caches rebuild from snapshots.
+- [ ] Close `WatchService`, handle interrupts, and cancel keys when no longer needed.
+- [ ] If every single operation must be captured, choose a journal or transaction log instead.
 
-## 30. Tổng kết
+## 30. Summary
 
-- **WatchService là hệ thống thông báo thay đổi thư mục**, không phải log đầy đủ hay snapshot nhất quán của filesystem.
-- **`OVERFLOW` là tín hiệu rằng một số events có thể đã bị mất**. Không thể khôi phục trực tiếp danh sách event bị bỏ; cần **quét lại trạng thái hiện tại**.
-- Một thiết kế đơn giản đáng tin hơn cho bài thực hành là **register → scan → poll/take → drain events → rescan/reconcile → reset → lặp**.
-- **WatchEvent.context()` với `ENTRY_*` thường là Path tương đối**; phải gắn đúng thư mục đã đăng ký. Với `OVERFLOW`, không ép context sang Path.
-- **Snapshot metadata chỉ phát hiện được sự khác biệt mà nó lưu**; size/mtime không đủ cho mọi yêu cầu dữ liệu.
-- **Unit test recovery bằng synthetic stale cache**, không phụ thuộc tạo overflow thật; integration test kiểm tra eventual state, không đếm số lượng events cố định.
-- Khi cần production-grade watcher: thêm shutdown, re-registration, periodic rescan, xử lý race, idempotency, giới hạn tài nguyên và giám sát.
+- **`WatchService` is a directory-change notification system**, not a complete log or consistent filesystem snapshot.
+- **`OVERFLOW` signals that some events may have been lost**. Dropped events cannot be queried back directly; you must **rescan current state**.
+- A simpler, more reliable exercise design is **register → scan → poll/take → drain events → rescan/reconcile → reset → repeat**.
+- **WatchEvent.context()` for `ENTRY_*` is normally a relative `Path`**; resolve it against the exact registered directory. For `OVERFLOW`, never cast `context` to `Path`.
+- **Metadata snapshots detect only differences in what they record**; size/mtime are insufficient for all data requirements.
+- **Unit-test recovery with a synthetic stale cache**, without relying on real overflows; integration tests verify eventual state rather than fixed event counts.
+- For production-grade watchers: add shutdown, re-registration, periodic rescans, race handling, idempotency, resource limits, and observability.
 
-### Tài liệu tham khảo Java 17
+### Java 17 References
 
 - [WatchService](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/WatchService.html)
 - [WatchKey](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/WatchKey.html)

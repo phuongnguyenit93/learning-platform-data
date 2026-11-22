@@ -1,87 +1,87 @@
-# Tra cứu Javadoc, Serialization Specification và khả năng của provider trong Java I/O
+# Consulting Javadoc, the Serialization Specification, and Provider Capabilities in Java I/O
 
-## 1. Mục tiêu và cách chọn nguồn tài liệu
+## 1. Purpose and How to Choose Documentation Sources
 
-Khi sử dụng Java I/O, câu hỏi quan trọng không chỉ là “gọi phương thức nào?” mà còn là “Java bảo đảm hành vi nào, hành vi nào tùy hệ điều hành hoặc provider, và lỗi có thể xảy ra ở đâu?”. Ba nguồn thông tin giải quyết ba lớp câu hỏi khác nhau:
+When using Java I/O, the key question is not merely "which method should I call?" but also "what behavior does Java guarantee, what behavior depends on the OS or provider, and where can errors occur?". Three information sources answer three different classes of questions:
 
-| Nguồn | Trả lời điều gì? | Ví dụ câu hỏi |
+| Source | What does it answer? | Example questions |
 | --- | --- | --- |
-| **Javadoc của Java SE** | Chữ ký API, ngữ nghĩa, tham số, giá trị trả về, ngoại lệ, bảo đảm và giới hạn của từng lớp/phương thức. | `Files.move` có bảo đảm atomic không? `InputStream.read` trả về gì khi hết dữ liệu? |
-| **Java Object Serialization Specification** | Quy tắc chuẩn của cơ chế tuần tự hóa đối tượng: đồ thị đối tượng, trạng thái được lưu, định dạng luồng, phục hồi, tương thích phiên bản, hook và bảo mật. | `transient` được xử lý thế nào? Khi đổi trường hoặc `serialVersionUID` thì việc đọc dữ liệu cũ ra sao? |
-| **Tài liệu và khả năng của provider đang chạy** | Những gì một triển khai thực tế hỗ trợ, như file attribute view, symbolic link, atomic move, ZIP filesystem hoặc tùy chọn mở tệp. | Provider của `Path` này có hỗ trợ POSIX permissions không? |
+| **Java SE Javadoc** | API signatures, semantics, parameters, return values, exceptions, guarantees, and limitations of each class/method. | Does `Files.move` guarantee atomicity? What does `InputStream.read` return at end of data? |
+| **Java Object Serialization Specification** | Standard rules of the object serialization mechanism: object graphs, persisted state, stream format, restoration, version compatibility, hooks, and security. | How is `transient` handled? What happens when reading old data after changing fields or `serialVersionUID`? |
+| **Documentation and capabilities of the active provider** | What a concrete implementation supports, such as file attribute views, symbolic links, atomic moves, ZIP filesystems, or file open options. | Does this `Path`'s provider support POSIX permissions? |
 
-**Nguyên tắc:** Javadoc và specification là hợp đồng để lập luận; phát hiện capability tại runtime giúp chọn nhánh xử lý phù hợp. Một tính năng “optional” trong Javadoc không trở thành tính năng luôn có chỉ vì hoạt động trên máy phát triển.
+**Principle:** Javadoc and specifications form the contract for reasoning; runtime capability discovery helps select the right branch. An "optional" feature in Javadoc does not become universally guaranteed just because it works on a development machine.
 
-Cần chốt **phiên bản JDK mục tiêu** (ví dụ Java 17 hoặc 21) trước khi tra cứu. Chọn đúng tài liệu Java SE cho phiên bản đó; API mới hơn có thể chưa tồn tại ở JDK đang chạy. Bài này minh họa bằng Java 17+ và liên kết tài liệu Java SE 21 để tra cứu.
+Pin down your **target JDK version** (for example, Java 17 or 21) before looking things up. Pick the Java SE documentation matching that version; newer APIs may not exist on the runtime JDK. This article illustrates with Java 17+ and links to Java SE 21 documentation for reference.
 
-## 2. Đọc Javadoc hiệu quả
+## 2. Reading Javadoc Effectively
 
-### 2.1. Xác định đúng lớp, package, module và overload
+### 2.1. Identify the right class, package, module, and overload
 
-Bắt đầu từ lớp sở hữu thao tác:
+Start from the class owning the operation:
 
-- Byte stream: `java.io.InputStream`, `OutputStream`, `BufferedInputStream`, `DataInputStream`.
-- Character stream và charset: `Reader`, `Writer`, `InputStreamReader`, `OutputStreamWriter`, `java.nio.charset.Charset`.
+- Byte streams: `java.io.InputStream`, `OutputStream`, `BufferedInputStream`, `DataInputStream`.
+- Character streams and charsets: `Reader`, `Writer`, `InputStreamReader`, `OutputStreamWriter`, `java.nio.charset.Charset`.
 - Filesystem/NIO.2: `java.nio.file.Path`, `Paths`, `Files`, `FileSystem`, `FileStore`, `FileSystems`.
 - Object serialization: `Serializable`, `Externalizable`, `ObjectOutputStream`, `ObjectInputStream`, `ObjectStreamClass`.
 
-Mỗi trang Javadoc chỉ rõ **module**, **package**, `Since`, thông tin kế thừa và các overload. `Files.copy(Path, Path, CopyOption...)` có hợp đồng khác `Files.copy(InputStream, Path, CopyOption...)`; không kết luận theo tên phương thức đơn thuần.
+Each Javadoc page specifies the **module**, **package**, `Since`, inheritance hierarchy, and overloads. `Files.copy(Path, Path, CopyOption...)` has a different contract from `Files.copy(InputStream, Path, CopyOption...)`; do not draw conclusions from the method name alone.
 
-### 2.2. Đọc phần mô tả theo thứ tự
+### 2.2. Read sections in order
 
-1. Đọc mô tả cấp lớp trước: tài nguyên, thread-safety, đặc điểm hoặc điều kiện của implementor.
-2. Chọn đúng signature/overload: kiểu tham số, varargs, generic, return type và `throws`.
-3. Đọc toàn bộ mô tả chi tiết: mặc định khi không truyền option, chính sách xử lý symbolic link, trạng thái khi thao tác thất bại.
-4. Đọc `Parameters`, `Returns`, `Throws`, `Implementation Requirements/Notes`, `API Note` và `See Also` nếu có.
-5. Ghi ra: **điều được bảo đảm**, **điều tùy triển khai**, **thao tác optional**, **ngoại lệ cần xử lý**, và **cách đóng tài nguyên**.
+1. Read the class-level description first: resources, thread-safety, characteristics, or implementor requirements.
+2. Select the exact signature/overload: parameter types, varargs, generics, return type, and `throws`.
+3. Read the full detailed description: defaults when no options are passed, symbolic link handling policy, and state when an operation fails.
+4. Read `Parameters`, `Returns`, `Throws`, `Implementation Requirements/Notes`, `API Note`, and `See Also` if present.
+5. Note down: **what is guaranteed**, **what is implementation-dependent**, **optional operations**, **exceptions to handle**, and **how to close resources**.
 
-Ví dụ ở `InputStream.read()`: kết quả là một `int` biểu diễn byte hợp lệ từ 0 đến 255, hoặc `-1` khi kết thúc luồng; không ép ngay về `byte` trước khi kiểm tra `-1`. Một lời gọi `read(byte[])` cũng không có nghĩa là luôn lấp đầy cả mảng; phải xem số byte thực đọc được.
+For example, on `InputStream.read()`: the result is an `int` representing a valid byte from 0 to 255, or `-1` at end of stream; do not cast directly to `byte` before checking `-1`. Similarly, a call to `read(byte[])` does not mean the entire array is always filled; you must check the actual number of bytes read.
 
-Ví dụ ở `Files.newOutputStream(path)`: nếu không chỉ định option, mặc định tương đương `CREATE`, `TRUNCATE_EXISTING` và `WRITE`. Vì thế “mở để ghi” có thể xóa nội dung cũ. Nếu cần không ghi đè, tra `CREATE_NEW` và xử lý `FileAlreadyExistsException`; không chọn option bằng suy đoán.
+For example, on `Files.newOutputStream(path)`: if no options are specified, the default is equivalent to `CREATE`, `TRUNCATE_EXISTING`, and `WRITE`. Thus "opening for writing" can wipe existing content. If you must avoid overwriting, look up `CREATE_NEW` and handle `FileAlreadyExistsException`; do not pick options by guessing.
 
-### 2.3. “Có API” khác “mọi triển khai đều hỗ trợ”
+### 2.3. "Having an API" is different from "every implementation supports it"
 
-Trong Javadoc, các cụm như “optional operation”, “implementation specific”, “if supported” và “not specified” là một phần quan trọng của hợp đồng.
+In Javadoc, phrases like "optional operation", "implementation specific", "if supported", and "not specified" are a crucial part of the contract.
 
-- `Files.move(source, target, ATOMIC_MOVE)`: yêu cầu di chuyển nguyên tử. Nếu không thể đáp ứng, `AtomicMoveNotSupportedException` có thể được ném; không nên âm thầm coi di chuyển thông thường cũng atomic. Khi có `ATOMIC_MOVE`, cách xử lý mục tiêu đã tồn tại là tùy triển khai và các option khác bị bỏ qua.
-- `Files.copy(..., COPY_ATTRIBUTES)`: các thuộc tính nào được sao chép phụ thuộc filesystem/provider; thời gian sửa đổi cuối cùng là thuộc tính tối thiểu được cố gắng sao chép nếu cả hai bên hỗ trợ, và có thể mất độ chính xác.
-- `Files.createSymbolicLink` và `FileSystem.newWatchService` là những chức năng có thể không được hỗ trợ.
-- `Files.getFileAttributeView(path, SomeView.class)` có thể trả về `null` khi view không khả dụng; các thao tác đọc thuộc tính tương ứng cũng có thể ném `UnsupportedOperationException`.
+- `Files.move(source, target, ATOMIC_MOVE)`: requests an atomic move. If it cannot be satisfied, `AtomicMoveNotSupportedException` may be thrown; do not silently assume an ordinary move is atomic too. When `ATOMIC_MOVE` is present, how an existing target is handled is implementation-specific and other options are ignored.
+- `Files.copy(..., COPY_ATTRIBUTES)`: which attributes are copied depends on the filesystem/provider; last-modified time is the minimum attribute attempted when supported by both sides, and precision may be lost.
+- `Files.createSymbolicLink` and `FileSystem.newWatchService` are features that may not be supported.
+- `Files.getFileAttributeView(path, SomeView.class)` can return `null` when the view is unavailable; corresponding attribute-reading operations may also throw `UnsupportedOperationException`.
 
-Cũng cần phân biệt kết quả kiểm tra: `Files.exists(path) == false` **không khẳng định** rằng tệp chắc chắn không tồn tại; API có thể không xác định được do lỗi quyền truy cập hoặc I/O. Tương tự `Files.notExists(path) == false` không tự chứng minh tệp tồn tại.
+Also distinguish check results: `Files.exists(path) == false` **does not prove** that the file definitely does not exist; the API may simply be unable to determine existence due to permission or I/O errors. Likewise, `Files.notExists(path) == false` does not by itself prove the file exists.
 
-## 3. Tra cứu đúng Java Object Serialization Specification
+## 3. Consulting the Java Object Serialization Specification Properly
 
-Object serialization trong Java là cơ chế chuyển **đồ thị đối tượng** thành luồng để ghi/trao đổi và phục hồi theo quy tắc riêng. Nó không đồng nghĩa với đọc/ghi byte thông thường bằng `Files` hoặc với JSON. Những quy tắc không thể suy ra đầy đủ từ một phương thức `ObjectOutputStream.writeObject` được đặc tả trong **Java Object Serialization Specification**.
+Object serialization in Java is a mechanism for turning an **object graph** into a stream for persistence/exchange and restoring it according to dedicated rules. It is not synonymous with ordinary byte reading/writing via `Files` or with JSON. Rules that cannot be fully deduced from `ObjectOutputStream.writeObject` alone are specified in the **Java Object Serialization Specification**.
 
-### 3.1. Bản đồ những phần thường cần đọc
+### 3.1. Map of sections frequently needed
 
-| Câu hỏi | Phần cần mở trong Serialization Specification |
+| Question | Section to open in the Serialization Specification |
 | --- | --- |
-| Trường nào được lưu, object graph, reference chia sẻ và chu trình? | Chương 1 — System Architecture, đặc biệt 1.2–1.7 và 1.14 |
-| `Serializable` khác `Externalizable` thế nào? | Mục 1.10–1.11, 2.4 và 3.6 |
-| Tự điều chỉnh ghi/đọc đối tượng bằng `writeObject`/`readObject`? | Chương 2–3, đặc biệt 2.3 và 3.4 |
-| `serialVersionUID`, mô tả lớp, serial form? | Chương 4, đặc biệt 4.3 và 4.6 |
-| Đổi tên/xóa/thêm trường, đổi kiểu, tương thích dữ liệu đã lưu? | Chương 5 — Versioning of Serializable Objects |
-| Dữ liệu nhị phân của stream và phiên bản giao thức? | Chương 6 — Object Serialization Stream Protocol |
-| Bề mặt tấn công và lỗi deserialization? | Phụ lục A/B và Javadoc `ObjectInputFilter` |
+| Which fields are saved, object graphs, shared references, and cycles? | Chapter 1 — System Architecture, especially 1.2–1.7 and 1.14 |
+| How does `Serializable` differ from `Externalizable`? | Sections 1.10–1.11, 2.4, and 3.6 |
+| Customizing object writing/reading with `writeObject`/`readObject`? | Chapters 2–3, especially 2.3 and 3.4 |
+| `serialVersionUID`, class descriptors, serial form? | Chapter 4, especially 4.3 and 4.6 |
+| Renaming/removing/adding fields, changing types, compatibility with stored data? | Chapter 5 — Versioning of Serializable Objects |
+| Stream binary layout and protocol versions? | Chapter 6 — Object Serialization Stream Protocol |
+| Attack surface and deserialization errors? | Appendices A/B and `ObjectInputFilter` Javadoc |
 
-Nên đọc đồng thời Javadoc của `Serializable`, `ObjectInputStream`, `ObjectOutputStream` và phần specification có liên quan. Specification quy định cơ chế; Javadoc cung cấp cách gọi API cùng exception cụ thể.
+Read the Javadoc of `Serializable`, `ObjectInputStream`, and `ObjectOutputStream` alongside the relevant specification sections. The specification defines the mechanism; Javadoc gives API call usage and specific exceptions.
 
-### 3.2. Các quy tắc cốt lõi cần nắm
+### 3.2. Core rules to master
 
-- Một lớp khai báo `implements Serializable` để tham gia cơ chế serialization mặc định. Marker interface này **không có phương thức** cần implement.
-- Mặc định, các trường instance đủ điều kiện được đưa vào serial form; `static` không biểu diễn trạng thái riêng từng instance và `transient` không được lưu theo cơ chế mặc định. Giá trị của trường `transient` sau phục hồi là giá trị mặc định của kiểu, trừ khi có logic khôi phục khác.
-- Một trường tham chiếu đến đối tượng không serializable có thể khiến quá trình ghi ném `NotSerializableException` nếu đối tượng đó thực sự được duyệt trong đồ thị serialization.
-- `ObjectOutputStream` ghi mô tả lớp và dữ liệu đối tượng; `ObjectInputStream` đọc theo protocol, tái dựng reference chia sẻ/chu trình. Không giả định constructor của lớp `Serializable` được gọi như tạo đối tượng mới; constructor không tham số có thể truy cập của lớp cha đầu tiên **không Serializable** được gọi khi phục hồi.
-- Khai báo `private static final long serialVersionUID = ...L;` cho lớp serializable thông thường giúp kiểm soát bộ định danh phiên bản. UID khác nhau có thể gây `InvalidClassException`; **UID giống nhau không chứng minh mọi thay đổi trong lớp đều tương thích**. Phải xem quy tắc tiến hóa lớp ở Chương 5.
-- `private writeObject(ObjectOutputStream)`/`private readObject(ObjectInputStream)`, `writeReplace`/`readResolve`, `serialPersistentFields` và `Externalizable` thay đổi giao thức/serial form; cần đọc chính xác điều kiện khai báo và thứ tự xử lý trong đặc tả. `Externalizable` chịu trách nhiệm ghi/đọc dữ liệu của chính nó và cần constructor `public` không tham số cho việc phục hồi.
-- Enum có quy tắc serialization riêng; record serializable cũng có quy tắc riêng. Không suy diễn mọi hook của lớp thông thường sang enum/record.
-- Java serialization không phải định dạng trao đổi tổng quát lý tưởng cho API lâu dài. Nếu cần hợp đồng đa ngôn ngữ hoặc schema tiến hóa độc lập, hãy cân nhắc một định dạng được xác định cho mục đích đó.
+- A class declares `implements Serializable` to opt into the default serialization mechanism. This marker interface has **no methods** to implement.
+- By default, eligible instance fields belong to the serial form; `static` fields do not represent per-instance state and `transient` fields are not persisted by the default mechanism. A `transient` field's value after restoration is its type's default value unless custom restoration logic sets it.
+- A field referencing a non-serializable object can cause writing to throw `NotSerializableException` if that object is actually reached in the serialization graph.
+- `ObjectOutputStream` writes class descriptors and object data; `ObjectInputStream` reads according to the protocol and reconstructs shared references/cycles. Do not assume the `Serializable` class's constructor runs as in normal object creation; the accessible no-arg constructor of the first **non-Serializable** superclass is invoked during restoration.
+- Declaring `private static final long serialVersionUID = ...L;` on an ordinary serializable class helps control version identity. A mismatched UID can cause `InvalidClassException`; **matching UIDs do not prove every change in the class is compatible**. You must check the class evolution rules in Chapter 5.
+- `private writeObject(ObjectOutputStream)`/`private readObject(ObjectInputStream)`, `writeReplace`/`readResolve`, `serialPersistentFields`, and `Externalizable` alter the protocol/serial form; read the exact declaration requirements and execution order in the specification. `Externalizable` is responsible for writing/reading its own data and requires a `public` no-arg constructor for restoration.
+- Enums have dedicated serialization rules; serializable records also have dedicated rules. Do not generalize every hook of ordinary classes to enums/records.
+- Java serialization is not an ideal general-purpose exchange format for long-lived APIs. When cross-language contracts or independent schema evolution are required, consider a format designed for that purpose.
 
-### 3.3. Ví dụ Java 17+ có thể biên dịch: `transient` và serial form
+### 3.3. Compilable Java 17+ example: `transient` and serial form
 
-Lưu mã sau vào tệp `SerializationProbe.java`:
+Save the following code to `SerializationProbe.java`:
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -125,56 +125,56 @@ public class SerializationProbe {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac SerializationProbe.java
 java SerializationProbe
 ```
 
-Kết quả:
+Output:
 
 ```text
 Lan
 true
 ```
 
-`name` được lưu; `sessionToken` bị đánh dấu `transient` nên giá trị khôi phục bằng `null`. Ví dụ dùng mảng byte do chính chương trình tạo ra, **không đọc stream không tin cậy**. `@Serial` giúp trình biên dịch kiểm tra một số khai báo phục vụ serialization, nhưng không thay đổi yêu cầu bảo mật hay làm dữ liệu tương thích tự động.
+`name` is persisted; `sessionToken` is marked `transient` so its restored value is `null`. The example uses a byte array produced by the program itself and **does not read an untrusted stream**. `@Serial` lets the compiler verify certain serialization-related declarations, without altering security requirements or automatically making data compatible.
 
-### 3.4. Bảo mật khi deserialization
+### 3.4. Security during deserialization
 
-Đừng dùng `ObjectInputStream.readObject()` với dữ liệu do bên không tin cậy kiểm soát chỉ vì đã có `serialVersionUID`, `transient` hoặc kiểm tra kiểu sau khi đọc. Quá trình dựng đồ thị đối tượng diễn ra trước khi ép kiểu và có thể kích hoạt logic của các lớp trên classpath.
+Do not call `ObjectInputStream.readObject()` on data controlled by an untrusted party just because you have `serialVersionUID`, `transient`, or a post-read type check. Object graph instantiation happens before the cast and can trigger logic from classes on the classpath.
 
-Nếu bắt buộc dùng Java native serialization cho một nguồn dữ liệu được kiểm soát, hãy áp dụng chính sách cho phép kiểu rõ ràng và giới hạn kích thước/độ sâu/độ phức tạp bằng `ObjectInputFilter` (bao gồm filter cho từng stream), đồng thời xác thực nguồn và quản lý phiên bản. Javadoc cảnh báo rằng deserialization dữ liệu không tin cậy là nguy hiểm ngay cả khi có filtering; ưu tiên tránh cơ chế này ở ranh giới không tin cậy.
+If you must use native Java serialization on a controlled data source, enforce an explicit type allowlist and limit size/depth/complexity with `ObjectInputFilter` (including per-stream filters), while authenticating the source and managing versions. Javadoc warns that deserializing untrusted data is dangerous even with filtering; prefer avoiding this mechanism at untrusted boundaries.
 
-## 4. Provider trong Java NIO.2: ai thực hiện thao tác trên `Path`?
+## 4. Providers in Java NIO.2: Who Executes Operations on `Path`?
 
-Một `Path` thuộc về **một `FileSystem` cụ thể**; `FileSystem` đó do một `FileSystemProvider` cung cấp. Lớp tiện ích `Files` thường ủy nhiệm hoạt động cho provider tương ứng của `Path`. Vì vậy cùng một lời gọi `Files` có thể có giới hạn khác nhau trên filesystem mặc định, ZIP filesystem hoặc một implementation bên thứ ba.
+A `Path` belongs to **a specific `FileSystem`**; that `FileSystem` is supplied by a `FileSystemProvider`. The `Files` utility class typically delegates operations to the `Path`'s corresponding provider. Hence the same `Files` call can have different limitations on the default filesystem, a ZIP filesystem, or a third-party implementation.
 
-Quan hệ tra cứu:
+Lookup relationship:
 
 ```text
 Path ──getFileSystem()──> FileSystem ──provider()──> FileSystemProvider
   │                         │                              │
-  └── Files.* thao tác ──────┴── triển khai thao tác <─────┘
+  └── Files.* operations ───┴── implements operations <────┘
 ```
 
-Provider mặc định thường có scheme `file`. Provider khác có scheme riêng (ví dụ `jar` cho ZIP/JAR filesystem khi module/provider tương ứng có sẵn). Sự hiện diện của một provider phải được kiểm chứng trên JVM đang chạy, không thể suy ra chỉ từ extension `.zip` hoặc từ sự hiện diện của một lớp API.
+The default provider usually has the `file` scheme. Other providers have their own schemes (for example, `jar` for ZIP/JAR filesystems when the corresponding module/provider is present). The presence of a provider must be verified on the running JVM; it cannot be inferred merely from a `.zip` extension or the existence of an API class.
 
-### 4.1. API kiểm tra khả năng ở từng cấp
+### 4.1. APIs for checking capabilities at each level
 
-- `FileSystemProvider.installedProviders()`: liệt kê các provider được cài đặt mà API tìm thấy; `provider.getScheme()` xác định URI scheme.
-- `path.getFileSystem().provider()`: biết provider thực sự sở hữu `Path`; `FileSystems.getDefault()` chỉ đại diện filesystem mặc định.
-- `fileSystem.supportedFileAttributeViews()`: tập tên các view mà **filesystem** hỗ trợ, ví dụ `basic`, `posix`, `dos`, `acl`, `user` (tập thực tế tùy provider).
-- `Files.getFileStore(path).supportsFileAttributeView(...)`: kiểm tra view tại **file store** chứa đường dẫn; chuẩn `basic` luôn được hỗ trợ. Kết quả trên một số lưu trữ không cục bộ vẫn có thể không chính xác hoàn toàn.
-- `Files.getFileAttributeView(path, PosixFileAttributeView.class)`: trả về đối tượng view nếu có, hoặc `null` nếu không hỗ trợ kiểu view đó.
-- Các chức năng optional khác (atomic move, symbolic/hard link, file locking, watch service, option riêng của provider) phải được tra trong **Javadoc của thao tác tương ứng** và kiểm tra bằng thao tác thật có xử lý ngoại lệ. Không có một hàm `isEverythingSupported()` tổng quát.
+- `FileSystemProvider.installedProviders()`: lists installed providers discovered by the API; `provider.getScheme()` identifies the URI scheme.
+- `path.getFileSystem().provider()`: identifies the provider that actually owns `Path`; `FileSystems.getDefault()` only represents the default filesystem.
+- `fileSystem.supportedFileAttributeViews()`: set of view names supported by the **filesystem**, e.g., `basic`, `posix`, `dos`, `acl`, `user` (the actual set depends on the provider).
+- `Files.getFileStore(path).supportsFileAttributeView(...)`: checks view support on the **file store** containing the path; `basic` is always supported. Results on certain non-local stores may still not be completely exact.
+- `Files.getFileAttributeView(path, PosixFileAttributeView.class)`: returns the view object if available, or `null` if that view type is unsupported.
+- Other optional features (atomic move, symbolic/hard links, file locking, watch service, provider-specific options) must be checked in **the corresponding operation's Javadoc** and tested via the real operation with exception handling. There is no single general `isEverythingSupported()` function.
 
-Lưu ý: **tên view hỗ trợ không nói lên quyền thực hiện thao tác**. Dù hệ thống hỗ trợ POSIX view, việc thay đổi permission vẫn có thể thất bại do quyền người dùng hoặc trạng thái read-only. Hơn nữa, `FileStore` chứa `Path` cụ thể có thể khác capability tổng quát của `FileSystem`.
+Note: **supported view names do not guarantee permission to perform an operation**. Even if a system supports the POSIX view, changing permissions can still fail due to user privileges or read-only status. Moreover, the `FileStore` holding a specific `Path` may differ from the overall `FileSystem` capabilities.
 
-### 4.2. Ví dụ Java 17+ chạy được: tìm provider và file attribute view
+### 4.2. Runnable Java 17+ example: inspecting provider and file attribute views
 
-Lưu `ProviderProbe.java`:
+Save `ProviderProbe.java`:
 
 ```java
 import java.nio.file.FileStore;
@@ -208,18 +208,18 @@ public class ProviderProbe {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac ProviderProbe.java
 java ProviderProbe
 ```
 
-Kết quả sẽ **khác nhau giữa Windows, Linux, macOS, filesystem và JDK**. Với đường dẫn thuộc filesystem mặc định, scheme thường là `file`; view `posix` thường có trên hệ thống POSIX nhưng không nên giả định luôn có. Danh sách có thể có provider `jar` khi ZIP filesystem provider sẵn có. Không lấy đầu ra của một máy làm bảo đảm di động cho mọi máy.
+Output will **vary across Windows, Linux, macOS, filesystems, and JDKs**. For paths on the default filesystem, the scheme is typically `file`; the `posix` view is commonly present on POSIX systems, though it should not be assumed always present. The list may include the `jar` provider when the ZIP filesystem provider is available. Do not treat one machine's output as a portability guarantee for all machines.
 
-### 4.3. Quyết định theo capability và dự phòng có chủ đích
+### 4.3. Deciding by capability and intentional fallback
 
-Giả sử muốn di chuyển một tệp kết quả sang vị trí đích:
+Suppose you want to move a result file to its target location:
 
 ```java
 import java.io.IOException;
@@ -240,76 +240,76 @@ public class MoveExample {
 }
 ```
 
-Đây là **đoạn minh họa phương thức**, không phải chương trình độc lập có `main`. Nhánh fallback chấp nhận ngữ nghĩa **không atomic**; dùng nó **chỉ khi nghiệp vụ cho phép**. Nếu cần công bố tệp mà độc giả tuyệt đối không được thấy trạng thái trung gian, không thể coi fallback này là tương đương. Khi `ATOMIC_MOVE` được yêu cầu, xử lý đích đã tồn tại có thể khác nhau theo implementation, nên phải thiết kế riêng quy tắc ghi đè. `IOException` khác vẫn cần được đưa lên hoặc xử lý; không bắt mọi lỗi rồi đoán “provider không hỗ trợ”.
+This is a **method illustration snippet**, not a standalone program with `main`. The fallback branch accepts **non-atomic** semantics; use it **only when business requirements allow**. If you must publish a file where readers must never observe an intermediate state, this fallback cannot be considered equivalent. When `ATOMIC_MOVE` is requested, handling of an existing target may differ across implementations, so overwrite rules must be designed explicitly. Other `IOException`s must still be propagated or handled; do not catch all errors and guess "provider unsupported".
 
-Với permission POSIX, có thể chọn nhánh chỉ khi `Files.getFileAttributeView(path, PosixFileAttributeView.class) != null`, rồi vẫn xử lý `IOException` hoặc lỗi quyền khi thực thi. Nếu cần chức năng bắt buộc mà provider không hỗ trợ, giải pháp đúng có thể là **từ chối thao tác và thông báo rõ giới hạn**, thay vì mô phỏng sai bảo đảm.
+For POSIX permissions, you can branch only when `Files.getFileAttributeView(path, PosixFileAttributeView.class) != null`, while still handling `IOException` or permission failures at execution time. If a mandatory feature is unsupported by the provider, the right solution may be to **reject the operation and report the limitation clearly** instead of faking guarantees.
 
-### 4.4. Khi nào cần đọc tài liệu riêng của provider?
+### 4.4. When should you read provider-specific documentation?
 
-Hãy đọc tài liệu triển khai khi ứng dụng sử dụng ZIP/JAR filesystem, filesystem từ thư viện, filesystem mạng/cloud, hoặc open option và metadata mở rộng. Cần xác minh:
+Read the implementation's documentation whenever the application uses a ZIP/JAR filesystem, library-backed filesystems, network/cloud filesystems, or extended open options and metadata. Verify:
 
-1. URI scheme và cách khởi tạo `FileSystem` (qua `FileSystems.newFileSystem`, map cấu hình, lifecycle `close()`).
-2. Quy tắc đường dẫn, phân biệt chữ hoa/thường, separator, quyền truy cập và trạng thái read-only.
-3. File attribute views, symbolic link/hard link, atomic move, watch service và đặc điểm nhất quán.
-4. Giới hạn kích thước, thao tác đa luồng, xử lý lỗi, thời gian chặn I/O và hành vi khi đóng tài nguyên.
+1. URI scheme and how to initialize `FileSystem` (via `FileSystems.newFileSystem`, configuration map, `close()` lifecycle).
+2. Path rules, case sensitivity, separators, access permissions, and read-only behavior.
+3. File attribute views, symbolic/hard links, atomic move, watch service, and consistency characteristics.
+4. Size limits, multithreaded operations, error handling, I/O blocking behavior, and resource closing semantics.
 
-Javadoc chuẩn mô tả giao diện chung; không tự gán tính năng của provider mặc định cho `Path` thuộc provider khác. Khi có nhiều nguồn `Path`, phải truy xuất provider **từ từng `Path`** trước khi quyết định.
+Standard Javadoc describes the common interface; do not project features of the default provider onto a `Path` owned by another provider. When handling multiple `Path` sources, inspect the provider **from each `Path`** before deciding.
 
-## 5. Phân loại lỗi đúng khi tra cứu
+## 5. Classifying Errors Accurately When Consulting Docs
 
-| Hiện tượng hoặc exception | Điểm cần kiểm chứng | Hướng xử lý |
+| Symptom or exception | What to verify | How to handle |
 | --- | --- | --- |
-| `NotSerializableException` | Thành phần nào trong object graph không đáp ứng quy tắc serialization? | Xem kiểu trường và đường tham chiếu; thiết kế DTO/serial form phù hợp. |
-| `InvalidClassException` | UID, mô tả lớp và thay đổi serial form có tương thích Chương 5 không? | Quản lý phiên bản, migration hoặc format riêng; không sửa UID tùy tiện để “qua lỗi”. |
-| `StreamCorruptedException` | Luồng có đúng object stream protocol không, có bị cắt/hỏng không? | Xác minh nguồn, framing và cách ghi; không coi file thường là object stream. |
-| `ProviderNotFoundException` | Provider cho scheme/file type có được cài đặt và discover không? | Kiểm tra `FileSystemProvider.installedProviders()`, classpath/module và cách mở. |
-| `UnsupportedOperationException` | API/option/view có được đánh dấu optional hoặc không được hỗ trợ không? | Đọc đúng overload và capability, thay thế hợp lệ hoặc báo không hỗ trợ. |
-| `AtomicMoveNotSupportedException` | `ATOMIC_MOVE` có được filesystem/store đích hỗ trợ không? | Chỉ fallback khi chấp nhận mất tính atomic. |
-| `AccessDeniedException` / `IOException` | Quyền, path thực tế, thiết bị, kết nối, store hoặc giới hạn implementation? | Ghi lại ngữ cảnh an toàn, xử lý lỗi I/O cụ thể; không nhầm mọi `IOException` thành thiếu capability. |
+| `NotSerializableException` | Which component in the object graph fails serialization rules? | Inspect field types and reference paths; design an appropriate DTO/serial form. |
+| `InvalidClassException` | Are UID, class descriptor, and serial form changes compatible with Chapter 5? | Manage versions, migrations, or a custom format; do not alter UID arbitrarily to "get past the error". |
+| `StreamCorruptedException` | Does the stream follow the object stream protocol, or was it truncated/corrupted? | Verify source, framing, and writer; do not treat plain files as object streams. |
+| `ProviderNotFoundException` | Is the provider for the scheme/file type installed and discoverable? | Check `FileSystemProvider.installedProviders()`, classpath/modules, and how it is opened. |
+| `UnsupportedOperationException` | Is the API/option/view marked optional or unsupported? | Read the exact overload and capabilities; use a valid alternative or report unsupported. |
+| `AtomicMoveNotSupportedException` | Is `ATOMIC_MOVE` supported by the target filesystem/store? | Fall back only if losing atomicity is acceptable. |
+| `AccessDeniedException` / `IOException` | Permissions, actual path, device, connection, store, or implementation limit? | Log safe context, handle specific I/O errors; do not mistake every `IOException` for a missing capability. |
 
-Khi cần phân biệt lỗi, ưu tiên ngoại lệ được Javadoc tuyên bố; đừng phân tích chuỗi thông báo lỗi theo từng hệ điều hành để quyết định nhánh logic.
+When distinguishing errors, prefer exceptions declared in Javadoc; do not parse OS-specific error message strings to drive control flow.
 
-## 6. Quy trình tra cứu từ câu hỏi tới quyết định kỹ thuật
+## 6. Lookup Workflow from Question to Engineering Decision
 
-**Tình huống A — “Đọc file Unicode đúng trên mọi máy”:**
+**Scenario A — "Read Unicode files correctly across all machines":**
 
-1. Xác định bài toán là text: tìm `Files.newBufferedReader(Path, Charset)` hoặc `Files.readString(Path, Charset)`.
-2. Đọc Javadoc để biết charset, ngoại lệ và cách đóng reader; truyền rõ `StandardCharsets.UTF_8` thay vì ngầm dựa vào default charset ở code cũ.
-3. Nếu cần streaming file lớn, ưu tiên `BufferedReader` hoặc stream và `try-with-resources`; đừng dùng `readAllBytes` chỉ vì code ngắn hơn.
-4. Phân biệt lỗi encoding với lỗi do provider, permission và path.
+1. Identify the task as text: look up `Files.newBufferedReader(Path, Charset)` or `Files.readString(Path, Charset)`.
+2. Read Javadoc for charset, exceptions, and how to close the reader; pass `StandardCharsets.UTF_8` explicitly rather than implicitly relying on the default charset in legacy code.
+3. If large files need streaming, prefer `BufferedReader` or streams with `try-with-resources`; do not use `readAllBytes` just for shorter code.
+4. Separate encoding errors from provider, permission, and path errors.
 
-**Tình huống B — “Lưu đối tượng rồi đọc lại sau khi deploy bản mới”:**
+**Scenario B — "Persist objects and read them back after deploying a new version":**
 
-1. Tra Javadoc `Serializable`, `ObjectOutputStream`, `ObjectInputStream` để xác định API.
-2. Đọc Serialization Specification Chương 4–5 và serial form của từng lớp để đánh giá thay đổi.
-3. Xác định dữ liệu đầu vào có đáng tin không; nếu không, tránh Java deserialization. Nếu thật sự cần, thiết kế lọc lớp và giới hạn tài nguyên.
-4. Tạo test tương thích thực sự: ghi dữ liệu bằng phiên bản cũ, đọc bằng phiên bản mới (và chiều ngược lại nếu sản phẩm cần). Test một vòng serialize–deserialize trong cùng phiên bản không kiểm chứng tương thích nâng cấp.
+1. Check Javadoc for `Serializable`, `ObjectOutputStream`, `ObjectInputStream` to confirm the APIs.
+2. Read Serialization Specification Chapters 4–5 and each class's serial form to evaluate changes.
+3. Determine whether input data is trustworthy; if not, avoid Java deserialization. If truly necessary, design class filtering and resource limits.
+4. Write real compatibility tests: write data with the old version and read with the new version (and vice versa if the product requires it). A single serialize–deserialize round-trip within the same version does not verify upgrade compatibility.
 
-**Tình huống C — “Copy/move tệp qua ổ đĩa, ZIP hoặc filesystem mạng”:**
+**Scenario C — "Copy/move files across disks, ZIP, or network filesystems":**
 
-1. Tra Javadoc `Files.copy`/`Files.move` và option cần dùng; đặc biệt atomic, replacement, link và attributes.
-2. Từ mỗi `Path` tìm `FileSystem`/provider, dùng `FileStore` và attribute views để xác định những khả năng có thể kiểm tra trước.
-3. Thử hành vi bắt buộc trong môi trường đích, xử lý các exception đặc thù và xác nhận tính toàn vẹn sau thao tác.
-4. Không coi “chạy được trên máy mình” là chứng cứ provider khác cũng làm giống hệt.
+1. Check Javadoc for `Files.copy`/`Files.move` and required options; especially atomicity, replacement, links, and attributes.
+2. From each `Path`, inspect `FileSystem`/provider, using `FileStore` and attribute views to determine capabilities verifiable upfront.
+3. Test mandatory behaviors in the target environment, handle specific exceptions, and verify integrity afterward.
+4. Never treat "works on my machine" as proof that another provider behaves identically.
 
-Một ghi chép tra cứu hữu ích cho mỗi quyết định gồm: **JDK/version → lớp & overload → bảo đảm Javadoc → câu trong specification (nếu có) → provider/capability → trường hợp lỗi → kết quả thử nghiệm trên môi trường đích**. Cách này giúp reviewer lần lại lập luận mà không phải đoán nguồn.
+A useful lookup note for every decision follows: **JDK/version → class & overload → Javadoc guarantees → specification clause (if applicable) → provider/capability → failure cases → test results in the target environment**. This lets reviewers trace your reasoning without guessing sources.
 
-## 7. Lỗi học tập thường gặp và cách tự kiểm tra
+## 7. Common Learning Mistakes and Self-Check
 
-- **Chỉ xem tên phương thức:** bỏ qua `Throws`, tùy chọn mặc định và ngữ nghĩa partial read/write. Cách sửa: đọc mô tả của đúng overload tới hết.
-- **Nhầm Javadoc với Serialization Specification:** tin rằng tất cả quy tắc tương thích có ở `writeObject`. Cách sửa: đối chiếu Chương 4–5 specification.
-- **Cho rằng `Serializable` tự bảo đảm an toàn, tương thích:** đây là hai vấn đề riêng. Cách sửa: đánh giá object graph, serial form/versioning và ranh giới tin cậy.
-- **Coi `serialVersionUID` là phiên bản schema hoàn chỉnh:** UID chỉ tham gia kiểm tra tương thích, không thay thế kiểm tra thay đổi trường/hook.
-- **Cho rằng Linux/Windows và mọi `Path` giống nhau:** xem capability ở `FileSystem`/`FileStore`/provider thực tế.
-- **Coi `supportsFileAttributeView("posix")` là chắc chắn có quyền `setPermissions`:** khả năng API không phải quyền thực hiện thao tác.
-- **Coi atomic move và fallback là tương đương:** fallback thay đổi bảo đảm khi xảy ra lỗi hoặc có độc giả đồng thời.
-- **Chỉ đọc ví dụ blog trên JDK khác:** cách sửa là mở đúng Javadoc/specification của phiên bản mục tiêu, rồi dùng ví dụ để kiểm chứng.
+- **Reading only method names:** ignoring `Throws`, default options, and partial read/write semantics. Fix: read the exact overload's description completely.
+- **Confusing Javadoc with the Serialization Specification:** assuming all compatibility rules live in `writeObject`. Fix: cross-check Chapters 4–5 of the specification.
+- **Assuming `Serializable` automatically guarantees safety and compatibility:** those are two separate concerns. Fix: evaluate the object graph, serial form/versioning, and trust boundaries.
+- **Treating `serialVersionUID` as a complete schema version:** the UID only participates in compatibility checks and does not replace checking field/hook changes.
+- **Assuming Linux/Windows and every `Path` behave alike:** check capabilities on the actual `FileSystem`/`FileStore`/provider.
+- **Assuming `supportsFileAttributeView("posix")` guarantees permission for `setPermissions`:** API capability is not execution authorization.
+- **Treating atomic move and fallback as equivalent:** the fallback changes guarantees when errors occur or concurrent readers exist.
+- **Reading only blog examples on a different JDK:** fix by opening the exact Javadoc/specification for the target version, then using examples to verify.
 
-Tự kiểm tra: (1) giải thích vì sao `read(byte[])` phải xử lý số byte đã đọc; (2) nêu vì sao cùng `serialVersionUID` vẫn có thể mất tương thích; (3) phân biệt `FileSystem.supportedFileAttributeViews()`, `FileStore.supportsFileAttributeView(...)` và `Files.getFileAttributeView(...)`; (4) giải thích khi nào được phép fallback từ `ATOMIC_MOVE`.
+Self-check: (1) explain why `read(byte[])` must handle the actual byte count read; (2) state why an identical `serialVersionUID` can still break compatibility; (3) distinguish `FileSystem.supportedFileAttributeViews()`, `FileStore.supportsFileAttributeView(...)`, and `Files.getFileAttributeView(...)`; (4) explain when falling back from `ATOMIC_MOVE` is permissible.
 
-## 8. Nguồn chính thức để tiếp tục tra cứu
+## 8. Official Sources for Further Reference
 
-- [Java SE 21 API Javadoc — tổng quan](https://docs.oracle.com/en/java/javase/21/docs/api/index.html)
+- [Java SE 21 API Javadoc — overview](https://docs.oracle.com/en/java/javase/21/docs/api/index.html)
 - [`Files` — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/Files.html)
 - [`FileSystem` — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileSystem.html)
 - [`FileStore` — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/file/FileStore.html)
@@ -319,4 +319,4 @@ Tự kiểm tra: (1) giải thích vì sao `read(byte[])` phải xử lý số b
 - [`ObjectInputFilter` — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputFilter.html)
 - [Java Object Serialization Specification — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/specs/serialization/)
 
-Nếu hệ thống chạy Java 17, hãy mở cây tài liệu `/en/java/javase/17/...` cho chính các lớp và specification tương ứng. Không thay đổi kết luận hợp đồng API dựa trên bài viết mô tả một JDK khác.
+If your system runs Java 17, open the `/en/java/javase/17/...` documentation tree for the corresponding classes and specification. Do not change API contract conclusions based on articles describing a different JDK.

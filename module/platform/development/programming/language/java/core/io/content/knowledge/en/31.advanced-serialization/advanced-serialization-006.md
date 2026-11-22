@@ -1,82 +1,82 @@
-# Yêu cầu constructor public không tham số của Externalizable trong Java
+# The Public No-Arg Constructor Requirement for Externalizable in Java
 
-## 1. Tại sao Externalizable cần constructor public không tham số?
+## 1. Why Does Externalizable Need a Public No-Arg Constructor?
 
-Trong **Java Object Serialization**, interface `java.io.Externalizable` cho phép một đối tượng tự quyết định **những byte nào được viết** và **thứ tự đọc lại các byte đó**. Nó mở rộng `Serializable` và khai báo hai phương thức:
+In **Java Object Serialization**, the `java.io.Externalizable` interface lets an object decide **which bytes are written** and **the order in which those bytes are read back**. It extends `Serializable` and declares two methods:
 
-- `public void writeExternal(ObjectOutput out) throws IOException` — ghi trạng thái đối tượng.
-- `public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException` — đọc dữ liệu và khôi phục trạng thái.
+- `public void writeExternal(ObjectOutput out) throws IOException` — writes the object's state.
+- `public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException` — reads the data and restores state.
 
-Đặc điểm khác thường: khi `ObjectInputStream.readObject()` giải tuần tự hóa đối tượng `Externalizable`, nó **tạo một instance bằng cách gọi constructor public không tham số của lớp đó**, sau đó mới gọi `readExternal()`.
+An unusual characteristic: when `ObjectInputStream.readObject()` deserializes an `Externalizable` object, it **creates an instance by calling that class's public no-arg constructor**, and only then invokes `readExternal()`.
 
-~~~text
-GHI (serialization)
+```text
+WRITE (serialization)
   new Person("An", 20)
          |
   ObjectOutputStream.writeObject(person)
          |
      writeExternal(out)
          |
-   object stream chứa class metadata + dữ liệu do ta ghi
+   object stream containing class metadata + data written by us
 
-ĐỌC (deserialization)
+READ (deserialization)
   ObjectInputStream.readObject()
          |
-  tìm public Person()  <--- BẮT BUỘC có
+  look up public Person()  <--- REQUIRED
          |
-  chạy Person() + chuỗi constructor superclass
+  run Person() + superclass constructor chain
          |
      readExternal(in)
          |
-  Person được trả về cho ứng dụng
-~~~
+  Person returned to application
+```
 
-**Điều kiện bắt buộc:** lớp được giải tuần tự hóa theo cơ chế `Externalizable` phải có **constructor không tham số (`()`), có mức truy cập `public`**. Chỉ có constructor `private`, `protected` hoặc package-private (không ghi modifier) là **không đủ**. Chỉ có constructor nhận tham số cũng không đủ.
+**Mandatory requirement:** a class deserialized under the `Externalizable` mechanism must have a **no-arg (`()`) constructor with `public` visibility**. Having only a `private`, `protected`, or package-private (omitted modifier) constructor is **not sufficient**. Having only parameterized constructors is also insufficient.
 
-Thiếu điều kiện này có thể **vẫn biên dịch và ghi object thành công**, nhưng khi đọc lại sẽ thất bại, thường bằng `java.io.InvalidClassException` với thông điệp như `no valid constructor`. Đừng lầm tưởng đây là quy tắc chung của mọi `Serializable`; đây là điểm riêng rất quan trọng của `Externalizable`.
+Missing this requirement may **still compile and write objects successfully**, yet fail when reading back—typically throwing `java.io.InvalidClassException` with a message such as `no valid constructor`. Do not mistake this for a general rule of all `Serializable` classes; it is a critical specificity of `Externalizable`.
 
-## 2. Trước hết hiểu Externalizable và Serializable
+## 2. First Understand Externalizable vs. Serializable
 
-Hai lựa chọn đều tham gia cơ chế object serialization của Java, nhưng khác nhau về quyền kiểm soát trạng thái và cách khởi tạo lại object.
+Both options participate in Java's object serialization mechanism, yet differ in state control and how objects are re-instantiated.
 
-| Khía cạnh | `Serializable` thông thường | `Externalizable` |
+| Aspect | Regular `Serializable` | `Externalizable` |
 | --- | --- | --- |
-| Interface | Marker interface `Serializable`. | `Externalizable extends Serializable`, có hai phương thức công khai. |
-| Ghi mặc định | JVM tự xử lý các field đủ điều kiện; có thể tùy biến bằng `private writeObject`. | Chương trình phải tự viết nội dung trong `writeExternal`. |
-| Đọc mặc định | JVM phục hồi state theo serialization protocol; có thể tùy biến bằng `private readObject`. | Chương trình phải tự phục hồi state trong `readExternal`. |
-| Constructor của chính lớp serializable | **Không** chạy theo cách tạo object thông thường khi deserialize instance `Serializable` thường. | **Có chạy** public no-arg constructor của lớp `Externalizable`. |
-| Superclass không serializable | Constructor không tham số truy cập được của superclass đầu tiên không serializable được chạy. | Constructor chain thông thường được gọi từ constructor public no-arg. |
-| Field initialization | Field initializer/constructor của chính lớp Serializable không chạy như `new` khi đọc object thông thường. | Field initializer và constructor body của Externalizable chạy theo vòng đời constructor thông thường. |
-| `transient` | Mặc định không serialize field transient. | Không tự giới hạn `writeExternal`: lập trình viên quyết định dữ liệu nào được ghi, kể cả field transient nếu cố ý. |
-| Độ khó | Thường đơn giản hơn, nhưng vẫn phải quản lý version/độ tin cậy. | Nhiều quyền kiểm soát hơn, đi kèm trách nhiệm định dạng, tương thích và constructor. |
+| Interface | Marker interface `Serializable`. | `Externalizable extends Serializable`, with two public methods. |
+| Default writing | JVM handles eligible fields automatically; customizable via `private writeObject`. | Program must manually write content in `writeExternal`. |
+| Default reading | JVM restores state per serialization protocol; customizable via `private readObject`. | Program must manually restore state in `readExternal`. |
+| Constructor of the serializable class itself | **Does not** run as in normal object creation when deserializing a regular `Serializable` instance. | **Runs** the `public` no-arg constructor of the `Externalizable` class. |
+| Non-serializable superclass | Accessible no-arg constructor of the first non-serializable superclass is executed. | Normal constructor chain runs starting from the public no-arg constructor. |
+| Field initialization | Field initializers/constructors of the Serializable class itself do not run like `new` during regular reading. | Field initializers and constructor body of Externalizable run per normal constructor lifecycle. |
+| `transient` | Transient fields are not serialized by default. | Does not automatically restrict `writeExternal`: the programmer decides what data is written, even transient fields if explicitly written. |
+| Complexity | Typically simpler, though versioning and trust still must be managed. | More control, accompanied by responsibility for format, compatibility, and constructors. |
 
-Ví dụ:
+Example:
 
-~~~java
+```java
 class SimpleUser implements java.io.Serializable {
     private String name;
     private int age;
-    // Không bắt buộc khai báo public SimpleUser().
+    // Not required to declare public SimpleUser().
 }
-~~~
+```
 
-Đoạn minh họa này không có `main`, chỉ cho thấy `Serializable` không áp dụng quy tắc **public no-arg constructor của chính lớp** như `Externalizable`. Đừng suy ra rằng lớp Serializable không cần bất kỳ constructor phù hợp nào trong hệ kế thừa: **superclass đầu tiên không Serializable** vẫn phải có constructor không tham số với quyền truy cập thích hợp.
+This illustrative snippet has no `main` and merely shows that `Serializable` does not enforce the **public no-arg constructor on the class itself** the way `Externalizable` does. Do not infer that a Serializable class needs no suitable constructor anywhere in its hierarchy: the **first non-Serializable superclass** must still have an accessible no-arg constructor.
 
-### 2.1. Tại sao Java không dùng constructor có tham số?
+### 2.1. Why Doesn't Java Use a Parameterized Constructor?
 
-Khi đọc object từ stream, `ObjectInputStream` có dữ liệu byte nhưng không có quy tắc tổng quát để chọn overload constructor như `Person(String, int)`, `Person(String)` hay `Person(int)`. `Externalizable` quy định một quy trình nhất quán:
+When reading an object from a stream, `ObjectInputStream` receives raw bytes and has no general rule to choose among overloaded constructors like `Person(String, int)`, `Person(String)`, or `Person(int)`. `Externalizable` defines one consistent flow:
 
-1. Tạo object bằng constructor **public không tham số**.
-2. Giao đối tượng `ObjectInput` cho `readExternal`.
-3. Chính `readExternal` biết **đọc giá trị nào** và **gán vào field nào**.
+1. Construct the object via the **public no-arg** constructor.
+2. Hand `ObjectInput` to `readExternal`.
+3. `readExternal` itself knows **which values to read** and **which fields to assign**.
 
-Vì thế constructor no-arg phải tạo được một **trạng thái ban đầu hợp lệ để tiếp tục phục hồi**, còn `readExternal` chịu trách nhiệm chuyển instance đó thành trạng thái đã lưu.
+Therefore, the no-arg constructor must establish a **valid initial state ready for restoration**, while `readExternal` is responsible for transitioning that instance into the saved state.
 
-## 3. Cú pháp đúng của constructor
+## 3. Correct Constructor Syntax
 
-Một lớp `Externalizable` cơ bản:
+A basic `Externalizable` class:
 
-~~~java
+```java
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -87,11 +87,11 @@ public class ExternalUser implements Externalizable {
     private String username;
     private int level;
 
-    // BẮT BUỘC: constructor public và không nhận tham số.
+    // REQUIRED: public constructor taking no arguments.
     public ExternalUser() {
     }
 
-    // Constructor nhận tham số là TÙY CHỌN, chỉ tiện tạo object mới.
+    // Parameterized constructor is OPTIONAL, merely convenient for creating new objects.
     public ExternalUser(String username, int level) {
         this.username = username;
         this.level = level;
@@ -110,58 +110,58 @@ public class ExternalUser implements Externalizable {
         level = in.readInt();
     }
 }
-~~~
+```
 
-Đây là **một lớp Java có thể biên dịch** khi lưu thành `ExternalUser.java`, nhưng không có `main` độc lập. Cần bổ sung xử lý trường `username == null` trong code production; `writeUTF` không chấp nhận `null`. Với dữ liệu không tin cậy, `readExternal` cũng phải giới hạn/kiểm tra giá trị của các field.
+This is a **compilable Java class** when saved as `ExternalUser.java`, though it has no standalone `main`. Production code must add handling for `username == null` because `writeUTF` rejects `null`. For untrusted data, `readExternal` must also bound and validate field values.
 
-**Hai constructor cùng tồn tại được:** Java chọn overload có tham số khi ứng dụng chủ động gọi `new ExternalUser("an", 3)`; khi `ObjectInputStream` phục hồi object Externalizable, nó dùng `public ExternalUser()`.
+**Both constructors can coexist:** Java picks the parameterized overload when the application explicitly calls `new ExternalUser("an", 3)`; when `ObjectInputStream` restores the Externalizable object, it invokes `public ExternalUser()`.
 
-Một constructor đúng phải thỏa cả hai điều kiện:
+A valid constructor must satisfy both conditions:
 
-~~~text
-public + không có tham số
+```text
+public + no arguments
 
-public ExternalUser() {}        // ĐÚNG
-protected ExternalUser() {}     // SAI đối với Externalizable deserialization
-ExternalUser() {}              // SAI (package-private)
-private ExternalUser() {}      // SAI
-public ExternalUser(int id) {} // SAI nếu không có public ExternalUser()
-~~~
+public ExternalUser() {}        // VALID
+protected ExternalUser() {}     // INVALID for Externalizable deserialization
+ExternalUser() {}               // INVALID (package-private)
+private ExternalUser() {}       // INVALID
+public ExternalUser(int id) {}  // INVALID without public ExternalUser()
+```
 
-**Đừng nhầm default constructor với constructor không tham số do tự viết:** nếu lớp không khai báo bất kỳ constructor nào, trình biên dịch Java tự sinh một constructor no-arg có cùng mức truy cập với lớp. Nhưng **ngay khi bạn khai báo bất kỳ constructor nào**, constructor mặc định đó không còn được tự tạo. Trong class `public ExternalUser` có `ExternalUser(String)`, bạn **phải viết thêm** `public ExternalUser()`.
+**Do not confuse the compiler-generated default constructor with an explicitly written no-arg constructor:** if a class declares no constructors at all, the Java compiler generates a no-arg constructor with the same visibility as the class. However, **as soon as you declare any constructor**, that default constructor is no longer generated. In `public ExternalUser` with `ExternalUser(String)`, you **must explicitly add** `public ExternalUser()`.
 
-## 4. Vòng đời chính xác lúc deserialize
+## 4. Exact Lifecycle During Deserialization
 
-Khi có `ObjectOutputStream` và `ObjectInputStream`:
+With `ObjectOutputStream` and `ObjectInputStream`:
 
-~~~text
-1) Application tạo object bằng constructor tùy chọn.
+```text
+1) Application creates object via chosen constructor.
 2) out.writeObject(object)
-   - Kiểm tra class/serialization protocol.
-   - Gọi object.writeExternal(out) để ghi custom data.
+   - Check class/serialization protocol.
+   - Call object.writeExternal(out) to write custom data.
 3) in.readObject()
-   - Đọc descriptor và xác định class cần tái tạo.
-   - Kiểm tra/chuẩn bị việc tạo instance Externalizable.
-   - Gọi constructor public no-arg của Externalizable class.
-   - Constructor gọi super() theo chuỗi constructor Java.
-   - Gọi object.readExternal(in) để nạp custom state.
-   - Hoàn tất serialization protocol rồi trả về tham chiếu object.
-~~~
+   - Read descriptor and determine class to reconstruct.
+   - Check/prepare Externalizable instance creation.
+   - Call public no-arg constructor of Externalizable class.
+   - Constructor calls super() per Java constructor chaining.
+   - Call object.readExternal(in) to load custom state.
+   - Finish serialization protocol and return object reference.
+```
 
-Vì constructor **thực sự chạy**, bạn cần để ý cả:
+Because the constructor **actually runs**, keep in mind:
 
-- **Field initializer** (ví dụ `private List<String> tags = new ArrayList<>();`) được chạy theo quy trình tạo object thông thường trước body constructor của lớp.
-- **Side effects** trong constructor như log, tăng bộ đếm, gọi service hoặc đăng ký observer cũng có thể xảy ra khi deserialize.
-- **Validation/invariant**: constructor có thể tạo state mặc định; `readExternal` thay thế các field bằng giá trị từ stream. Phải xác thực giá trị sau khi đọc để instance không rơi vào trạng thái bất hợp lệ.
-- **Chuỗi super constructor**: `public Child() { super(); }` phải biên dịch được; nếu superclass không có constructor không tham số truy cập được, cần điều chỉnh thiết kế lớp.
+- **Field initializers** (such as `private List<String> tags = new ArrayList<>();`) execute under normal object construction before the class's constructor body.
+- **Side effects** inside the constructor—such as logging, incrementing counters, calling services, or registering observers—will also fire during deserialization.
+- **Validation/invariants:** the constructor can set up default state; `readExternal` replaces fields with values from the stream. You must validate values after reading so the instance never enters an invalid state.
+- **Super constructor chain:** `public Child() { super(); }` must compile; if the superclass lacks an accessible no-arg constructor, adjust the class design.
 
-Không nên thực hiện side effects nguy hiểm hoặc không thể hoàn tác trong public no-arg constructor vì bất kỳ lượt đọc object Externalizable hợp lệ nào cũng có thể kích hoạt chúng. Đó là một lý do phải coi Java deserialization là bề mặt tấn công khi nguồn byte không tin cậy.
+Avoid dangerous or irreversible side effects inside the public no-arg constructor because any valid Externalizable object read can trigger them. That is one reason Java deserialization must be treated as an attack surface when byte sources are untrusted.
 
-## 5. Ví dụ Java 17+ đầy đủ: chứng minh thứ tự constructor và readExternal
+## 5. Complete Java 17+ Example: Proving Constructor and readExternal Order
 
-Lưu toàn bộ chương trình sau trong tệp `ExternalizableConstructorDemo.java`.
+Save the entire program below in `ExternalizableConstructorDemo.java`.
 
-~~~java
+```java
 import java.io.*;
 
 public class ExternalizableConstructorDemo {
@@ -173,12 +173,12 @@ public class ExternalizableConstructorDemo {
         private String name;
         private int count;
 
-        // ObjectInputStream gọi constructor này khi DESERIALIZE.
+        // ObjectInputStream calls this constructor when DESERIALIZING.
         public Entry() {
             System.out.println("constructor: public no-arg");
         }
 
-        // Ứng dụng dùng constructor này để tạo object ban đầu.
+        // Application uses this constructor to create the initial object.
         public Entry(String name, int count) {
             this.name = name;
             this.count = count;
@@ -227,47 +227,47 @@ public class ExternalizableConstructorDemo {
         }
     }
 }
-~~~
+```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run on JDK 17 or newer:
 
-~~~bash
+```bash
 javac ExternalizableConstructorDemo.java
 java ExternalizableConstructorDemo
-~~~
+```
 
-**Stdout chính xác:** 
+**Exact stdout:**
 
-~~~text
+```text
 writeExternal
 afterSerialize=Entry{name='Hoa', count=7}
 constructor: public no-arg
 readExternal
 afterRead=Entry{name='Hoa', count=7}
-~~~
+```
 
-### 5.1. Vì sao thứ tự in ra như vậy?
+### 5.1. Why Does the Output Print in That Order?
 
-1. `new Entry("Hoa", 7)` dùng constructor **có tham số**, nên không in dòng `constructor: public no-arg`.
-2. `out.writeObject(original)` gọi `writeExternal()`, in `writeExternal` rồi ghi username và count.
-3. Sau khi serialize, `original` vẫn là object cũ; dòng `afterSerialize=...` không có thao tác tạo object mới.
-4. `in.readObject()` cần một instance Externalizable mới nên gọi `public Entry()`, in `constructor: public no-arg`.
-5. Sau constructor, Java gọi `readExternal()` để đọc lại String và int đúng thứ tự đã ghi; dòng `readExternal` được in.
-6. `toString()` của instance đã phục hồi cho thấy `name` và `count` đúng như bản ban đầu.
+1. `new Entry("Hoa", 7)` uses the **parameterized** constructor, so `constructor: public no-arg` is not printed.
+2. `out.writeObject(original)` calls `writeExternal()`, prints `writeExternal`, and writes name and count.
+3. After serialization, `original` remains the existing object; `afterSerialize=...` creates no new object.
+4. `in.readObject()` needs a fresh Externalizable instance, so it calls `public Entry()`, printing `constructor: public no-arg`.
+5. After the constructor, Java calls `readExternal()` to read back the String and int in the exact written order; `readExternal` is printed.
+6. `toString()` on the restored instance shows `name` and `count` match the original object.
 
-**Kiểm nghiệm:** ví dụ này đã được biên dịch với tùy chọn `javac --release 17` và chạy thành công trên runtime tương thích Java 17+; stdout nêu trên lấy từ quá trình chạy thực tế. Tính xác định không phụ thuộc timestamp, địa chỉ đối tượng hay đường dẫn tệp.
+**Verification:** this example was compiled with `javac --release 17` and executed successfully on a Java 17+-compatible runtime; the stdout above comes from actual execution. Determinism does not depend on timestamps, object addresses, or file paths.
 
-### 5.2. Tại sao dùng `public static class Entry`?
+### 5.2. Why Use `public static class Entry`?
 
-`Entry` là một **static nested class**: không có tham chiếu ngầm đến một instance lớp bao ngoài. Constructor `public Entry()` thực sự là constructor không tham số trên lớp bytecode tương ứng, cho nên phù hợp với Externalizable.
+`Entry` is a **static nested class**: it holds no implicit reference to an enclosing class instance. Its `public Entry()` constructor is genuinely a no-arg constructor in the generated bytecode, making it compatible with Externalizable.
 
-Ngược lại, một **non-static inner class** thường mang tham số constructor ngầm biểu diễn enclosing instance. Dù người viết khai báo `public Inner()` ở mã nguồn, chữ ký constructor ở mức bytecode vẫn cần tham chiếu đối tượng ngoài. Theo Java Serialization Specification, cơ chế `Externalizable` **không phù hợp** với inner class gắn enclosing instance; nên dùng top-level class hoặc static nested class nếu cần Externalizable.
+Conversely, a **non-static inner class** normally carries a synthetic constructor parameter representing the enclosing instance. Even if the author writes `public Inner()` in source code, the bytecode constructor signature still requires the outer object reference. Per the Java Serialization Specification, `Externalizable` is **unsuitable** for inner classes bound to an enclosing instance; use a top-level class or a static nested class when Externalizable is needed.
 
-## 6. Trường hợp sai: thiếu public no-arg constructor
+## 6. Error Case: Missing Public No-Arg Constructor
 
-Đây là một lớp ví dụ **có thể biên dịch**, nhưng không thể deserialize bình thường bằng cơ chế Externalizable:
+Here is an example class that **compiles**, yet cannot be deserialized normally via Externalizable:
 
-~~~java
+```java
 public static class BadEntry implements Externalizable {
     private String value;
 
@@ -286,89 +286,89 @@ public static class BadEntry implements Externalizable {
         value = in.readUTF();
     }
 }
-~~~
+```
 
-**Lưu ý:** đoạn trên dành để đặt bên trong một lớp Java có import `java.io.Externalizable`, `ObjectInput`, `ObjectOutput` và `IOException`; nó không phải top-level class độc lập do có `static`.
+**Note:** this snippet is meant to be placed inside a Java class importing `java.io.Externalizable`, `ObjectInput`, `ObjectOutput`, and `IOException`; it is not a standalone top-level class because of `static`.
 
-Vì `BadEntry` đã có `public BadEntry(String value)`, Java **không sinh** constructor mặc định no-arg. Quy trình thường là:
+Because `BadEntry` already declares `public BadEntry(String value)`, Java **does not generate** a default no-arg constructor. The typical flow is:
 
-~~~text
-BadEntry original = new BadEntry("x")   -> hợp lệ
+```text
+BadEntry original = new BadEntry("x")   -> valid
 ObjectOutputStream.writeObject(original)
-                                        -> gọi writeExternal, có thể thành công
-ObjectInputStream.readObject()           -> cần public BadEntry()
-                                        -> không có
+                                        -> calls writeExternal, may succeed
+ObjectInputStream.readObject()          -> needs public BadEntry()
+                                        -> missing
                                         -> InvalidClassException
-~~~
+```
 
-Không có gì trong `writeExternal`/`readExternal` sửa được thiếu sót này. Cách khắc phục:
+Nothing inside `writeExternal`/`readExternal` can compensate for this omission. The fix:
 
-~~~java
+```java
 public BadEntry() {
-    // Cho phép ObjectInputStream khởi tạo lại instance.
+    // Allow ObjectInputStream to instantiate the object.
 }
-~~~
+```
 
-Đảm bảo constructor thật sự được khai báo **trong đúng lớp Externalizable cần deserialize**, không phải chỉ ở lớp cha hoặc một lớp khác.
+Ensure the constructor is actually declared **in the exact Externalizable class being deserialized**, not solely in a parent or other class.
 
-### 6.1. Constructor private/protected/package-private cũng không đạt yêu cầu
+### 6.1. Private/Protected/Package-Private Constructors Also Fail the Requirement
 
-~~~java
+```java
 public class OtherBadEntry implements Externalizable {
-    private OtherBadEntry() {} // KHÔNG phải public
-    // Cần bổ sung hai phương thức public writeExternal/readExternal.
+    private OtherBadEntry() {} // NOT public
+    // Must add two public writeExternal/readExternal methods.
 }
-~~~
+```
 
-Đây là **mảnh minh họa không đầy đủ**, không dùng để compile độc lập. Dù code ở cùng package gọi được một constructor package-private, Object Serialization của Externalizable yêu cầu **public no-arg constructor**. Sự khác nhau về accessibility không phải chi tiết trang trí.
+This is an **incomplete illustrative fragment**, not meant to compile standalone. Even though code in the same package can invoke a package-private constructor, Externalizable Object Serialization requires a **public no-arg constructor**. Accessibility differences are not decorative details.
 
-### 6.2. Không cần làm mọi field public
+### 6.2. You Do Not Need to Make All Fields Public
 
-Yêu cầu public áp dụng với **constructor không tham số** và hai method thuộc contract `Externalizable`. Các field vẫn có thể và nên là `private`, miễn `readExternal` trong class có cách phục hồi chúng. Đừng thay tất cả field thành public chỉ để serializer dùng được: đó là việc không liên quan và làm hỏng encapsulation.
+The public requirement applies to the **no-arg constructor** and the two `Externalizable` contract methods. Fields can and should remain `private`, as long as `readExternal` inside the class can restore them. Never turn every field public just so a serializer can access them: that is unrelated and breaks encapsulation.
 
-## 7. Constructor phải làm gì và không nên làm gì?
+## 7. What Should and Shouldn't the Constructor Do?
 
-### 7.1. Constructor nên tạo state tối thiểu an toàn
+### 7.1. The Constructor Should Establish Minimal Safe State
 
-~~~java
+```java
 public ExternalOrder() {
     this.items = new ArrayList<>();
     this.status = "NEW";
 }
-~~~
+```
 
-Đây là đoạn minh họa thuộc một class có `items` và `status` phù hợp. Khi deserialize, các giá trị này chỉ đóng vai trò **trạng thái mặc định ban đầu**; `readExternal` phải đọc dữ liệu theo định dạng đã ghi và cập nhật fields cần thiết.
+This is an illustrative snippet inside a class with matching `items` and `status` fields. During deserialization, these values merely act as **initial default state**; `readExternal` must read data according to the written format and update the necessary fields.
 
-Việc constructor này chạy lúc read có thể tiện để thiết lập collections hoặc invariant ban đầu. Tuy nhiên, **không** có nghĩa bạn được bỏ `readExternal` hay mặc định các field từ object gốc sẽ tự chui vào constructor. Externalizable chỉ phục hồi những gì chương trình viết/đọc theo protocol.
+Having this constructor run during reading can be convenient for initializing collections or baseline invariants. However, it **does not** mean you can skip `readExternal` or expect fields from the original object to flow into the constructor automatically. Externalizable restores only what the program writes and reads per its protocol.
 
-### 7.2. Tránh side effects trong constructor
+### 7.2. Avoid Side Effects in the Constructor
 
-Không nên tự động:
+Do not automatically:
 
-- Gửi email, ghi database, đặt đơn hàng hoặc gọi thanh toán.
-- Khởi động thread, mở socket, đăng ký job lâu dài.
-- Dùng dữ liệu nhận chưa được xác thực để truy cập tệp hay hệ thống khác.
-- Dựa vào constructor có tham số để dựng invariant mà quên rằng deserialize dùng constructor **không tham số**.
-- Coi việc constructor được gọi là sự kiện “object đã hoàn toàn được phục hồi”: `readExternal` còn phải chạy sau đó.
+- Send emails, write to databases, place orders, or invoke payment gateways.
+- Start threads, open sockets, or register long-lived jobs.
+- Use unvalidated incoming data to access files or external systems.
+- Rely on a parameterized constructor to establish invariants while forgetting deserialization uses the **no-arg** constructor.
+- Treat constructor invocation as "the object is already fully restored": `readExternal` still has to run afterward.
 
-Nếu việc khởi tạo tốn nhiều chi phí và khó an toàn khi deserialize, cân nhắc dùng một mô hình DTO hoặc định dạng dữ liệu khác thay vì Externalizable.
+If initialization is expensive and hard to make safe during deserialization, consider a DTO model or another data format instead of Externalizable.
 
-## 8. Thứ tự writeExternal và readExternal phải khớp nhau
+## 8. writeExternal and readExternal Order Must Match
 
-`Externalizable` trao toàn quyền nội dung stream cho người viết class. Nếu ghi:
+`Externalizable` hands full control of stream content to the class author. If you write:
 
-~~~java
+```java
 @Override
 public void writeExternal(ObjectOutput out) throws IOException {
     out.writeInt(id);
     out.writeUTF(name);
     out.writeBoolean(active);
 }
-~~~
+```
 
-thì phải đọc lại cùng thứ tự và đúng kiểu:
+then you must read back in the exact same order and types:
 
-~~~java
+```java
 @Override
 public void readExternal(ObjectInput in)
         throws IOException, ClassNotFoundException {
@@ -376,23 +376,23 @@ public void readExternal(ObjectInput in)
     name = in.readUTF();
     active = in.readBoolean();
 }
-~~~
+```
 
-Hai đoạn này là **mảnh method minh họa** bên trong một class có các field `id`, `name`, `active` và import phù hợp.
+These two snippets are **illustrative method fragments** inside a class with `id`, `name`, `active` fields and proper imports.
 
-**Sai phổ biến:** gọi `readUTF()` trước `readInt()` khi writer ghi int trước. Tùy dữ liệu cụ thể, kết quả có thể là exception vì đọc sai định dạng, giá trị sai hoặc stream bị lệch vị trí.
+**Common bug:** calling `readUTF()` before `readInt()` when the writer wrote the int first. Depending on the bytes, the outcome can be a format exception, corrupted values, or a misaligned stream cursor.
 
-Không có default field serialization tự cứu khi nội dung tự viết bị thiếu: nếu một field quan trọng như `balance` không được `writeExternal` ghi và `readExternal` đọc, nó sẽ giữ giá trị được thiết lập trong constructor/field initializer (hoặc mặc định kiểu Java), không tự khôi phục từ object gốc.
+There is no default field serialization to rescue omitted custom writes: if an important field like `balance` is neither written by `writeExternal` nor read by `readExternal`, it retains the value set in the constructor/field initializer (or Java type default) instead of restoring from the original object.
 
-### 8.1. Đừng gọi defaultWriteObject/defaultReadObject trong Externalizable
+### 8.1. Do Not Call defaultWriteObject/defaultReadObject Inside Externalizable
 
-`ObjectOutputStream.defaultWriteObject()` và `ObjectInputStream.defaultReadObject()` là phần của cơ chế custom serialization **`Serializable`** thông qua các private method `writeObject/readObject` thích hợp. `Externalizable` không dùng các phương thức đó như cách thay thế `writeExternal/readExternal`.
+`ObjectOutputStream.defaultWriteObject()` and `ObjectInputStream.defaultReadObject()` belong to **`Serializable`** custom serialization via matching private `writeObject/readObject` methods. `Externalizable` does not use those methods as substitutes for `writeExternal/readExternal`.
 
-Khi triển khai Externalizable, hãy chủ động dùng `ObjectOutput.writeInt/writeUTF/writeObject` và đối xứng `ObjectInput.readInt/readUTF/readObject` theo định dạng do bạn xác định. Trường hợp superclass cũng quản lý trạng thái externalized phải có hợp đồng gọi `super.writeExternal(...)`/`super.readExternal(...)` thích hợp nếu việc kế thừa đó tồn tại.
+When implementing Externalizable, explicitly use `ObjectOutput.writeInt/writeUTF/writeObject` and symmetric `ObjectInput.readInt/readUTF/readObject` per your defined format. If a superclass also manages externalized state, establish an explicit contract calling `super.writeExternal(...)`/`super.readExternal(...)` where such inheritance exists.
 
-### 8.2. Nếu field chứa object
+### 8.2. If a Field Holds an Object
 
-~~~java
+```java
 @Override
 public void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(address);
@@ -403,37 +403,37 @@ public void readExternal(ObjectInput in)
         throws IOException, ClassNotFoundException {
     address = (Address) in.readObject();
 }
-~~~
+```
 
-Đây là **đoạn minh họa**; `Address` cần là một type serializable theo hợp đồng phù hợp hoặc được thay bằng dạng dữ liệu khác. Khi gọi `writeObject/readObject` lồng bên trong Externalizable, cơ chế Java object serialization vẫn xử lý metadata, object identity và đồ thị tham chiếu theo protocol; các object lồng nhau cũng phải an toàn để deserialize.
+This is an **illustrative snippet**; `Address` must be a serializable type under an appropriate contract or replaced by another representation. When calling nested `writeObject/readObject` inside Externalizable, Java object serialization still handles metadata, object identity, and reference graphs per the protocol; nested objects must also be safe to deserialize.
 
-Đừng tự cast dữ liệu ngoài luồng mà không kiểm tra loại, giới hạn object graph và tính hợp lệ của nội dung.
+Never blindly cast stream objects without verifying types, bounding the object graph, and validating contents.
 
-## 9. serialVersionUID có thay thế constructor không?
+## 9. Does serialVersionUID Replace the Constructor?
 
-**Không.** Hai thứ giải quyết hai vấn đề khác nhau:
+**No.** The two solve completely different problems:
 
-| Thành phần | Mục đích |
+| Component | Purpose |
 | --- | --- |
-| `public ClassName()` | Cung cấp cách khởi tạo instance Externalizable lúc deserialize. |
-| `writeExternal/readExternal` | Xác định payload thực sự lưu và cách phục hồi. |
-| `serialVersionUID` | Tham gia kiểm tra tính tương thích class descriptor khi serialize/deserialize theo quy tắc Java Serialization. |
-| Version byte riêng trong external payload | Giúp chương trình phân biệt và nâng cấp định dạng custom theo thời gian. |
+| `public ClassName()` | Provides a way to instantiate the Externalizable object during deserialization. |
+| `writeExternal/readExternal` | Defines the actual payload stored and how it is restored. |
+| `serialVersionUID` | Participates in checking class descriptor compatibility during serialization/deserialization per Java Serialization rules. |
+| Custom version byte/int in external payload | Lets the program distinguish and upgrade custom formats over time. |
 
-Ví dụ:
+Example:
 
-~~~java
+```java
 @Serial
 private static final long serialVersionUID = 1L;
-~~~
+```
 
-`@Serial` có trong Java 17; annotation này giúp trình biên dịch/công cụ nhận ra thành viên dùng trong cơ chế serialization. Đặt `serialVersionUID` ổn định **không khiến một lớp thiếu public no-arg constructor trở nên hợp lệ**. Nó cũng không tự chỉnh các trường dữ liệu khi `writeExternal` đổi thứ tự hoặc định dạng.
+`@Serial` is available in Java 17; this annotation helps the compiler/tools identify serialization-related members. Declaring a stable `serialVersionUID` **does not make a class lacking a public no-arg constructor valid**. Nor does it automatically adjust data fields when `writeExternal` changes order or format.
 
-### 9.1. Version dữ liệu tự định nghĩa
+### 9.1. Self-Defined Payload Versioning
 
-Nếu một class từng ghi `id` rồi `name`, về sau muốn thêm `active`, cần có kế hoạch tương thích. Một lựa chọn là ghi version trong custom payload:
+If a class previously wrote `id` then `name`, and later wants to add `active`, a compatibility plan is needed. One option is writing a version in the custom payload:
 
-~~~java
+```java
 @Override
 public void writeExternal(ObjectOutput out) throws IOException {
     out.writeInt(2); // Payload format version.
@@ -459,19 +459,19 @@ public void readExternal(ObjectInput in)
         throw new IOException("Unsupported version: " + version);
     }
 }
-~~~
+```
 
-Đây là **hai method minh họa**, các field thuộc class bao ngoài và protocol version 1 giả định cũng đã ghi version=1 ở đầu. Nếu version 1 trong thực tế **không** ghi trường version, không thể chỉ thêm `readInt()` này rồi tự suy ra version của stream cũ; phải có kế hoạch migration/định dạng bao bọc khác.
+These are **two illustrative methods** whose fields belong to an enclosing class, assuming protocol version 1 also wrote `version=1` at the start. If version 1 in reality **did not** write a version field, you cannot simply add this `readInt()` and expect to infer the old stream's version; a migration or wrapper format is required.
 
-Version payload là lựa chọn của ứng dụng, không phải điều Java tự cung cấp cho Externalizable. Tùy mục tiêu tương thích, đôi khi nên dùng format như JSON/CBOR/Protocol Buffers thay vì Java native object serialization.
+Payload versioning is an application-level choice, not something Java provides automatically for Externalizable. Depending on compatibility goals, formats like JSON/CBOR/Protocol Buffers are sometimes preferable to native Java object serialization.
 
-## 10. Thừa kế và yêu cầu constructor
+## 10. Inheritance and Constructor Requirements
 
-### 10.1. Constructor của superclass
+### 10.1. Superclass Constructors
 
-Khi class Externalizable được tạo qua constructor no-arg, Java vẫn thực hiện **normal constructor chaining**:
+When an Externalizable class is instantiated via its no-arg constructor, Java still performs **normal constructor chaining**:
 
-~~~java
+```java
 class Base {
     Base() {
         System.out.println("base constructor");
@@ -484,23 +484,23 @@ public class Child extends Base implements Externalizable {
         System.out.println("child constructor");
     }
 
-    // Cần triển khai writeExternal/readExternal.
+    // Must implement writeExternal/readExternal.
 }
-~~~
+```
 
-Đây là **mảnh minh họa** về thứ tự constructor, chưa có method bắt buộc nên không compile độc lập. Nếu được triển khai đầy đủ, khi `Child` được deserialize, constructor `Base()` chạy trước body `Child()`.
+This is an **illustrative fragment** showing constructor ordering and omits the required methods, so it does not compile standalone. When fully implemented, deserializing `Child` executes `Base()` before the body of `Child()`.
 
-Nếu `Base` chỉ có `Base(String required)` và không có no-arg, `Child()` không thể gọi `super()` mặc định. Muốn có constructor no-arg ở Child, bạn phải viết lời gọi constructor superclass hợp lệ, chẳng hạn `super("default")` (nếu được phép) hoặc thay đổi thiết kế superclass. Điều này là quy tắc **constructor Java thông thường**, không phải một ngoại lệ do Externalizable tạo ra.
+If `Base` only has `Base(String required)` and no no-arg constructor, `Child()` cannot invoke an implicit `super()`. To give `Child` a no-arg constructor, you must explicitly call a valid superclass constructor such as `super("default")` (if permissible) or redesign the superclass. This is **standard Java constructor rules**, not a special exception created by Externalizable.
 
-### 10.2. Subclass có kế thừa Externalizable?
+### 10.2. Do Subclasses Inherit Externalizable?
 
-Một subclass của lớp implement `Externalizable` cũng thuộc họ Externalizable. Nếu nó được serialize/deserialize với class cụ thể đó, cơ chế phải có cách khởi tạo class đúng contract. Đừng cho rằng public no-arg constructor của **lớp cha** tự động trở thành public no-arg constructor của **lớp con** — constructor **không được kế thừa** trong Java.
+A subclass of a class implementing `Externalizable` is also Externalizable. If serialized/deserialized as that concrete subclass, the runtime must be able to instantiate it according to the contract. Do not assume a **parent class's** public no-arg constructor automatically becomes a public no-arg constructor on the **child class** — constructors **are not inherited** in Java.
 
-Nếu subclass khai báo constructor có tham số mà không khai báo public no-arg tương ứng, nó có thể gặp cùng vấn đề lúc deserialize. Khi subclass override `writeExternal/readExternal`, nó cũng phải quản lý trạng thái superclass theo quy ước đã thiết kế.
+If the subclass declares parameterized constructors without declaring a corresponding public no-arg constructor, it will hit the same deserialization failure. When a subclass overrides `writeExternal/readExternal`, it must also coordinate superclass state per the class hierarchy's design.
 
-### 10.3. Non-static inner class
+### 10.3. Non-Static Inner Classes
 
-~~~java
+```java
 public class Outer {
     public class Inner implements Externalizable {
         public Inner() { }
@@ -513,55 +513,55 @@ public class Outer {
                 throws IOException, ClassNotFoundException { }
     }
 }
-~~~
+```
 
-Đây là **mảnh code minh họa**, cần import java.io và có thể compile trong bối cảnh class phù hợp, nhưng **không nên dùng làm Externalizable object**. `Inner` giữ liên kết ngầm tới `Outer`, nên constructor thực tế cần enclosing instance. Java Serialization Specification nêu rõ Externalizable không áp dụng đúng cho inner class dạng này. Hãy chuyển thành **static nested class** hoặc top-level class.
+This is an **illustrative code fragment**; with `java.io` imports it compiles in an appropriate class context, yet **should not be used as an Externalizable object**. `Inner` retains an implicit link to `Outer`, so its actual bytecode constructor requires an enclosing instance. The Java Serialization Specification explicitly notes that Externalizable does not work properly with inner classes of this form. Convert it to a **static nested class** or top-level class.
 
-## 11. Lỗi phổ biến và cách chẩn đoán
+## 11. Common Errors and Diagnostics
 
-| Triệu chứng | Nguyên nhân | Hướng sửa |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| `InvalidClassException: no valid constructor` khi `readObject()` | Externalizable class thiếu public no-arg constructor hợp lệ. | Thêm `public ClassName() {}` và bảo đảm superclass constructor chain hợp lệ. |
-| Code biên dịch, `writeObject` thành công nhưng `readObject` thất bại | Serializer không cần public no-arg để ghi, nhưng cần lúc đọc. | Kiểm thử cả round-trip, không chỉ ghi file. |
-| Constructor no-arg không được trình biên dịch tự tạo | Đã khai báo constructor có tham số. | Tự viết overload no-arg public. |
-| `readExternal` đọc sai giá trị hoặc EOF | Thứ tự/số lượng/kiểu read khác với write. | Định nghĩa rõ binary format, versioning và test round-trip. |
-| Sau deserialize một field vẫn null/0 | Field chưa được write/read, hoặc constructor chỉ đặt default. | Kiểm tra các field cần lưu và logic khôi phục. |
-| Một action được thực hiện “lần nữa” khi đọc object | Constructor có side effect. | Giữ constructor đơn giản và không gây tác động bên ngoài. |
-| `InvalidClassException` dù constructor có tồn tại | Có thể sai access, class version, class descriptor/filter hoặc điều kiện serialization khác. | Kiểm tra exact exception/cause, class loader, `serialVersionUID`, public ctor và filter. |
-| Inner Externalizable không deserialize được | Constructor bytecode của non-static inner cần outer instance. | Dùng top-level hoặc static nested class. |
-| Object restored vi phạm invariant | `readExternal` đưa dữ liệu chưa validate vào field. | Kiểm tra bounds/types/required fields, throw `InvalidObjectException` nếu state không hợp lệ. |
-| Stream không tương thích giữa bản phát hành | `writeExternal` đổi format nhưng `readExternal` không hỗ trợ bản cũ. | Có payload format version và migration test phù hợp. |
+| `InvalidClassException: no valid constructor` on `readObject()` | Externalizable class lacks a valid public no-arg constructor. | Add `public ClassName() {}` and ensure the superclass constructor chain is valid. |
+| Code compiles and `writeObject` succeeds, but `readObject` fails | Serializer does not need the public no-arg constructor to write, only to read. | Test full round-trips, not just writing files. |
+| Compiler did not auto-generate a no-arg constructor | A parameterized constructor was declared. | Manually declare the public no-arg overload. |
+| `readExternal` reads wrong values or hits EOF | Read order/count/types differ from writes. | Define binary format clearly, version it, and test round-trips. |
+| A field remains null/0 after deserialization | Field was never written/read, or constructor only set defaults. | Verify persisted fields and restoration logic. |
+| An action executes "a second time" when reading an object | Constructor has side effects. | Keep constructors simple and free of external side effects. |
+| `InvalidClassException` even though constructor exists | May be wrong visibility, class version, descriptor/filter mismatch, or other serialization constraints. | Inspect exact exception/cause, class loader, `serialVersionUID`, public ctor, and filters. |
+| Inner Externalizable fails to deserialize | Bytecode constructor of non-static inner class requires outer instance. | Use a top-level or static nested class. |
+| Restored object violates invariants | `readExternal` assigns unvalidated data to fields. | Check bounds/types/required fields; throw `InvalidObjectException` on invalid state. |
+| Stream incompatible across releases | `writeExternal` changed format without `readExternal` supporting old versions. | Include a payload format version and migration tests. |
 
-### 11.1. Kiểm tra public no-arg bằng Reflection
+### 11.1. Verifying the Public No-Arg Constructor via Reflection
 
-Có thể xác minh constructor mà không tự deserialize:
+You can verify the constructor without performing deserialization:
 
-~~~java
+```java
 import java.lang.reflect.Constructor;
 
 Constructor<?> ctor = Entry.class.getConstructor();
 System.out.println(ctor.getParameterCount() == 0);
-~~~
+```
 
-Đây là **mảnh minh họa**, `Entry` cần là class đang kiểm tra và method bao ngoài phải xử lý `NoSuchMethodException`. `getConstructor()` chỉ trả về **public constructor** khớp signature. Nếu có constructor no-arg nhưng private/package-private, lệnh này vẫn không tìm thấy.
+This is an **illustrative snippet**; `Entry` is the target class and the enclosing method must handle `NoSuchMethodException`. `getConstructor()` returns only a **public constructor** matching the signature. If a no-arg constructor exists but is private or package-private, this call still fails to find it.
 
-Reflection chỉ kiểm tra một phần yêu cầu; nó **không chứng minh** class có format externalization đúng, super constructor không ném lỗi, hoặc dữ liệu trong stream tương thích. Cách thử cuối cùng vẫn là một **round-trip serialize → deserialize** với case điển hình và case lỗi.
+Reflection checks only part of the requirement; it **does not prove** the class has a valid externalization format, a non-throwing super constructor, or compatible stream data. The ultimate test remains a **serialize → deserialize round-trip** covering both normal and error cases.
 
-## 12. Bảo mật: public constructor khiến deserialize có thể chạy code
+## 12. Security: Public Constructors Mean Deserialization Can Execute Code
 
-Java native deserialization của dữ liệu không tin cậy là nguy hiểm vì đọc bytes có thể:
+Java native deserialization of untrusted data is dangerous because reading bytes can:
 
-- Tải class, tạo đối tượng và chạy constructor của Externalizable.
-- Gọi `readExternal` do ứng dụng viết, trong đó có thể có side effects hoặc xử lý dữ liệu chưa kiểm tra.
-- Đọc tiếp object lồng nhau qua `ObjectInput.readObject`, mở rộng object graph ngoài dự kiến.
-- Làm cạn tài nguyên nếu stream khai báo/đòi dữ liệu quá lớn hoặc chứa cấu trúc sâu.
-- Chạm vào các class nguy hiểm/gadget có sẵn trên classpath trong một số môi trường.
+- Load classes, allocate objects, and execute Externalizable constructors.
+- Invoke application-written `readExternal` methods, which might perform side effects or process unvalidated data.
+- Recursively read nested objects via `ObjectInput.readObject`, expanding the object graph unexpectedly.
+- Exhaust resources if a stream declares or demands huge allocations or deeply nested structures.
+- Touch dangerous classes/gadgets already present on the classpath in some environments.
 
-**Không coi public no-arg constructor là chứng thực nguồn dữ liệu.** Đây chỉ là điều kiện tạo instance. Cần đánh giá dữ liệu input có được xác thực và tin cậy hay chưa.
+**Never treat a public no-arg constructor as validation of the data source.** It is merely an instantiation requirement. You must evaluate whether incoming bytes are authenticated and trusted.
 
-### 12.1. Giới hạn giá trị trong readExternal
+### 12.1. Bounding Values Inside readExternal
 
-~~~java
+```java
 @Override
 public void readExternal(ObjectInput in)
         throws IOException, ClassNotFoundException {
@@ -574,69 +574,69 @@ public void readExternal(ObjectInput in)
 
     this.count = inputCount;
 }
-~~~
+```
 
-Đây là **method minh họa** thuộc class có field `count` và import `java.io.InvalidObjectException`. Nó minh họa kiểm tra đầu vào trước khi gán state. Trong class có nhiều field, đừng công bố/đăng ký object cho code bên ngoài khi trạng thái mới được phục hồi một phần.
+This is an **illustrative method** inside a class with a `count` field and `import java.io.InvalidObjectException`. It shows validating input before mutating state. In multi-field classes, never publish or register an object externally while state is only partially restored.
 
-### 12.2. Serialization filter
+### 12.2. Serialization Filters
 
-Java 17 cung cấp `ObjectInputFilter` để giới hạn class và kích thước đồ thị đối tượng khi deserialize.
+Java 17 provides `ObjectInputFilter` to restrict classes and object graph sizes during deserialization.
 
-~~~java
+```java
 ObjectInputFilter filter =
         ObjectInputFilter.Config.createFilter(
                 "maxdepth=10;maxrefs=100;maxbytes=100000;com.example.dto.*;!*");
 
 input.setObjectInputFilter(filter);
 Object value = input.readObject();
-~~~
+```
 
-Đây là **mảnh minh họa**: `input` là một `ObjectInputStream` do ứng dụng tạo, và phải set filter trước khi đọc. Hãy điều chỉnh allowlist cho đúng tập class dự kiến, bao gồm những class lồng cần thiết; pattern trên chỉ là ví dụ cấu hình, không phải mặc định dùng được cho mọi dự án. Filter là **defense in depth**, không đủ để biến dữ liệu không tin cậy thành an toàn tuyệt đối.
+This is an **illustrative snippet**: `input` is an application-created `ObjectInputStream`, and the filter must be set before reading. Adjust the allowlist to match your exact expected classes, including any required nested types; the pattern above is a sample configuration, not a universal default for every project. Filters are **defense in depth**, insufficient to make arbitrary untrusted input completely safe.
 
-Nếu không có yêu cầu bắt buộc phải dùng Java native serialization, một protocol với schema và parse/validation rõ ràng thường dễ giới hạn rủi ro hơn.
+When native Java serialization is not strictly mandated, a protocol with an explicit schema and parser/validator is usually much easier to constrain safely.
 
-## 13. Checklist thực hành Externalizable
+## 13. Externalizable Practice Checklist
 
-Trước khi viết:
+Before writing:
 
-1. **Class thực sự implement `Externalizable`?** Nếu chỉ `Serializable`, quy tắc constructor khác.
-2. **Có `public ClassName()` đúng signature?** Không tham số; quyền public; thuộc đúng class được phục hồi.
-3. **Constructor chain của superclass chạy hợp lệ?** Constructor Java thông thường không được kế thừa.
-4. **Dùng static nested/top-level class?** Tránh non-static inner class gắn enclosing object.
-5. **`writeExternal` và `readExternal` có public và đúng signature?** Dùng `@Override` để compiler bắt lỗi.
-6. **Thứ tự/kiểu byte viết và đọc đối xứng?** Ghi `int` thì đọc `int`, ghi `UTF` thì đọc `UTF`.
-7. **Tất cả state cần thiết được lưu và phục hồi?** Field mặc định của constructor không thay thế dữ liệu ban đầu.
-8. **Đã xác định cách xử lý null và optional fields?** `writeUTF(null)` không hợp lệ; cần presence marker/schema.
-9. **Có `serialVersionUID` ổn định và version custom payload khi cần?** Hai thứ không thay thế nhau.
-10. **Constructor và `readExternal` không có side effect nguy hiểm?** Deserialization có thể gọi cả hai.
-11. **Có validate dữ liệu không tin cậy và giới hạn kích thước?** Tránh malformed stream và cạn tài nguyên.
-12. **Có test round-trip và test phiên bản cũ?** Compile/serialize thành công chưa chứng minh deserialize thành công.
+1. **Does the class genuinely implement `Externalizable`?** If only `Serializable`, constructor rules differ.
+2. **Is there a `public ClassName()` with the exact signature?** Zero parameters, `public` visibility, on the exact class being restored.
+3. **Does the superclass constructor chain run cleanly?** Regular Java constructors are not inherited.
+4. **Is it a static nested or top-level class?** Avoid non-static inner classes bound to an enclosing object.
+5. **Are `writeExternal` and `readExternal` public with exact signatures?** Use `@Override` so the compiler catches typos.
+6. **Are write and read orders/types symmetric?** Write `int` then read `int`; write `UTF` then read `UTF`.
+7. **Is all necessary state saved and restored?** Constructor defaults do not replace original data.
+8. **Are null and optional fields handled?** `writeUTF(null)` is invalid; use presence markers/schemas.
+9. **Is there a stable `serialVersionUID` and custom payload version if needed?** One does not replace the other.
+10. **Are both the constructor and `readExternal` free of dangerous side effects?** Deserialization can invoke both.
+11. **Is untrusted data validated with size limits?** Prevent malformed streams and resource exhaustion.
+12. **Do you have round-trip and legacy-version tests?** Successful compilation/serialization does not prove successful deserialization.
 
-## 14. Câu hỏi tự kiểm tra
+## 14. Self-Check Questions
 
-1. **Lớp implement Externalizable có bắt buộc public no-arg constructor không?** Có, để `ObjectInputStream` có thể khởi tạo khi deserialize.
-2. **Chỉ có `public User(String name)` có đủ không?** Không, Java không tự sinh `User()` khi đã có constructor do bạn viết.
-3. **`private User()` có đạt điều kiện không?** Không. Quyền truy cập phải là `public`.
-4. **Constructor public no-arg chạy trước hay sau readExternal?** Trước, rồi `readExternal` khôi phục state.
-5. **Constructor có tham số dùng khi ứng dụng tạo object ban đầu có được gọi lại khi deserialize không?** Không theo quy trình Externalizable mặc định; hệ thống dùng public no-arg.
-6. **Có cần public tất cả field không?** Không. Field vẫn có thể private; `readExternal` chịu trách nhiệm gán.
-7. **Tại sao ghi file thành công vẫn có thể đọc file thất bại?** Yêu cầu constructor phục vụ deserialize, cộng các điều kiện tương thích và định dạng stream.
-8. **Serializable thường có chạy constructor của chính lớp Serializable khi deserialize không?** Không theo cơ chế thông thường; constructor của superclass đầu tiên không Serializable có thể được chạy.
-9. **Vì sao non-static inner class không phù hợp Externalizable?** Có tham chiếu outer instance ngầm trong constructor bytecode, không cung cấp public no-arg constructor thực sự theo yêu cầu.
-10. **`serialVersionUID` thay được constructor không?** Không, nó phục vụ kiểm tra class version chứ không tạo instance.
-11. **Một field không được writeExternal ghi, readExternal cũng không đọc thì thế nào?** Nó giữ giá trị mặc định/constructor đã tạo, không tự phục hồi từ object gốc.
-12. **Trật tự writeUTF rồi writeInt có thể đọc bằng readInt rồi readUTF không?** Không; định dạng sẽ lệch.
-13. **Có nên dùng constructor để gửi email ngay sau khi object được tạo không?** Không, vì deserialize cũng gọi constructor và có thể kích hoạt side effect ngoài ý muốn.
-14. **Làm sao phát hiện thiếu public no-arg trước khi đưa lên production?** Dùng reflection `getConstructor()` và quan trọng hơn là test serialize/deserialize round-trip.
-15. **readExternal đọc data lạ có thể làm gì?** Validate schema, độ dài, giá trị; ném `IOException`/`InvalidObjectException` nếu dữ liệu sai.
-16. **Có nên deserialize trực tiếp bytes từ người không tin cậy không?** Nên tránh khi có thể; nếu buộc dùng cần authentication, filtering, validation và giới hạn tài nguyên.
+1. **Does a class implementing Externalizable require a public no-arg constructor?** Yes, so `ObjectInputStream` can instantiate it during deserialization.
+2. **Is having only `public User(String name)` sufficient?** No; Java does not auto-generate `User()` once you define any constructor.
+3. **Does `private User()` meet the requirement?** No. Visibility must be `public`.
+4. **Does the public no-arg constructor run before or after `readExternal`?** Before; then `readExternal` restores state.
+5. **Is the parameterized constructor used when the application first created the object called again during deserialization?** Not under the standard Externalizable flow; the runtime uses the public no-arg constructor.
+6. **Do all fields need to be public?** No. Fields can stay private; `readExternal` assigns them.
+7. **Why can writing a file succeed while reading it back fails?** Deserialization requires the no-arg constructor, plus compatibility conditions and matching stream framing.
+8. **Does regular `Serializable` run the Serializable class's own constructor during deserialization?** Not via normal construction; the constructor of the first non-Serializable superclass may run.
+9. **Why are non-static inner classes unsuitable for Externalizable?** Their bytecode constructor has an implicit outer-instance parameter, failing to provide a true public no-arg constructor.
+10. **Can `serialVersionUID` substitute for the constructor?** No; it serves class version verification, not object instantiation.
+11. **What happens to a field neither written by `writeExternal` nor read by `readExternal`?** It retains its default/constructor-assigned value rather than restoring from the original object.
+12. **Can a sequence `writeUTF` then `writeInt` be read with `readInt` then `readUTF`?** No; the format will misalign.
+13. **Should a constructor send an email as soon as the object is created?** No, because deserialization also invokes the constructor and can trigger unintended side effects.
+14. **How can you catch a missing public no-arg constructor before production?** Use reflection `getConstructor()` and, more importantly, serialize/deserialize round-trip tests.
+15. **What can `readExternal` do when encountering malformed data?** Validate schema, lengths, and values; throw `IOException`/`InvalidObjectException` on invalid data.
+16. **Should you directly deserialize bytes from untrusted users?** Avoid whenever possible; if unavoidable, enforce authentication, filtering, validation, and resource limits.
 
-## 15. Tài liệu chính thức
+## 15. Official Documentation
 
-- [Externalizable — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Externalizable.html): yêu cầu public no-arg constructor, `readExternal` và `writeExternal`.
-- [ObjectInputStream — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputStream.html): khôi phục object, luồng constructor và cảnh báo dữ liệu không tin cậy.
-- [Java Object Serialization Specification: Object Input](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/input.html): thứ tự cấp phát object, gọi constructor và đọc trạng thái.
-- [Java Object Serialization Specification: System Architecture](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/serial-arch.html): hợp đồng Externalizable và giới hạn inner class.
-- [ObjectInputFilter — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.html): giới hạn class/object graph trong quá trình deserialize.
+- [Externalizable — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Externalizable.html): public no-arg constructor requirement, `readExternal`, and `writeExternal`.
+- [ObjectInputStream — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputStream.html): object restoration, constructor flow, and untrusted data warnings.
+- [Java Object Serialization Specification: Object Input](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/input.html): object allocation order, constructor invocation, and state reading.
+- [Java Object Serialization Specification: System Architecture](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/serial-arch.html): Externalizable contract and inner class restrictions.
+- [ObjectInputFilter — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.html): constraining classes/object graphs during deserialization.
 
-**Ghi nhớ:** `Externalizable` trao quyền ghi/đọc trạng thái cho `writeExternal` và `readExternal`. Để tạo lại object, `ObjectInputStream` **cần gọi `public ClassName()` trước `readExternal()`**. Chỉ constructor có tham số, private, protected hoặc package-private đều **không đủ**. Hãy thiết kế constructor an toàn, thực hiện định dạng ghi/đọc đối xứng, validate state và kiểm thử vòng ghi-đọc bằng Java 17.
+**Takeaway:** `Externalizable` delegates state writing and reading to `writeExternal` and `readExternal`. To reconstruct the object, `ObjectInputStream` **must invoke `public ClassName()` before `readExternal()`**. Parameterized-only, private, protected, or package-private constructors are **all insufficient**. Design safe constructors, enforce symmetric write/read formats, validate state, and verify with Java 17 round-trip tests.
