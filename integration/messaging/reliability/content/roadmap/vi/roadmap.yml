@@ -1,0 +1,57 @@
+roadmap:
+- id: delivery-semantics
+  title: Delivery Semantics
+  purpose: Hiểu các bảo đảm phân phối thông điệp và những tình huống mất hoặc xử lý trùng.
+  objectives:
+  - Phân biệt at-most-once và at-least-once
+  - Nêu phạm vi của exactly-once
+  - Mô phỏng lỗi gây mất hoặc phát lại message
+- id: publish-durability
+  title: Publish & Durability
+  purpose: Đảm bảo producer nhận biết broker đã tiếp nhận thông điệp và dữ liệu được lưu bền vững.
+  objectives:
+  - Kiểm tra publisher confirm hoặc producer acks
+  - Phân biệt persistent message với durable queue
+  - Thử phát lại khi publish chưa được xác nhận
+- id: ack-offset
+  title: ACK & Offset
+  purpose: Xác định thời điểm consumer có thể xác nhận hoàn tất để tránh mất xử lý.
+  objectives:
+  - So sánh auto-ack và manual ack
+  - ACK hoặc commit offset sau xử lý thành công
+  - Thử crash trước và sau khi xác nhận
+- id: retry-backoff
+  title: Retry & Backoff
+  purpose: Khôi phục lỗi tạm thời mà không tạo vòng lặp xử lý vô hạn.
+  objectives:
+  - Phân loại lỗi tạm thời và lỗi cố định
+  - Cấu hình retry có giới hạn và backoff
+  - Đánh giá timeout và số lần phát lại
+- id: dlq-replay
+  title: DLQ & Replay
+  purpose: Cách ly message không xử lý được và cho phép điều tra, khôi phục có kiểm soát.
+  objectives:
+  - Thiết lập dead-letter queue hoặc topic
+  - Ghi nguyên nhân và số lần thất bại
+  - Thực hành sửa lỗi rồi replay an toàn
+- id: idempotency-dedup
+  title: Idempotency & Dedup
+  purpose: Đảm bảo nhận lại cùng một message không làm lặp tác động nghiệp vụ.
+  objectives:
+  - Định nghĩa message ID và khóa idempotency
+  - Thiết kế bảng hoặc kho lưu dấu đã xử lý
+  - Kiểm thử giao message trùng nhiều lần
+- id: ordering-outbox
+  title: Ordering & Outbox
+  purpose: Giữ thứ tự cần thiết và hạn chế lệch trạng thái giữa database với việc phát event.
+  objectives:
+  - Nhận biết phạm vi bảo đảm thứ tự theo partition
+  - Giải thích transaction và giới hạn end-to-end
+  - Áp dụng transactional outbox khi lưu và phát event
+- id: giam-sat-phuc-hoi
+  title: Giám sát & phục hồi
+  purpose: Phát hiện suy giảm độ tin cậy và xác minh hệ thống hồi phục sau sự cố.
+  objectives:
+  - Theo dõi queue depth, consumer lag, DLQ
+  - Gắn trace/correlation ID cho message
+  - Thử mất kết nối, restart và recovery

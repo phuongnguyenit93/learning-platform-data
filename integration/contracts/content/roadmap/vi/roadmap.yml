@@ -1,0 +1,55 @@
+roadmap:
+- id: vai-tro-integration-contract
+  title: Vai trò Integration Contract
+  purpose: Hiểu thỏa thuận giữa hệ thống cung cấp và hệ thống sử dụng trước khi tích hợp.
+  objectives:
+  - Nêu phần giao tiếp giữa producer/provider và consumer.
+  - Phân biệt interface contract với logic triển khai nội bộ.
+- id: hop-dong-http-api
+  title: Hợp đồng HTTP API
+  purpose: Mô tả endpoint, request, response và hành vi lỗi theo cách máy có thể đọc.
+  objectives:
+  - Định nghĩa API mẫu bằng OpenAPI với method và status code.
+  - Mô tả request/response cùng quy tắc xác thực.
+- id: hop-dong-message-event
+  title: Hợp đồng Message & Event
+  purpose: Chuẩn hóa dữ liệu và ý nghĩa thông điệp trong tích hợp bất đồng bộ.
+  objectives:
+  - Khai báo channel, message và payload bằng AsyncAPI.
+  - Phân biệt event với command và mô tả metadata cần thiết.
+- id: schema-validation
+  title: Schema & Validation
+  purpose: Quy định cấu trúc dữ liệu để phát hiện đầu vào sai trước khi xử lý.
+  objectives:
+  - Định nghĩa kiểu, required, nullable và ràng buộc bằng JSON Schema.
+  - Kiểm tra các payload hợp lệ và không hợp lệ.
+- id: y-nghia-xu-ly-loi
+  title: Ý nghĩa & Xử lý lỗi
+  purpose: Tránh hiểu sai hợp đồng khi cú pháp hợp lệ nhưng ngữ nghĩa không khớp.
+  objectives:
+  - Đặc tả ý nghĩa trường, giá trị mặc định và idempotency khi cần.
+  - Mô tả mã lỗi, retryable error và trường hợp không tìm thấy dữ liệu.
+- id: tuong-thich-thay-doi
+  title: Tương thích thay đổi
+  purpose: Đánh giá tác động của chỉnh sửa schema lên consumer đã triển khai.
+  objectives:
+  - Phân biệt backward, forward và full compatibility.
+  - Phân loại thao tác thêm/bỏ trường là an toàn hay breaking change.
+- id: versioning-migration
+  title: Versioning & Migration
+  purpose: Thay đổi hợp đồng có kế hoạch mà không làm gián đoạn hệ thống đang dùng.
+  objectives:
+  - Lập chiến lược thêm trường và ngừng hỗ trợ trường cũ.
+  - Xác định khi cần phiên bản mới và lộ trình chuyển đổi consumer.
+- id: contract-testing
+  title: Contract Testing
+  purpose: Kiểm chứng provider và consumer tuân thủ thỏa thuận tích hợp.
+  objectives:
+  - Tạo kiểm thử hợp đồng giữa consumer và provider bằng Pact.
+  - Phát hiện thay đổi response gây hỏng kỳ vọng consumer.
+- id: quan-tri-ci
+  title: Quản trị & CI
+  purpose: Duy trì hợp đồng đáng tin cậy từ khi thiết kế đến khi phát hành.
+  objectives:
+  - Thêm lint, schema validation và compatibility check vào pull request.
+  - Đề xuất chủ sở hữu, changelog và quy trình review hợp đồng.

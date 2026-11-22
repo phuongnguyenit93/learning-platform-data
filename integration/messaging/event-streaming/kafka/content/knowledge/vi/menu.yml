@@ -1,0 +1,487 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kafka là gì và bài toán tích hợp bằng luồng sự kiện
+  - Sự kiện, thông điệp và luồng sự kiện khác nhau thế nào
+  - Từ hàng đợi truyền thống đến nhật ký sự kiện phân tán
+  - Vai trò và quan hệ giữa producer, broker, topic và consumer
+  - Pub/sub, xử lý theo nhóm và khả năng đọc lại dữ liệu
+  - Khi nào nên dùng Kafka và khi nào nên chọn giải pháp khác
+  - Phân biệt Kafka với RabbitMQ, cơ sở dữ liệu và công cụ xử lý luồng
+  - Các API chính và vị trí của Connect, Streams trong hệ sinh thái
+  - Lộ trình thực hành từ một bản ghi đến hệ thống nhiều dịch vụ
+- level1: Môi trường thực hành
+  level2:
+  - Kiến thức nền về Java, mạng, lưu trữ và hệ phân tán
+  - Chọn phiên bản broker, Java client và JDK tương thích
+  - Khởi tạo cụm KRaft một nút bằng Docker Compose
+  - Thiết lập cụm nhiều broker và controller để mô phỏng sự cố
+  - Cấu hình listeners, advertised.listeners và kết nối trong Docker
+  - Tạo topic và kiểm tra metadata bằng công cụ dòng lệnh
+  - Gửi và đọc bản ghi đầu tiên bằng console producer, console consumer
+  - Quan sát consumer group và offset bằng công cụ dòng lệnh
+  - Tổ chức dự án Java, cấu hình kết nối và dữ liệu thực hành
+  - Lưu volume, khởi động lại và dọn môi trường thử nghiệm an toàn
+- level1: Bản ghi sự kiện
+  level2:
+  - 'Cấu trúc record: key, value, headers, timestamp, partition và offset'
+  - Phân biệt dữ liệu nghiệp vụ với metadata do Kafka quản lý
+  - Key ảnh hưởng đến phân vùng và thứ tự xử lý như thế nào
+  - Phân biệt null key, null value và thông điệp rỗng
+  - Tombstone và ý nghĩa xóa theo key
+  - CreateTime, LogAppendTime và thời gian phát sinh nghiệp vụ
+  - Headers cho mã tương quan, truy vết và phiên bản sự kiện
+  - Thiết kế event ID, nguồn phát và thời điểm phát sinh
+  - Kích thước bản ghi và lựa chọn lưu dữ liệu lớn bên ngoài Kafka
+  - Thiết kế sự kiện bất biến và phân biệt sự kiện với lệnh
+- level1: Topic và phân vùng
+  level2:
+  - Topic, partition và nhật ký chỉ ghi nối tiếp
+  - Offset chỉ có ý nghĩa trong từng partition
+  - Phạm vi bảo đảm thứ tự trong một partition
+  - Chọn key theo thực thể và yêu cầu thứ tự nghiệp vụ
+  - Phân phối bản ghi không có key và cơ chế gom lô
+  - Phân vùng tùy chỉnh và sự nhất quán giữa các producer
+  - Ước lượng số partition từ lưu lượng và mức song song
+  - Tăng số partition và ảnh hưởng đến ánh xạ key
+  - Hot partition, key lệch và cách phân tán tải
+  - Quy ước đặt tên topic, chủ sở hữu và phân chia miền nghiệp vụ
+  - Tách topic theo loại sự kiện, mức bảo mật và vòng đời dữ liệu
+  - Chính sách tự tạo topic và quản lý cấu hình topic
+- level1: Kiến trúc cụm
+  level2:
+  - Trách nhiệm của broker, controller và client
+  - Luồng ghi từ producer đến leader của partition
+  - Luồng đọc từ consumer đến broker
+  - Metadata discovery và vai trò của bootstrap.servers
+  - Data plane, control plane và các loại listener
+  - Group coordinator và các topic nội bộ
+  - Transaction coordinator và trạng thái giao dịch
+  - Request handler, network thread và quá trình xử lý yêu cầu
+  - Leader epoch, broker epoch và nhận diện trạng thái lỗi thời
+  - Phân biệt lỗi client, lỗi broker và lỗi điều phối cụm
+- level1: KRaft
+  level2:
+  - Vì sao Kafka cần cơ chế đồng thuận cho metadata
+  - Vai trò controller quorum, active controller và voter
+  - Metadata log, snapshot và quá trình đồng bộ metadata
+  - Raft, bầu leader và điều kiện đạt quorum
+  - Tách vai trò broker và controller trong môi trường vận hành
+  - Cluster ID, node ID và khởi tạo thư mục lưu trữ
+  - Cấu hình controller listener và kết nối giữa các nút
+  - Theo dõi trạng thái quorum và độ trễ metadata
+  - Ảnh hưởng khi mất controller, mất quorum hoặc phân vùng mạng
+  - Quản lý thành viên quorum theo khả năng của phiên bản
+  - ZooKeeper trong hệ thống cũ và ranh giới chuyển sang KRaft
+- level1: Lưu trữ
+  level2:
+  - Cấu trúc log segment, offset index và time index
+  - Record batch, nén dữ liệu và kiểm tra tính toàn vẹn
+  - Page cache, ghi tuần tự và truyền dữ liệu hiệu quả
+  - Log end offset, high watermark và last stable offset
+  - Phân biệt ghi log, nhân bản và đồng bộ dữ liệu xuống đĩa
+  - Retention theo thời gian, dung lượng và cơ chế xóa segment
+  - Log compaction và trạng thái mới nhất theo key
+  - Tombstone, delete.retention.ms và khả năng dựng lại trạng thái
+  - Kết hợp cleanup.policy=compact,delete và các đánh đổi
+  - Segment roll, log cleaner và tác động đến dung lượng
+  - Lưu trữ phân tầng và yêu cầu thành phần lưu trữ từ xa
+- level1: Nhân bản
+  level2:
+  - Replica, leader, follower và replication factor
+  - In-sync replicas và điều kiện replica rời hoặc gia nhập ISR
+  - Cơ chế follower fetch và độ trễ nhân bản
+  - Quan hệ giữa acks, min.insync.replicas và độ bền dữ liệu
+  - Vì sao acks=all không có nghĩa chờ mọi replica đã cấu hình
+  - Leader election khi broker lỗi và thời gian gián đoạn
+  - Unclean leader election và đánh đổi mất dữ liệu
+  - Log truncation, leader epoch và phục hồi replica
+  - Rack awareness và bố trí replica theo miền sự cố
+  - Preferred leader và cân bằng vai trò leader
+  - Thử nghiệm broker lỗi để kiểm chứng tính sẵn sàng và độ bền
+- level1: Producer Java
+  level2:
+  - Vòng đời KafkaProducer và cấu hình tối thiểu
+  - Serializer cho key, value và xử lý lỗi tuần tự hóa
+  - Tạo ProducerRecord với topic, key, headers và partition
+  - send bất đồng bộ, Future và callback
+  - Đọc RecordMetadata để xác nhận partition, offset và timestamp
+  - Phân biệt gửi bất đồng bộ với chờ kết quả từng bản ghi
+  - Quản lý producer dùng chung và đặc tính an toàn đa luồng
+  - flush, close và dừng ứng dụng có kiểm soát
+  - ProducerInterceptor và giới hạn sử dụng
+  - Metadata refresh và phản ứng khi leader thay đổi
+  - Xử lý lỗi trong callback mà không chặn luồng gửi
+  - Xây dựng producer Java hoàn chỉnh với cấu hình ngoài mã nguồn
+- level1: Điều phối gửi
+  level2:
+  - Record accumulator, sender thread và cơ chế gom lô
+  - batch.size và linger.ms trong đánh đổi độ trễ, thông lượng
+  - compression.type và chi phí CPU, mạng, lưu trữ
+  - buffer.memory, max.block.ms và áp lực ngược lên bên gửi
+  - acks=0, acks=1 và acks=all
+  - retries, retry.backoff.ms và lỗi có thể thử lại
+  - request.timeout.ms và delivery.timeout.ms
+  - max.in.flight.requests.per.connection và rủi ro đảo thứ tự
+  - enable.idempotence, producer ID và sequence number
+  - Giới hạn khử trùng của producer so với sự kiện nghiệp vụ trùng
+  - Xử lý kết quả gửi không xác định khi mất kết nối hoặc hết hạn
+- level1: Consumer Java
+  level2:
+  - Vòng đời KafkaConsumer và cấu hình tối thiểu
+  - Deserializer và cách đọc ConsumerRecord
+  - subscribe theo danh sách topic hoặc biểu thức chính quy
+  - assign trực tiếp và khác biệt với tham gia consumer group
+  - Vòng lặp poll và giới hạn trách nhiệm của luồng consumer
+  - position, committed offset và bản ghi tiếp theo sẽ đọc
+  - enable.auto.commit và những tình huống có thể mất hoặc lặp xử lý
+  - commitSync, commitAsync và xử lý lỗi commit
+  - Commit offset theo từng partition và quy tắc offset kế tiếp
+  - pause, resume và điều tiết tốc độ xử lý
+  - wakeup, WakeupException và dừng consumer an toàn
+  - Mô hình đa luồng và giới hạn an toàn của KafkaConsumer
+  - Xây dựng consumer Java hoàn chỉnh có quản lý vòng đời
+- level1: Nhóm consumer
+  level2:
+  - group.id và sự độc lập giữa các nhóm đọc cùng topic
+  - Phân chia partition cho thành viên trong consumer group
+  - Số consumer hữu ích và giới hạn từ số partition
+  - Group coordinator, membership và lưu trữ offset
+  - Heartbeat, session timeout và phát hiện thành viên mất kết nối
+  - max.poll.interval.ms và trường hợp xử lý quá lâu
+  - max.poll.records, fetch.min.bytes và giới hạn lô đọc
+  - group.instance.id và thành viên tĩnh
+  - Range, RoundRobin, Sticky và CooperativeSticky assignor
+  - Theo dõi group state, assignment và consumer lag
+  - Thay đổi số thành viên theo tải và tránh mở rộng vượt năng lực
+- level1: Cân bằng lại
+  level2:
+  - Các nguyên nhân kích hoạt rebalance
+  - Eager rebalance và cooperative rebalance
+  - Consumer group protocol mới và khác biệt với classic protocol
+  - Nhận diện cấu hình phụ thuộc phía client hoặc phía broker
+  - ConsumerRebalanceListener và các callback thu hồi, cấp phát
+  - Hoàn tất công việc và commit an toàn trước khi mất partition
+  - Xử lý partition bị mất và tránh ghi kết quả từ chủ sở hữu cũ
+  - Giảm rebalance khi triển khai hoặc khởi động lại ứng dụng
+  - Ngăn rebalance lặp do poll chậm, GC hoặc kết nối không ổn định
+  - Kiểm chứng thứ tự và bản ghi trùng trong thời gian rebalance
+- level1: Offset và phát lại
+  level2:
+  - __consumer_offsets và vòng đời offset đã commit
+  - auto.offset.reset khi chưa có offset hoặc offset không còn hợp lệ
+  - seek, seekToBeginning và seekToEnd
+  - Tìm offset theo timestamp bằng offsetsForTimes
+  - 'Reset offset bằng công cụ quản trị: xem trước rồi thực thi'
+  - Phát lại bằng group mới và cách bảo vệ consumer đang hoạt động
+  - Chọn điểm bắt đầu theo thời gian hoặc mốc nghiệp vụ
+  - Retention, offset hết hạn và OffsetOutOfRangeException
+  - Đọc lại trên compacted topic và những dữ liệu không thể phục hồi
+  - Thiết kế replay có giới hạn tốc độ và không lặp tác dụng phụ
+  - Phân biệt consumer lag bằng số bản ghi với độ trễ nghiệp vụ
+- level1: Ngữ nghĩa xử lý
+  level2:
+  - At-most-once, at-least-once và exactly-once
+  - Phân biệt xác nhận ghi, giao bản ghi và hoàn tất xử lý
+  - Cửa sổ lỗi giữa đọc, xử lý và commit offset
+  - Tính bất biến và tính lũy đẳng trong xử lý sự kiện
+  - Khử trùng bằng event ID và lưu dấu xử lý bền vững
+  - Giữ thứ tự theo thực thể khi có nhiều bước xử lý
+  - Xử lý trễ, sự kiện trùng và sự kiện đến sai thứ tự
+  - Giới hạn bảo đảm khi gọi HTTP hoặc ghi cơ sở dữ liệu ngoài Kafka
+  - Đánh đổi giữa độ trễ, độ bền, tính sẵn sàng và chi phí
+  - Chọn ngữ nghĩa theo hậu quả nghiệp vụ của mất hoặc lặp sự kiện
+- level1: Giao dịch
+  level2:
+  - Idempotent producer và transactional producer khác nhau thế nào
+  - transactional.id, producer epoch và cơ chế fencing
+  - initTransactions, beginTransaction, commitTransaction và abortTransaction
+  - Ghi nguyên tử vào nhiều topic và partition
+  - sendOffsetsToTransaction trong luồng đọc, xử lý và ghi lại Kafka
+  - isolation.level=read_committed và read_uncommitted
+  - Transaction marker, last stable offset và giao dịch chưa kết thúc
+  - Phân loại lỗi có thể thử lại, phải hủy hoặc phải đóng producer
+  - transaction.timeout.ms và khôi phục sau khi ứng dụng lỗi
+  - Vì sao giao dịch Kafka không tự bao phủ HTTP hoặc cơ sở dữ liệu
+  - Thử nghiệm crash để xác minh phạm vi exactly-once
+- level1: Xử lý lỗi
+  level2:
+  - Phân loại lỗi tạm thời, lỗi dữ liệu và lỗi nghiệp vụ
+  - Thử lại có giới hạn với backoff và jitter
+  - Thử lại tại chỗ và ảnh hưởng đến poll, thứ tự, consumer lag
+  - Retry topic và tác động đến thứ tự theo key
+  - Dead-letter topic và dữ liệu chẩn đoán cần lưu
+  - Lỗi deserialization và bản ghi không thể xử lý
+  - Commit offset khi bỏ qua, chuyển lỗi hoặc xử lý một phần lô
+  - Điều tiết khi hệ thống đích chậm hoặc không khả dụng
+  - Khử trùng tác dụng phụ khi retry sau timeout
+  - Quy trình sửa dữ liệu và đưa bản ghi lỗi trở lại luồng
+  - Kiểm soát retry storm và giới hạn tài nguyên phục hồi
+- level1: Hợp đồng dữ liệu
+  level2:
+  - Chọn String, JSON, Avro, Protobuf hoặc dữ liệu nhị phân
+  - Serializer, deserializer và sự tương thích giữa các ngôn ngữ
+  - Vai trò của schema registry và ranh giới với Apache Kafka
+  - Schema ID, subject và quy ước đăng ký schema
+  - Backward, forward, full compatibility và kiểm tra bắc cầu
+  - Thêm, đổi, xóa trường và giá trị mặc định
+  - Tiến hóa schema của key và hệ quả đối với phân vùng, compaction
+  - Định danh sự kiện, phiên bản hợp đồng và metadata dùng chung
+  - Phân biệt tương thích cấu trúc với thay đổi ý nghĩa nghiệp vụ
+  - Chiến lược triển khai producer và consumer khi đổi hợp đồng
+  - Contract testing và kiểm tra schema trong CI
+  - Quản lý dữ liệu nhạy cảm và vòng đời schema
+- level1: Quản trị qua API
+  level2:
+  - Admin client và mô hình bất đồng bộ của kết quả quản trị
+  - Tạo, mô tả, liệt kê và xóa topic
+  - Đọc và thay đổi cấu hình bằng incrementalAlterConfigs
+  - Thêm partition và kiểm tra điều kiện thay đổi
+  - Mô tả cluster, broker và phân bố replica
+  - Liệt kê consumer group, đọc offset và tính lag
+  - Điều chỉnh offset bằng Admin API với điều kiện vận hành an toàn
+  - Quản lý ACL và quota bằng API
+  - Tính lũy đẳng, timeout và kiểm tra kết quả thao tác quản trị
+  - Tách quyền quản trị khỏi quyền chạy ứng dụng
+- level1: Spring Kafka
+  level2:
+  - Vai trò của Spring for Apache Kafka và Spring Boot auto-configuration
+  - Quản lý phiên bản Spring Kafka và Kafka client tương thích
+  - ProducerFactory, ConsumerFactory và cấu hình theo môi trường
+  - KafkaTemplate, CompletableFuture và xử lý kết quả gửi
+  - '@KafkaListener, container factory và nhóm consumer'
+  - Record listener, batch listener và mức concurrency
+  - AckMode, manual acknowledgment và ranh giới commit offset
+  - Message converter, JSON và bảo vệ deserialization
+  - CommonErrorHandler, DefaultErrorHandler và bộ khôi phục bản ghi
+  - DeadLetterPublishingRecoverer và cấu hình dead-letter topic
+  - '@RetryableTopic và giới hạn của retry không chặn'
+  - KafkaTransactionManager và giao dịch đọc, xử lý, ghi
+  - Vòng đời listener container, pause, resume và graceful shutdown
+  - Quan sát listener, truyền ngữ cảnh và kiểm thử tích hợp Spring
+- level1: Kafka Connect
+  level2:
+  - Connect giải quyết bài toán tích hợp nguồn và đích dữ liệu
+  - Connector, task, worker và worker group
+  - Source connector và sink connector
+  - Standalone mode và distributed mode
+  - Các topic nội bộ lưu cấu hình, offset và trạng thái
+  - Cài plugin, cách ly classloader và quản lý phiên bản connector
+  - Converter, serializer và ranh giới của schema
+  - Single Message Transform và predicate
+  - 'Quản lý connector qua REST API: tạo, đổi cấu hình và xem trạng thái'
+  - tasks.max, phân chia công việc và giới hạn song song của nguồn
+  - Retry, error tolerance và dead-letter queue theo loại connector
+  - Offset, khả năng phục hồi và bảo đảm xử lý phụ thuộc connector
+  - Triển khai, cập nhật và bảo mật worker Connect
+- level1: CDC và Outbox
+  level2:
+  - Change Data Capture và khác biệt với phát sự kiện từ ứng dụng
+  - Vai trò của Debezium trong pipeline CDC vào Kafka
+  - Snapshot ban đầu, đọc transaction log và chuyển sang streaming
+  - Ánh xạ thao tác insert, update, delete và tombstone
+  - Tiến hóa schema của bảng nguồn và tác động đến consumer
+  - Bài toán dual write giữa cơ sở dữ liệu và Kafka
+  - Transactional Outbox và tính nguyên tử trong cơ sở dữ liệu
+  - Đọc outbox bằng polling hoặc CDC
+  - Thiết kế outbox event ID, aggregate key và thứ tự sự kiện
+  - Khử trùng, replay và dọn dữ liệu outbox
+  - Khôi phục connector và phát hiện khoảng trống dữ liệu nguồn
+  - Ranh giới giữa sự kiện thay đổi dữ liệu và sự kiện nghiệp vụ
+- level1: Kafka Streams
+  level2:
+  - Kafka Streams là thư viện ứng dụng và cách triển khai độc lập
+  - Topology, source node, processor node và sink node
+  - StreamsBuilder, Serdes và cấu hình ứng dụng
+  - KStream, KTable và GlobalKTable
+  - filter, map, mapValues, flatMap và selectKey
+  - Nhánh xử lý, gộp luồng và ghi sang topic đích
+  - groupByKey, groupBy, aggregate, count và reduce
+  - Stream task, stream thread và phân bố công việc
+  - Repartition topic và điều kiện phát sinh phân vùng lại
+  - Join giữa KStream, KTable và GlobalKTable
+  - Co-partitioning và điều kiện để phép join đúng
+  - Processor API và trường hợp DSL chưa đáp ứng
+  - processing.guarantee và phạm vi exactly_once_v2
+- level1: Trạng thái và thời gian
+  level2:
+  - State store trong bộ nhớ hoặc trên đĩa
+  - Changelog topic và phục hồi state store
+  - Standby replica, warmup và thời gian phục hồi ứng dụng
+  - Event time, processing time và stream time
+  - TimestampExtractor và dữ liệu có timestamp không hợp lệ
+  - Tumbling window, hopping window, sliding window và session window
+  - Grace period và xử lý sự kiện đến trễ
+  - Windowed join và dữ liệu không khớp trong khoảng thời gian
+  - Retention của cửa sổ, state store và changelog
+  - Suppress, cache và thời điểm phát kết quả tổng hợp
+  - Interactive Queries và định tuyến truy vấn theo trạng thái
+  - Reset ứng dụng Streams và hậu quả đối với dữ liệu, trạng thái
+  - Kiểm soát kích thước state store và xử lý key lệch
+- level1: Share group
+  level2:
+  - Queues for Kafka và nhu cầu chia việc theo từng bản ghi
+  - Phân biệt share group với consumer group theo partition
+  - Điều kiện phiên bản, cấu hình và khả năng hỗ trợ của client
+  - KafkaShareConsumer và vòng lặp nhận bản ghi
+  - Khóa bản ghi, thời hạn xử lý và cấp lại bản ghi
+  - Xác nhận ACCEPT, RELEASE, REJECT và gia hạn khi được hỗ trợ
+  - Số lần giao, bản ghi không xử lý được và chiến lược xử lý lỗi
+  - Mức song song vượt số partition và đánh đổi thứ tự
+  - Theo dõi, quản trị và kiểm thử share group
+  - Chọn share group hay consumer group theo yêu cầu nghiệp vụ
+- level1: Bảo mật
+  level2:
+  - Bề mặt tấn công và ranh giới tin cậy trong hệ thống Kafka
+  - TLS cho client, broker và controller
+  - Keystore, truststore, chứng chỉ và kiểm tra hostname
+  - mTLS và định danh bằng chứng chỉ
+  - SASL/PLAIN, SASL/SCRAM, Kerberos và OAuthBearer
+  - Ánh xạ principal và phân biệt xác thực với phân quyền
+  - ACL theo topic, group, cluster và transactional.id
+  - Quyền tối thiểu cho producer, consumer, Streams và Connect
+  - Listener nội bộ, listener bên ngoài và phân đoạn mạng
+  - Quản lý secret, xoay vòng chứng chỉ và thông tin xác thực
+  - Quota để cô lập tenant và giảm tác động của client quá tải
+  - Bảo vệ dữ liệu nhạy cảm trong payload, headers và bản ghi lỗi
+  - Mã hóa khi lưu trữ và giới hạn của Kafka đối với xóa dữ liệu cá nhân
+  - Kiểm tra quyền, ghi nhận hoạt động quản trị và ứng phó lộ thông tin
+- level1: Quan sát hệ thống
+  level2:
+  - Thiết kế SLI, SLO theo luồng sự kiện và mục tiêu nghiệp vụ
+  - Thu thập JMX metrics và xuất số liệu cho Prometheus
+  - Theo dõi request latency, error rate và throughput của broker
+  - Under-replicated partition, offline partition và biến động ISR
+  - Độ trễ nhân bản, tình trạng controller quorum và metadata
+  - 'Producer metrics: retry, buffer, batch và thời gian gửi'
+  - 'Consumer metrics: lag, tốc độ đọc, commit và rebalance'
+  - Phân biệt lag theo offset, tuổi bản ghi và độ trễ đầu cuối
+  - Quan sát Connect task, Streams state store và quá trình restore
+  - Truyền trace context qua headers và nối trace bất đồng bộ
+  - Thiết kế log có cấu trúc và mã tương quan sự kiện
+  - Cảnh báo theo triệu chứng, nguyên nhân và mức độ ảnh hưởng
+  - Dashboard cho sức khỏe cụm và một luồng nghiệp vụ cụ thể
+- level1: Hiệu năng
+  level2:
+  - Xác định mục tiêu throughput, latency và giới hạn tài nguyên
+  - Thiết kế benchmark có tải nền, warmup và phân bố kích thước bản ghi
+  - Đo latency p50, p95, p99 và tránh kết luận từ giá trị trung bình
+  - Tối ưu batching, compression và số kết nối producer
+  - Tối ưu fetch, poll và kích thước lô consumer
+  - Cân bằng số partition, số client và mức concurrency
+  - Chi phí serializer, payload và cấp phát đối tượng Java
+  - Tác động của đĩa, page cache, RAM, CPU và mạng
+  - JVM heap, GC và nguy cơ tranh chấp bộ nhớ với page cache
+  - Quota, giới hạn tốc độ và cô lập tải nền
+  - Nhận diện nút thắt bằng metrics trước khi thay cấu hình
+  - Kiểm chứng hiệu năng đồng thời với thứ tự và ngữ nghĩa xử lý
+- level1: Vận hành cụm
+  level2:
+  - Cấu hình broker tĩnh, động và cấu hình ghi đè ở topic
+  - Quản lý cấu hình có phiên bản và kiểm tra sai lệch môi trường
+  - Thêm broker và chuyển replica có kiểm soát
+  - Partition reassignment, throttle và theo dõi tiến độ
+  - Cân bằng replica, leader và dung lượng đĩa
+  - Dừng có kiểm soát, rolling restart và thứ tự thao tác
+  - Thay broker, thay đĩa và xử lý thư mục log lỗi
+  - Phục hồi replica mà không phá vỡ điều kiện độ bền
+  - Xử lý gần đầy đĩa và thay retention an toàn
+  - Xóa topic, xóa group và điều kiện xác minh trước thao tác
+  - 'Triển khai trên Kubernetes: định danh ổn định, lưu trữ và phân bố nút'
+  - Tự vận hành, operator và dịch vụ quản lý sẵn
+  - Runbook, phân quyền thao tác và kiểm tra sau thay đổi
+- level1: Hoạch định năng lực
+  level2:
+  - Ước lượng lưu lượng vào từ tốc độ và kích thước sự kiện
+  - Tính dung lượng theo retention, replication và hệ số nén
+  - Tính băng thông ghi, đọc, nhân bản và phục hồi
+  - Chọn số broker, controller và miền sự cố
+  - Lập kế hoạch partition theo tăng trưởng và giới hạn metadata
+  - Dự phòng tài nguyên khi mất broker hoặc bảo trì
+  - Ước lượng thời gian xử lý backlog và mục tiêu phục hồi
+  - Chi phí topic nhỏ, partition nhiều và kết nối nhiều
+  - Quản lý tenant, quota và phân bổ tài nguyên
+  - Đánh giá tổng chi phí và tiêu chí mở rộng cụm
+- level1: Đa cụm và khôi phục
+  level2:
+  - Phân biệt replication trong cụm với sao chép giữa các cụm
+  - RPO, RTO và các kịch bản thảm họa
+  - MirrorMaker 2 và nền tảng Kafka Connect
+  - MirrorSourceConnector, MirrorCheckpointConnector và MirrorHeartbeatConnector
+  - Đặt tên topic đích, lọc dữ liệu và tránh vòng lặp sao chép
+  - Đồng bộ cấu hình, quyền truy cập và các giới hạn cần kiểm tra
+  - Offset translation và điều kiện chuyển consumer sang cụm dự phòng
+  - Mô hình active-passive và active-active
+  - Thứ tự, trùng dữ liệu và xung đột key khi có nhiều cụm
+  - Failover, failback và diễn tập khôi phục
+  - Phân biệt sao chép dữ liệu, backup và khả năng khôi phục dữ liệu đã xóa
+  - Khôi phục ứng dụng, schema, connector và secret ngoài dữ liệu topic
+- level1: Nâng cấp
+  level2:
+  - Đọc release notes và lập ma trận broker, client, Connect, Streams
+  - Phân biệt phiên bản phần mềm với metadata.version và feature level
+  - Đánh giá tính năng bị loại bỏ, cấu hình đổi mặc định và API deprecated
+  - Chuẩn bị nâng cấp ZooKeeper sang KRaft cho hệ thống cũ
+  - Rolling upgrade theo lộ trình hỗ trợ của từng phiên bản
+  - Nâng client độc lập và kiểm thử thương lượng protocol
+  - Canary, kiểm tra tương thích schema và theo dõi sau nâng cấp
+  - Điều kiện rollback và thay đổi không thể hạ cấp
+  - Lập bằng chứng xác nhận dữ liệu, hiệu năng và khả năng phục hồi
+- level1: Kiểm thử
+  level2:
+  - Phân chia unit test, integration test và kiểm thử đầu cuối
+  - MockProducer, MockConsumer và giới hạn mô phỏng
+  - TopologyTestDriver cho logic Kafka Streams
+  - Testcontainers và Embedded Kafka cho ứng dụng Java, Spring
+  - Tạo topic, group ID và dữ liệu riêng cho từng ca kiểm thử
+  - Chờ kết quả bất đồng bộ theo điều kiện thay vì thời gian cố định
+  - Contract test cho schema và tương thích producer, consumer
+  - Kiểm thử key, thứ tự, offset và khả năng phát lại
+  - Kiểm thử lặp bản ghi, commit lỗi và giao dịch bị hủy
+  - Mô phỏng broker lỗi, mạng gián đoạn và consumer rebalance
+  - Load test, soak test và kiểm thử phục hồi sau backlog
+  - Kiểm thử ACL, TLS và cấu hình sai
+  - Tổ chức kiểm thử Kafka trong CI và dọn tài nguyên ổn định
+- level1: Chẩn đoán sự cố
+  level2:
+  - Không kết nối được do bootstrap, DNS hoặc advertised.listeners
+  - Lỗi TLS, SASL và phân quyền theo topic hoặc group
+  - Topic không tồn tại, metadata cũ và leader chưa sẵn sàng
+  - RecordTooLargeException và giới hạn kích thước ở nhiều tầng
+  - Timeout gửi, buffer cạn và kết quả ghi không xác định
+  - NotEnoughReplicas và ISR không đạt yêu cầu
+  - Consumer không nhận dữ liệu do group, offset hoặc isolation level
+  - CommitFailedException và rebalance liên tục
+  - Lag tăng do consumer chậm, key lệch hoặc hệ thống đích nghẽn
+  - Lỗi deserialization, schema không tương thích và bản ghi độc hại
+  - Giao dịch treo, fencing và consumer read_committed bị chặn
+  - Connect task lỗi hoặc Streams phục hồi trạng thái quá lâu
+  - Đĩa đầy, replica offline và mất controller quorum
+  - Quy trình thu thập chứng cứ, khoanh vùng và xác nhận phục hồi
+- level1: Thiết kế ứng dụng
+  level2:
+  - Thiết kế luồng sự kiện theo ranh giới miền nghiệp vụ
+  - Fact event, notification event và dữ liệu mang theo sự kiện
+  - Tránh topic dùng chung trở thành hợp đồng phụ thuộc chặt
+  - Xây dựng read model và phép chiếu từ sự kiện
+  - Saga qua Kafka và trách nhiệm xử lý bù
+  - Request-reply qua Kafka và khi nên chọn HTTP hoặc RPC
+  - Version theo thực thể và phát hiện khoảng trống thứ tự
+  - Giới hạn fan-out, backpressure và ngân sách độ trễ
+  - Quản lý quyền sở hữu topic, schema và consumer group
+  - Tránh lạm dụng Kafka như cơ sở dữ liệu truy vấn hoặc bộ lập lịch
+  - Hồ sơ thiết kế gồm giả định, bảo đảm và kịch bản lỗi
+- level1: Thực hành tổng hợp
+  level2:
+  - Luồng đơn hàng bằng Java producer và consumer có key
+  - Nhiều consumer group cùng xử lý một nguồn sự kiện
+  - Thay đổi số consumer và quan sát partition assignment
+  - Tăng partition để kiểm chứng thay đổi ánh xạ key
+  - Thử broker lỗi với các cấu hình acks và min.insync.replicas
+  - Mô phỏng crash giữa xử lý và commit để nhận diện bản ghi trùng
+  - Pipeline đọc, biến đổi và ghi bằng giao dịch Kafka
+  - Luồng Spring Kafka có retry, dead-letter topic và phát lại
+  - Pipeline CDC, Outbox và consumer khử trùng
+  - Ứng dụng Streams tổng hợp theo cửa sổ với dữ liệu đến trễ
+  - Diễn tập backlog, mở rộng và khôi phục sang cụm dự phòng
+  - Đánh giá giải pháp bằng kiểm thử, dashboard và runbook

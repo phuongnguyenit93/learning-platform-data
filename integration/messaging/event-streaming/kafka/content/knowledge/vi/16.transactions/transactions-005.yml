@@ -1,0 +1,3 @@
+menuLevel1: Giao dịch
+menuLevel2: sendOffsetsToTransaction trong luồng đọc, xử lý và ghi lại Kafka
+status: WRITTEN

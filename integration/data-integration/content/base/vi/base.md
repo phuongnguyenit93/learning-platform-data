@@ -1,0 +1,7 @@
+# Integration Data Integration
+
+Data Integration là quá trình thu thập, biến đổi và chuyển dữ liệu giữa những hệ thống khác nhau để tạo ra luồng dữ liệu nhất quán, có thể sử dụng cho vận hành hoặc phân tích. Một pipeline thường gồm nguồn (source), các bước đọc và xử lý dữ liệu, cùng đích (sink); việc lựa chọn cơ chế tích hợp cần cân nhắc độ trễ, lượng dữ liệu, độ chính xác và khả năng vận hành lâu dài.
+
+Module phù hợp với người đã biết SQL, định dạng JSON/CSV, API cơ bản và nguyên tắc xử lý dữ liệu. Lộ trình bắt đầu bằng cách hình dung source–pipeline–sink, kết nối nguồn và đọc schema/data contract; sau đó thực hành mapping, ETL/ELT, phân biệt batch với streaming và tìm hiểu CDC hoặc đồng bộ tăng dần. Các kỹ thuật kiểm tra chất lượng, retry, idempotency và xử lý bản ghi lỗi được đặt trước bước orchestration, monitoring để có một quy trình đáng tin cậy.
+
+Sau khi hoàn thành, bạn có thể mô tả và thử xây dựng pipeline nhỏ từ nguồn tới đích, quyết định cách đồng bộ phù hợp, kiểm tra sự tương thích của schema, đánh giá dữ liệu đã nạp và lên phương án chạy lại khi có sự cố. Trọng tâm là tích hợp dữ liệu an toàn, dễ truy vết và có khả năng khôi phục, không phụ thuộc vào một nền tảng hay nhà cung cấp riêng.

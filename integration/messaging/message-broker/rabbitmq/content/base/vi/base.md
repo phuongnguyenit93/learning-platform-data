@@ -1,0 +1,7 @@
+# Integration Messaging Message Broker RabbitMQ
+
+RabbitMQ là message broker giúp ứng dụng trao đổi thông điệp bất đồng bộ: producer gửi dữ liệu, exchange định tuyến tới queue và consumer nhận để xử lý. Nhờ tách thời điểm gửi khỏi thời điểm xử lý, hệ thống có thể phân phối công việc, hấp thụ lưu lượng tăng đột biến và giảm phụ thuộc trực tiếp giữa các dịch vụ. Tuy nhiên, việc dùng broker không tự bảo đảm mọi message được xử lý đúng một lần; ứng dụng vẫn cần thiết kế xác nhận và xử lý trùng lặp.
+
+Module dành cho người đã biết Java cơ bản, HTTP và khái niệm bất đồng bộ. Lộ trình bắt đầu từ mô hình broker và kết nối Java client, sau đó thực hành gửi/nhận message, exchange, binding và routing key. Người học sẽ tìm hiểu lựa chọn queue, tính bền vững của message, sự khác nhau giữa consumer acknowledgements và publisher confirms, cùng vai trò của prefetch khi nhiều worker cùng xử lý.
+
+Phần cuối tập trung vào xử lý lỗi bằng nack, requeue và dead-letter exchange, thiết kế consumer idempotent, theo dõi backlog trong Management UI và giới hạn quyền bằng vhost/user. Hoàn thành module, bạn có thể dựng một luồng messaging Java–RabbitMQ đơn giản, giải thích đường đi của message và lựa chọn các cơ chế tin cậy, quan sát và bảo mật phù hợp.

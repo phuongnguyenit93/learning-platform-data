@@ -1,0 +1,323 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - WebSocket là gì và bài toán giao tiếp thời gian thực hai chiều
+  - 'Kết nối, phiên, khung, thông điệp và đăng ký nhận tin: các khái niệm nền tảng'
+  - Mối liên hệ giữa TCP, TLS, HTTP, WebSocket và giao thức ứng dụng
+  - So sánh WebSocket với polling, long polling và Server-Sent Events
+  - Phân biệt WebSocket, STOMP, Socket.IO, RSocket và WebRTC
+  - Các tình huống phù hợp và giới hạn của WebSocket
+  - Kiến thức đầu vào và lộ trình từ kết nối đầu tiên đến hệ thống nhiều máy chủ
+  - Vai trò của Java, Jakarta WebSocket, Spring MVC và Spring WebFlux
+- level1: Kiến trúc
+  level2:
+  - Mô hình máy khách–máy chủ và kênh truyền song công
+  - Luồng dữ liệu từ sự kiện nghiệp vụ đến thông điệp trên kết nối
+  - Ranh giới giữa tầng truyền tải, giao thức thông điệp và xử lý nghiệp vụ
+  - Tách dữ liệu lưu bền khỏi trạng thái kết nối tạm thời
+  - Kết hợp HTTP cho truy vấn, tải tệp và WebSocket cho cập nhật trực tiếp
+  - Gửi riêng, phát cho nhóm và phát cho mọi kết nối
+  - Yêu cầu về độ trễ, lưu lượng, số kết nối và khả năng khôi phục
+  - Lựa chọn WebSocket thuần hoặc giao thức con theo nhu cầu ứng dụng
+- level1: Bắt tay
+  level2:
+  - 'Cấu trúc địa chỉ ws và wss: máy chủ, cổng, đường dẫn và tham số truy vấn'
+  - Trình tự DNS, TCP, TLS và bắt tay WebSocket
+  - Yêu cầu nâng cấp HTTP/1.1 với Upgrade và Connection
+  - Sec-WebSocket-Key, Sec-WebSocket-Accept và kiểm chứng phản hồi 101
+  - Vai trò của Sec-WebSocket-Version và xử lý phiên bản không tương thích
+  - Origin trong bắt tay và giới hạn của việc dùng Origin để xác thực
+  - Thương lượng giao thức con bằng Sec-WebSocket-Protocol
+  - Thương lượng phần mở rộng bằng Sec-WebSocket-Extensions
+  - WebSocket trên HTTP/2 với Extended CONNECT và điều kiện hỗ trợ
+  - 'Từ chối bắt tay: mã HTTP, thời hạn kết nối và lỗi cấu hình'
+- level1: Khung và thông điệp
+  level2:
+  - Phân biệt khung truyền tải, thông điệp WebSocket và sự kiện nghiệp vụ
+  - 'Cấu trúc khung: FIN, RSV, opcode, độ dài và dữ liệu'
+  - Khung văn bản, UTF-8 và xử lý chuỗi không hợp lệ
+  - Khung nhị phân và lựa chọn cách biểu diễn dữ liệu
+  - Masking từ máy khách và sự khác biệt với mã hóa TLS
+  - Phân mảnh thông điệp và ghép các khung continuation
+  - Khung điều khiển Ping, Pong, Close và khả năng xen giữa các mảnh
+  - Thứ tự thông điệp trên một kết nối và giới hạn khi xử lý song song
+  - Giới hạn kích thước khung, thông điệp và bộ đệm nhận
+  - Nén permessage-deflate và đánh đổi giữa CPU, bộ nhớ, băng thông
+- level1: Vòng đời kết nối
+  level2:
+  - Các giai đoạn thiết lập, hoạt động, đóng và giải phóng kết nối
+  - Đóng chủ động bằng Close frame và bắt tay đóng hai chiều
+  - Mã đóng thông dụng và cách chọn mã theo nguyên nhân
+  - 'Mã 1005, 1006, 1015: trạng thái dành riêng và giới hạn khi gửi'
+  - Phát hiện đứt mạng, kết nối nửa mở và phiên không còn hoạt động
+  - Ping/Pong của giao thức và nhịp kiểm tra ở tầng ứng dụng
+  - Phân biệt thời hạn bắt tay, thời gian chờ nhàn rỗi và thời hạn gửi
+  - Giải phóng phiên, bộ đệm, bộ hẹn giờ và đăng ký khi ngắt kết nối
+  - Sơ đồ trạng thái và các cuộc đua giữa gửi, lỗi và đóng
+- level1: Máy khách trình duyệt
+  level2:
+  - Tạo WebSocket và đăng ký các sự kiện open, message, error, close
+  - Kiểm tra readyState và gửi thông điệp đúng thời điểm
+  - Nhận văn bản, Blob, ArrayBuffer và cấu hình binaryType
+  - send, bufferedAmount và giới hạn kiểm soát luồng của API trình duyệt
+  - close, code, reason, wasClean và giới hạn thông tin lỗi
+  - Giới hạn truy cập Ping/Pong và nhịp kiểm tra ở tầng ứng dụng
+  - Cookie, giao thức con và giới hạn đặt header tùy ý từ JavaScript
+  - Quản lý một kết nối dùng chung và đăng ký nhận tin theo màn hình
+  - Dọn kết nối khi đổi trang, hủy thành phần và đăng xuất
+  - Xử lý tab nền, thiết bị ngủ, đổi mạng và nhiều tab cùng người dùng
+  - Hiển thị trạng thái kết nối và tránh báo gửi thành công quá sớm
+- level1: Máy khách Java
+  level2:
+  - Tạo WebSocket bằng HttpClient và WebSocket.Builder trong JDK 21
+  - Cấu hình URI, header, giao thức con và thời hạn kết nối
+  - WebSocket.Listener và các callback mở, nhận, lỗi, đóng
+  - request(n) và điều tiết số lần gọi callback nhận dữ liệu
+  - Ghép dữ liệu từng phần bằng cờ last trong onText và onBinary
+  - Gửi bất đồng bộ với CompletableFuture và xử lý lỗi hoàn thành
+  - Quản lý vòng đời ByteBuffer và tuần tự hóa thao tác gửi
+  - sendPing, sendPong, sendClose và abort
+  - Lựa chọn JDK WebSocket, Jakarta client hoặc Spring WebSocketClient
+- level1: Jakarta WebSocket
+  level2:
+  - Mô hình endpoint máy chủ, máy khách và vai trò của container
+  - Tạo endpoint bằng @ServerEndpoint và @ClientEndpoint
+  - '@OnOpen, @OnMessage, @OnClose, @OnError và tham số callback'
+  - Session, PathParam, userProperties và dữ liệu riêng từng kết nối
+  - RemoteEndpoint.Basic, RemoteEndpoint.Async và kết quả gửi
+  - MessageHandler.Whole, MessageHandler.Partial và xử lý phân mảnh
+  - Encoder, Decoder và chuyển đổi thông điệp thành đối tượng Java
+  - Endpoint lập trình, Configurator và tùy biến quá trình bắt tay
+  - Vòng đời endpoint, an toàn luồng và tích hợp dependency injection
+  - Triển khai trên container và lưu ý khi chuyển từ javax.websocket sang jakarta.websocket
+- level1: Spring WebSocket
+  level2:
+  - Khởi tạo WebSocket Servlet với Spring Boot và các thành phần cần thiết
+  - '@EnableWebSocket, WebSocketConfigurer và đăng ký đường dẫn handler'
+  - TextWebSocketHandler, BinaryWebSocketHandler và các loại thông điệp
+  - WebSocketSession và các callback kết nối, thông điệp, lỗi, đóng
+  - HandshakeInterceptor và chia sẻ thuộc tính từ phiên HTTP
+  - DefaultHandshakeHandler, Principal và thương lượng giao thức con
+  - Cấu hình nguồn kết nối được phép và giới hạn thông điệp
+  - Đăng ký phiên và gửi thông điệp từ tầng dịch vụ
+  - ConcurrentWebSocketSessionDecorator và kiểm soát gửi đồng thời
+  - StandardWebSocketClient và kiểm tra luồng trao đổi hai chiều
+- level1: Spring WebFlux
+  level2:
+  - WebSocket trong mô hình phản ứng và khác biệt với ngăn xếp Servlet
+  - WebSocketHandler, WebSocketSession và ánh xạ đường dẫn
+  - receive, send và liên kết vòng đời bằng Mono
+  - Biến đổi, lọc và phối hợp luồng Flux thông điệp
+  - Quản lý DataBuffer và giải phóng bộ nhớ đúng vòng đời
+  - Phát sự kiện nhiều nguồn qua Sinks và lựa chọn chính sách bộ đệm
+  - Lan truyền hủy, lỗi và tín hiệu đóng trong chuỗi phản ứng
+  - Tách công việc chặn khỏi luồng xử lý I/O
+  - ReactorNettyWebSocketClient và kiểm thử trao đổi bất đồng bộ
+- level1: Thông điệp ứng dụng
+  level2:
+  - Thiết kế hợp đồng cho lệnh, sự kiện, phản hồi và lỗi
+  - Vỏ thông điệp với type, version, messageId, correlationId và payload
+  - Lựa chọn JSON, văn bản hoặc định dạng nhị phân
+  - Quy ước tên sự kiện và phân biệt lệnh với sự kiện đã xảy ra
+  - Kiểm tra schema, trường bắt buộc và giới hạn dữ liệu đầu vào
+  - Tương thích phiên bản giữa máy khách cũ và máy chủ mới
+  - Thiết kế lỗi có cấu trúc và phân biệt lỗi thông điệp với lỗi kết nối
+  - Ghép yêu cầu–phản hồi, thời hạn chờ và hủy thao tác
+  - Quy ước thời gian, số thứ tự và phạm vi định danh thông điệp
+- level1: STOMP
+  level2:
+  - Mục đích của STOMP và quan hệ giữa khung STOMP với thông điệp WebSocket
+  - Cấu trúc command, headers, body và ký tự kết thúc khung
+  - CONNECT, STOMP, CONNECTED và thương lượng phiên bản
+  - SEND, SUBSCRIBE, UNSUBSCRIBE và định danh đăng ký
+  - MESSAGE, destination và ngữ nghĩa định tuyến do máy chủ quy định
+  - content-type, content-length và mã hóa header
+  - ACK, NACK và các chế độ auto, client, client-individual
+  - RECEIPT và giới hạn của xác nhận xử lý khung
+  - BEGIN, COMMIT, ABORT và phạm vi giao dịch STOMP
+  - Heart-beat, ERROR, DISCONNECT và kết thúc phiên
+- level1: Spring STOMP
+  level2:
+  - '@EnableWebSocketMessageBroker và WebSocketMessageBrokerConfigurer'
+  - Đăng ký endpoint STOMP và phân biệt endpoint với destination
+  - Tiền tố /app, /topic, /queue và quy ước của ứng dụng
+  - Luồng clientInboundChannel, brokerChannel và clientOutboundChannel
+  - '@MessageMapping, @DestinationVariable, @Header và @Payload'
+  - Chuyển đổi JSON, kiểm tra @Valid và báo lỗi dữ liệu
+  - '@SendTo, @SendToUser và phản hồi cho nơi nhận phù hợp'
+  - SimpMessagingTemplate và gửi sự kiện từ ngoài controller
+  - ChannelInterceptor và các sự kiện kết nối, đăng ký, ngắt kết nối
+  - '@MessageExceptionHandler và tách lỗi nghiệp vụ khỏi lỗi truyền tải'
+  - WebSocketStompClient, StompSessionHandler và máy khách trình duyệt STOMP
+- level1: Định tuyến và nhóm
+  level2:
+  - Thiết kế kênh nhận theo người dùng, nhóm, tài nguyên và phạm vi thuê
+  - User destination /user và ánh xạ người dùng sang nhiều phiên
+  - SimpUserRegistry và tra cứu người dùng, phiên, đăng ký đang hoạt động
+  - Quản lý tham gia, rời phòng và đăng ký trùng lặp
+  - Gửi riêng một phiên hoặc gửi tới mọi thiết bị của một người dùng
+  - Phân biệt phát cho mọi người đăng ký với chia việc giữa các bên nhận
+  - Trạng thái trực tuyến với nhịp kiểm tra và thời gian hết hạn
+  - Sự kiện gõ tin, đã nhận, đã đọc và phạm vi cập nhật
+  - Dọn thành viên nhóm khi mất kết nối và tránh trạng thái trực tuyến sai
+- level1: Môi giới thông điệp
+  level2:
+  - Simple broker của Spring và phạm vi sử dụng trong một tiến trình
+  - Cấu hình broker relay tới hệ thống môi giới bên ngoài
+  - Ngữ nghĩa destination của RabbitMQ hoặc ActiveMQ khi dùng STOMP
+  - Nhịp kiểm tra và tình trạng khả dụng của kết nối broker relay
+  - Hàng đợi, đăng ký tạm thời và dọn tài nguyên ở broker
+  - Giới hạn ACK, RECEIPT và giao dịch theo khả năng từng broker
+  - Xác thực kết nối hệ thống, kết nối máy khách và bảo vệ broker
+  - Tiêu chí chọn simple broker hoặc broker relay theo tải và yêu cầu tin cậy
+- level1: SockJS
+  level2:
+  - SockJS giải quyết bài toán tương thích nào và khi nào cần dùng
+  - Phân biệt WebSocket nguyên bản với endpoint và máy khách SockJS
+  - Thương lượng phương thức truyền, HTTP streaming và long polling
+  - Cấu hình withSockJS và kết nối bằng máy khách tương ứng
+  - Nhịp kiểm tra, phiên và các yêu cầu đối với proxy
+  - Cookie, CORS, CSRF và cân bằng tải cho các phương thức dự phòng
+  - Chi phí vận hành, hạn chế và tiêu chí loại bỏ phương thức dự phòng
+- level1: Xác thực
+  level2:
+  - Tái sử dụng danh tính từ phiên đăng nhập HTTP trong bắt tay
+  - Đưa Principal vào phiên và duy trì danh tính phía máy chủ
+  - Giới hạn Authorization header trên máy khách trình duyệt
+  - So sánh cookie phiên, vé kết nối ngắn hạn và token trong thông điệp
+  - Tránh rò rỉ token qua URL, lịch sử, log và hệ thống theo dõi
+  - Xác thực STOMP CONNECT bằng interceptor và thứ tự áp dụng bảo mật
+  - Token hết hạn, gia hạn và xác thực lại kết nối dài
+  - Đăng xuất, thu hồi quyền và đóng các phiên liên quan
+  - Ràng buộc danh tính, thiết bị và phạm vi thuê theo chính sách ứng dụng
+- level1: Bảo mật
+  level2:
+  - Mô hình đe dọa và ranh giới tin cậy của kết nối hai chiều
+  - WSS, kiểm chứng chứng chỉ và điểm kết thúc TLS
+  - Kiểm tra Origin và phòng chống chiếm dụng WebSocket liên trang
+  - Phân biệt chính sách Origin của WebSocket với CORS của HTTP
+  - CSRF cho ứng dụng dùng cookie và STOMP CONNECT trong Spring Security
+  - AuthorizationManager và phân quyền theo loại thông điệp, destination
+  - Phân quyền SEND, SUBSCRIBE và bảo vệ destination do máy chủ phát
+  - Kiểm tra quyền sở hữu phòng, tài nguyên và phạm vi thuê
+  - Giới hạn kết nối, tần suất, kích thước và chi phí xử lý thông điệp
+  - Phòng chống dữ liệu độc hại, chèn mã và lạm dụng nén
+  - Bảo vệ dữ liệu nhạy cảm trong thông điệp, nhật ký và lỗi trả về
+- level1: Tin cậy và khôi phục
+  level2:
+  - Phân biệt gửi vào bộ đệm, truyền tới đầu kia và xử lý nghiệp vụ thành công
+  - Phạm vi bảo đảm của TCP và WebSocket khi kết nối bị gián đoạn
+  - Xác nhận ở tầng ứng dụng và phân biệt với STOMP ACK, RECEIPT
+  - Thời hạn chờ, gửi lại và khóa chống xử lý lặp
+  - Ngữ nghĩa giao nhận at-most-once, at-least-once và giới hạn exactly-once
+  - Thứ tự sự kiện, số thứ tự theo luồng và phát hiện khoảng trống
+  - Kết nối lại với backoff lũy tiến, jitter và giới hạn số lần thử
+  - Phân loại lỗi có thể thử lại và lỗi cần người dùng can thiệp
+  - Đăng ký lại sau kết nối và tránh tạo nhiều kết nối song song
+  - Khôi phục bằng con trỏ, phát lại sự kiện hoặc tải ảnh chụp trạng thái
+  - Đồng bộ bản chụp với luồng trực tiếp và xử lý cửa sổ mất sự kiện
+  - Lưu tin ngoại tuyến, thời hạn lưu và hành vi khi không thể khôi phục
+- level1: Luồng và hiệu năng
+  level2:
+  - Phân biệt số kết nối, tốc độ thông điệp, thông lượng và độ trễ
+  - Ước tính bộ nhớ, bộ mô tả tệp và chi phí mỗi kết nối
+  - Bộ đệm gửi có giới hạn và chính sách khi máy khách nhận chậm
+  - Chặn bớt, loại bỏ, gộp hoặc giữ giá trị mới nhất theo loại sự kiện
+  - Kiểm soát luồng ở tầng ứng dụng và giới hạn của bufferedAmount
+  - Giới hạn kích thước, thời hạn gửi và bảo vệ khỏi thông điệp quá lớn
+  - Đánh đổi của gộp lô, nén và mã hóa nhị phân
+  - Điều chỉnh executor, số luồng và hàng đợi trong Spring messaging
+  - Đo tác động của xử lý chặn, tuần tự hóa và thu gom rác
+  - Thiết kế phép đo với kết nối nhàn rỗi, tải đều và tải tăng đột biến
+- level1: Đồng thời và trạng thái
+  level2:
+  - Vòng đời handler, endpoint và nguy cơ chia sẻ trạng thái giữa người dùng
+  - WebSocket scope trong Spring STOMP và vòng đời bean theo phiên
+  - Tổ chức kho phiên và cấu trúc dữ liệu an toàn luồng
+  - Tuần tự hóa thao tác gửi trên cùng một phiên
+  - Giữ thứ tự xử lý và thứ tự phát trong đường ống Spring STOMP
+  - Tranh chấp giữa đăng ký, phát tin, rời nhóm và đóng phiên
+  - Chia tác vụ theo người dùng hoặc phòng để giới hạn tranh chấp
+  - Tách trạng thái cục bộ khỏi trạng thái dùng chung nhiều máy chủ
+  - Dọn tác vụ nền, tài nguyên và tham chiếu để tránh rò rỉ bộ nhớ
+  - Lan truyền ngữ cảnh người dùng, mã truy vết và xử lý bất đồng bộ
+- level1: Tích hợp sự kiện
+  level2:
+  - Đưa sự kiện nghiệp vụ từ dịch vụ ứng dụng vào kênh WebSocket
+  - Chỉ phát sự kiện sau khi giao dịch dữ liệu được xác nhận
+  - Mẫu outbox cho sự kiện cần lưu bền trước khi phân phối
+  - Kết nối Kafka, RabbitMQ hoặc Redis với tầng phát WebSocket
+  - Phân biệt lưu trữ sự kiện, phân phối nội bộ và giao nhận tới máy khách
+  - Chuyển đổi sự kiện miền thành thông điệp phù hợp từng người nhận
+  - Lọc dữ liệu theo quyền và tránh lộ thông tin khi phát hàng loạt
+  - Xử lý lặp, lỗi nguồn sự kiện và phạm vi thử lại ở từng tầng
+- level1: Mở rộng hệ thống
+  level2:
+  - Phân phối kết nối dài qua nhiều máy chủ WebSocket
+  - Vai trò và giới hạn của định tuyến bám phiên
+  - Định vị người dùng, phiên và nhóm trong cụm máy chủ
+  - Phát thông điệp liên máy chủ bằng broker hoặc kênh phân phối chung
+  - User destination nhiều máy chủ và chuyển tiếp đích chưa phân giải
+  - Phân mảnh theo phòng, người dùng hoặc phạm vi thuê
+  - Giảm chi phí phát hàng loạt và tránh nhân bản thông điệp
+  - Tự động mở rộng theo kết nối, bộ nhớ, hàng đợi và thông lượng
+  - Máy chủ lỗi, broker lỗi và tính nhất quán của trạng thái hiện diện
+  - Ranh giới phục hồi khi triển khai nhiều vùng địa lý
+- level1: Triển khai
+  level2:
+  - Cấu hình reverse proxy chuyển tiếp bắt tay WebSocket
+  - NGINX, header Upgrade, Connection và thời gian chờ proxy
+  - Cân bằng tải, ingress và điều kiện hỗ trợ WebSocket
+  - Kết thúc TLS, forwarded headers và địa chỉ công khai
+  - Đồng bộ thời gian chờ giữa máy khách, proxy, máy chủ và nhịp kiểm tra
+  - Giới hạn kết nối, cổng, bộ mô tả tệp và tài nguyên container
+  - Kubernetes readiness, ngừng nhận kết nối mới và thời gian chờ kết thúc
+  - Đóng có kiểm soát, rút kết nối và triển khai luân phiên
+  - Tương thích phiên bản thông điệp trong giai đoạn triển khai hỗn hợp
+  - Kiểm tra đường truyền HTTP/1.1 và HTTP/2 qua từng thành phần hạ tầng
+- level1: Quan sát hệ thống
+  level2:
+  - Chỉ số kết nối đang mở, bắt tay thành công và tỷ lệ kết nối lại
+  - Đếm mã đóng và phân loại nguyên nhân ngắt kết nối
+  - Đo độ trễ đầu cuối, thời gian xử lý và độ trễ hàng đợi
+  - Theo dõi thông điệp lỗi, bị loại bỏ và máy khách nhận chậm
+  - WebSocketMessageBrokerStats và số liệu thành phần Spring STOMP
+  - Nhật ký có cấu trúc với sessionId, messageId và correlationId
+  - Truy vết theo thông điệp thay vì giữ một span cho toàn bộ kết nối
+  - Kiểm soát dữ liệu nhạy cảm và độ đa dạng nhãn đo lường
+  - Thiết lập mục tiêu dịch vụ, bảng theo dõi và cảnh báo có thể xử lý
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị xử lý thông điệp và quy tắc định tuyến
+  - Kiểm thử hợp đồng schema và tương thích phiên bản
+  - Kiểm thử bắt tay, giao thức con, Origin và từ chối truy cập
+  - Kiểm thử tích hợp với máy khách Java và máy chủ cổng thực
+  - 'Kiểm thử Spring STOMP: gửi, đăng ký, nhận, lỗi và user destination'
+  - Kiểm thử WebFlux với StepVerifier và kiểm soát thời gian bất đồng bộ
+  - Kiểm thử broker relay và nhiều máy chủ bằng môi trường container
+  - Kiểm thử mất mạng, kết nối lại, phát lại và chống xử lý lặp
+  - Kiểm thử máy khách chậm, tràn bộ đệm và gửi đồng thời
+  - Kiểm thử tải kéo dài, bão kết nối lại và khởi động lại máy chủ
+  - Kiểm thử bảo mật với người dùng, nhóm và phạm vi thuê khác nhau
+- level1: Chẩn đoán sự cố
+  level2:
+  - Quan sát handshake và khung thông điệp trong công cụ phát triển trình duyệt
+  - Dùng máy khách dòng lệnh và nhật ký máy chủ để tái hiện lỗi
+  - Lỗi 400, 401, 403, 404, 426 và thiếu phản hồi nâng cấp 101
+  - 'Kết nối thành công nhưng không nhận tin: đường dẫn, destination và đăng ký'
+  - Ngắt định kỳ do thời gian chờ proxy hoặc nhịp kiểm tra sai
+  - Mã đóng 1006 và cách điều tra khi không có Close frame
+  - Lỗi UTF-8, kích thước, phân mảnh và giao thức con không khớp
+  - Thông điệp trùng, sai thứ tự hoặc mất sau khi kết nối lại
+  - Lỗi chỉ xuất hiện khi chạy nhiều máy chủ hoặc nhiều thiết bị
+  - Bộ nhớ tăng, CPU cao, phiên tồn đọng và máy khách nhận chậm
+- level1: Thực hành
+  level2:
+  - Xây dựng ứng dụng echo để quan sát bắt tay, gửi và đóng kết nối
+  - Xây dựng phòng chat với tham gia nhóm và phân quyền thành viên
+  - Xây dựng thông báo cá nhân cho nhiều thiết bị của một người dùng
+  - Xây dựng bảng theo dõi trực tiếp với chính sách gộp dữ liệu
+  - Bổ sung xác nhận, chống lặp và khôi phục tin khi mất kết nối
+  - Mở rộng ứng dụng sang nhiều máy chủ qua broker bên ngoài
+  - Thử nghiệm triển khai luân phiên và bão kết nối lại có kiểm soát
+  - Đánh giá thiết kế bằng hợp đồng thông điệp, số liệu tải và tình huống lỗi

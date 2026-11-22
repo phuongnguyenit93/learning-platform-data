@@ -1,0 +1,383 @@
+menu:
+- level1: Tổng quan HTTP client
+  level2:
+  - HTTP client là gì và vai trò trong tích hợp yêu cầu–phản hồi
+  - Bài toán gọi dịch vụ bên ngoài và phụ thuộc qua mạng
+  - Quan hệ giữa ứng dụng gọi, client, máy chủ đích và hạ tầng trung gian
+  - Phân biệt HTTP client, REST client, SDK và API gateway
+  - Phân biệt lời gọi thành công ở tầng mạng, HTTP và nghiệp vụ
+  - Lựa chọn đồng bộ, bất đồng bộ và thông điệp theo nhu cầu xử lý
+  - Kiến thức HTTP cần biết trước khi viết client
+  - Trình tự học từ một lời gọi đến tích hợp có khả năng vận hành
+- level1: Lựa chọn thư viện
+  level2:
+  - Phân biệt API tiện ích và thư viện thực hiện truyền tải bên dưới
+  - So sánh JDK HttpClient, Apache HttpClient và OkHttp
+  - So sánh RestTemplate, RestClient, WebClient và client khai báo
+  - Phân biệt blocking, non-blocking, asynchronous và reactive
+  - Chọn client theo Spring MVC, WebFlux hoặc ứng dụng Java độc lập
+  - Đối chiếu API với Java 21, Spring Framework 6.1 và Spring Boot 3.3
+  - Kiểm tra tính năng và thay đổi API trước khi nâng phiên bản
+  - Chi phí phụ thuộc, cấu hình, kiểm thử và bảo trì của từng lựa chọn
+- level1: Vòng đời lời gọi
+  level2:
+  - Từ URI đến DNS, kết nối TCP, TLS và gửi yêu cầu
+  - Tái sử dụng kết nối và phân biệt một request với một connection
+  - Nhận status, headers, body rồi giải phóng tài nguyên
+  - Quan hệ giữa ứng dụng, nhóm luồng, vòng lặp sự kiện và nhóm kết nối
+  - Duy trì kết nối HTTP/1.1 và ghép nhiều luồng trên HTTP/2
+  - Thương lượng giao thức, giới hạn hỗ trợ và hành vi fallback
+  - Vị trí của proxy, load balancer và service mesh trên đường đi
+  - Nhận diện từng giai đoạn để đặt timeout và đo độ trễ
+- level1: URI và tham số
+  level2:
+  - Tạo base URL, path và path variable an toàn
+  - Phân biệt URI đã mã hóa với giá trị cần được mã hóa
+  - Query parameter, giá trị lặp, danh sách và giá trị vắng mặt
+  - Unicode, khoảng trắng và các ký tự đặc biệt trong đường dẫn
+  - Phân biệt query string và application/x-www-form-urlencoded
+  - Xử lý dấu gạch chéo, relative URI và ghép đường dẫn
+  - Quy tắc đặt giá trị mặc định và kiểm tra tham số trước khi gửi
+  - Chuyển hướng URL và kiểm tra lại máy chủ đích
+- level1: Yêu cầu HTTP
+  level2:
+  - Lựa chọn GET, HEAD, POST, PUT, PATCH và DELETE theo hợp đồng
+  - Content-Type, Accept và thương lượng kiểu nội dung
+  - Header mặc định, header theo request và giá trị nhiều phần tử
+  - Authorization, User-Agent, correlation ID và header tùy chỉnh
+  - JSON, văn bản, dữ liệu nhị phân và bảng mã ký tự
+  - Form URL-encoded và multipart/form-data
+  - Body rỗng, thuộc tính null và thuộc tính bị lược bỏ
+  - Content-Length, truyền theo khối và giới hạn của thư viện
+  - Nén yêu cầu và điều kiện hỗ trợ của máy chủ
+  - Phân biệt safe, idempotent và khả năng gửi lại body
+- level1: Phản hồi và lỗi
+  level2:
+  - Đọc status, headers và body thay vì chỉ lấy dữ liệu trả về
+  - Phản hồi 200, 201, 202, 204 và khác biệt về kết quả xử lý
+  - Redirect 301, 302, 303, 307, 308 và ảnh hưởng đến method, body
+  - Xử lý 400, 401, 403, 404, 409, 412 và 422 theo hợp đồng
+  - Xử lý 408, 429, 5xx và hướng dẫn Retry-After
+  - Phân biệt HTTP error, lỗi kết nối, timeout và lỗi giải mã
+  - Đọc lỗi dạng Problem Details hoặc cấu trúc riêng của nhà cung cấp
+  - Phản hồi rỗng, Content-Type sai và body không hợp lệ
+  - Giữ thông tin chẩn đoán có giới hạn khi ánh xạ ngoại lệ
+  - Phân biệt không có phản hồi với kết quả nghiệp vụ chưa xác định
+- level1: JDK HttpClient
+  level2:
+  - HttpClient, HttpRequest, HttpResponse và builder tương ứng
+  - Tạo và tái sử dụng HttpClient theo cấu hình của hệ thống đích
+  - Tạo request với method, headers và BodyPublisher
+  - Gửi đồng bộ bằng send và xử lý InterruptedException
+  - Gửi bất đồng bộ bằng sendAsync và CompletableFuture
+  - BodyHandlers cho String, byte array, file, InputStream và Publisher
+  - BodySubscriber và xử lý body theo từng phần
+  - Cấu hình connect timeout, request timeout và giới hạn phạm vi tác dụng
+  - Cấu hình HTTP version, redirect, proxy, cookie và authenticator
+  - Cấu hình SSLContext, SSLParameters và executor
+  - Đóng stream, hủy lời gọi và quản lý vòng đời HttpClient trong Java 21
+  - Giới hạn của HttpURLConnection và cách chuyển sang java.net.http
+- level1: Apache HttpClient 5
+  level2:
+  - Phân biệt Classic client, Async client và kiểu xử lý I/O
+  - CloseableHttpClient, request và response handler
+  - PoolingHttpClientConnectionManager và giới hạn tổng, theo route
+  - Phân biệt cấu hình kết nối, request và socket
+  - Connection request timeout, connect timeout và response timeout
+  - Giải phóng response entity và quản lý vòng đời connection manager
+  - Keep-alive, time-to-live, kết nối nhàn rỗi và kiểm tra kết nối cũ
+  - Cấu hình redirect, xác thực, proxy và TLS
+  - Kiểm soát retry tự động và điều kiện phát lại entity
+  - Tích hợp HttpComponentsClientHttpRequestFactory với Spring
+- level1: OkHttp
+  level2:
+  - OkHttpClient, Request, Response, Call và vòng đời lời gọi
+  - execute, enqueue và xử lý callback từ Java
+  - RequestBody, ResponseBody và đóng body đúng thời điểm
+  - ConnectionPool, Dispatcher và giới hạn lời gọi đồng thời
+  - Application interceptor và network interceptor
+  - Connect, read, write, call timeout và hủy Call
+  - Authenticator, token hết hạn và tránh lặp xác thực vô hạn
+  - CookieJar, cache, redirect và hành vi phục hồi kết nối
+  - EventListener và MockWebServer trong quan sát, kiểm thử
+- level1: Spring RestTemplate
+  level2:
+  - RestTemplate, RestTemplateBuilder và cấu hình từ Spring Boot
+  - getForObject, getForEntity, postForEntity và các phương thức tiện ích
+  - exchange với HttpEntity, ResponseEntity và method tùy chọn
+  - ParameterizedTypeReference cho kiểu dữ liệu generic
+  - HttpMessageConverter và chuyển đổi nội dung
+  - ResponseErrorHandler và ánh xạ lỗi
+  - ClientHttpRequestInterceptor và cấu hình request factory
+  - execute, RequestCallback và ResponseExtractor cho dữ liệu lớn
+  - Phạm vi tái sử dụng đối tượng và tránh sửa cấu hình trong lúc chạy
+  - Đánh giá chuyển sang RestClient theo phiên bản và nhu cầu
+- level1: Spring RestClient
+  level2:
+  - RestClient.Builder và cấu hình được Spring Boot quản lý
+  - Base URL, URI variable, header mặc định và cấu hình theo hệ thống đích
+  - API fluent cho GET, POST, PUT, PATCH và DELETE
+  - retrieve, body, toEntity và toBodilessEntity
+  - onStatus và defaultStatusHandler để xử lý lỗi
+  - exchange để kiểm soát phản hồi và khác biệt với retrieve
+  - HttpMessageConverter và ParameterizedTypeReference
+  - Interceptor, initializer và ClientHttpRequestFactory
+  - SSL bundle, timeout và transport được cấu hình qua builder
+  - Tạo client từ RestTemplate và bảo toàn hành vi cần thiết
+- level1: Spring WebClient
+  level2:
+  - WebClient.Builder, ClientHttpConnector và cấu hình Spring Boot
+  - Mono, Flux và thời điểm subscription làm phát sinh request
+  - Tạo URI, headers, bodyValue và BodyInserter
+  - retrieve, onStatus và WebClientResponseException
+  - exchangeToMono, exchangeToFlux và giải phóng response body
+  - bodyToMono, bodyToFlux và kiểu dữ liệu generic
+  - ExchangeFilterFunction và xử lý xuyên suốt lời gọi
+  - Reactor Netty HttpClient và tùy chỉnh ConnectionProvider
+  - Giới hạn bộ nhớ codec và DataBuffer khi nhận dữ liệu lớn
+  - block, event loop và nguy cơ chặn luồng xử lý I/O
+  - Cancellation, Reactor Context và truyền ngữ cảnh
+  - Tái sử dụng client, builder và tài nguyên mạng theo vòng đời ứng dụng
+- level1: HTTP Interface
+  level2:
+  - Khai báo hợp đồng gọi bằng @HttpExchange và annotation theo phương thức HTTP
+  - Ánh xạ path, query, header, cookie và request body
+  - Kiểu trả về đồng bộ, ResponseEntity, Mono và Flux theo adapter
+  - Tạo proxy bằng HttpServiceProxyFactory
+  - RestClientAdapter, WebClientAdapter và kiểm tra khả năng theo phiên bản
+  - Tách interface nghiệp vụ tích hợp khỏi cấu hình transport
+  - Xử lý lỗi, timeout và quan sát thông qua client nền
+  - Kiểm thử proxy và giới hạn so với client sinh từ OpenAPI
+- level1: Spring Cloud OpenFeign
+  level2:
+  - '@EnableFeignClients, @FeignClient, name, contextId và URL đích'
+  - Tương thích Spring Cloud release train với Spring Boot
+  - Ánh xạ phương thức HTTP, đường dẫn, tham số, header và body bằng Spring MVC contract
+  - Encoder, Decoder và xử lý kiểu dữ liệu trả về
+  - RequestInterceptor và cấu hình riêng cho từng client
+  - ErrorDecoder và ánh xạ lỗi từ dịch vụ đích
+  - Connect timeout, read timeout và transport nền
+  - Retryer và khác biệt giữa Feign gốc với Spring Cloud OpenFeign
+  - Tích hợp circuit breaker, fallback và giới hạn của fallback
+  - LoadBalancer, service discovery và lựa chọn endpoint
+  - Giới hạn blocking và tránh dùng trực tiếp trên event loop
+- level1: Kết nối và pool
+  level2:
+  - Vì sao nên tái sử dụng client và kết nối thay vì tạo theo từng request
+  - Giới hạn connection tổng, theo host và theo route
+  - Connection leasing, hàng chờ cấp kết nối và giới hạn chờ
+  - Phân biệt kết nối đang dùng, nhàn rỗi và chờ cấp phát
+  - HTTP/2 stream concurrency và khác biệt với số kết nối vật lý
+  - Keep-alive, idle timeout, time-to-live và máy chủ đóng kết nối
+  - Dọn kết nối hết hạn và xử lý stale connection
+  - DNS cache, thay đổi địa chỉ dịch vụ và kết nối tồn tại lâu
+  - Tách pool theo hệ thống đích để tránh chiếm hết tài nguyên lẫn nhau
+  - Đóng body và giải phóng kết nối trên cả nhánh thành công lẫn nhánh lỗi
+- level1: Timeout và hủy
+  level2:
+  - Phân biệt DNS, pool acquire, connect và TLS handshake timeout
+  - Phân biệt response timeout, read timeout và thời hạn toàn lời gọi
+  - Đối chiếu ý nghĩa timeout giữa JDK, Apache, OkHttp và Reactor Netty
+  - Phân bổ deadline xuyên nhiều lời gọi và nhiều lần thử
+  - Timeout nhận header và timeout đọc body theo luồng
+  - Hủy CompletableFuture, Call hoặc subscription và phạm vi tác dụng
+  - Giữ trạng thái interrupted và dừng tác vụ blocking có kiểm soát
+  - Phân biệt client ngừng chờ với máy chủ ngừng xử lý
+  - Ngăn lời gọi đã hết deadline tiếp tục giữ connection hoặc thread
+  - Kiểm thử timeout bằng máy chủ phản hồi chậm ở từng giai đoạn
+- level1: Thử lại an toàn
+  level2:
+  - Phân loại lỗi có thể retry theo ngữ nghĩa và trạng thái xử lý
+  - Idempotent method và điều kiện retry của request cụ thể
+  - Idempotency key cho thao tác ghi và thỏa thuận với máy chủ
+  - Nguy cơ nhân đôi nghiệp vụ khi timeout sau khi máy chủ đã xử lý
+  - Body có thể phát lại và giới hạn của InputStream hoặc dữ liệu một lần
+  - Exponential backoff, jitter và giới hạn số lần thử
+  - Tôn trọng Retry-After, rate limit và thời hạn còn lại
+  - Phân biệt retry ở transport, framework, resilience và ứng dụng
+  - Ngăn retry lồng nhau làm khuếch đại lưu lượng
+  - Ghi nhận từng lần thử và dừng retry khi tác vụ bị hủy
+- level1: Ngắt mạch và cô lập
+  level2:
+  - Circuit breaker và các trạng thái closed, open, half-open
+  - Phân biệt timeout, retry, circuit breaker, bulkhead và rate limiter
+  - Cô lập số lời gọi đồng thời theo hệ thống phụ thuộc
+  - Giới hạn hàng chờ và từ chối sớm khi quá tải
+  - Chọn thứ tự kết hợp các chính sách chịu lỗi
+  - Fallback, dữ liệu cũ và điều kiện chấp nhận kết quả suy giảm
+  - Phân biệt lỗi đầu vào, lỗi nghiệp vụ và lỗi tính vào circuit breaker
+  - Phục hồi có kiểm soát để tránh dồn tải khi dịch vụ hoạt động trở lại
+  - Tích hợp Resilience4j với client đồng bộ hoặc reactive
+- level1: Đồng thời và tải
+  level2:
+  - Lời gọi tuần tự, song song và giới hạn fan-out
+  - Kết hợp CompletableFuture và xử lý lỗi của nhiều lời gọi
+  - flatMap, concatMap và giới hạn concurrency trong Reactor
+  - Virtual thread trong Java 21 và lời gọi HTTP blocking
+  - Giới hạn thread, connection và số request đang xử lý độc lập nhau
+  - Backpressure khi đọc response và giới hạn bảo vệ phía máy chủ
+  - Hủy các nhánh còn lại khi yêu cầu tổng đã hết deadline
+  - Truyền ngữ cảnh theo thread, Reactor Context và callback
+  - Tránh tạo executor, scheduler hoặc client mới trong mỗi vòng lặp
+- level1: Xác thực
+  level2:
+  - Basic Authentication và yêu cầu bảo vệ kênh truyền
+  - API key qua header và quản lý cấu hình bí mật
+  - Bearer token và phân biệt access token với thông tin đăng nhập
+  - OAuth 2.0 client credentials cho lời gọi giữa dịch vụ
+  - OAuth2AuthorizedClientManager hoặc reactive authorized client manager
+  - Refresh token và làm mới access token theo khả năng của luồng OAuth
+  - Phối hợp làm mới token khi nhiều request cùng hết hạn
+  - Phân biệt 401, 403 và quyết định có gửi lại hay không
+  - Phân tách tài khoản, scope và token theo nhà cung cấp
+  - Chữ ký yêu cầu HMAC, timestamp và tính nhất quán của nội dung ký
+- level1: TLS và proxy
+  level2:
+  - HTTPS, chứng thư máy chủ và chuỗi tin cậy
+  - Truststore, SSLContext và kiểm tra hostname
+  - mTLS, keystore và lựa chọn chứng thư client
+  - SNI, ALPN và thương lượng HTTP/2
+  - Cấu hình SSL bundle trong Spring Boot
+  - Proxy HTTP, HTTPS tunneling và ProxySelector
+  - Xác thực proxy, danh sách bỏ qua proxy và cấu hình môi trường
+  - Phân biệt lỗi TLS, lỗi proxy và lỗi ứng dụng
+  - Luân chuyển chứng thư và cập nhật truststore khi vận hành
+- level1: Bảo mật đầu ra
+  level2:
+  - SSRF khi ứng dụng nhận URL từ dữ liệu bên ngoài
+  - Giới hạn scheme, host, port và đường dẫn được phép gọi
+  - Kiểm tra địa chỉ IP đích, DNS rebinding và mạng nội bộ
+  - Kiểm tra từng redirect thay vì chỉ kiểm tra URL ban đầu
+  - Ngăn gửi Authorization, Cookie và bí mật sang host khác
+  - Tránh tắt kiểm tra chứng thư hoặc hostname để sửa lỗi kết nối
+  - Giới hạn kích thước body, thời gian đọc và dữ liệu sau giải nén
+  - Che token, mật khẩu và dữ liệu nhạy cảm trong log
+  - Phân tách dữ liệu giữa người dùng, tenant và phiên xác thực
+  - Cập nhật thư viện, cấu hình egress và nguyên tắc quyền tối thiểu
+- level1: File và streaming
+  level2:
+  - Tải file bằng stream thay vì giữ toàn bộ nội dung trong bộ nhớ
+  - Upload file, form field và nhiều phần multipart
+  - Buffering và streaming ở từng client, converter hoặc codec
+  - Giới hạn dung lượng, kiểm tra Content-Type và tên file từ máy chủ
+  - Đóng tài nguyên, xóa file tạm và xử lý tải dở
+  - Range request, tải tiếp và kiểm tra phiên bản tài nguyên
+  - Đối chiếu checksum để kiểm tra dữ liệu tải về
+  - NDJSON hoặc body theo luồng trong phạm vi một phản hồi HTTP
+  - Retry upload, phát lại request body và hạn chế của dữ liệu một lần
+- level1: Cookie và cache
+  level2:
+  - Cookie, session và khác biệt giữa client trình duyệt với Java client
+  - CookieManager, CookieStore hoặc CookieJar theo thư viện
+  - Phạm vi domain, path, secure và thời hạn cookie
+  - Tách cookie giữa người dùng và tránh dùng phiên chung ngoài ý muốn
+  - Cache-Control, Expires, Age và điều kiện cache phản hồi
+  - ETag, Last-Modified và conditional GET
+  - Xử lý 304 Not Modified cùng dữ liệu đã lưu
+  - Vary, Authorization và tránh chia sẻ sai bản cache
+  - If-Match, 412 và kiểm soát cập nhật đồng thời
+  - Phân biệt HTTP cache, cache ứng dụng và khả năng hỗ trợ của từng client
+- level1: Phân trang và tổng hợp
+  level2:
+  - Offset pagination, cursor pagination và header Link
+  - Điều kiện kết thúc, trang rỗng và giới hạn tổng số trang
+  - Dữ liệu thay đổi giữa các trang và xử lý bản ghi trùng
+  - Điều tiết tốc độ đọc theo quota của nhà cung cấp
+  - Tải tuần tự hoặc song song có giới hạn
+  - Tổng hợp nhiều dịch vụ và xác định kết quả đầy đủ, một phần hoặc thất bại
+  - Ngăn mô hình N+1 và cân nhắc API nhận theo lô
+  - Lưu checkpoint để tiếp tục tác vụ dài sau lỗi
+- level1: Hợp đồng và dữ liệu
+  level2:
+  - DTO tích hợp và tách biệt với entity hoặc mô hình nghiệp vụ nội bộ
+  - JSON field naming, unknown field, missing field và null
+  - Ngày giờ, múi giờ, độ chính xác số và enum không nhận diện
+  - Generic response, envelope và danh sách lồng nhau
+  - Kiểm tra dữ liệu sau giải mã trước khi dùng trong nghiệp vụ
+  - Version của API, media type và thay đổi schema tương thích
+  - Ánh xạ mã lỗi nhà cung cấp sang lỗi của ứng dụng
+  - Client sinh từ OpenAPI và kiểm soát tùy chỉnh mã sinh
+  - Phân biệt CORS trên trình duyệt với lời gọi Java phía máy chủ
+- level1: Thiết kế tầng tích hợp
+  level2:
+  - Tách cấu hình transport, client giao tiếp và điều phối nghiệp vụ
+  - Thiết kế port/adapter để thay thư viện mà giữ hợp đồng ứng dụng
+  - Cấu hình base URL, timeout và thông tin xác thực theo từng nhà cung cấp
+  - Interceptor, filter và trách nhiệm của từng lớp mở rộng
+  - Tránh biến client tích hợp thành lớp tiện ích dùng chung quá rộng
+  - Rủi ro giữ giao dịch dữ liệu hoặc khóa lâu trong lúc chờ HTTP
+  - Phối hợp thao tác ghi cục bộ với HTTP khi không có giao dịch nguyên tử
+  - Quản lý bean, builder có trạng thái và vòng đời tài nguyên
+  - Tiêu chí chuyển sang xử lý nền khi lời gọi vượt thời gian chờ nghiệp vụ
+- level1: Quan sát lời gọi
+  level2:
+  - Đo số request, tỷ lệ lỗi và độ trễ p50, p95, p99 theo hệ thống đích
+  - Tách thời gian DNS, connect, TLS, chờ pool và nhận body
+  - Micrometer Observation và client builder được Spring Boot cấu hình
+  - Truyền traceparent, correlation ID và ngữ cảnh xuyên lời gọi
+  - Phân biệt một thao tác nghiệp vụ với các lần retry bên dưới
+  - Giới hạn cardinality bằng URI template thay vì URL động
+  - Log method, host, status, thời lượng và lỗi đã được che dữ liệu
+  - Theo dõi connection pool, thread pool, event loop và hàng chờ
+  - Đặt cảnh báo theo timeout, lỗi kết nối và độ trễ của hệ thống phụ thuộc
+- level1: Kiểm thử client
+  level2:
+  - Phân biệt kiểm thử ánh xạ dữ liệu với kiểm thử qua HTTP thật
+  - MockRestServiceServer và @RestClientTest cho Spring client phù hợp
+  - WireMock hoặc MockWebServer để giả lập máy chủ đích
+  - Kiểm tra method, path, query, header và request body
+  - Kiểm tra JSON, generic type, dữ liệu thiếu và schema thay đổi
+  - Kiểm tra status lỗi, body rỗng và body không giải mã được
+  - Giả lập connect lỗi, phản hồi chậm, mất kết nối và body bị cắt
+  - Kiểm thử retry, Retry-After, idempotency key và số lần gọi
+  - Kiểm thử redirect, xác thực và giới hạn gửi thông tin nhạy cảm
+  - Kiểm thử hủy, giải phóng body và cạn connection pool
+  - Kiểm thử TLS bằng chứng thư thử nghiệm và cấu hình truststore riêng
+  - Cô lập dữ liệu, cổng, thời gian chờ và kết quả bất đồng bộ
+- level1: Hiệu năng
+  level2:
+  - Thiết kế tải đo theo số request, concurrency và kích thước dữ liệu
+  - So sánh client với cùng timeout, pool, TLS và chính sách retry
+  - Phân biệt lần gọi đầu, kết nối nóng và TLS handshake
+  - Đo ảnh hưởng của HTTP/1.1, HTTP/2 và số stream đồng thời
+  - Đo chi phí tuần tự hóa, giải tuần tự, nén và sao chép bộ nhớ
+  - Ước lượng số request đang xử lý từ lưu lượng và độ trễ
+  - Đánh giá blocking, virtual thread và reactive trong cùng bài toán
+  - Phát hiện nghẽn ở CPU, heap, GC, pool hoặc hệ thống đích
+  - Đánh giá tải đột biến và thời gian phục hồi sau quá tải
+- level1: Vận hành và sự cố
+  level2:
+  - Không phân giải được host hoặc kết nối nhầm endpoint
+  - Connection refused, connection reset và broken pipe
+  - PKIX path building failed, hostname mismatch và chứng thư hết hạn
+  - Pool acquire timeout, thiếu thread và event loop bị chặn
+  - Read timeout, response timeout và request chưa được hủy thật sự
+  - Too many open files, socket tăng và rò rỉ response body
+  - Body quá lớn, codec memory limit và dữ liệu sau giải nén
+  - Khác biệt giữa curl, Postman và ứng dụng do proxy, TLS hoặc header
+  - 401 lặp lại, token refresh đồng thời và sai thông tin xác thực
+  - Retry storm, circuit breaker mở và giới hạn lưu lượng từ nhà cung cấp
+  - Dùng curl, log có kiểm soát và số đo mạng để khoanh vùng giai đoạn lỗi
+  - Graceful shutdown, nâng cấp thư viện và xác minh cấu hình thực tế
+- level1: Chuyển đổi client
+  level2:
+  - Kiểm kê hành vi transport, converter, lỗi và quan sát đang phụ thuộc
+  - Chuyển HttpURLConnection sang JDK HttpClient
+  - Chuyển Apache HttpClient 4 sang 5 và kiểm tra khác biệt cấu hình
+  - Chuyển RestTemplate sang RestClient trong ứng dụng đồng bộ
+  - Chọn WebClient khi có nhu cầu reactive và quản lý chuyển đổi blocking
+  - Chuyển client viết tay sang HTTP Interface hoặc OpenFeign
+  - Kiểm thử hồi quy timeout, retry, redirect, cookie và giải phóng tài nguyên
+  - Triển khai từng phần, theo dõi số đo và chuẩn bị rollback
+- level1: Bài tập tổng hợp
+  level2:
+  - Viết client đọc hồ sơ và ánh xạ lỗi bằng JDK HttpClient
+  - Gọi API đồng bộ bằng RestClient với cấu hình theo nhà cung cấp
+  - Tổng hợp nhiều dịch vụ bằng WebClient với giới hạn concurrency
+  - Định nghĩa hợp đồng client bằng HTTP Interface và kiểm thử proxy
+  - Tích hợp API có OAuth 2.0 và phối hợp làm mới token
+  - Thực hành retry thao tác ghi có idempotency key
+  - Upload, download file lớn và kiểm chứng giới hạn bộ nhớ
+  - Thu thập dữ liệu nhiều trang với quota và khả năng tiếp tục
+  - Giả lập dịch vụ chậm, lỗi và quá tải để kiểm tra cơ chế chịu lỗi
+  - Hoàn thiện metrics, tracing, kiểm thử và quy trình chẩn đoán cho một client

@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiểu tương tác
+  slug: interaction-patterns
+  index: 1
+- title: Thiết kế thông điệp
+  slug: message-design
+  index: 2
+- title: Kênh truyền
+  slug: messaging-channels
+  index: 3
+- title: Kết nối hệ thống
+  slug: system-connectivity
+  index: 4
+- title: Hỏi đáp bất đồng bộ
+  slug: async-request-reply
+  index: 5
+- title: Chuỗi xử lý
+  slug: processing-pipelines
+  index: 6
+- title: Định tuyến
+  slug: message-routing
+  index: 7
+- title: Tách và hợp nhất
+  slug: splitters-and-aggregators
+  index: 8
+- title: Phân phối và thu thập
+  slug: distribution-and-gathering
+  index: 9
+- title: Điều phối quy trình
+  slug: workflow-orchestration
+  index: 10
+- title: Chuyển đổi dữ liệu
+  slug: message-transformation
+  index: 11
+- title: Đầu cuối ứng dụng
+  slug: application-endpoints
+  index: 12
+- title: Đồng thời và thứ tự
+  slug: concurrency-and-ordering
+  index: 13
+- title: Độ tin cậy
+  slug: reliability
+  index: 14
+- title: Xử lý trùng lặp
+  slug: duplicate-handling
+  index: 15
+- title: Đồng bộ dữ liệu
+  slug: data-synchronization
+  index: 16
+- title: Saga
+  slug: saga
+  index: 17
+- title: Hợp đồng và tiến hóa
+  slug: contracts-and-evolution
+  index: 18
+- title: Bảo mật
+  slug: security
+  index: 19
+- title: Quản lý và quan sát
+  slug: management-and-observability
+  index: 20
+- title: Hiệu năng
+  slug: performance
+  index: 21
+- title: Kiểm thử
+  slug: testing
+  index: 22
+- title: Hiện thực trong Java
+  slug: java-implementations
+  index: 23
+- title: Thiết kế và thực hành
+  slug: design-and-practice
+  index: 24

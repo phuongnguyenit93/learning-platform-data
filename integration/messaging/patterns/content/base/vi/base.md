@@ -1,0 +1,7 @@
+# Integration Messaging Patterns
+
+Messaging Patterns là các mẫu thiết kế tái sử dụng để kết nối những ứng dụng trao đổi dữ liệu bằng thông điệp. Thay vì gắn kiến trúc với một message broker cụ thể, module này giới thiệu ngôn ngữ Enterprise Integration Patterns (EIP) để mô tả cách tạo, phân phối, định tuyến, biến đổi và phối hợp thông điệp. Trọng tâm là hiểu mỗi pattern giải quyết vấn đề gì và sự khác biệt giữa các lựa chọn khi thiết kế luồng tích hợp.
+
+Roadmap một cấp gồm tám mốc: bắt đầu với Message, Channel và Endpoint, tiếp đến so sánh Point-to-Point với Publish-Subscribe và tổ chức Request-Reply có Correlation Identifier. Sau đó, bạn tìm hiểu Router, Filter, Translator, Enricher, Splitter, Aggregator và Competing Consumers trước khi kết hợp chúng theo mô hình Pipes-and-Filters. Mỗi mốc nhấn mạnh việc vẽ luồng và kiểm chứng hành vi, không phụ thuộc vào cú pháp riêng của RabbitMQ, Kafka hay Spring Integration.
+
+Module phù hợp với người đã biết lập trình và các khái niệm giao tiếp bất đồng bộ cơ bản. Sau khi hoàn thành, bạn có thể chọn messaging pattern phù hợp với nhu cầu nghiệp vụ, giải thích các đánh đổi về phân phối, thứ tự và phản hồi, đồng thời kiểm thử những nhánh xử lý trong một message flow đơn giản.

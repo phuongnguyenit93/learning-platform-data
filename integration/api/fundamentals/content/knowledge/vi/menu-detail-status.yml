@@ -1,0 +1,2797 @@
+menu:
+- slug: api-contracts
+  title: API như hợp đồng giao tiếp giữa các hệ thống
+  childs:
+  - slug: api-contracts-001
+    title: API là gì và ranh giới giữa giao diện, hợp đồng và phần triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-contracts-002
+    title: Vai trò của bên cung cấp, bên tiêu thụ và chủ sở hữu API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-contracts-003
+    title: Hợp đồng cú pháp, ngữ nghĩa và hành vi mà phía gọi có thể dựa vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-contracts-004
+    title: Phân biệt API với thư viện, SDK, giao diện người dùng và kết nối cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-contracts-005
+    title: API nội bộ, API đối tác và API công khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-contracts-006
+    title: API phục vụ sản phẩm, tự động hóa và tích hợp hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-contracts-007
+    title: Che giấu chi tiết triển khai và giảm phụ thuộc giữa các bên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-contracts-008
+    title: Các yếu tố tạo nên một API dễ hiểu, dễ dùng và dễ thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-contracts-009
+    title: Chi phí của hợp đồng mơ hồ và kỳ vọng ngầm giữa các hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-contracts-010
+    title: Những ngộ nhận phổ biến khi xem API chỉ là một đường dẫn HTTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-requirements-and-scope
+  title: Xác định nhu cầu tích hợp và phạm vi hợp đồng
+  childs:
+  - slug: integration-requirements-and-scope-001
+    title: Nhận diện bên sử dụng, ca sử dụng và hành trình tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-requirements-and-scope-002
+    title: Chuyển yêu cầu nghiệp vụ thành khả năng mà API cần cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-requirements-and-scope-003
+    title: Xác định ranh giới nghiệp vụ và hệ thống sở hữu dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-requirements-and-scope-004
+    title: Thu thập yêu cầu về độ trễ, lưu lượng, tính sẵn sàng và độ mới dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-requirements-and-scope-005
+    title: Phân loại dữ liệu nhạy cảm và mức độ tin cậy giữa các bên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-requirements-and-scope-006
+    title: Xác định quy mô kết quả, kích thước dữ liệu và đặc điểm tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-requirements-and-scope-007
+    title: Làm rõ kỳ vọng nhất quán và thời điểm thay đổi có thể quan sát được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-requirements-and-scope-008
+    title: Chọn mức độ chi tiết của API theo tác vụ thực tế của bên gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-requirements-and-scope-009
+    title: Cân bằng tính tổng quát, sự đơn giản và nhu cầu mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-requirements-and-scope-010
+    title: Ghi nhận giả định, giới hạn và các trường hợp nằm ngoài phạm vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-requirements-and-scope-011
+    title: Xác lập tiêu chí thành công và tiêu chí chấp nhận của hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: api-styles-and-interaction-models
+  title: Các kiểu API và mô hình tương tác
+  childs:
+  - slug: api-styles-and-interaction-models-001
+    title: So sánh API cục bộ với API qua mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-styles-and-interaction-models-002
+    title: Mô hình request–response đồng bộ và sự phụ thuộc theo thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-styles-and-interaction-models-003
+    title: Mô hình bất đồng bộ, hàng đợi và giao tiếp dựa trên sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-styles-and-interaction-models-004
+    title: Polling, webhook và streaming dưới góc nhìn nhu cầu tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-styles-and-interaction-models-005
+    title: API hướng tài nguyên và API hướng thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-styles-and-interaction-models-006
+    title: REST như một phong cách kiến trúc và giới hạn của nhãn RESTful
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-styles-and-interaction-models-007
+    title: Các ràng buộc REST về client–server, stateless, cache và hệ thống phân lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-styles-and-interaction-models-008
+    title: Giao diện thống nhất, biểu diễn tài nguyên và vai trò của liên kết hypermedia
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-styles-and-interaction-models-009
+    title: RPC và gRPC ở mức khái niệm về thao tác và hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-styles-and-interaction-models-010
+    title: SOAP và WSDL ở mức khái niệm về thông điệp và hợp đồng dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-styles-and-interaction-models-011
+    title: GraphQL ở mức khái niệm về truy vấn và lựa chọn dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-styles-and-interaction-models-012
+    title: Phân biệt thông báo sự kiện với yêu cầu thực hiện lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-styles-and-interaction-models-013
+    title: Tiêu chí chọn kiểu tương tác theo môi trường, độ trễ và mức độ liên kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: request-response-lifecycle
+  title: Vòng đời request–response và ranh giới lỗi qua mạng
+  childs:
+  - slug: request-response-lifecycle-001
+    title: Các thành phần của một request và một response
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-response-lifecycle-002
+    title: Luồng gọi từ ứng dụng khách qua các thành phần trung gian đến máy chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-response-lifecycle-003
+    title: Phân biệt địa chỉ mạng, địa chỉ dịch vụ và định danh tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-response-lifecycle-004
+    title: Vai trò của DNS, kết nối TCP, TLS và HTTP trong một lần gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-response-lifecycle-005
+    title: Kết nối, thời gian chờ xử lý và hạn chót của toàn bộ lời gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-response-lifecycle-006
+    title: Phân biệt lỗi truyền tải, lỗi giao thức và lỗi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-response-lifecycle-007
+    title: Vì sao không nhận được response chưa đủ để kết luận thao tác thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-response-lifecycle-008
+    title: Lỗi xảy ra trước, trong và sau khi máy chủ thực hiện thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-response-lifecycle-009
+    title: Tác động của proxy, gateway và cân bằng tải lên hành vi quan sát được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-response-lifecycle-010
+    title: Trạng thái tại phía gọi, phía phục vụ và các hệ thống phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-response-lifecycle-011
+    title: Diễn giải một cuộc trao đổi request–response từ đầu đến cuối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-foundations
+  title: Nền tảng HTTP và cấu trúc thông điệp
+  childs:
+  - slug: http-foundations-001
+    title: Cấu trúc URI và vai trò của scheme, authority, path, query và fragment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-foundations-002
+    title: Phân biệt URL, URI, endpoint và base URL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-foundations-003
+    title: Phân biệt method, request target, header và message body
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-foundations-004
+    title: Cấu trúc response với status code, header và body
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-foundations-005
+    title: Mã hóa ký tự, percent-encoding và quy tắc xử lý ký tự đặc biệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-foundations-006
+    title: HTTPS và phạm vi bảo vệ của mã hóa trên đường truyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-foundations-007
+    title: Nguyên tắc stateless của HTTP và trạng thái ở tầng ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-foundations-008
+    title: Các thành phần trung gian và yêu cầu giữ đúng ngữ nghĩa HTTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-foundations-009
+    title: HTTP/1.1, HTTP/2 và HTTP/3 ở mức khái niệm truyền tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-foundations-010
+    title: Kết nối dùng lại, ghép kênh và giới hạn tài nguyên kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-foundations-011
+    title: Phân biệt header chuẩn, header mở rộng và metadata của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-foundations-012
+    title: Đọc và diễn giải thông điệp HTTP thô với công cụ dòng lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-modeling-and-uri-design
+  title: Mô hình tài nguyên và thiết kế URI
+  childs:
+  - slug: resource-modeling-and-uri-design-001
+    title: Chuyển khái niệm nghiệp vụ thành tài nguyên có danh tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-modeling-and-uri-design-002
+    title: Phân biệt tài nguyên đơn, tập hợp và tài nguyên quan hệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-modeling-and-uri-design-003
+    title: Chọn định danh ổn định và tránh để lộ chi tiết lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-modeling-and-uri-design-004
+    title: Định danh do máy chủ cấp và định danh do phía gọi cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-modeling-and-uri-design-005
+    title: Thiết kế đường dẫn nhất quán theo danh từ và phạm vi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-modeling-and-uri-design-006
+    title: Biểu diễn quan hệ bằng lồng đường dẫn, tham chiếu và liên kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-modeling-and-uri-design-007
+    title: Cân nhắc độ sâu của URI và vòng đời độc lập của tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-modeling-and-uri-design-008
+    title: Phân biệt thuộc tính tài nguyên với tài nguyên con độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-modeling-and-uri-design-009
+    title: Biểu diễn thao tác nghiệp vụ khó quy về CRUD
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-modeling-and-uri-design-010
+    title: Thiết kế vòng đời tài nguyên và các chuyển trạng thái hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-modeling-and-uri-design-011
+    title: Phân biệt xóa vật lý, xóa logic, lưu trữ và thời hạn tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-modeling-and-uri-design-012
+    title: Nhận diện các thiết kế URI khiến bên gọi phụ thuộc cấu trúc nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-methods-and-resource-operations
+  title: Ngữ nghĩa phương thức HTTP và thao tác tài nguyên
+  childs:
+  - slug: http-methods-and-resource-operations-001
+    title: GET và yêu cầu đọc dữ liệu không gây thay đổi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-methods-and-resource-operations-002
+    title: HEAD và việc truy xuất metadata mà không lấy response body
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-methods-and-resource-operations-003
+    title: POST để tạo tài nguyên và khởi tạo thao tác xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-methods-and-resource-operations-004
+    title: PUT với ý nghĩa tạo hoặc thay thế tại một URI xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-methods-and-resource-operations-005
+    title: PATCH và hợp đồng cập nhật từng phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-methods-and-resource-operations-006
+    title: DELETE và ý nghĩa xóa liên kết với tài nguyên đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-methods-and-resource-operations-007
+    title: OPTIONS và việc mô tả khả năng giao tiếp của endpoint
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-methods-and-resource-operations-008
+    title: Phân biệt phương thức an toàn với phương thức có tính lũy đẳng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-methods-and-resource-operations-009
+    title: Ngữ nghĩa phương thức và các tác dụng phụ mà phía gọi quan sát được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-methods-and-resource-operations-010
+    title: Lựa chọn method cho tạo mới, cập nhật, xóa và hành động nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-methods-and-resource-operations-011
+    title: Hợp đồng khi thao tác lặp lại trên tài nguyên đã tồn tại hoặc đã bị xóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-methods-and-resource-operations-012
+    title: Các lỗi thiết kế khi dùng GET để thay đổi dữ liệu hoặc POST cho mọi thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-status-codes-and-metadata
+  title: Mã trạng thái HTTP và metadata của phản hồi
+  childs:
+  - slug: http-status-codes-and-metadata-001
+    title: Ý nghĩa của các nhóm mã 1xx, 2xx, 3xx, 4xx và 5xx
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-status-codes-and-metadata-002
+    title: Phân biệt 200, 201, 202 và 204 theo kết quả xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-status-codes-and-metadata-003
+    title: Mã 304 khi xác thực cache và 206 khi trả một phần nội dung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-status-codes-and-metadata-004
+    title: Sử dụng Location khi tạo tài nguyên hoặc công bố nơi theo dõi tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-status-codes-and-metadata-005
+    title: Mã 301, 302, 303, 307 và 308 với ảnh hưởng tới method khi chuyển hướng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-status-codes-and-metadata-006
+    title: Phân biệt 400, 415 và 422 theo định dạng, kiểu nội dung và tính hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-status-codes-and-metadata-007
+    title: Phân biệt 401, 403 và 404 trong thiết kế trải nghiệm truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-status-codes-and-metadata-008
+    title: Phân biệt 409 và 412 khi có xung đột trạng thái hoặc điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-status-codes-and-metadata-009
+    title: Phân biệt 429, 503 và phản hồi có hướng dẫn thử lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-status-codes-and-metadata-010
+    title: Phân biệt 500, 502 và 504 theo nơi phát sinh lỗi và thời gian chờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-status-codes-and-metadata-011
+    title: Lựa chọn response body cho thành công, kết quả rỗng và lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-status-codes-and-metadata-012
+    title: Giữ nhất quán giữa status code, header và ý nghĩa trong body
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-representations-and-schemas
+  title: Biểu diễn dữ liệu và hợp đồng schema
+  childs:
+  - slug: data-representations-and-schemas-001
+    title: Phân biệt tài nguyên, mô hình miền và biểu diễn trao đổi qua API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representations-and-schemas-002
+    title: Lựa chọn JSON, XML, dữ liệu nhị phân hoặc văn bản theo nhu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representations-and-schemas-003
+    title: Vai trò của Content-Type và Accept trong thương lượng nội dung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representations-and-schemas-004
+    title: Encoding, charset và khác biệt giữa nội dung với cách truyền nội dung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representations-and-schemas-005
+    title: Thiết kế object, array và cấu trúc lồng dễ sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representations-and-schemas-006
+    title: Phân biệt thuộc tính bắt buộc, thuộc tính tùy chọn và giá trị mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representations-and-schemas-007
+    title: Quy ước đặt tên trường và giữ nhất quán trong toàn bộ API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representations-and-schemas-008
+    title: Định nghĩa schema với kiểu, định dạng, giới hạn và ràng buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representations-and-schemas-009
+    title: Xử lý trường chưa biết và dữ liệu mở rộng trong hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representations-and-schemas-010
+    title: Biểu diễn tài nguyên đơn, danh sách và metadata bằng cấu trúc phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representations-and-schemas-011
+    title: Ví dụ dữ liệu hợp lệ, dữ liệu biên và dữ liệu không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-field-semantics-and-edge-cases
+  title: Ngữ nghĩa của trường dữ liệu và các trường hợp biên
+  childs:
+  - slug: data-field-semantics-and-edge-cases-001
+    title: Phân biệt thiếu trường, null, chuỗi rỗng, danh sách rỗng và giá trị không
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-field-semantics-and-edge-cases-002
+    title: Biểu diễn số nguyên lớn và giới hạn chính xác giữa các nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-field-semantics-and-edge-cases-003
+    title: Thiết kế số thập phân, tiền tệ, đơn vị đo và quy tắc làm tròn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-field-semantics-and-edge-cases-004
+    title: Biểu diễn ngày, thời điểm, thời lượng và múi giờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-field-semantics-and-edge-cases-005
+    title: Phân biệt thời gian do client cung cấp với thời gian do server ghi nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-field-semantics-and-edge-cases-006
+    title: Unicode, chuẩn hóa chuỗi và so sánh không phân biệt hoa thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-field-semantics-and-edge-cases-007
+    title: Thiết kế enum, giá trị chưa biết và khả năng mở rộng tập giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-field-semantics-and-edge-cases-008
+    title: Quy ước thứ tự danh sách và ý nghĩa của tập hợp không có thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-field-semantics-and-edge-cases-009
+    title: Định danh, mã nghiệp vụ và giá trị hiển thị có thể thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-field-semantics-and-edge-cases-010
+    title: Trường chỉ đọc, trường chỉ ghi và dữ liệu do hệ thống suy ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-field-semantics-and-edge-cases-011
+    title: Thiết kế tham chiếu, dữ liệu nhúng và ảnh chụp dữ liệu theo thời điểm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-field-semantics-and-edge-cases-012
+    title: Ghi rõ độ chính xác, độ mới và nguồn gốc của dữ liệu trả về
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: input-validation-and-updates
+  title: Tiếp nhận đầu vào, kiểm tra hợp lệ và cập nhật
+  childs:
+  - slug: input-validation-and-updates-001
+    title: Phân bổ dữ liệu vào path, query, header và body
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-and-updates-002
+    title: Phân tích cú pháp và chuyển kiểu trước khi kiểm tra quy tắc nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-and-updates-003
+    title: Kiểm tra giới hạn độ dài, miền giá trị, định dạng và quan hệ giữa các trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-and-updates-004
+    title: Phân biệt kiểm tra tại biên API với bảo vệ bất biến trong nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-and-updates-005
+    title: Quy ước cho query parameter lặp, danh sách và giá trị boolean
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-and-updates-006
+    title: Giá trị mặc định và tác động khi phía gọi bỏ qua tham số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-and-updates-007
+    title: Chuẩn hóa dữ liệu đầu vào và nguy cơ làm thay đổi ý định của người gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-and-updates-008
+    title: Thiết kế cập nhật toàn bộ và cập nhật từng phần với dữ liệu tùy chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-and-updates-009
+    title: So sánh JSON Merge Patch và JSON Patch ở mức hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-and-updates-010
+    title: Kiểm tra và công bố các chuyển trạng thái không được phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-and-updates-011
+    title: Hợp đồng cho upload, download và dữ liệu multipart
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: input-validation-and-updates-012
+    title: Giới hạn kích thước request, số phần tử và khối lượng thao tác đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: error-contracts
+  title: Thiết kế lỗi như một phần của hợp đồng
+  childs:
+  - slug: error-contracts-001
+    title: Phân loại lỗi cú pháp, xác thực, phân quyền, nghiệp vụ và hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-contracts-002
+    title: Xây dựng cấu trúc lỗi nhất quán để con người và chương trình cùng sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-contracts-003
+    title: Phân biệt mã lỗi ổn định với thông điệp giải thích có thể thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-contracts-004
+    title: Problem Details ở mức khái niệm về biểu diễn lỗi HTTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-contracts-005
+    title: Biểu diễn lỗi kiểm tra hợp lệ với đường dẫn trường và nhiều vi phạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-contracts-006
+    title: Cung cấp ngữ cảnh xử lý lỗi mà không lộ thông tin nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-contracts-007
+    title: Phân biệt lỗi có thể thử lại với lỗi cần sửa yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-contracts-008
+    title: Mã tương quan để tra cứu một lỗi trong quá trình hỗ trợ tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-contracts-009
+    title: Thiết kế lỗi cho tài nguyên không tồn tại, trùng lặp và sai trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-contracts-010
+    title: Kết quả thành công một phần trong thao tác nhiều phần tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-contracts-011
+    title: Ngôn ngữ thông báo lỗi và yêu cầu giữ mã lỗi độc lập với bản dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: error-contracts-012
+    title: Hướng dẫn phía gọi xử lý mã lỗi mới và lỗi không nhận diện được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: collection-queries-and-pagination
+  title: Thiết kế truy vấn, tập hợp và phân trang
+  childs:
+  - slug: collection-queries-and-pagination-001
+    title: Chọn tập dữ liệu trả về theo tác vụ của bên tiêu thụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-queries-and-pagination-002
+    title: Thiết kế bộ lọc với toán tử, kiểu dữ liệu và tổ hợp điều kiện rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-queries-and-pagination-003
+    title: Quy định sắp xếp nhiều trường và thứ tự mặc định ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-queries-and-pagination-004
+    title: Phân biệt tìm kiếm toàn văn với lọc theo thuộc tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-queries-and-pagination-005
+    title: Phân trang bằng offset và giới hạn khi dữ liệu thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-queries-and-pagination-006
+    title: Phân trang bằng cursor và yêu cầu có khóa sắp xếp ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-queries-and-pagination-007
+    title: Thiết kế cursor không trong suốt và phạm vi hiệu lực của cursor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-queries-and-pagination-008
+    title: Giới hạn kích thước trang, trang cuối và danh sách không có kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-queries-and-pagination-009
+    title: Tổng số bản ghi, chi phí đếm và kỳ vọng độ chính xác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-queries-and-pagination-010
+    title: Chọn trường và mở rộng quan hệ để kiểm soát lượng dữ liệu trả về
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-queries-and-pagination-011
+    title: Tính nhất quán khi duyệt nhiều trang và nguy cơ bỏ sót hoặc trùng bản ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: collection-queries-and-pagination-012
+    title: Giới hạn độ phức tạp của truy vấn để bảo vệ tài nguyên hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: identity-authentication-and-secrets
+  title: Danh tính, xác thực và thông tin bí mật
+  childs:
+  - slug: identity-authentication-and-secrets-001
+    title: Phân biệt nhận diện, xác thực, phân quyền và kiểm toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-authentication-and-secrets-002
+    title: Danh tính người dùng, ứng dụng và dịch vụ trong một lời gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-authentication-and-secrets-003
+    title: Phân biệt API key, mật khẩu, access token và chứng thư
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-authentication-and-secrets-004
+    title: Basic authentication và yêu cầu bảo vệ thông tin trên đường truyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-authentication-and-secrets-005
+    title: mTLS và xác thực giữa các dịch vụ bằng chứng thư ở mức khái niệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-authentication-and-secrets-006
+    title: Bearer token và rủi ro khi người khác sở hữu token
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-authentication-and-secrets-007
+    title: OAuth 2.0 ở mức khái niệm ủy quyền truy cập giữa các bên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-authentication-and-secrets-008
+    title: OpenID Connect ở mức khái niệm xác thực danh tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-authentication-and-secrets-009
+    title: Phân biệt token tự chứa, token tham chiếu và định dạng JWT
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-authentication-and-secrets-010
+    title: Thời hạn, phạm vi, đối tượng nhận và kiểm tra tính hợp lệ của token
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-authentication-and-secrets-011
+    title: Cấp phát, lưu giữ, luân chuyển và thu hồi thông tin bí mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-authentication-and-secrets-012
+    title: Lựa chọn cơ chế xác thực theo loại client và mức độ tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: authorization-isolation-and-privacy
+  title: Phân quyền, cô lập dữ liệu và quyền riêng tư
+  childs:
+  - slug: authorization-isolation-and-privacy-001
+    title: Thiết kế quyền theo vai trò, scope và ngữ cảnh truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-isolation-and-privacy-002
+    title: Kiểm tra quyền đối với từng thao tác và từng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-isolation-and-privacy-003
+    title: Ngăn truy cập tài nguyên của người khác khi biết định danh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-isolation-and-privacy-004
+    title: Kiểm soát trường được đọc và trường được phép cập nhật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-isolation-and-privacy-005
+    title: Tách biệt tenant và ranh giới dữ liệu giữa các tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-isolation-and-privacy-006
+    title: Phân biệt quyền của ứng dụng với quyền của người dùng được đại diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-isolation-and-privacy-007
+    title: Nguyên tắc quyền tối thiểu và từ chối khi thiếu thông tin cấp quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-isolation-and-privacy-008
+    title: Giảm dữ liệu nhạy cảm trong request, response, URL và log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-isolation-and-privacy-009
+    title: Che giấu dữ liệu, rút gọn thông tin và hạn chế khả năng suy đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-isolation-and-privacy-010
+    title: Hợp đồng về lưu giữ, xóa và xuất dữ liệu cá nhân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-isolation-and-privacy-011
+    title: Thiết kế kiểm toán cho hành động nhạy cảm mà vẫn bảo vệ thông tin bí mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: api-security-and-abuse-protection
+  title: Bảo vệ API trước đầu vào và lưu lượng không tin cậy
+  childs:
+  - slug: api-security-and-abuse-protection-001
+    title: Xác định bề mặt tấn công và ranh giới tin cậy của API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-security-and-abuse-protection-002
+    title: Kiểm tra đầu vào và hạn chế nguy cơ injection tại các lớp xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-security-and-abuse-protection-003
+    title: Ngăn cập nhật ngoài ý muốn qua trường dữ liệu không được phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-security-and-abuse-protection-004
+    title: Rủi ro SSRF khi API nhận URL hoặc truy cập tài nguyên bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-security-and-abuse-protection-005
+    title: Bảo vệ upload bằng giới hạn kích thước, loại nội dung và cách lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-security-and-abuse-protection-006
+    title: Phân biệt CORS với cơ chế xác thực và phân quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-security-and-abuse-protection-007
+    title: CSRF trong API dùng cookie và các giả định về trình duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-security-and-abuse-protection-008
+    title: Giới hạn tốc độ, quota và giới hạn truy cập đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-security-and-abuse-protection-009
+    title: Bảo vệ tài nguyên trước truy vấn tốn kém và hành vi khai thác luồng nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-security-and-abuse-protection-010
+    title: Phản hồi khi vượt giới hạn và thông tin cần công bố cho phía gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-security-and-abuse-protection-011
+    title: Chống phát lại ở những thao tác nhạy cảm có yêu cầu kiểm chứng nguồn gửi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-security-and-abuse-protection-012
+    title: Phân định trách nhiệm bảo vệ giữa gateway và dịch vụ thực thi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: idempotency-concurrency-and-consistency
+  title: Tính lũy đẳng, đồng thời và tính nhất quán
+  childs:
+  - slug: idempotency-concurrency-and-consistency-001
+    title: Phân biệt lũy đẳng theo ngữ nghĩa với việc trả cùng một response
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-concurrency-and-consistency-002
+    title: Nguy cơ tạo trùng khi gửi lại thao tác sau một lỗi không rõ kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-concurrency-and-consistency-003
+    title: Thiết kế idempotency key theo phạm vi người gọi và thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-concurrency-and-consistency-004
+    title: Lưu kết quả, thời hạn lưu và xử lý cùng khóa nhưng khác nội dung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-concurrency-and-consistency-005
+    title: Xử lý các request đồng thời sử dụng cùng idempotency key
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-concurrency-and-consistency-006
+    title: Phân biệt chống gửi trùng ở API với chống xử lý trùng trong nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-concurrency-and-consistency-007
+    title: Nhận diện lost update khi nhiều client cùng sửa một tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-concurrency-and-consistency-008
+    title: Optimistic concurrency với phiên bản tài nguyên, ETag và If-Match
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-concurrency-and-consistency-009
+    title: Phản hồi xung đột và hướng dẫn phía gọi đọc lại hoặc hợp nhất thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-concurrency-and-consistency-010
+    title: Cân nhắc phạm vi nguyên tử của một request và thao tác nhiều tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-concurrency-and-consistency-011
+    title: Nhất quán tức thời, nhất quán cuối cùng và kỳ vọng đọc sau khi ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-concurrency-and-consistency-012
+    title: Thiết kế các bất biến nghiệp vụ có thể kiểm chứng tại ranh giới API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reliability-and-failure-handling
+  title: Độ tin cậy và hành vi khi có sự cố
+  childs:
+  - slug: reliability-and-failure-handling-001
+    title: Xây dựng ngân sách thời gian cho kết nối, xử lý và toàn bộ tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-failure-handling-002
+    title: Phân bổ deadline xuyên qua chuỗi các lời gọi phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-failure-handling-003
+    title: Xác định lỗi có thể thử lại theo method và ý nghĩa nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-failure-handling-004
+    title: Thiết kế retry có giới hạn với exponential backoff và jitter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-failure-handling-005
+    title: Tôn trọng Retry-After và các chỉ dẫn giảm tốc từ bên phục vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-failure-handling-006
+    title: Tránh khuếch đại lưu lượng do retry ở nhiều tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-failure-handling-007
+    title: Circuit breaker, bulkhead và giới hạn đồng thời ở mức khái niệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-failure-handling-008
+    title: Phân biệt fallback hợp lệ với việc trả dữ liệu gây hiểu nhầm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-failure-handling-009
+    title: Thiết kế suy giảm chức năng khi một khả năng tích hợp không sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-failure-handling-010
+    title: Hủy tác vụ, ngắt kết nối và kết quả xử lý còn tiếp diễn phía máy chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-failure-handling-011
+    title: Đối soát trạng thái sau timeout và kết quả chưa xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-failure-handling-012
+    title: Công bố giới hạn dịch vụ và hành vi mà phía gọi cần chuẩn bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: async-tasks-and-webhooks
+  title: Tác vụ dài, bất đồng bộ và webhook
+  childs:
+  - slug: async-tasks-and-webhooks-001
+    title: Nhận diện tác vụ không phù hợp với một response đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-tasks-and-webhooks-002
+    title: Thiết kế tiếp nhận tác vụ với 202 và tài nguyên theo dõi tiến độ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-tasks-and-webhooks-003
+    title: Trạng thái chờ, đang xử lý, thành công, thất bại và bị hủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-tasks-and-webhooks-004
+    title: Polling tiến độ với khoảng chờ, thời hạn và kết quả cuối cùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-tasks-and-webhooks-005
+    title: Hợp đồng về hủy tác vụ, hết hạn và truy xuất lại kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-tasks-and-webhooks-006
+    title: Thiết kế webhook subscription, callback URL và vòng đời đăng ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-tasks-and-webhooks-007
+    title: Cấu trúc thông báo với định danh sự kiện, thời điểm và phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-tasks-and-webhooks-008
+    title: Xác thực nguồn webhook bằng chữ ký và kiểm tra chống phát lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-tasks-and-webhooks-009
+    title: Phản hồi tiếp nhận, xử lý chậm và việc gửi lại thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-tasks-and-webhooks-010
+    title: Thông báo trùng, sai thứ tự và sự kiện đến muộn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-tasks-and-webhooks-011
+    title: Phân biệt xác nhận đã nhận với hoàn tất xử lý nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-tasks-and-webhooks-012
+    title: Cơ chế phát lại, truy vấn đối soát và phục hồi khi bỏ lỡ thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: api-performance-and-caching
+  title: Hiệu năng, bộ nhớ đệm và sử dụng tài nguyên
+  childs:
+  - slug: api-performance-and-caching-001
+    title: Phân biệt độ trễ, thông lượng, băng thông và chi phí mỗi lời gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-performance-and-caching-002
+    title: Đánh giá kích thước payload và chi phí tuần tự hóa dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-performance-and-caching-003
+    title: Giảm số lần gọi bằng thiết kế tác vụ và mức độ chi tiết phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-performance-and-caching-004
+    title: Cân nhắc gộp request với giới hạn tải và độ phức tạp xử lý lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-performance-and-caching-005
+    title: Nén dữ liệu, truyền dữ liệu lớn và các đánh đổi về tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-performance-and-caching-006
+    title: Phân biệt cache tại client, proxy, CDN và dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-performance-and-caching-007
+    title: Chính sách Cache-Control và sự khác nhau giữa no-cache với no-store
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-performance-and-caching-008
+    title: ETag, Last-Modified và request có điều kiện khi đọc dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-performance-and-caching-009
+    title: Khóa cache, query parameter và vai trò của Vary
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-performance-and-caching-010
+    title: Cache dữ liệu cá nhân và ranh giới giữa cache dùng chung với cache riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-performance-and-caching-011
+    title: Độ mới dữ liệu, thời gian sống và chiến lược vô hiệu hóa cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-performance-and-caching-012
+    title: Đo hiệu năng theo phân vị và kiểm tra API với tải đại diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: contract-evolution-version-compatibility
+  title: Tiến hóa hợp đồng, phiên bản và khả năng tương thích
+  childs:
+  - slug: contract-evolution-version-compatibility-001
+    title: Phân biệt tương thích cú pháp, tương thích ngữ nghĩa và tương thích hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-version-compatibility-002
+    title: Đánh giá thay đổi theo góc nhìn từng loại bên tiêu thụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-version-compatibility-003
+    title: Thêm trường, thêm endpoint và giới hạn của giả định thay đổi an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-version-compatibility-004
+    title: Xóa, đổi tên, đổi kiểu và siết ràng buộc của dữ liệu trao đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-version-compatibility-005
+    title: Thay đổi enum, giá trị mặc định và quy tắc xử lý null
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-version-compatibility-006
+    title: Thay đổi status code, mã lỗi, thứ tự và cách phân trang
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-version-compatibility-007
+    title: Phân biệt phiên bản hợp đồng, phiên bản triển khai và phiên bản dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-version-compatibility-008
+    title: Cân nhắc version trong URL, header và media type
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-version-compatibility-009
+    title: Thiết kế mở rộng có kiểm soát và kỳ vọng xử lý trường chưa biết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-version-compatibility-010
+    title: Chạy song song phiên bản và hỗ trợ chuyển đổi dần cho phía gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-version-compatibility-011
+    title: Công bố ngừng hỗ trợ, lịch chuyển đổi và kênh theo dõi sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-version-compatibility-012
+    title: Đánh giá tác động lên SDK, mã sinh tự động và client được triển khai lâu ngày
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-evolution-version-compatibility-013
+    title: Lập danh sách kiểm tra thay đổi hợp đồng trước mỗi lần phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: api-specifications-and-documentation
+  title: Đặc tả và tài liệu phục vụ tích hợp
+  childs:
+  - slug: api-specifications-and-documentation-001
+    title: Vai trò của đặc tả máy đọc được và tài liệu hướng dẫn cho con người
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-specifications-and-documentation-002
+    title: So sánh cách tiếp cận design-first với code-first
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-specifications-and-documentation-003
+    title: Mô tả path, operation, parameter, request và response bằng OpenAPI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-specifications-and-documentation-004
+    title: Tái sử dụng schema, response và cơ chế bảo mật trong đặc tả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-specifications-and-documentation-005
+    title: Mô tả quy tắc nghiệp vụ vượt ngoài khả năng biểu đạt của schema
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-specifications-and-documentation-006
+    title: Viết ví dụ thành công, lỗi, dữ liệu biên và tương tác nhiều bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-specifications-and-documentation-007
+    title: Hướng dẫn bắt đầu với xác thực, môi trường thử nghiệm và lời gọi đầu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-specifications-and-documentation-008
+    title: Công bố giới hạn, phân trang, retry, idempotency và khả năng tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-specifications-and-documentation-009
+    title: Quản lý changelog, hướng dẫn chuyển đổi và đầu mối hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-specifications-and-documentation-010
+    title: Mock server, SDK sinh tự động và giới hạn của các công cụ theo đặc tả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-specifications-and-documentation-011
+    title: Đồng bộ tài liệu với hành vi thực tế và kiểm soát sai lệch hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: contract-testing-and-design-quality
+  title: Kiểm thử hợp đồng và đánh giá chất lượng thiết kế
+  childs:
+  - slug: contract-testing-and-design-quality-001
+    title: Phân biệt kiểm thử đơn vị, tích hợp, hợp đồng và xuyên suốt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-and-design-quality-002
+    title: Xây dựng ma trận kiểm thử theo operation và hành vi được cam kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-and-design-quality-003
+    title: Kiểm tra request và response theo schema của hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-and-design-quality-004
+    title: Kiểm thử đường đi thành công, dữ liệu biên và yêu cầu không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-and-design-quality-005
+    title: Kiểm thử xác thực, phân quyền, truy cập chéo tài nguyên và tenant
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-and-design-quality-006
+    title: Kiểm thử phương thức, status code, header và thương lượng nội dung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-and-design-quality-007
+    title: Kiểm thử lỗi mạng, timeout, retry và kết quả chưa xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-and-design-quality-008
+    title: Kiểm thử idempotency, tranh chấp cập nhật và gửi đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-and-design-quality-009
+    title: Kiểm thử phân trang khi dữ liệu thay đổi và cache khi quyền truy cập khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-and-design-quality-010
+    title: Consumer-driven contract và xác minh kỳ vọng của bên sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-and-design-quality-011
+    title: Phát hiện thay đổi gây mất tương thích trước khi phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contract-testing-and-design-quality-012
+    title: Dùng môi trường sandbox và dữ liệu mẫu để thử luồng tích hợp thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: api-observability-and-operations
+  title: Khả năng quan sát và vận hành API
+  childs:
+  - slug: api-observability-and-operations-001
+    title: Phân biệt log, metric, trace và dữ liệu kiểm toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-observability-and-operations-002
+    title: Theo dõi tỷ lệ thành công, tỷ lệ lỗi, độ trễ và mức sử dụng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-observability-and-operations-003
+    title: Phân loại lỗi theo endpoint, bên gọi và nguyên nhân có thể hành động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-observability-and-operations-004
+    title: Correlation ID và trace context qua nhiều hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-observability-and-operations-005
+    title: Log có cấu trúc với giới hạn dữ liệu nhạy cảm và kích thước ghi nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-observability-and-operations-006
+    title: Kiểm soát số lượng nhãn metric khi dùng định danh tài nguyên và người gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-observability-and-operations-007
+    title: Phân biệt tình trạng tiến trình, khả năng sẵn sàng và khả năng phục vụ nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-observability-and-operations-008
+    title: Theo dõi việc dùng phiên bản cũ, quota và các tích hợp ít hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-observability-and-operations-009
+    title: Xây dựng SLI và SLO phản ánh trải nghiệm của bên tiêu thụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-observability-and-operations-010
+    title: Thiết kế cảnh báo và thông tin hỗ trợ xử lý sự cố tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-observability-and-operations-011
+    title: Xác minh hợp đồng trong phát hành theo giai đoạn và khi quay lui
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cross-system-api-design
+  title: Thiết kế API tại ranh giới nhiều hệ thống
+  childs:
+  - slug: cross-system-api-design-001
+    title: Giảm phụ thuộc bằng mô hình dữ liệu trao đổi độc lập với schema lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-system-api-design-002
+    title: Lớp chuyển đổi giữa hợp đồng bên ngoài và mô hình nghiệp vụ bên trong
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-system-api-design-003
+    title: Cân nhắc API tổng hợp và nguy cơ phụ thuộc vào nhiều dịch vụ phía sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-system-api-design-004
+    title: Phân định trách nhiệm của API gateway, BFF và dịch vụ nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-system-api-design-005
+    title: Thiết kế khi tích hợp nhà cung cấp có giới hạn hoặc hợp đồng khác biệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-system-api-design-006
+    title: Ngăn lỗi của một phụ thuộc lan thành lỗi toàn bộ trải nghiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-system-api-design-007
+    title: Thiết kế quy trình nhiều bước với trạng thái trung gian có thể quan sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-system-api-design-008
+    title: Bù trừ và khôi phục nghiệp vụ khi không có giao dịch chung giữa các hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-system-api-design-009
+    title: Quyền sở hữu hợp đồng và phối hợp thay đổi giữa các nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-system-api-design-010
+    title: Ghi lại quyết định thiết kế cùng giả định và đánh đổi đã lựa chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: api-design-case-studies-and-review
+  title: Tình huống tổng hợp và rà soát hợp đồng API
+  childs:
+  - slug: api-design-case-studies-and-review-001
+    title: Phân tích nhu cầu và thiết kế hợp đồng quản lý danh mục tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-design-case-studies-and-review-002
+    title: Thiết kế thao tác tạo đơn có chống trùng và xung đột trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-design-case-studies-and-review-003
+    title: Thiết kế API truy vấn có lọc, phân trang và giới hạn kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-design-case-studies-and-review-004
+    title: Thiết kế cập nhật có điều kiện khi nhiều phía cùng chỉnh sửa dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-design-case-studies-and-review-005
+    title: Thiết kế quy trình xuất dữ liệu dài với tiến độ và kết quả tải xuống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-design-case-studies-and-review-006
+    title: Thiết kế webhook có xác minh nguồn gửi và phục hồi thông báo bị bỏ lỡ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-design-case-studies-and-review-007
+    title: Lập phương án chuyển phiên bản mà các tích hợp hiện có vẫn hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-design-case-studies-and-review-008
+    title: Phân tích sự cố timeout để quyết định thử lại, đối soát hoặc bù trừ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-design-case-studies-and-review-009
+    title: Rà soát một hợp đồng về bảo mật, độ tin cậy, hiệu năng và tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-design-case-studies-and-review-010
+    title: Hoàn thiện bộ đặc tả, ví dụ và tiêu chí kiểm thử để bàn giao tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

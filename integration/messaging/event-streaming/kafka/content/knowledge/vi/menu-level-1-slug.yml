@@ -1,0 +1,109 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Môi trường thực hành
+  slug: lab-setup
+  index: 1
+- title: Bản ghi sự kiện
+  slug: event-records
+  index: 2
+- title: Topic và phân vùng
+  slug: topics-partitions
+  index: 3
+- title: Kiến trúc cụm
+  slug: cluster-architecture
+  index: 4
+- title: KRaft
+  slug: kraft
+  index: 5
+- title: Lưu trữ
+  slug: storage
+  index: 6
+- title: Nhân bản
+  slug: replication
+  index: 7
+- title: Producer Java
+  slug: java-producer
+  index: 8
+- title: Điều phối gửi
+  slug: producer-coordination
+  index: 9
+- title: Consumer Java
+  slug: java-consumer
+  index: 10
+- title: Nhóm consumer
+  slug: consumer-groups
+  index: 11
+- title: Cân bằng lại
+  slug: rebalancing
+  index: 12
+- title: Offset và phát lại
+  slug: offsets-replay
+  index: 13
+- title: Ngữ nghĩa xử lý
+  slug: processing-semantics
+  index: 14
+- title: Giao dịch
+  slug: transactions
+  index: 15
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 16
+- title: Hợp đồng dữ liệu
+  slug: data-contracts
+  index: 17
+- title: Quản trị qua API
+  slug: admin-api
+  index: 18
+- title: Spring Kafka
+  slug: spring-kafka
+  index: 19
+- title: Kafka Connect
+  slug: kafka-connect
+  index: 20
+- title: CDC và Outbox
+  slug: cdc-outbox
+  index: 21
+- title: Kafka Streams
+  slug: kafka-streams
+  index: 22
+- title: Trạng thái và thời gian
+  slug: state-time
+  index: 23
+- title: Share group
+  slug: share-groups
+  index: 24
+- title: Bảo mật
+  slug: security
+  index: 25
+- title: Quan sát hệ thống
+  slug: observability
+  index: 26
+- title: Hiệu năng
+  slug: performance
+  index: 27
+- title: Vận hành cụm
+  slug: cluster-operations
+  index: 28
+- title: Hoạch định năng lực
+  slug: capacity-planning
+  index: 29
+- title: Đa cụm và khôi phục
+  slug: multi-cluster-recovery
+  index: 30
+- title: Nâng cấp
+  slug: upgrades
+  index: 31
+- title: Kiểm thử
+  slug: testing
+  index: 32
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 33
+- title: Thiết kế ứng dụng
+  slug: application-design
+  index: 34
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 35

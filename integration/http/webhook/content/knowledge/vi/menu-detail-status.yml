@@ -1,0 +1,1825 @@
+menu:
+- slug: webhook-overview
+  title: Tổng quan Webhook
+  childs:
+  - slug: webhook-overview-001
+    title: 'Webhook là gì: thông báo sự kiện bằng lời gọi HTTP từ hệ thống khác'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-overview-002
+    title: 'Vì sao cần Webhook: giảm việc hỏi lại định kỳ và kết nối các hệ thống'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-overview-003
+    title: 'Các khái niệm nền tảng: sự kiện, bên gửi, bên nhận, endpoint và lần gửi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-overview-004
+    title: Phân biệt Webhook với API yêu cầu–phản hồi, polling và callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-overview-005
+    title: Phân biệt Webhook với hàng đợi thông điệp, SSE và WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-overview-006
+    title: Các tình huống sử dụng và tiêu chí lựa chọn Webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-overview-007
+    title: 'Giới hạn cần biết: độ trễ, lỗi mạng, sự kiện trùng và sai thứ tự'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-overview-008
+    title: Lộ trình học và kiến thức HTTP, JSON, Java cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-lifecycle
+  title: Vòng đời sự kiện
+  childs:
+  - slug: event-lifecycle-001
+    title: Từ thay đổi nghiệp vụ đến sự kiện và yêu cầu Webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-lifecycle-002
+    title: 'Luồng gửi thành công: tạo sự kiện, gửi, xác nhận và xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-lifecycle-003
+    title: Phân biệt tạo sự kiện, gửi HTTP, tiếp nhận và hoàn tất nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-lifecycle-004
+    title: Vai trò và ranh giới trách nhiệm của bên gửi và bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-lifecycle-005
+    title: Phân biệt mã sự kiện, mã lần gửi và mã tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-lifecycle-006
+    title: Trạng thái sự kiện và trạng thái lần gửi trong toàn bộ vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-lifecycle-007
+    title: Các điểm có thể lỗi và cửa sổ mất dữ liệu giữa từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-lifecycle-008
+    title: Bảo đảm chuyển phát và vì sao không nên mặc định xử lý đúng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-communication
+  title: Giao tiếp HTTP
+  childs:
+  - slug: http-communication-001
+    title: Thiết kế URL, phương thức và đường dẫn endpoint nhận Webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-communication-002
+    title: Header, Content-Type, charset và cách đọc phần thân yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-communication-003
+    title: Ý nghĩa mã phản hồi theo hợp đồng Webhook của từng hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-communication-004
+    title: Phản hồi xác nhận tiếp nhận và kết quả xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-communication-005
+    title: Timeout, kết nối bị ngắt và trường hợp không biết bên nhận đã xử lý hay chưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-communication-006
+    title: Chuyển hướng HTTP và chính sách theo dõi redirect khi gửi Webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-communication-007
+    title: Giới hạn kích thước payload, nén dữ liệu và nội dung không hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-communication-008
+    title: Kết nối HTTPS, chứng thư và hành vi của proxy ở giữa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-communication-009
+    title: Ví dụ phân tích một yêu cầu Webhook và phản hồi HTTP hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-design
+  title: Thiết kế sự kiện
+  childs:
+  - slug: event-design-001
+    title: Đặt tên loại sự kiện theo thay đổi nghiệp vụ và phạm vi miền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-002
+    title: 'Thiết kế envelope: mã sự kiện, loại, thời điểm, nguồn và phiên bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-003
+    title: Phân biệt thời điểm nghiệp vụ xảy ra, thời điểm tạo và thời điểm gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-004
+    title: Lựa chọn payload chứa đầy đủ dữ liệu hoặc chỉ chứa tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-005
+    title: Ảnh chụp dữ liệu tại thời điểm phát sinh và dữ liệu hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-006
+    title: Thiết kế khóa tài nguyên, mã tenant và thông tin tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-007
+    title: Biểu diễn thời gian, số tiền, giá trị rỗng và trường tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-008
+    title: Lược đồ JSON, ví dụ payload và kiểm tra tính hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-009
+    title: Giảm dữ liệu nhạy cảm và xác định dữ liệu thực sự cần chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: subscriptions
+  title: Đăng ký nhận
+  childs:
+  - slug: subscriptions-001
+    title: 'Mô hình đăng ký: URL đích, chủ sở hữu, loại sự kiện và trạng thái'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-002
+    title: Đăng ký tĩnh, đăng ký qua API và cổng quản trị Webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-003
+    title: Xác minh quyền kiểm soát endpoint bằng luồng challenge
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-004
+    title: Phân biệt xác minh endpoint với xác thực từng yêu cầu gửi đến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-005
+    title: Lọc sự kiện theo loại, tài nguyên và phạm vi tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-006
+    title: Tạo, sửa, tạm dừng và hủy đăng ký nhận sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-007
+    title: Quản lý nhiều endpoint và thay đổi cấu hình khi đang có lần gửi chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-008
+    title: Tách cấu hình môi trường phát triển, kiểm thử và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: receiver-design
+  title: Thiết kế bên nhận
+  childs:
+  - slug: receiver-design-001
+    title: Ranh giới endpoint tiếp nhận, bộ xử lý sự kiện và nghiệp vụ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiver-design-002
+    title: 'Trình tự tiếp nhận: kiểm tra yêu cầu, xác thực, kiểm tra dữ liệu và lưu bền vững'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiver-design-003
+    title: Xử lý đồng bộ hay xác nhận sớm rồi xử lý bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiver-design-004
+    title: Chọn thời điểm trả phản hồi sau khi sự kiện đã được lưu an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiver-design-005
+    title: Điều phối xử lý theo loại sự kiện và xử lý loại chưa hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiver-design-006
+    title: Phân loại lỗi yêu cầu với lỗi nghiệp vụ để trả phản hồi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiver-design-007
+    title: Quản lý trạng thái tiếp nhận và trạng thái xử lý độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiver-design-008
+    title: Tiếp nhận sự kiện không đồng nghĩa tin mọi dữ liệu trong payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sender-design
+  title: Thiết kế bên gửi
+  childs:
+  - slug: sender-design-001
+    title: Ranh giới phát sinh sự kiện, lập kế hoạch chuyển phát và gửi HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-design-002
+    title: Tách sự kiện nghiệp vụ khỏi bản ghi lần gửi đến từng endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-design-003
+    title: Phân phối một sự kiện đến nhiều bên nhận và cô lập kết quả từng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-design-004
+    title: Thiết kế trạng thái lần gửi và quy tắc chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-design-005
+    title: Tạo yêu cầu, ký nội dung và lưu kết quả HTTP có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-design-006
+    title: Phân loại lỗi kết nối, timeout, mã phản hồi và lỗi cấu hình đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-design-007
+    title: Lập lịch gửi, lấy việc và quản lý quyền xử lý giữa nhiều worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sender-design-008
+    title: Chính sách lưu giữ lịch sử gửi và quyền truy cập thông tin chuyển phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: durable-delivery-data
+  title: Độ bền dữ liệu
+  childs:
+  - slug: durable-delivery-data-001
+    title: Bài toán ghi dữ liệu nghiệp vụ và phát Webhook trong hai thao tác riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-delivery-data-002
+    title: Mẫu transactional outbox cho sự kiện phát sinh cùng giao dịch nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-delivery-data-003
+    title: 'Bộ chuyển phát outbox: lấy bản ghi, gửi và cập nhật trạng thái'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-delivery-data-004
+    title: Mẫu inbox để lưu sự kiện đã tiếp nhận trước khi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-delivery-data-005
+    title: Giao dịch giữa inbox, thay đổi nghiệp vụ và đánh dấu hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-delivery-data-006
+    title: Phối hợp cơ sở dữ liệu với hàng đợi mà không bỏ sót sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-delivery-data-007
+    title: Khóa, lease và thu hồi công việc khi tiến trình xử lý bị dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-delivery-data-008
+    title: Lưu trữ, dọn dẹp và lập chỉ mục outbox, inbox, lịch sử lần gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retries-and-recovery
+  title: Gửi lại và phục hồi
+  childs:
+  - slug: retries-and-recovery-001
+    title: Phân biệt lỗi có thể thử lại, lỗi vĩnh viễn và lỗi cần can thiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-recovery-002
+    title: Xác định chính sách gửi lại theo hợp đồng HTTP của bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-recovery-003
+    title: Khoảng chờ tăng dần, giới hạn khoảng chờ và độ ngẫu nhiên jitter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-recovery-004
+    title: Xử lý Retry-After, giới hạn tần suất và thời gian ngừng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-recovery-005
+    title: Giới hạn số lần thử, thời hạn chuyển phát và điều kiện kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-recovery-006
+    title: Lưu lần gửi kế tiếp và khôi phục lịch sau khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-recovery-007
+    title: Khu vực cách ly sự kiện lỗi và hàng đợi thất bại cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-recovery-008
+    title: 'Gửi lại thủ công: quyền thao tác, dấu vết và phạm vi ảnh hưởng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-recovery-009
+    title: Phân biệt thử lại một lần chuyển phát, phát lại sự kiện và tạo sự kiện mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deduplication
+  title: Chống xử lý trùng
+  childs:
+  - slug: deduplication-001
+    title: 'Nguồn gốc sự kiện trùng: retry, timeout, thao tác thủ công và xử lý đồng thời'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-002
+    title: Thiết kế khóa chống trùng theo sự kiện, bên nhận và phạm vi tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-003
+    title: Phân biệt chống tiếp nhận trùng với chống lặp tác động nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-004
+    title: Ràng buộc duy nhất và thao tác nguyên tử khi nhiều yêu cầu đến cùng lúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-005
+    title: Ghi nhận kết quả xử lý cùng giao dịch nghiệp vụ để tránh cửa sổ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-006
+    title: Chống trùng khi gọi dịch vụ bên ngoài và xử lý tác động không thể hoàn tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-007
+    title: Thời hạn lưu khóa, lưu kết quả và hệ quả khi phát lại sự kiện cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deduplication-008
+    title: Xử lý bản ghi đang chạy, bị treo hoặc đã thất bại mà không bỏ mất công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ordering-and-consistency
+  title: Thứ tự và nhất quán
+  childs:
+  - slug: ordering-and-consistency-001
+    title: Vì sao thứ tự tạo, gửi, đến và xử lý sự kiện có thể khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-and-consistency-002
+    title: Xác định phạm vi cần giữ thứ tự theo tài nguyên hoặc thực thể nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-and-consistency-003
+    title: Số phiên bản, số thứ tự và kiểm tra dữ liệu đã cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-and-consistency-004
+    title: Xử lý sự kiện đến trước, đến muộn và thiếu sự kiện trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-and-consistency-005
+    title: Tuần tự hóa theo khóa và đánh đổi với khả năng xử lý song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-and-consistency-006
+    title: Đọc lại trạng thái từ API nguồn để đối soát hoặc làm giàu sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-and-consistency-007
+    title: Nhất quán cuối cùng và tác động đến trạng thái hiển thị cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-and-consistency-008
+    title: Quy trình đối soát định kỳ khi Webhook không đủ để khôi phục trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication-and-signatures
+  title: Xác thực và chữ ký
+  childs:
+  - slug: authentication-and-signatures-001
+    title: 'Mô hình đe dọa: giả mạo bên gửi, sửa payload và phát lại yêu cầu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-signatures-002
+    title: Phân biệt mã bí mật, mã truy cập, hàm băm và chữ ký yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-signatures-003
+    title: Xác thực thông điệp bằng HMAC và vai trò của khóa bí mật dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-signatures-004
+    title: Ký và xác minh trên đúng chuỗi byte gốc của phần thân yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-signatures-005
+    title: 'Cấu trúc dữ liệu được ký: timestamp, payload và quy tắc ghép nối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-signatures-006
+    title: Đọc header chữ ký, định dạng mã hóa và so sánh an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-signatures-007
+    title: Kiểm tra timestamp, độ lệch đồng hồ và cửa sổ chống phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-signatures-008
+    title: Luân chuyển khóa, nhận diện khóa và giai đoạn chấp nhận nhiều khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-signatures-009
+    title: Chữ ký bất đối xứng và quản lý khóa công khai khi hợp đồng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-signatures-010
+    title: Kiểm tra chữ ký trước khi tin dữ liệu và phản hồi khi xác thực thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-security
+  title: An toàn hệ thống
+  childs:
+  - slug: system-security-001
+    title: Quản lý bí mật theo endpoint, tenant và môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-security-002
+    title: SSRF khi bên gửi nhận URL do người dùng cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-security-003
+    title: Kiểm soát hostname, địa chỉ IP, DNS rebinding và redirect đến mạng nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-security-004
+    title: Giới hạn kết nối ra ngoài và ngăn endpoint đích truy cập dịch vụ nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-security-005
+    title: Phân quyền quản trị đăng ký, xem payload và gửi lại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-security-006
+    title: Giới hạn kích thước, độ sâu JSON và chi phí phân tích yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-security-007
+    title: Cấu hình xác thực và CSRF cho endpoint máy–máy theo mô hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-security-008
+    title: IP allowlist, mTLS và lớp bảo vệ bổ sung theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-security-009
+    title: Che dữ liệu nhạy cảm trong log, lỗi và lịch sử chuyển phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-security-010
+    title: Chính sách lưu giữ, xóa dữ liệu và dấu vết thao tác quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rate-limiting
+  title: Điều tiết tải
+  childs:
+  - slug: rate-limiting-001
+    title: Ước lượng tải từ số sự kiện, số bên nhận và số lần thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-002
+    title: Giới hạn tốc độ theo endpoint, tenant và toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-003
+    title: Giới hạn xử lý song song, pool kết nối và tài nguyên luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-004
+    title: Điều tiết theo áp lực ngược khi bên nhận xử lý chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-005
+    title: Hấp thụ đợt tăng tải bằng bộ đệm bền vững và giới hạn dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-006
+    title: Cô lập endpoint lỗi để tránh làm chậm các bên nhận khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-007
+    title: Ngắt mạch, thăm dò phục hồi và phối hợp với lịch gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rate-limiting-008
+    title: Tăng số worker, phân vùng công việc và phát hiện nút thắt hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-receivers
+  title: Bên nhận với Spring
+  childs:
+  - slug: spring-receivers-001
+    title: Cấu trúc ví dụ Java và Spring Boot cho endpoint nhận Webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-receivers-002
+    title: Đọc raw body và header mà không làm thay đổi dữ liệu xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-receivers-003
+    title: Tách bộ xác thực chữ ký khỏi Controller và bộ xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-receivers-004
+    title: Ánh xạ JSON sang kiểu sự kiện và kiểm tra dữ liệu sau xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-receivers-005
+    title: Lưu inbox bằng giao dịch và chống tiếp nhận trùng bằng ràng buộc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-receivers-006
+    title: Trả phản hồi xác nhận và chuyển công việc sang bộ xử lý nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-receivers-007
+    title: Điều phối handler theo loại sự kiện và ghi nhận kết quả xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-receivers-008
+    title: Quản lý lỗi, cấu hình timeout, giới hạn payload và bí mật bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-receivers-009
+    title: Kiểm chứng toàn luồng từ yêu cầu HTTP đến thay đổi dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-senders
+  title: Bên gửi với Spring
+  childs:
+  - slug: spring-senders-001
+    title: Cấu trúc ví dụ Java và Spring Boot cho bộ phát Webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-senders-002
+    title: Lưu thay đổi nghiệp vụ và outbox trong cùng giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-senders-003
+    title: Triển khai bộ lấy việc với khóa hoặc lease giữa nhiều worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-senders-004
+    title: Tạo HTTP client với giới hạn kết nối và timeout phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-senders-005
+    title: Tuần tự hóa payload ổn định, tạo timestamp và ký yêu cầu trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-senders-006
+    title: Ghi nhận kết quả từng lần gửi và lập lịch thử lại bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-senders-007
+    title: Quản lý trạng thái đăng ký và cấu hình giới hạn theo endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-senders-008
+    title: Dừng dịch vụ an toàn và tiếp tục công việc chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-senders-009
+    title: Kiểm chứng lỗi tiến trình tại các ranh giới giao dịch và gửi HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: third-party-integration
+  title: Tích hợp bên ngoài
+  childs:
+  - slug: third-party-integration-001
+    title: 'Đọc tài liệu nhà cung cấp: loại sự kiện, payload và cách đăng ký'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: third-party-integration-002
+    title: 'Lập bảng hợp đồng: chữ ký, timeout, mã xác nhận và chính sách retry'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: third-party-integration-003
+    title: Triển khai challenge và xác thực theo đúng giao thức nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: third-party-integration-004
+    title: Dùng môi trường thử nghiệm, công cụ gửi mẫu và đường hầm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: third-party-integration-005
+    title: Ánh xạ sự kiện bên ngoài sang mô hình nghiệp vụ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: third-party-integration-006
+    title: Phân biệt payload thử nghiệm với dữ liệu và hành vi trên môi trường thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: third-party-integration-007
+    title: Kiểm tra quyền gọi API nguồn và đối soát tài nguyên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: third-party-integration-008
+    title: Cô lập sự khác biệt nhà cung cấp bằng bộ chuyển đổi và cấu hình riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-compatibility
+  title: Tương thích hợp đồng
+  childs:
+  - slug: contract-compatibility-001
+    title: Xác định phần hợp đồng ổn định và phần có thể mở rộng của Webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-002
+    title: Thêm trường, đổi kiểu, xóa trường và tác động đến bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-003
+    title: Thiết kế bên nhận chịu được trường bổ sung nhưng vẫn kiểm tra dữ liệu thiết yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-004
+    title: Quản lý phiên bản sự kiện, phiên bản endpoint và phiên bản cấu hình đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-005
+    title: Chuyển đổi hợp đồng với nhiều phiên bản cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-006
+    title: Xử lý sự kiện lịch sử khi phát lại sau khi lược đồ đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-007
+    title: 'Tài liệu hợp đồng: ví dụ, bảo mật, lỗi, retry và chính sách ngừng hỗ trợ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webhook-testing
+  title: Kiểm thử Webhook
+  childs:
+  - slug: webhook-testing-001
+    title: Lập ma trận kiểm thử theo vòng đời sự kiện và ranh giới lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-testing-002
+    title: Kiểm thử chữ ký với payload chuẩn, sai khóa và nội dung bị sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-testing-003
+    title: Kiểm thử timestamp cũ, lệch đồng hồ và luân chuyển khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-testing-004
+    title: 'Kiểm thử HTTP: mã phản hồi, timeout, mất kết nối và redirect'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-testing-005
+    title: Kiểm thử sự kiện trùng và nhiều yêu cầu đến đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-testing-006
+    title: Kiểm thử sự kiện sai thứ tự, thiếu sự kiện và dữ liệu nguồn thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-testing-007
+    title: Kiểm thử outbox, inbox và phục hồi sau khi tiến trình bị dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-testing-008
+    title: Kiểm thử lịch retry bằng đồng hồ điều khiển được và nguồn ngẫu nhiên kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-testing-009
+    title: Kiểm thử hợp đồng, mô phỏng nhà cung cấp và kiểm thử xuyên suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-testing-010
+    title: Kiểm thử tải, SSRF, payload quá lớn và rò rỉ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Thiết kế log có cấu trúc cho sự kiện, lần gửi và lần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-002
+    title: Theo dõi mã tương quan qua bên gửi, bên nhận và hàng đợi nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-003
+    title: Đo tỷ lệ tiếp nhận, tỷ lệ chuyển phát và kết quả xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-004
+    title: Đo độ trễ từng giai đoạn và thời gian từ phát sinh đến hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-005
+    title: Theo dõi backlog, tuổi sự kiện chờ và số lần retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-006
+    title: Dashboard và cảnh báo cho endpoint lỗi, chữ ký sai và hàng đợi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-007
+    title: Truy vết phân tán và giới hạn độ đa dạng nhãn metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-008
+    title: Thiết kế trang tra cứu lịch sử gửi mà vẫn bảo vệ payload và bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-and-operations
+  title: Triển khai và vận hành
+  childs:
+  - slug: deployment-and-operations-001
+    title: Kiểm tra DNS, TLS, URL đích và khả năng truy cập giữa các hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-002
+    title: Cấu hình reverse proxy, cân bằng tải và giới hạn thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-003
+    title: Đồng bộ đồng hồ, mã hóa đường truyền và quản lý chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-004
+    title: Triển khai nhiều bản sao với trạng thái tiếp nhận và lịch gửi dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-005
+    title: Readiness, health check và dừng nhận việc khi dịch vụ sắp tắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-006
+    title: Triển khai phiên bản mới khi vẫn còn sự kiện chờ và worker phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-007
+    title: Thay đổi endpoint, chuyển khóa và phối hợp chuyển đổi với bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-008
+    title: Sao lưu, khôi phục và kiểm tra khả năng phục hồi dữ liệu chuyển phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-operations-009
+    title: 'Runbook vận hành: phân quyền, kiểm tra định kỳ và diễn tập phục hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Webhook không đến: kiểm tra đăng ký, bộ lọc, mạng và lịch sử gửi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: 'Chữ ký không khớp: kiểm tra raw body, encoding, khóa và timestamp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Bên nhận trả thành công nhưng nghiệp vụ chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Sự kiện trùng gây lặp tác động và cách truy tìm cửa sổ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Sự kiện sai thứ tự làm ghi đè trạng thái mới bằng dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Retry tăng hàng loạt, backlog lớn và endpoint bị quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Khoanh vùng sự kiện lỗi, sửa nguyên nhân và phát lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Đối soát dữ liệu sau sự cố và đánh giá mức độ khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Dự án thực hành
+  childs:
+  - slug: hands-on-project-001
+    title: Xác định bài toán thông báo trạng thái đơn hàng giữa hai dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Thiết kế loại sự kiện, payload, đăng ký và tiêu chí hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Xây dựng bên gửi với outbox, chữ ký và lịch thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Xây dựng bên nhận với inbox, xử lý nền và chống tác động trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Mô phỏng timeout, lỗi tạm thời, sự kiện trùng và sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Bổ sung dashboard, cảnh báo và thao tác gửi lại có dấu vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Thực hiện kiểm thử xuyên suốt và đối soát trạng thái giữa hai dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Đánh giá thiết kế, lập tài liệu hợp đồng và checklist nghiệm thu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

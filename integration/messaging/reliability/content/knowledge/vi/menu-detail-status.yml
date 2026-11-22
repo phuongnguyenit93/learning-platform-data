@@ -1,0 +1,2182 @@
+menu:
+- slug: reliability-overview
+  title: Tổng quan độ tin cậy
+  childs:
+  - slug: reliability-overview-001
+    title: 'Độ tin cậy trong messaging: mục tiêu, lợi ích và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-overview-002
+    title: Vai trò của producer, broker, consumer và hệ thống lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-overview-003
+    title: Vòng đời thông điệp từ ý định nghiệp vụ đến tác động cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-overview-004
+    title: Phân biệt gửi thành công, lưu bền vững, nhận thành công và xử lý thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-overview-005
+    title: 'Hàng đợi và luồng sự kiện: khác biệt ảnh hưởng đến độ tin cậy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-overview-006
+    title: Đánh đổi giữa tính đúng đắn, độ trễ, thông lượng và khả năng sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-overview-007
+    title: 'Phạm vi bảo đảm: một tiến trình, một broker và nhiều hệ thống'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-overview-008
+    title: Lộ trình học và các thuật ngữ cốt lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failure-models
+  title: Mô hình lỗi
+  childs:
+  - slug: failure-models-001
+    title: Lỗi tạm thời, lỗi vĩnh viễn và lỗi do dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-002
+    title: Mất kết nối, timeout và kết quả gửi không xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-003
+    title: Producer, broker hoặc consumer dừng đột ngột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-004
+    title: Cửa sổ mất thông điệp và cửa sổ phát sinh bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-005
+    title: Phân vùng mạng, mất quorum và chuyển đổi nút chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-006
+    title: Xử lý thành công nhưng thất lạc phản hồi xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-007
+    title: Thông điệp chậm, đến sai thứ tự hoặc hết giá trị nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-008
+    title: Thông điệp độc hại cho luồng xử lý và lỗi lặp lại có tính quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-009
+    title: Lỗi tương quan, sự cố dây chuyền và phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-models-010
+    title: Lập ma trận lỗi theo từng ranh giới hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-guarantees
+  title: Bảo đảm giao nhận
+  childs:
+  - slug: delivery-guarantees-001
+    title: 'At-most-once: chấp nhận mất để tránh giao lại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-002
+    title: 'At-least-once: giao lại và trách nhiệm xử lý trùng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-003
+    title: 'Exactly-once: xác định ranh giới và điều kiện bảo đảm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-004
+    title: Phân biệt delivery, processing và business effect
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-005
+    title: Tính an toàn và khả năng tiến triển của luồng thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-006
+    title: Điểm xác nhận thành công và trách nhiệm của từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-007
+    title: Bảo đảm của giao thức so với bảo đảm của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-008
+    title: Thiết kế hợp đồng giao nhận cho từng loại nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identities-contracts
+  title: Định danh và hợp đồng
+  childs:
+  - slug: identities-contracts-001
+    title: Message ID, event ID, business key và idempotency key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-contracts-002
+    title: Correlation ID, causation ID và liên kết chuỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-contracts-003
+    title: Phạm vi duy nhất, thời hạn sử dụng và quy tắc tái sử dụng định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-contracts-004
+    title: Thiết kế envelope với loại sự kiện, phiên bản, thời gian và nguồn phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-contracts-005
+    title: Phân biệt thời gian phát sinh, thời gian công bố và thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-contracts-006
+    title: Kiểm tra schema và quy tắc từ chối thông điệp không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-contracts-007
+    title: Tương thích schema giữa producer, consumer và thông điệp lưu lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-contracts-008
+    title: Giữ ổn định định danh và metadata khi retry hoặc replay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: durable-storage
+  title: Lưu trữ bền vững
+  childs:
+  - slug: durable-storage-001
+    title: Thông điệp persistent và cấu hình lưu trữ của đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-storage-002
+    title: Bộ đệm, ghi đĩa, flush và ranh giới mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-storage-003
+    title: Nhân bản, quorum và mức xác nhận ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-storage-004
+    title: Lưu bền vững thông điệp, metadata và trạng thái tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-storage-005
+    title: Chính sách retention, compaction và khả năng đọc lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-storage-006
+    title: Dung lượng đĩa, hạn mức lưu trữ và hành vi khi đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-storage-007
+    title: Phát hiện hỏng dữ liệu và kiểm tra tính toàn vẹn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: durable-storage-008
+    title: Bảo đảm thực tế khi broker khởi động lại hoặc failover
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: safe-message-publishing
+  title: Gửi thông điệp an toàn
+  childs:
+  - slug: safe-message-publishing-001
+    title: Phân biệt lỗi trước khi gửi, lỗi khi gửi và lỗi sau khi broker nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-message-publishing-002
+    title: Publisher confirmation và mức xác nhận của producer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-message-publishing-003
+    title: Thông điệp không có tuyến nhận và cơ chế phát hiện unroutable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-message-publishing-004
+    title: Timeout gửi và quyết định gửi lại khi kết quả chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-message-publishing-005
+    title: Giới hạn số lần gửi đang chờ xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-message-publishing-006
+    title: 'Gửi theo lô: đánh đổi thông lượng và phạm vi lỗi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-message-publishing-007
+    title: Producer idempotence và giới hạn chống trùng theo phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-message-publishing-008
+    title: Giữ dữ liệu chờ gửi khi tiến trình producer dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-message-publishing-009
+    title: Đóng producer an toàn và xử lý các lần gửi chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: receiving-acknowledgements
+  title: Nhận và xác nhận
+  childs:
+  - slug: receiving-acknowledgements-001
+    title: Auto acknowledgement và manual acknowledgement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiving-acknowledgements-002
+    title: Thời điểm ack so với hoàn tất tác động nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiving-acknowledgements-003
+    title: Nack, reject, requeue và lựa chọn giao lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiving-acknowledgements-004
+    title: Thông điệp đang xử lý, thời hạn giữ quyền xử lý và gia hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiving-acknowledgements-005
+    title: Consumer mất kết nối trước hoặc sau khi ack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiving-acknowledgements-006
+    title: Prefetch và giới hạn thông điệp chưa xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiving-acknowledgements-007
+    title: Xử lý theo lô và xác nhận một phần khi có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiving-acknowledgements-008
+    title: Offset, checkpoint và ranh giới commit trong luồng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiving-acknowledgements-009
+    title: Consumer group, rebalance và quyền sở hữu partition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receiving-acknowledgements-010
+    title: 'Graceful shutdown: ngừng nhận mới và hoàn tất việc đang xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transaction-boundaries
+  title: Ranh giới giao dịch
+  childs:
+  - slug: transaction-boundaries-001
+    title: 'Hai lần ghi vào database và broker: bài toán dual write'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-boundaries-002
+    title: Các cửa sổ lỗi khi lưu database trước hoặc gửi thông điệp trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-boundaries-003
+    title: Giao dịch cục bộ và những tài nguyên thực sự tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-boundaries-004
+    title: Commit, rollback và việc hoàn tác tác động bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-boundaries-005
+    title: Giao dịch broker và giao dịch database độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-boundaries-006
+    title: 'XA và two-phase commit: điều kiện sử dụng, chi phí và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-boundaries-007
+    title: Luồng consume–process–produce trong một nền tảng messaging
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-boundaries-008
+    title: Tác động HTTP, email, thanh toán và ranh giới không thể rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-boundaries-009
+    title: Lựa chọn bảo đảm theo yêu cầu nhất quán của nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactional-outbox
+  title: Transactional Outbox
+  childs:
+  - slug: transactional-outbox-001
+    title: 'Ý tưởng Outbox: lưu trạng thái nghiệp vụ và ý định phát trong một giao dịch'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-outbox-002
+    title: Thiết kế bảng Outbox với định danh, khóa thứ tự và trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-outbox-003
+    title: Tạo sự kiện từ thay đổi nghiệp vụ mà không bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-outbox-004
+    title: 'Polling relay: truy vấn, khóa và nhận quyền xử lý bản ghi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-outbox-005
+    title: 'CDC relay: đọc thay đổi đã commit và theo dõi vị trí đọc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-outbox-006
+    title: Cửa sổ relay gửi thành công nhưng chưa đánh dấu hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-outbox-007
+    title: 'Nhiều relay: phân công công việc, lease và khôi phục quyền sở hữu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-outbox-008
+    title: Bảo toàn thứ tự sự kiện theo thực thể nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-outbox-009
+    title: Retry, cách ly lỗi và giám sát độ trễ Outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactional-outbox-010
+    title: Dọn dữ liệu, lưu lịch sử và đối soát Outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: idempotent-processing
+  title: Xử lý idempotent
+  childs:
+  - slug: idempotent-processing-001
+    title: 'Idempotency: xử lý nhiều lần với tác động nghiệp vụ tương đương'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idempotent-processing-002
+    title: Phân biệt thao tác tự nhiên idempotent và thao tác cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idempotent-processing-003
+    title: Chọn khóa chống trùng theo sự kiện hay theo ý định nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idempotent-processing-004
+    title: Unique constraint và phép ghi nguyên tử thay cho check-then-act
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idempotent-processing-005
+    title: Ghi nhận khóa chống trùng cùng cập nhật nghiệp vụ trong một giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idempotent-processing-006
+    title: Xử lý hai consumer đồng thời nhận cùng một thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idempotent-processing-007
+    title: Lưu và trả lại kết quả xử lý cho yêu cầu lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idempotent-processing-008
+    title: TTL của dữ liệu chống trùng và bản sao đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idempotent-processing-009
+    title: Idempotency của lời gọi tới hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idempotent-processing-010
+    title: Phân biệt sự kiện trùng và yêu cầu nghiệp vụ hợp lệ lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inbox-state
+  title: Inbox và trạng thái
+  childs:
+  - slug: inbox-state-001
+    title: 'Transactional Inbox: ghi nhận tiếp nhận trước khi xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inbox-state-002
+    title: Phối hợp Inbox, dữ liệu nghiệp vụ và acknowledgement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inbox-state-003
+    title: Mô hình trạng thái RECEIVED, PROCESSING, SUCCEEDED và FAILED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inbox-state-004
+    title: Khôi phục thông điệp dở dang sau khi tiến trình dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inbox-state-005
+    title: Lease, fencing token và ngăn worker cũ tiếp tục ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inbox-state-006
+    title: Optimistic locking và kiểm tra phiên bản thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inbox-state-007
+    title: Chuyển trạng thái hợp lệ để ngăn tác động lặp hoặc sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inbox-state-008
+    title: Kết hợp Outbox và Inbox cho luồng nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inbox-state-009
+    title: Dọn lịch sử Inbox và giữ đủ bằng chứng đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: controlled-retries
+  title: Retry có kiểm soát
+  childs:
+  - slug: controlled-retries-001
+    title: Phân loại lỗi retryable và non-retryable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-retries-002
+    title: Retry tức thời, retry trì hoãn và retry thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-retries-003
+    title: Exponential backoff, giới hạn thời gian chờ và jitter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-retries-004
+    title: Giới hạn số lần thử, tổng thời gian và ngân sách retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-retries-005
+    title: 'Retry tại producer, broker và consumer: tránh nhân số lần thử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-retries-006
+    title: 'Blocking retry và non-blocking retry: tác động đến thứ tự'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-retries-007
+    title: Thiết kế retry queue hoặc retry topic và metadata lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-retries-008
+    title: Ngăn vòng lặp requeue và retry storm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-retries-009
+    title: Tôn trọng thời hạn nghiệp vụ khi quyết định thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: controlled-retries-010
+    title: Giữ nguyên định danh và tránh lặp tác động khi retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dead-letters-isolation
+  title: Dead Letter và cách ly
+  childs:
+  - slug: dead-letters-isolation-001
+    title: 'Dead Letter Queue: mục đích và điều kiện chuyển thông điệp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letters-isolation-002
+    title: Phân biệt dead letter, parking lot và khu vực cách ly dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letters-isolation-003
+    title: Lưu nguyên payload, định danh, nguồn và nguyên nhân thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letters-isolation-004
+    title: 'Lỗi deserialize hoặc schema: cách ly trước xử lý nghiệp vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letters-isolation-005
+    title: Xử lý lỗi khi chính thao tác chuyển DLQ thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letters-isolation-006
+    title: Phân loại, phân công và đặt thời hạn xử lý thông điệp tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letters-isolation-007
+    title: Sửa nguyên nhân gốc trước khi redrive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letters-isolation-008
+    title: Redrive có giới hạn tốc độ và kiểm tra chống trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letters-isolation-009
+    title: Ngăn vòng lặp giữa luồng chính, retry và DLQ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dead-letters-isolation-010
+    title: Retention, phân quyền và kiểm toán thao tác trên DLQ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ordering-concurrency
+  title: Thứ tự và đồng thời
+  childs:
+  - slug: ordering-concurrency-001
+    title: Thứ tự toàn cục, theo partition và theo thực thể nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-concurrency-002
+    title: Chọn message key để giữ thứ tự trong đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-concurrency-003
+    title: Nhiều producer và giới hạn suy luận từ thứ tự đến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-concurrency-004
+    title: Tăng consumer concurrency và nguy cơ hoàn tất sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-concurrency-005
+    title: Retry, DLQ và rebalance làm thay đổi thứ tự xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-concurrency-006
+    title: Sequence number và phát hiện sự kiện thiếu hoặc đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-concurrency-007
+    title: Buffer và thời hạn chờ khi thiếu sự kiện trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-concurrency-008
+    title: Version check và từ chối cập nhật từ sự kiện cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-concurrency-009
+    title: Phân phối lại partition hoặc khóa và tác động đến thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practical-exactly-once
+  title: Exactly-once thực tế
+  childs:
+  - slug: practical-exactly-once-001
+    title: Phân biệt exactly-once delivery, processing và effect
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exactly-once-002
+    title: Producer idempotence không thay thế consumer idempotency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exactly-once-003
+    title: Giao dịch thông điệp và commit offset trong cùng ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exactly-once-004
+    title: Đọc dữ liệu đã commit và xử lý giao dịch bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exactly-once-005
+    title: 'Retry sau timeout: chứng minh kết quả khi trạng thái chưa rõ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exactly-once-006
+    title: Exactly-once trong nền tảng và tác động tới database bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exactly-once-007
+    title: Kết hợp transaction, deduplication và đối soát cho hiệu quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-exactly-once-008
+    title: Kiểm chứng tuyên bố exactly-once bằng các cửa sổ lỗi cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-consistency
+  title: Nhất quán nghiệp vụ
+  childs:
+  - slug: business-consistency-001
+    title: Eventual consistency và thời điểm người dùng thấy kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-002
+    title: Thiết kế trạng thái chờ thay cho giả định hoàn tất tức thì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-003
+    title: Bất biến nghiệp vụ và điểm kiểm soát thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-004
+    title: Saga và điều phối nhiều bước qua thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-005
+    title: Bù trừ nghiệp vụ và khác biệt với rollback kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-006
+    title: Timeout nghiệp vụ, phản hồi muộn và hủy tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-007
+    title: Giao tiếp request–reply bất đồng bộ và tương quan phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-008
+    title: Đối soát giữa nguồn dữ liệu chuẩn và hệ thống nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-009
+    title: Phát hiện, sửa sai và lưu vết khi các hệ thống lệch nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backpressure-load
+  title: Backpressure và tải
+  childs:
+  - slug: backpressure-load-001
+    title: 'Backpressure: cân bằng tốc độ phát, nhận và xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-load-002
+    title: Queue depth, consumer lag và tuổi thông điệp lâu nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-load-003
+    title: Prefetch, batch size, concurrency và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-load-004
+    title: Bộ đệm hữu hạn và hành vi khi vượt dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-load-005
+    title: Rate limiting theo dịch vụ, khách hàng hoặc loại thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-load-006
+    title: Circuit breaker khi hệ thống phụ thuộc gặp lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-load-007
+    title: Bulkhead và cách ly luồng ưu tiên hoặc khách hàng gây tải lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-load-008
+    title: Tự động mở rộng consumer với giới hạn partition và database
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-load-009
+    title: Giảm tải có chủ đích theo mức độ quan trọng của nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backpressure-load-010
+    title: Ước lượng thời gian giải phóng backlog và năng lực phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deadlines-lifecycle
+  title: Thời hạn và vòng đời
+  childs:
+  - slug: deadlines-lifecycle-001
+    title: TTL kỹ thuật và thời hạn hiệu lực nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-lifecycle-002
+    title: Thông điệp trễ, hết hạn và quyết định bỏ qua hay bù trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-lifecycle-003
+    title: Đồng hồ lệch và giới hạn so sánh timestamp giữa hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-lifecycle-004
+    title: Retention của thông điệp và thời hạn lưu khóa chống trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-lifecycle-005
+    title: Lưu trữ dài hạn, dữ liệu nhạy cảm và chính sách xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-lifecycle-006
+    title: Replay lịch sử và khác biệt với retry một lần thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-lifecycle-007
+    title: Khôi phục projection mà không lặp tác động bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-lifecycle-008
+    title: Replay với schema cũ, phiên bản xử lý mới và dữ liệu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlines-lifecycle-009
+    title: Đặt checkpoint và giới hạn tốc độ cho tác vụ replay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: availability-recovery
+  title: Sẵn sàng và khôi phục
+  childs:
+  - slug: availability-recovery-001
+    title: Replication, failover và các điều kiện duy trì quorum
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-recovery-002
+    title: Đánh đổi consistency và availability khi mạng bị phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-recovery-003
+    title: Reconnect, khôi phục subscription và tái lập consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-recovery-004
+    title: Triển khai nhiều vùng sẵn sàng và lỗi tương quan hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-recovery-005
+    title: RPO và RTO cho broker, database, Outbox và Inbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-recovery-006
+    title: Backup dữ liệu, cấu hình, offset và trạng thái chống trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-recovery-007
+    title: Khôi phục sau thảm họa và ngăn hai hệ thống cùng phát tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-recovery-008
+    title: Đối soát dữ liệu mất, trùng hoặc chưa rõ kết quả sau khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-recovery-009
+    title: Diễn tập phục hồi và đo thời gian quay lại trạng thái ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-protection
+  title: Bảo vệ luồng xử lý
+  childs:
+  - slug: processing-protection-001
+    title: Xác thực và phân quyền producer, consumer, relay và công cụ redrive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-protection-002
+    title: Mã hóa kết nối và xử lý sự cố chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-protection-003
+    title: Xoay vòng thông tin xác thực mà không làm gián đoạn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-protection-004
+    title: Giới hạn kích thước payload và bảo vệ bước deserialize
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-protection-005
+    title: Cách ly thông điệp không tin cậy và kiểm tra metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-protection-006
+    title: Bảo vệ dữ liệu nhạy cảm trong log, retry và DLQ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-protection-007
+    title: Ngăn một tenant hoặc luồng lỗi chiếm toàn bộ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-protection-008
+    title: Kiểm toán thay đổi cấu hình, replay và thao tác khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-spring
+  title: Java và Spring
+  childs:
+  - slug: java-spring-001
+    title: Ánh xạ producer confirmation và kết quả gửi bất đồng bộ vào mã Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-002
+    title: Chọn acknowledgement mode và xử lý exception trong listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-003
+    title: Phạm vi @Transactional và tài nguyên được transaction manager quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-004
+    title: Giới hạn độ bền của callback afterCommit và @TransactionalEventListener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-005
+    title: Triển khai Outbox bằng JDBC hoặc JPA với giao dịch cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-006
+    title: Triển khai consumer idempotent bằng unique constraint và transaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-007
+    title: 'Spring AMQP: publisher confirms, returns và xử lý giao lại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-008
+    title: 'Spring Kafka: offset, error handling và ranh giới giao dịch'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-009
+    title: 'JMS và Spring JMS: acknowledgement, session transaction và redelivery'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-010
+    title: Giữ correlation context khi xử lý trên thread hoặc executor khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-011
+    title: Quản lý thread pool, connection pool và graceful shutdown
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-012
+    title: Tránh chặn luồng xử lý và kiểm soát tác động của timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-slo
+  title: Quan sát và SLO
+  childs:
+  - slug: observability-slo-001
+    title: Xác định SLI và SLO cho giao nhận và hoàn tất nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-slo-002
+    title: Đo độ trễ đầu cuối theo từng mốc trong vòng đời thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-slo-003
+    title: Metric về lỗi gửi, timeout, retry, redelivery và duplicate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-slo-004
+    title: Metric về backlog, lag, DLQ và bản ghi Outbox chưa phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-slo-005
+    title: Log có cấu trúc theo message ID và correlation ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-slo-006
+    title: Distributed tracing qua producer, broker, consumer và retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-slo-007
+    title: Cảnh báo theo tác động nghiệp vụ và nguy cơ vi phạm thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-slo-008
+    title: Dashboard phân biệt thiếu consumer, lỗi phụ thuộc và nghẽn broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-slo-009
+    title: Đối soát số liệu và giới hạn của metric tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-slo-010
+    title: Ngăn log và metric làm lộ dữ liệu hoặc tăng cardinality ngoài kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability-testing
+  title: Kiểm thử độ tin cậy
+  childs:
+  - slug: reliability-testing-001
+    title: Chuyển bất biến nghiệp vụ và bảo đảm giao nhận thành tiêu chí kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-002
+    title: Unit test cho phân loại lỗi, retry policy và chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-003
+    title: Integration test với broker và database thật bằng Testcontainers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-004
+    title: Kiểm thử thông điệp trùng, đến muộn và sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-005
+    title: Dừng tiến trình tại các điểm trước và sau commit, send, ack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-006
+    title: Mô phỏng timeout, mất mạng, failover và rebalance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-007
+    title: Kiểm thử lỗi relay, khóa Outbox và cạnh tranh Inbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-008
+    title: Kiểm thử poison message, lỗi deserialize và DLQ không khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-009
+    title: Load test, soak test và đo thời gian xử lý hết backlog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-010
+    title: Kiểm thử replay, schema evolution và khôi phục từ backup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-testing-011
+    title: Kiểm chứng không mất tác động hợp lệ và không tạo tác động thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-changes
+  title: Vận hành và thay đổi
+  childs:
+  - slug: operations-changes-001
+    title: Runbook cho backlog tăng, retry storm và DLQ tăng đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-002
+    title: Chẩn đoán thông điệp mất, trùng hoặc chưa rõ trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-003
+    title: Dừng phát, tạm dừng consumer và cô lập phạm vi sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-004
+    title: Rolling deployment với nhiều phiên bản producer và consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-005
+    title: Thay đổi schema, routing và partition mà vẫn giữ bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-006
+    title: Di chuyển broker hoặc luồng dữ liệu với checkpoint rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-007
+    title: Rollback phiên bản khi đã có thông điệp định dạng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-008
+    title: Thay đổi retention, concurrency và timeout dựa trên số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-009
+    title: Redrive và replay có phê duyệt, nhật ký và điểm dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-010
+    title: Hậu kiểm sự cố và cập nhật bằng chứng về bảo đảm thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Xây dựng luồng đơn hàng với Outbox và consumer idempotent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Xử lý thanh toán có kết quả không xác định và đối soát trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Gửi thông báo với retry hữu hạn, DLQ và redrive an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Giữ thứ tự cập nhật tồn kho theo mã sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Phục hồi projection bằng replay mà không lặp tác động bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Thí nghiệm dừng consumer sau commit nhưng trước acknowledgement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Thí nghiệm relay gửi trùng sau khi broker xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Thí nghiệm quá tải và kiểm chứng backpressure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Thiết kế ma trận lỗi và đo SLO cho luồng nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Đánh giá kiến trúc qua mất dữ liệu, trùng lặp, độ trễ và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,7 @@
+# Integration API GraphQL
+
+GraphQL là ngôn ngữ truy vấn và môi trường thực thi cho API, cho phép client chọn đúng những trường dữ liệu cần nhận theo một schema được định nghĩa rõ ràng. Khác với việc chỉ gọi nhiều endpoint REST có cấu trúc response cố định, GraphQL giúp mô tả quan hệ dữ liệu qua các type và giải quyết nhiều nhu cầu truy xuất trong cùng hợp đồng API. Tuy nhiên, GraphQL không tự quyết định cách lưu trữ dữ liệu, phân quyền hay tối ưu truy vấn; đó vẫn là trách nhiệm của ứng dụng phía server.
+
+Module phù hợp với người đã biết Java, HTTP/JSON, thiết kế API cơ bản và Spring Boot. Lộ trình bắt đầu từ mô hình schema và các kiểu dữ liệu SDL; sau đó thực hành query với variable, fragment, mutation và cách GraphQL trả về dữ liệu hoặc lỗi. Tiếp theo, người học xây dựng GraphQL server bằng graphql-java hoặc Spring for GraphQL, cài resolver/DataFetcher và xử lý bài toán N+1 với DataLoader. Các phần cuối đề cập đến phân trang dạng cursor, subscription, giới hạn độ phức tạp truy vấn, authorization và kiểm thử API.
+
+Hoàn thành module, bạn có thể thiết kế schema GraphQL đơn giản, xây dựng chức năng đọc/ghi dữ liệu bằng Java, xác định và giảm truy vấn lặp, xử lý pagination cùng error response và viết bài kiểm thử cho các operation. Khi triển khai thực tế, cần kiểm soát quyền truy cập theo dữ liệu, chi phí thực thi mỗi query và tương thích schema để tránh biến tính linh hoạt của GraphQL thành rủi ro bảo mật hoặc hiệu năng.

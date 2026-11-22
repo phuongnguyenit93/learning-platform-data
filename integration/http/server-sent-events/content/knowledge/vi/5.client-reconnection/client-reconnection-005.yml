@@ -1,0 +1,3 @@
+menuLevel1: Reconnect phía client
+menuLevel2: Dùng HTTP 204 để thông báo client ngừng reconnect
+status: ""

@@ -1,0 +1,82 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: overview
+  index: 0
+- title: Khảo sát bài toán
+  slug: requirements-assessment
+  index: 1
+- title: Kiến trúc tích hợp
+  slug: integration-architecture
+  index: 2
+- title: Nguồn và đích
+  slug: sources-and-targets
+  index: 3
+- title: Hợp đồng dữ liệu
+  slug: data-contracts
+  index: 4
+- title: Tệp và định dạng
+  slug: files-and-formats
+  index: 5
+- title: Kết nối cơ sở dữ liệu
+  slug: database-connectivity
+  index: 6
+- title: Thu thập qua API
+  slug: api-ingestion
+  index: 7
+- title: Trích xuất dữ liệu
+  slug: data-extraction
+  index: 8
+- title: Biến đổi dữ liệu
+  slug: data-transformation
+  index: 9
+- title: Chất lượng dữ liệu
+  slug: data-quality
+  index: 10
+- title: Nạp dữ liệu
+  slug: data-loading
+  index: 11
+- title: Xử lý theo lô
+  slug: batch-processing
+  index: 12
+- title: Đồng bộ tăng dần
+  slug: incremental-sync
+  index: 13
+- title: Theo dõi thay đổi
+  slug: change-data-capture
+  index: 14
+- title: Tích hợp luồng
+  slug: streaming-integration
+  index: 15
+- title: Nhất quán dữ liệu
+  slug: data-consistency
+  index: 16
+- title: Điều phối luồng việc
+  slug: workflow-orchestration
+  index: 17
+- title: Phục hồi và xử lý lại
+  slug: recovery-and-reprocessing
+  index: 18
+- title: Hiệu năng và mở rộng
+  slug: performance-and-scalability
+  index: 19
+- title: Siêu dữ liệu
+  slug: metadata
+  index: 20
+- title: Bảo mật và quản trị
+  slug: security-and-governance
+  index: 21
+- title: Giám sát và vận hành
+  slug: monitoring-and-operations
+  index: 22
+- title: Kiểm thử và đối soát
+  slug: testing-and-reconciliation
+  index: 23
+- title: Di trú dữ liệu
+  slug: data-migration
+  index: 24
+- title: Triển khai với Java
+  slug: java-implementation
+  index: 25
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 26

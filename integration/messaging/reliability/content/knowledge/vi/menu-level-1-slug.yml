@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan độ tin cậy
+  slug: reliability-overview
+  index: 0
+- title: Mô hình lỗi
+  slug: failure-models
+  index: 1
+- title: Bảo đảm giao nhận
+  slug: delivery-guarantees
+  index: 2
+- title: Định danh và hợp đồng
+  slug: identities-contracts
+  index: 3
+- title: Lưu trữ bền vững
+  slug: durable-storage
+  index: 4
+- title: Gửi thông điệp an toàn
+  slug: safe-message-publishing
+  index: 5
+- title: Nhận và xác nhận
+  slug: receiving-acknowledgements
+  index: 6
+- title: Ranh giới giao dịch
+  slug: transaction-boundaries
+  index: 7
+- title: Transactional Outbox
+  slug: transactional-outbox
+  index: 8
+- title: Xử lý idempotent
+  slug: idempotent-processing
+  index: 9
+- title: Inbox và trạng thái
+  slug: inbox-state
+  index: 10
+- title: Retry có kiểm soát
+  slug: controlled-retries
+  index: 11
+- title: Dead Letter và cách ly
+  slug: dead-letters-isolation
+  index: 12
+- title: Thứ tự và đồng thời
+  slug: ordering-concurrency
+  index: 13
+- title: Exactly-once thực tế
+  slug: practical-exactly-once
+  index: 14
+- title: Nhất quán nghiệp vụ
+  slug: business-consistency
+  index: 15
+- title: Backpressure và tải
+  slug: backpressure-load
+  index: 16
+- title: Thời hạn và vòng đời
+  slug: deadlines-lifecycle
+  index: 17
+- title: Sẵn sàng và khôi phục
+  slug: availability-recovery
+  index: 18
+- title: Bảo vệ luồng xử lý
+  slug: processing-protection
+  index: 19
+- title: Java và Spring
+  slug: java-spring
+  index: 20
+- title: Quan sát và SLO
+  slug: observability-slo
+  index: 21
+- title: Kiểm thử độ tin cậy
+  slug: reliability-testing
+  index: 22
+- title: Vận hành và thay đổi
+  slug: operations-changes
+  index: 23
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 24

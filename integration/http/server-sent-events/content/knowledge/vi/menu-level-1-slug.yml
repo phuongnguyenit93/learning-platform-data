@@ -1,0 +1,85 @@
+menu:
+  - title: "Tổng quan SSE"
+    slug: sse-overview
+    index: 0
+  - title: "HTTP cho SSE"
+    slug: http-for-sse
+    index: 1
+  - title: "Định dạng event-stream"
+    slug: event-stream-format
+    index: 2
+  - title: "EventSource cơ bản"
+    slug: eventsource-basics
+    index: 3
+  - title: "Reconnect phía client"
+    slug: client-reconnection
+    index: 4
+  - title: "Event ID và phát lại"
+    slug: event-ids-and-replay
+    index: 5
+  - title: "Hợp đồng sự kiện"
+    slug: event-contracts
+    index: 6
+  - title: "Kiến trúc luồng sự kiện"
+    slug: event-stream-architecture
+    index: 7
+  - title: "Spring MVC với SSE"
+    slug: spring-mvc-sse
+    index: 8
+  - title: "Vòng đời SseEmitter"
+    slug: sse-emitter-lifecycle
+    index: 9
+  - title: "Spring WebFlux với SSE"
+    slug: spring-webflux-sse
+    index: 10
+  - title: "Quản lý luồng reactive"
+    slug: reactive-stream-management
+    index: 11
+  - title: "Tích hợp giao diện"
+    slug: frontend-integration
+    index: 12
+  - title: "Xác thực và phân quyền"
+    slug: authentication-and-authorization
+    index: 13
+  - title: "Bảo mật ứng dụng"
+    slug: application-security
+    index: 14
+  - title: "Backpressure và client chậm"
+    slug: backpressure-and-slow-clients
+    index: 15
+  - title: "Proxy và mạng trung gian"
+    slug: proxies-and-network-intermediaries
+    index: 16
+  - title: "Mở rộng hệ thống"
+    slug: system-scaling
+    index: 17
+  - title: "Phục hồi và độ tin cậy"
+    slug: recovery-and-reliability
+    index: 18
+  - title: "Hiệu năng và tài nguyên"
+    slug: performance-and-resources
+    index: 19
+  - title: "Giám sát và truy vết"
+    slug: monitoring-and-tracing
+    index: 20
+  - title: "Kiểm thử giao thức"
+    slug: protocol-testing
+    index: 21
+  - title: "Kiểm thử Spring và tải"
+    slug: spring-and-load-testing
+    index: 22
+  - title: "Triển khai và vận hành"
+    slug: deployment-and-operations
+    index: 23
+  - title: "Chẩn đoán sự cố"
+    slug: troubleshooting
+    index: 24
+  - title: "Thực hành Spring MVC"
+    slug: spring-mvc-lab
+    index: 25
+  - title: "Thực hành Spring WebFlux"
+    slug: spring-webflux-lab
+    index: 26
+  - title: "Dự án tổng hợp"
+    slug: capstone-project
+    index: 27

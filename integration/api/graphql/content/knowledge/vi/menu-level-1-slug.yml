@@ -1,0 +1,76 @@
+menu:
+- title: Mô hình GraphQL
+  slug: graphql-model
+  index: 0
+- title: Query cơ bản
+  slug: basic-queries
+  index: 1
+- title: Schema và kiểu
+  slug: schema-types
+  index: 2
+- title: Dữ liệu đầu vào
+  slug: input-values
+  index: 3
+- title: Fragment và directive
+  slug: fragments-directives
+  index: 4
+- title: Cơ chế thực thi
+  slug: execution-engine
+  index: 5
+- title: Phản hồi và lỗi
+  slug: responses-errors
+  index: 6
+- title: Mutation
+  slug: mutations
+  index: 7
+- title: Thiết kế schema
+  slug: schema-design
+  index: 8
+- title: Phân trang và lọc
+  slug: pagination-filtering
+  index: 9
+- title: GraphQL qua HTTP
+  slug: graphql-over-http
+  index: 10
+- title: GraphQL Java
+  slug: graphql-java
+  index: 11
+- title: Spring for GraphQL
+  slug: spring-for-graphql
+  index: 12
+- title: Truy cập dữ liệu
+  slug: data-access
+  index: 13
+- title: DataLoader
+  slug: dataloader
+  index: 14
+- title: Subscription
+  slug: subscriptions
+  index: 15
+- title: Máy khách GraphQL
+  slug: graphql-clients
+  index: 16
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 17
+- title: Bảo mật và phân quyền
+  slug: security-authorization
+  index: 18
+- title: Giới hạn truy vấn
+  slug: query-limits
+  index: 19
+- title: Quản lý schema
+  slug: schema-management
+  index: 20
+- title: Kiểm thử GraphQL
+  slug: graphql-testing
+  index: 21
+- title: Quan sát và vận hành
+  slug: observability-operations
+  index: 22
+- title: Mở rộng kiến trúc
+  slug: architecture-scaling
+  index: 23
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 24

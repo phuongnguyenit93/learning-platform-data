@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-api-client-server
+  title: Tư duy API & Client–Server
+  purpose: Hiểu vai trò của API như một hợp đồng giao tiếp giữa hệ thống cung cấp và hệ thống sử dụng.
+  objectives:
+  - Phân biệt API, endpoint, client và server.
+  - Vẽ luồng gọi API từ request đến response.
+  - Nêu tình huống tích hợp giữa hai ứng dụng.
+- id: giao-thuc-http-co-ban
+  title: Giao thức HTTP cơ bản
+  purpose: Nắm thành phần request/response và ý nghĩa của phương thức, header và trạng thái.
+  objectives:
+  - Đọc method, URL, header và body của request.
+  - Phân biệt GET, POST, PUT, PATCH và DELETE.
+  - Giải thích nhóm status code 2xx, 4xx và 5xx.
+- id: phong-cach-giao-tiep-api
+  title: Phong cách giao tiếp API
+  purpose: Nhận diện các cách tổ chức API phổ biến trước khi chọn giải pháp phù hợp.
+  objectives:
+  - So sánh REST, GraphQL, SOAP và RPC ở mức cơ bản.
+  - Xác định khi nào client cần query hoặc gọi operation.
+  - Nêu tiêu chí chọn giao diện theo nhu cầu sử dụng.
+- id: tai-nguyen-endpoint
+  title: Tài nguyên & Endpoint
+  purpose: Thiết kế đường dẫn và thao tác API rõ nghĩa, nhất quán với hành vi nghiệp vụ.
+  objectives:
+  - Đặt URI cho collection và tài nguyên đơn.
+  - Ánh xạ thao tác CRUD với HTTP method phù hợp.
+  - Phân biệt path, query parameter và header.
+- id: du-lieu-api-contract
+  title: Dữ liệu & API Contract
+  purpose: Thống nhất cấu trúc thông điệp và trách nhiệm giữa bên cung cấp với bên sử dụng.
+  objectives:
+  - Mô tả request/response JSON có kiểu và field.
+  - Đánh dấu trường bắt buộc, tùy chọn và validation.
+  - Đọc OpenAPI specification cho endpoint mẫu.
+- id: loi-tinh-tin-cay
+  title: Lỗi & tính tin cậy
+  purpose: Giúp client xử lý lỗi có dự đoán và gọi lại an toàn khi xảy ra sự cố.
+  objectives:
+  - Phân biệt lỗi validation, auth và server failure.
+  - Trả lỗi có status code và thông điệp có cấu trúc.
+  - Giải thích timeout, retry và idempotency.
+- id: bao-mat-api
+  title: Bảo mật API
+  purpose: Kiểm soát danh tính và phạm vi dữ liệu được phép truy cập khi tích hợp.
+  objectives:
+  - Phân biệt authentication với authorization.
+  - Giải thích HTTPS, token và OAuth 2.0 ở mức nền tảng.
+  - Kiểm tra quyền truy cập theo từng resource.
+- id: tien-hoa-kiem-thu
+  title: Tiến hóa & Kiểm thử
+  purpose: Duy trì hợp đồng API ổn định, có tài liệu và có khả năng kiểm tra thực tế.
+  objectives:
+  - Phân biệt thay đổi tương thích và breaking change.
+  - Nêu cách xử lý versioning, pagination và rate limit.
+  - Viết test cho happy path, input sai và lỗi quyền.

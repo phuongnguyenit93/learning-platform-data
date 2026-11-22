@@ -1,0 +1,7 @@
+# Integration Realtime WebSocket
+
+WebSocket là giao thức truyền thông hai chiều qua một kết nối duy trì lâu dài giữa client và server. Khác với mô hình HTTP request-response, cả hai phía có thể chủ động gửi thông điệp sau khi hoàn thành quá trình bắt tay. Cách tiếp cận này phù hợp cho chat, bảng điều khiển trực tiếp hoặc cộng tác thời gian thực, nhưng làm phát sinh yêu cầu quản lý phiên kết nối, bảo mật và phục hồi khi mạng gián đoạn.
+
+Module phù hợp với người đã biết HTTP, Java và Spring ở mức cơ bản. Bạn sẽ tìm hiểu khi nào nên chọn WebSocket thay vì polling hoặc Server-Sent Events; cơ chế `ws/wss`, HTTP Upgrade, frame, message và vòng đời kết nối; sau đó triển khai endpoint qua Spring `WebSocketHandler`, xây client, quản lý kết nối lại và tìm hiểu STOMP để tổ chức gửi/nhận theo destination hoặc publish-subscribe. Nội dung cũng phân biệt raw WebSocket với STOMP over WebSocket và nhấn mạnh xác thực, phân quyền ở mức thông điệp.
+
+Sau tám mốc, bạn có thể xây dựng luồng trao đổi hai chiều đơn giản, kiểm tra các tình huống mất kết nối, áp dụng cơ chế retry/reconnect có kiểm soát và quan sát hoạt động của session. WebSocket không tự bảo đảm phát lại các sự kiện bị bỏ lỡ sau khi ngắt mạng; ứng dụng cần tự thiết kế định danh sự kiện, cơ chế đồng bộ lại hoặc xác nhận nhận khi có yêu cầu tin cậy cao.

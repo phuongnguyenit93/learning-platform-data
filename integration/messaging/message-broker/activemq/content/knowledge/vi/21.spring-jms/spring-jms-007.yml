@@ -1,0 +1,3 @@
+menuLevel1: Spring JMS
+menuLevel2: sessionTransacted, JmsTransactionManager và giao dịch xử lý tại listener
+status: WRITTEN

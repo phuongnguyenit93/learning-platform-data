@@ -1,0 +1,49 @@
+roadmap:
+- id: rpc-grpc
+  title: RPC & gRPC
+  purpose: Nắm cách giao tiếp RPC hoạt động giữa các dịch vụ và khi nào nên dùng gRPC.
+  objectives:
+  - '- Phân biệt RPC, REST và giao tiếp qua message broker.'
+  - '- Giải thích vai trò HTTP/2 và Protocol Buffers.'
+- id: hop-dong-protobuf
+  title: Hợp đồng Protobuf
+  purpose: Định nghĩa API gRPC rõ ràng và duy trì tương thích dữ liệu.
+  objectives:
+  - '- Viết message, field và service trong tệp .proto.'
+  - '- Nhận diện quy tắc thay đổi field number an toàn.'
+- id: code-generation
+  title: Code Generation
+  purpose: Tạo mã Java client/server từ hợp đồng để hai phía thống nhất.
+  objectives:
+  - '- Cấu hình protoc và plugin gRPC trong build.'
+  - '- Phân biệt message class và service stub được sinh.'
+- id: unary-rpc-server
+  title: Unary RPC Server
+  purpose: Cung cấp một endpoint RPC xử lý request và trả về response.
+  objectives:
+  - '- Triển khai service từ lớp ImplBase được sinh.'
+  - '- Trả kết quả hoặc gRPC Status qua StreamObserver.'
+- id: client-channel
+  title: Client & Channel
+  purpose: Gọi dịch vụ từ xa thông qua channel và kiểu stub phù hợp.
+  objectives:
+  - '- Khởi tạo ManagedChannel và quản lý đóng kết nối.'
+  - '- Gọi unary RPC bằng blocking hoặc async stub.'
+- id: streaming-rpc
+  title: Streaming RPC
+  purpose: Xử lý luồng nhiều thông điệp thay vì từng cặp request/response.
+  objectives:
+  - '- Phân biệt server, client và bidirectional streaming.'
+  - '- Xử lý onNext, onError, onCompleted và kết thúc luồng.'
+- id: do-tin-cay-bao-mat
+  title: Độ tin cậy & Bảo mật
+  purpose: Giới hạn tác động của lỗi mạng và bảo vệ dữ liệu trao đổi.
+  objectives:
+  - '- Thiết lập deadline, hủy call và ánh xạ status code.'
+  - '- Áp dụng TLS, metadata và xác thực phù hợp.'
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & Vận hành
+  purpose: Kiểm chứng tương thích contract và theo dõi sức khỏe lời gọi RPC.
+  objectives:
+  - '- Viết integration test cho client và server.'
+  - '- Kiểm tra health, logging/tracing và độ trễ RPC.'

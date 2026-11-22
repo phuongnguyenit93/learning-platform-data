@@ -1,0 +1,287 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Tích hợp bằng thông điệp là gì và bài toán cần giải quyết
+  - Từ cuộc gọi trực tiếp đến giao tiếp qua thông điệp
+  - 'Bất đồng bộ là gì: thời điểm gửi, nhận và hoàn tất công việc'
+  - Giảm phụ thuộc về thời gian, vị trí và tốc độ giữa các hệ thống
+  - 'Ví dụ xuyên suốt: đặt hàng, thanh toán và gửi thông báo'
+  - Toàn cảnh luồng gửi → trung gian → nhận → xử lý
+  - Khi nên và không nên dùng thông điệp
+  - 'Chi phí phải đánh đổi: độ trễ, tính nhất quán và vận hành'
+  - Các nhóm thuật ngữ và trình tự học nền tảng
+- level1: Thuật ngữ cốt lõi
+  level2:
+  - Thông điệp (message), tải dữ liệu (payload) và siêu dữ liệu (metadata)
+  - Bên gửi (producer), bên nhận (consumer) và trình xử lý (handler)
+  - Máy chủ trung gian (message broker) và trách nhiệm điều phối
+  - Kênh truyền (channel), đích nhận (destination) và đăng ký nhận (subscription)
+  - Phân biệt queue, topic và nhật ký sự kiện (event log)
+  - Hệ thống thông điệp (messaging system) và phần mềm trung gian (MOM)
+  - Phân biệt gửi, chuyển giao, nhận và xử lý thành công
+  - Phân biệt thông điệp, sự kiện, tác vụ và bản ghi dữ liệu
+  - Mô hình có trung gian và giao tiếp không qua trung gian
+- level1: Ý nghĩa thông điệp
+  level2:
+  - 'Lệnh (command): yêu cầu một bên thực hiện hành động'
+  - 'Sự kiện (event): thông báo một sự việc đã xảy ra'
+  - 'Thông điệp tài liệu (document message): truyền trạng thái hoặc dữ liệu'
+  - 'Ý định và sự thật: phân biệt lệnh với sự kiện qua ví dụ đơn hàng'
+  - Người sở hữu nghiệp vụ và người chịu trách nhiệm xử lý
+  - Đặt tên thông điệp theo ý nghĩa nghiệp vụ và thời điểm xảy ra
+  - 'Thông báo sự kiện và sự kiện mang theo dữ liệu: hai cách cung cấp thông tin'
+  - Thông điệp tích hợp và sự kiện nội bộ trong một ứng dụng
+  - Chọn dữ liệu cần mang theo để hạn chế phụ thuộc ngược
+  - 'Các lỗi thiết kế: sự kiện giả lệnh và thông điệp không rõ mục đích'
+- level1: Mô hình giao tiếp
+  level2:
+  - 'Một bên gửi, một bên nhận: mô hình điểm đến điểm (point-to-point)'
+  - 'Nhiều bên nhận chia việc: mô hình cạnh tranh (competing consumers)'
+  - 'Một thông điệp, nhiều nhóm nhận độc lập: xuất bản–đăng ký (publish–subscribe)'
+  - 'Phát đến nhiều đích (fan-out) và phân phối công việc: khác nhau ở đâu'
+  - Yêu cầu–phản hồi (request–reply) qua thông điệp
+  - Luồng thông điệp một chiều và thời điểm thông báo kết quả
+  - Xâu chuỗi các bước xử lý và chuyển tiếp thông điệp
+  - Đăng ký nhận độc lập và nhóm bên nhận dùng chung tiến độ
+  - So sánh giao tiếp HTTP trực tiếp, thông điệp và xử lý theo lô
+  - Ranh giới giữa messaging, kiến trúc hướng sự kiện và event streaming
+- level1: Kênh và đích nhận
+  level2:
+  - 'Hàng đợi (queue): công việc chờ nhận và phân phối cho bên xử lý'
+  - 'Chủ đề (topic): phân loại thông điệp và các đăng ký nhận'
+  - Tên đích nhận, không gian tên và quy ước đặt tên
+  - 'Định tuyến (routing): đưa thông điệp đến đúng đích nhận'
+  - 'Định tuyến theo địa chỉ, thuộc tính và nội dung: ý tưởng và đánh đổi'
+  - Bộ lọc thông điệp (message filter) và nơi thực hiện lọc
+  - Đích nhận cố định, tạm thời và vòng đời sử dụng
+  - 'Đăng ký nhận bền vững và tạm thời: quyền nhận khi ngắt kết nối'
+  - Tách kênh nghiệp vụ, phản hồi và xử lý lỗi
+  - 'Sơ đồ kết nối (topology): biểu diễn bên gửi, đích và bên nhận'
+  - Quyền sở hữu việc tạo, cấu hình và xóa đích nhận
+- level1: Cấu trúc thông điệp
+  level2:
+  - 'Phong bì thông điệp (envelope): phần mô tả và phần dữ liệu'
+  - Mã thông điệp (message ID) và phạm vi duy nhất
+  - Mã liên kết (correlation ID) để ghép yêu cầu với phản hồi
+  - Mã nguyên nhân (causation ID) để theo dõi chuỗi phát sinh
+  - 'Mã nghiệp vụ và khóa chống trùng: vì sao khác message ID'
+  - Loại thông điệp, phiên bản hợp đồng và kiểu nội dung
+  - Thời điểm xảy ra, thời điểm gửi và thời điểm nhận
+  - Khóa định tuyến, khóa thứ tự và thông tin phân nhóm
+  - Hạn sử dụng, hạn xử lý và địa chỉ phản hồi
+  - Ngữ cảnh truy vết và thông tin về nguồn phát
+  - Phân biệt trường nghiệp vụ với trường do hạ tầng quản lý
+  - Kích thước thông điệp và cách tham chiếu dữ liệu lớn
+- level1: Hợp đồng dữ liệu
+  level2:
+  - 'Hợp đồng thông điệp: cấu trúc, ý nghĩa và các ràng buộc'
+  - Tuần tự hóa và giải tuần tự hóa (serialization/deserialization)
+  - 'Dữ liệu văn bản và nhị phân: tiêu chí lựa chọn'
+  - 'JSON, Avro và Protocol Buffers: vai trò trong hợp đồng thông điệp'
+  - Kiểm tra trường bắt buộc, kiểu dữ liệu và giá trị không hợp lệ
+  - Phân biệt trường vắng mặt, giá trị null và giá trị mặc định
+  - Quy ước thời gian, múi giờ, số tiền và đơn vị đo
+  - Tương thích ngược và tương thích xuôi khi thay đổi dữ liệu
+  - 'Thêm, đổi tên và xóa trường: đánh giá ảnh hưởng đến bên nhận'
+  - Quản lý phiên bản khi nhiều phiên bản ứng dụng cùng hoạt động
+  - Lược đồ (schema), kho quản lý lược đồ và quyền sở hữu hợp đồng
+  - Tránh truyền trực tiếp đối tượng nội bộ và chi tiết lưu trữ
+- level1: Vòng đời truyền nhận
+  level2:
+  - Lần theo một thông điệp từ lúc tạo đến lúc hoàn tất
+  - 'Các trạng thái: đang gửi, đã tiếp nhận, đang chờ và đang xử lý'
+  - 'Xác nhận phía gửi (publisher confirmation): xác nhận điều gì'
+  - 'Xác nhận phía nhận (acknowledgement): xác nhận ở giai đoạn nào'
+  - Từ chối nhận, đưa lại hàng đợi và chuyển sang xử lý lỗi
+  - Thông điệp đang được xử lý (in-flight) và quyền nhận tạm thời
+  - Cơ chế đẩy (push), kéo (pull) và thăm dò (polling)
+  - Nhận từng thông điệp và nhận theo lô
+  - Điểm kết thúc trách nhiệm của bên gửi, trung gian và bên nhận
+  - Vẽ dòng thời gian để phân tích một ca truyền nhận
+- level1: Phía gửi
+  level2:
+  - 'Trách nhiệm của bên gửi: tạo dữ liệu, chọn đích và gửi'
+  - Tách tạo thông điệp khỏi thao tác gửi trong mã Java
+  - Lời gọi gửi đồng bộ và bất đồng bộ ở cấp thư viện
+  - 'Kết quả gửi thành công và kết quả xử lý nghiệp vụ: hai mốc riêng'
+  - Chờ xác nhận, hết thời gian chờ và kết quả chưa xác định
+  - Bộ đệm gửi phía ứng dụng và giới hạn bộ nhớ
+  - 'Gộp thông điệp khi gửi: hiệu năng và độ trễ'
+  - Xử lý lỗi trước, trong và sau khi trung gian tiếp nhận
+  - Gửi lại sau lỗi kết nối và nguy cơ tạo bản trùng
+  - Quản lý ngoại lệ và trả kết quả cho luồng gọi nghiệp vụ
+- level1: Phía nhận
+  level2:
+  - 'Trách nhiệm của bên nhận: đọc, kiểm tra, xử lý và xác nhận'
+  - Vòng lặp nhận và hàm xử lý gọi lại (listener/callback)
+  - 'Xác nhận tự động và thủ công: phạm vi phụ thuộc thư viện'
+  - Chọn thời điểm xác nhận so với thao tác nghiệp vụ
+  - Xử lý tuần tự và xử lý đồng thời trong một tiến trình
+  - Số bên nhận, số luồng và giới hạn xử lý song song
+  - Nhận trước (prefetch) và giới hạn thông điệp đang xử lý
+  - Ngoại lệ nghiệp vụ, dữ liệu sai và lỗi hạ tầng trong bên nhận
+  - Khởi động lại bên nhận và xử lý thông điệp chưa hoàn tất
+  - 'Dừng có kiểm soát: ngừng nhận mới và hoàn tất công việc đang chạy'
+  - Phân biệt đã đọc, đã xác nhận và đã lưu tiến độ nhận
+- level1: Lưu trữ và lưu giữ
+  level2:
+  - Thông điệp trong bộ nhớ và thông điệp được lưu bền vững
+  - 'Lưu bền vững thông điệp, đích nhận và đăng ký nhận: ba khái niệm riêng'
+  - Lưu rồi chuyển tiếp (store-and-forward) khi bên nhận chưa sẵn sàng
+  - 'Xóa sau xác nhận và lưu theo thời hạn: hai cơ chế khác nhau'
+  - Thời gian sống (TTL), thời hạn lưu giữ (retention) và hạn xử lý
+  - Thông điệp hết hạn khi chờ và khi đang xử lý
+  - Tồn đọng (backlog), dung lượng hàng đợi và đầy kho lưu trữ
+  - 'Phát lại (replay): điều kiện hỗ trợ và hệ quả với tác dụng phụ'
+  - 'Sao chép dữ liệu và chuyển đổi khi lỗi: vai trò đối với tính sẵn sàng'
+  - Đọc cam kết lưu trữ theo cấu hình thay vì suy luận từ tên tính năng
+- level1: Cam kết chuyển giao
+  level2:
+  - Cam kết chuyển giao (delivery guarantee) được xác định ở ranh giới nào
+  - 'Nhiều nhất một lần (at-most-once): khả năng mất thông điệp'
+  - 'Ít nhất một lần (at-least-once): khả năng nhận trùng'
+  - 'Đúng một lần (exactly-once): phạm vi cam kết và giới hạn'
+  - Phân biệt số lần chuyển giao với số lần tạo hiệu ứng nghiệp vụ
+  - Xác nhận đã gửi không đồng nghĩa đã xử lý nghiệp vụ
+  - 'Mất kết nối sau khi trung gian tiếp nhận: kết quả gửi chưa xác định'
+  - Bên nhận dừng trước và sau khi lưu kết quả xử lý
+  - Xác nhận bị thất lạc và nguyên nhân chuyển giao lại
+  - Lập bảng tình huống lỗi để đánh giá mất, trùng và khả năng phục hồi
+  - Diễn đạt cam kết thực tế cho toàn bộ luồng nghiệp vụ
+- level1: Thứ tự xử lý
+  level2:
+  - Thứ tự phát sinh, gửi, nhận và hoàn tất xử lý
+  - Thứ tự toàn cục và thứ tự theo một thực thể nghiệp vụ
+  - Vì sao FIFO chưa đủ bảo đảm thứ tự hoàn tất
+  - Nhiều bên gửi, nhiều bên nhận và tác động đến thứ tự
+  - 'Khóa phân nhóm và phân vùng: ý tưởng giữ thứ tự cục bộ'
+  - Xử lý song song giữa các nhóm và tuần tự trong từng nhóm
+  - Gửi lại, chuyển giao lại và thông điệp ưu tiên làm thay đổi thứ tự
+  - Số thứ tự và phiên bản nghiệp vụ để phát hiện dữ liệu cũ hoặc thiếu
+  - Thông điệp đến muộn và thông điệp đến sai thứ tự
+  - Đánh đổi giữa yêu cầu thứ tự, thông lượng và khả năng phục hồi
+- level1: Lỗi và phục hồi
+  level2:
+  - Phân loại lỗi tạm thời, lỗi lâu dài và lỗi dữ liệu
+  - 'Thử lại (retry) ở bên gửi và bên nhận: mục đích khác nhau'
+  - Giới hạn số lần thử, thời gian chờ và ngân sách xử lý
+  - Tăng thời gian chờ (backoff) và thêm độ lệch ngẫu nhiên (jitter)
+  - Tránh vòng lặp đưa lại hàng đợi và cơn bão thử lại
+  - Thông điệp không thể xử lý (poison message) và cách cách ly
+  - 'Hàng đợi lỗi (dead-letter queue): mục đích và dữ liệu chẩn đoán'
+  - Phân biệt từ chối, hết hạn và vượt số lần xử lý
+  - Khắc phục nguyên nhân và phát lại có kiểm soát
+  - Vai trò của vận hành và trách nhiệm nghiệp vụ khi phục hồi
+  - 'Ranh giới học tiếp: chính sách độ tin cậy và các mẫu phục hồi chuyên sâu'
+- level1: Xử lý trùng lặp
+  level2:
+  - 'Tính lũy đẳng (idempotency): lặp lại yêu cầu không lặp hiệu ứng'
+  - Các nguồn tạo bản trùng trong toàn bộ luồng truyền nhận
+  - Chọn khóa chống trùng theo ý nghĩa nghiệp vụ
+  - Phát hiện trùng bằng mã thông điệp và hạn chế của cách này
+  - Lưu dấu đã xử lý và kiểm tra trùng trong cùng giao dịch
+  - Ràng buộc duy nhất và cập nhật có điều kiện ở cơ sở dữ liệu
+  - Thời hạn lưu dấu, phạm vi khóa và nguy cơ nhận nhầm là trùng
+  - Hai bên nhận đồng thời xử lý cùng một thông điệp
+  - Tác dụng phụ bên ngoài như gửi email và gọi dịch vụ thanh toán
+  - Phân biệt khử trùng lặp, tính lũy đẳng và cam kết đúng một lần
+- level1: Nhất quán dữ liệu
+  level2:
+  - Ranh giới giao dịch giữa ứng dụng, cơ sở dữ liệu và hệ thống thông điệp
+  - 'Lỗi ghi kép (dual write): lưu dữ liệu thành công nhưng gửi thất bại'
+  - 'Đảo thứ tự gửi và lưu dữ liệu: vì sao chưa giải quyết tính nguyên tử'
+  - Nhất quán sau cùng (eventual consistency) và trạng thái chờ nghiệp vụ
+  - 'Thông điệp hộp thư đi (outbox): ý tưởng giải quyết ranh giới gửi'
+  - 'Thông điệp hộp thư đến (inbox): ý tưởng kiểm soát tiếp nhận'
+  - Phân biệt giao dịch cục bộ, giao dịch của broker và giao dịch phân tán
+  - 'Đọc dữ liệu sau khi phát sự kiện: độ trễ và phiên bản trạng thái'
+  - Thất bại ở một bước và nhu cầu bù trừ nghiệp vụ
+  - 'Ranh giới học tiếp: mẫu tích hợp, Saga và độ tin cậy chuyên sâu'
+- level1: Hiệu năng và tải
+  level2:
+  - 'Độ trễ, thông lượng và thời gian xử lý: đo ở từng chặng'
+  - Tốc độ gửi vượt tốc độ xử lý và tốc độ tăng tồn đọng
+  - Dùng hàng đợi để hấp thụ tải tăng đột biến
+  - 'Hàng đợi hữu hạn và giới hạn tài nguyên: vì sao cần sức chứa tối đa'
+  - 'Điều tiết ngược (backpressure): truyền tín hiệu giảm tải'
+  - Tăng số bên nhận và giới hạn mở rộng do thứ tự hoặc tài nguyên dùng chung
+  - Tác động của kích thước dữ liệu, gộp lô và nhận trước
+  - Cân bằng tải giữa bên nhận nhanh và chậm
+  - Thông điệp lớn, xử lý chậm và tắc nghẽn đầu hàng (head-of-line blocking)
+  - Ưu tiên công việc và nguy cơ công việc ưu tiên thấp bị chờ lâu
+  - Xây dựng ngân sách độ trễ và năng lực xử lý theo tải thực tế
+- level1: Kết nối và tài nguyên
+  level2:
+  - Vòng đời kết nối, phiên làm việc và đăng ký nhận
+  - 'Tạo mới hay tái sử dụng kết nối: chi phí và giới hạn'
+  - Phát hiện kết nối chết bằng heartbeat và thời gian chờ
+  - Kết nối lại và khôi phục đăng ký nhận sau gián đoạn
+  - Phân biệt kết nối đã phục hồi với công việc đã phục hồi
+  - Giới hạn kết nối, luồng, bộ đệm và thông điệp đang xử lý
+  - 'An toàn luồng của đối tượng thư viện: kiểm tra theo API cụ thể'
+  - Thứ tự đóng tài nguyên khi ứng dụng dừng
+  - Cấu hình theo môi trường và tách bí mật khỏi mã nguồn
+- level1: Bảo mật
+  level2:
+  - Ranh giới tin cậy giữa bên gửi, broker và bên nhận
+  - Xác thực danh tính và phân quyền gửi, nhận, quản trị
+  - Nguyên tắc quyền tối thiểu theo đích nhận và ứng dụng
+  - Mã hóa đường truyền bằng TLS và kiểm tra chứng chỉ
+  - Bảo vệ dữ liệu nhạy cảm trong nội dung và siêu dữ liệu
+  - Không coi dữ liệu nhận từ broker là dữ liệu mặc nhiên đáng tin
+  - Giới hạn kích thước, kiểm tra lược đồ và phòng tránh giải tuần tự hóa nguy hiểm
+  - Tránh lộ thông tin cá nhân, thông tin đăng nhập và dữ liệu nghiệp vụ trong log
+  - Cách ly môi trường, đơn vị sử dụng và vùng dữ liệu
+  - Luân chuyển thông tin xác thực và ghi nhận hoạt động truy cập
+- level1: Quan sát hệ thống
+  level2:
+  - Theo dõi đường đi thông điệp bằng message ID và correlation ID
+  - Log có cấu trúc cho các mốc gửi, nhận, xử lý và lỗi
+  - Truy vết phân tán qua ranh giới bất đồng bộ
+  - Đo tốc độ gửi, nhận, xử lý thành công và xử lý thất bại
+  - Độ sâu hàng đợi, số đang xử lý và tuổi thông điệp cũ nhất
+  - Độ trễ tiến độ nhận (consumer lag) trong hệ thống lưu nhật ký
+  - Đếm chuyển giao lại, thử lại, trùng lặp và thông điệp bị cách ly
+  - Phân biệt không có tải, kết nối hỏng và bên nhận bị treo
+  - Cảnh báo theo thời gian chờ nghiệp vụ và khả năng phục hồi
+  - Điều tra sự cố từ dấu thời gian, trạng thái và nguyên nhân lỗi
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đơn vị cho việc tạo thông điệp và xử lý nghiệp vụ
+  - Kiểm thử hợp đồng và dữ liệu giữa các phiên bản
+  - Kiểm thử tích hợp với broker thật và phạm vi của bản giả lập
+  - Chờ kết quả bất đồng bộ bằng điều kiện và thời hạn rõ ràng
+  - Kiểm thử bên nhận chưa chạy khi bên gửi phát thông điệp
+  - Mô phỏng mất kết nối và kết quả gửi chưa xác định
+  - Dừng bên nhận trước hoặc sau khi ghi dữ liệu và xác nhận
+  - Kiểm thử nhận trùng, nhận sai thứ tự và thông điệp không hợp lệ
+  - Kiểm thử hết hạn, hàng đợi lỗi và phát lại sau phục hồi
+  - Kiểm thử tải, tồn đọng và thời gian giải phóng tồn đọng
+  - Cô lập đích nhận, dữ liệu và tài nguyên giữa các lần kiểm thử
+- level1: Lựa chọn công nghệ
+  level2:
+  - Phân biệt sản phẩm broker, giao thức và API lập trình
+  - 'AMQP, MQTT và các giao thức khác: nhận diện phạm vi sử dụng'
+  - 'Jakarta Messaging (JMS): vai trò API và quan hệ với nhà cung cấp'
+  - 'RabbitMQ và ActiveMQ: định hướng học về hệ thống message broker'
+  - 'Kafka: định hướng học về nhật ký sự kiện và event streaming'
+  - Thư viện Java gốc, Spring JMS, Spring AMQP và lớp trừu tượng liên quan
+  - 'Hàng đợi trong tiến trình Java và broker phân tán: ranh giới bảo đảm'
+  - 'Tự vận hành và dịch vụ được quản lý: trách nhiệm của mỗi bên'
+  - So sánh theo định tuyến, lưu giữ, thứ tự, phát lại và mô hình bên nhận
+  - Đánh giá hệ sinh thái, chi phí vận hành và mức phụ thuộc nhà cung cấp
+  - Từ yêu cầu nghiệp vụ đến bảng tiêu chí lựa chọn công nghệ
+- level1: Thực hành tổng hợp
+  level2:
+  - 'Mô hình hóa luồng đơn hàng: lệnh, sự kiện và bên chịu trách nhiệm'
+  - Thiết kế hợp đồng thông điệp và quy ước định danh
+  - Dựng mô phỏng Java bằng BlockingQueue và chỉ rõ giới hạn trong tiến trình
+  - Thực nghiệm một thông điệp, một bên nhận và nhiều bên nhận chia việc
+  - Thực nghiệm nhiều đăng ký nhận độc lập và quan sát sự khác biệt
+  - Kết nối ứng dụng Java với một broker theo môi trường thực hành
+  - Quan sát xác nhận gửi, xác nhận nhận và các mốc xử lý
+  - Tạo tình huống nhận trùng và bảo vệ hiệu ứng nghiệp vụ
+  - Tạo tình huống mất thứ tự, hết hạn và thông điệp không xử lý được
+  - Đo tồn đọng khi tăng tải và thay đổi số bên nhận
+  - Hoàn thiện bảng tình huống lỗi, tiêu chí nghiệm thu và cách phục hồi
+  - Tổng kết mô hình nền tảng và chọn hướng học chuyên sâu tiếp theo

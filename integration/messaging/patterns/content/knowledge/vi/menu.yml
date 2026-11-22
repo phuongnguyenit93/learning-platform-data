@@ -1,0 +1,280 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Integration Messaging Patterns là gì và giải quyết bài toán nào?
+  - 'Bản đồ khái niệm: ứng dụng, thông điệp, kênh, bộ định tuyến và đầu cuối'
+  - Vì sao dùng mẫu thiết kế thay vì gắn nghiệp vụ trực tiếp vào broker?
+  - 'Các kiểu ghép nối: thời gian, địa chỉ, dữ liệu và ngữ nghĩa'
+  - So sánh tích hợp bằng thông điệp với gọi hàm từ xa và chia sẻ cơ sở dữ liệu
+  - 'Cách đọc một mẫu: bối cảnh, vấn đề, giải pháp, đánh đổi và mẫu liên quan'
+  - Phạm vi mẫu thiết kế và ranh giới với vận hành broker, hợp đồng, độ tin cậy
+  - Lộ trình học từ luồng đơn giản đến quy trình phân tán
+- level1: Kiểu tương tác
+  level2:
+  - 'Gửi một chiều: phân biệt gửi thành công và nghiệp vụ hoàn tất'
+  - 'Hỏi đáp: khi nào cần phản hồi và khi nào chỉ cần thông báo?'
+  - Phân chia công việc cho một bên xử lý và phát thông báo cho nhiều bên
+  - 'Sự kiện thông báo và sự kiện mang trạng thái: chọn mức dữ liệu truyền đi'
+  - Kéo dữ liệu sau thông báo và đẩy dữ liệu ngay trong thông điệp
+  - 'Phân nhánh và hội tụ: mô hình fan-out, fan-in'
+  - 'Gửi theo lô và gửi từng thông điệp: tác động lên độ trễ, lỗi và thứ tự'
+  - Chọn kiểu tương tác theo yêu cầu nhất quán, phản hồi và mức độc lập
+- level1: Thiết kế thông điệp
+  level2:
+  - 'Thông điệp (Message): phần đầu, nội dung và siêu dữ liệu'
+  - 'Thông điệp lệnh (Command Message): diễn đạt ý định và xác định bên chịu trách nhiệm'
+  - 'Thông điệp tài liệu (Document Message): trao đổi dữ liệu giữa ứng dụng'
+  - 'Thông điệp sự kiện (Event Message): diễn đạt điều đã xảy ra'
+  - Phân biệt lệnh và sự kiện qua tên gọi, quyền quyết định và số bên nhận
+  - Thiết kế định danh, nguồn phát, thời điểm xảy ra và thời điểm ghi nhận
+  - 'Chỉ báo định dạng (Format Indicator): định dạng dữ liệu và phiên bản hợp đồng'
+  - 'Hạn dùng thông điệp (Message Expiration): dữ liệu cũ và thời hạn xử lý'
+  - 'Chuỗi thông điệp (Message Sequence): định danh chuỗi, vị trí và dấu kết thúc'
+  - Giới hạn kích thước, dữ liệu nhạy cảm và tính bất biến của nội dung
+- level1: Kênh truyền
+  level2:
+  - 'Kênh thông điệp (Message Channel): hợp đồng truyền giữa bên gửi và bên nhận'
+  - 'Kênh điểm tới điểm (Point-to-Point Channel): phân phối công việc và giới hạn bảo đảm'
+  - 'Kênh phát hành–đăng ký (Publish-Subscribe Channel): tách các bên quan tâm'
+  - 'Kênh theo kiểu dữ liệu (Datatype Channel): tổ chức và cô lập loại thông điệp'
+  - 'Kênh thông điệp không hợp lệ (Invalid Message Channel): tách dữ liệu sai hợp đồng'
+  - 'Kênh thư chết (Dead Letter Channel): nơi tiếp nhận thông điệp không thể giao hoặc xử lý'
+  - Kênh riêng, kênh dùng chung và quy tắc đặt tên theo miền nghiệp vụ
+  - Kênh tạm thời, đăng ký bền vững và vòng đời bên nhận
+  - Thiết kế sơ đồ kênh và nhận diện phụ thuộc giữa các ứng dụng
+- level1: Kết nối hệ thống
+  level2:
+  - 'Bộ chuyển tiếp kênh (Channel Adapter): kết nối ứng dụng với hạ tầng thông điệp'
+  - 'Adapter đầu vào và đầu ra: chiều dữ liệu và ranh giới trách nhiệm'
+  - 'Cầu nối thông điệp (Messaging Bridge): nối các hệ thống truyền tin'
+  - Chuyển đổi địa chỉ, định dạng và thuộc tính giao nhận khi qua cầu nối
+  - 'Message Bus: quy ước chung cho ứng dụng, kênh và thông điệp'
+  - 'Message Broker trong kiến trúc tích hợp: trung gian định tuyến và chuyển đổi'
+  - Ngăn vòng lặp, nhân bản ngoài ý muốn và lan truyền lỗi qua nhiều hệ thống
+  - Tích hợp hệ thống cũ theo từng bước và giữ ranh giới nghiệp vụ rõ ràng
+- level1: Hỏi đáp bất đồng bộ
+  level2:
+  - 'Mẫu hỏi đáp (Request-Reply): vòng đời yêu cầu và phản hồi'
+  - 'Địa chỉ trả lời (Return Address): kênh phản hồi cố định hoặc động'
+  - 'Định danh tương quan (Correlation Identifier): ghép đúng phản hồi với yêu cầu'
+  - Tách mã thông điệp, mã tương quan và mã truy vết
+  - 'Quản lý yêu cầu đang chờ: bộ nhớ, lưu bền và khôi phục sau khởi động'
+  - Thời hạn chờ, phản hồi đến muộn, phản hồi trùng và yêu cầu mất dấu
+  - Phản hồi lỗi nghiệp vụ và lỗi kỹ thuật trong cùng một hội thoại
+  - 'Hủy yêu cầu và tiếp tục xử lý: giới hạn của tín hiệu hủy'
+  - Tránh biến luồng bất đồng bộ thành chuỗi gọi chặn kéo dài
+- level1: Chuỗi xử lý
+  level2:
+  - 'Ống dẫn và bộ lọc (Pipes and Filters): chia xử lý thành các bước độc lập'
+  - Thiết kế hợp đồng đầu vào, đầu ra và trách nhiệm từng bước
+  - Bộ định tuyến (Message Router) và bộ chuyển đổi (Message Translator) trong luồng
+  - 'Chuỗi xử lý đồng bộ và bất đồng bộ: ranh giới hàng đợi'
+  - Quyết định vị trí lưu bền, xác nhận và xử lý lỗi trong chuỗi
+  - Chia sẻ ngữ cảnh qua các bước mà không làm rò rỉ chi tiết hạ tầng
+  - Tái sử dụng bộ lọc và tránh tạo bộ xử lý chứa quá nhiều trách nhiệm
+  - Mô tả luồng bằng sơ đồ và bảng đầu vào, điều kiện, đầu ra
+- level1: Định tuyến
+  level2:
+  - 'Định tuyến theo nội dung (Content-Based Router): chọn đích từ dữ liệu'
+  - 'Bộ lọc thông điệp (Message Filter): loại bỏ thông điệp không phù hợp'
+  - 'Định tuyến động (Dynamic Router): thay đổi tập đích khi hệ thống hoạt động'
+  - 'Danh sách bên nhận (Recipient List): gửi tới nhiều đích được lựa chọn'
+  - 'Định tuyến theo phần đầu và theo nội dung: chi phí và mức phụ thuộc'
+  - Điều kiện chồng lấn, đích mặc định và thông điệp không khớp tuyến
+  - Bảng quyết định định tuyến và cách quản lý quy tắc có thể kiểm thử
+  - Phiên bản quy tắc và tính nhất quán khi triển khai thay đổi
+  - Phân biệt Message Filter, Selective Consumer và Content Filter
+  - Tránh vòng định tuyến, nhánh bị bỏ sót và phụ thuộc địa chỉ cứng
+- level1: Tách và hợp nhất
+  level2:
+  - 'Bộ tách (Splitter): chia một thông điệp thành các phần độc lập'
+  - Chọn ranh giới tách theo phần tử, nghiệp vụ và giới hạn kích thước
+  - Giữ mã tương quan, vị trí và số phần khi tách thông điệp
+  - 'Bộ hợp nhất (Aggregator): gom các thông điệp có liên hệ'
+  - 'Ba quyết định của Aggregator: tương quan, điều kiện hoàn tất và thuật toán gộp'
+  - Hoàn tất theo số lượng, dấu kết thúc hoặc thời hạn chờ
+  - 'Trạng thái nhóm: lưu bền, khóa đồng thời và thu hồi tài nguyên'
+  - Xử lý phần trùng, thiếu, đến muộn và kết quả không đầy đủ
+  - 'Bộ sắp lại thứ tự (Resequencer): khôi phục trình tự từ các phần đến lệch'
+  - Giới hạn bộ đệm và chiến lược khi thiếu một phần trong chuỗi
+  - 'Bộ xử lý thông điệp tổ hợp (Composed Message Processor): tách, định tuyến và hợp nhất'
+- level1: Phân phối và thu thập
+  level2:
+  - 'Phân tán–thu thập (Scatter-Gather): gửi nhiều nhánh và gom phản hồi'
+  - Chọn danh sách bên nhận cố định, động hoặc theo điều kiện
+  - Thu đủ phản hồi, lấy kết quả đầu tiên hoặc chấp nhận một phần
+  - Gắn thời hạn cho toàn yêu cầu và từng nhánh xử lý
+  - Chuẩn hóa kết quả, gộp lỗi và giải quyết phản hồi mâu thuẫn
+  - Khống chế số nhánh đồng thời và xử lý bên nhận chậm
+  - Phân biệt Scatter-Gather với Publish-Subscribe và Splitter–Aggregator
+  - 'Ví dụ so sánh báo giá: luồng xử lý, trạng thái và điều kiện hoàn tất'
+- level1: Điều phối quy trình
+  level2:
+  - 'Phiếu lộ trình (Routing Slip): mang chuỗi bước xử lý theo thông điệp'
+  - 'Quản lý quy trình (Process Manager): điều phối bằng trạng thái trung tâm'
+  - Phối hợp bằng sự kiện (Choreography) và điều phối trung tâm (Orchestration)
+  - Chọn Routing Slip hay Process Manager theo mức rẽ nhánh và trạng thái
+  - Biểu diễn quy trình bằng máy trạng thái và chuyển trạng thái hợp lệ
+  - Quản lý thời hạn, nhắc việc và bước chờ tác nhân bên ngoài
+  - Lưu trạng thái, khôi phục và xử lý trùng ở từng bước quy trình
+  - Thay đổi phiên bản quy trình khi vẫn còn phiên đang chạy
+  - Tránh bộ điều phối ôm nghiệp vụ và mạng sự kiện khó lần theo
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - 'Bộ chuyển đổi thông điệp (Message Translator): đổi cấu trúc và ngữ nghĩa'
+  - 'Lớp bao thông điệp (Envelope Wrapper): thích ứng giao thức và siêu dữ liệu'
+  - 'Bổ sung nội dung (Content Enricher): lấy dữ liệu còn thiếu từ nguồn khác'
+  - 'Lọc nội dung (Content Filter): chỉ giữ dữ liệu cần cho bên nhận'
+  - 'Phiếu nhận dữ liệu (Claim Check): truyền tham chiếu thay cho nội dung lớn'
+  - 'Bộ chuẩn hóa (Normalizer): đưa nhiều định dạng về một dạng xử lý'
+  - 'Mô hình dữ liệu chuẩn chung (Canonical Data Model): lợi ích và chi phí phối hợp'
+  - Ánh xạ kiểu, đơn vị, múi giờ, giá trị thiếu và độ chính xác
+  - Xử lý nguồn bổ sung lỗi, dữ liệu hết hạn và tham chiếu không còn tồn tại
+  - Chọn vị trí chuyển đổi và tránh mất ý nghĩa nghiệp vụ qua nhiều lần ánh xạ
+- level1: Đầu cuối ứng dụng
+  level2:
+  - 'Đầu cuối thông điệp (Message Endpoint): ranh giới ứng dụng và hạ tầng'
+  - 'Cổng thông điệp (Messaging Gateway): che giấu chi tiết gửi nhận'
+  - 'Bộ ánh xạ (Messaging Mapper): tách đối tượng miền khỏi định dạng thông điệp'
+  - 'Bộ kích hoạt dịch vụ (Service Activator): gọi nghiệp vụ từ luồng thông điệp'
+  - 'Bên nhận thăm dò (Polling Consumer): chủ động lấy dữ liệu theo nhịp'
+  - 'Bên nhận theo sự kiện (Event-Driven Consumer): được gọi khi có thông điệp'
+  - 'Bên nhận chọn lọc (Selective Consumer): chọn thông điệp theo điều kiện'
+  - 'Bên đăng ký bền vững (Durable Subscriber): xử lý thời gian ngắt kết nối'
+  - 'Quản lý vòng đời đầu cuối: khởi động, dừng nhận và hoàn tất phần đang xử lý'
+- level1: Đồng thời và thứ tự
+  level2:
+  - 'Các bên nhận cạnh tranh (Competing Consumers): mở rộng xử lý công việc'
+  - 'Bộ phân công thông điệp (Message Dispatcher): chia việc cho các bộ xử lý'
+  - Phân biệt phát tới nhiều đăng ký và chia tải trong cùng một nhóm nhận
+  - Thứ tự toàn cục, theo kênh và theo khóa nghiệp vụ
+  - Chia luồng theo khóa để giữ thứ tự trong từng thực thể
+  - Ảnh hưởng của xử lý song song, thử lại và phát lại tới thứ tự
+  - Kiểm soát cập nhật đồng thời bằng phiên bản và điều kiện nghiệp vụ
+  - Cân bằng tải khi có khóa nóng, thông điệp chậm và nhóm xử lý không đều
+  - Phối hợp mở rộng số bên nhận với giới hạn kết nối và tài nguyên
+- level1: Độ tin cậy
+  level2:
+  - 'Chuyển giao được bảo đảm (Guaranteed Delivery): phạm vi và các giả định'
+  - Giao tối đa một lần, ít nhất một lần và giới hạn của tuyên bố đúng một lần
+  - Lưu bền, xác nhận gửi và xác nhận nhận tại các ranh giới
+  - Thời điểm xác nhận so với thời điểm hoàn tất nghiệp vụ
+  - Phân loại lỗi tạm thời, lỗi vĩnh viễn và thông điệp gây lỗi lặp lại
+  - Thử lại có giới hạn, tăng khoảng chờ và thêm độ ngẫu nhiên
+  - Tách luồng thử lại, kiểm soát thứ tự và tránh vòng lặp vô hạn
+  - Đưa vào kênh lỗi, điều tra và phát lại có kiểm soát
+  - Thông điệp hết hạn, hàng đợi tồn đọng và chính sách loại bỏ
+  - Chọn chính sách giao nhận theo tác động nghiệp vụ và khả năng phục hồi
+- level1: Xử lý trùng lặp
+  level2:
+  - 'Bên nhận xử lý lặp an toàn (Idempotent Receiver): mục tiêu và giới hạn'
+  - Phân biệt thông điệp trùng và yêu cầu nghiệp vụ trùng
+  - Chọn khóa chống trùng theo thông điệp, thao tác và thực thể
+  - Lưu dấu xử lý, thời gian giữ dấu và phạm vi bảo đảm
+  - Gộp kiểm tra trùng với cập nhật nghiệp vụ trong một giao dịch
+  - Tranh chấp đồng thời khi hai bản sao cùng đến
+  - Gọi dịch vụ ngoài bằng khóa xử lý lặp an toàn và quản lý kết quả chưa rõ
+  - Phát lại hợp lệ và cách tránh bị chặn nhầm bởi cơ chế chống trùng
+  - Kiểm chứng tác dụng phụ khi lỗi xảy ra trước hoặc sau điểm xác nhận
+- level1: Đồng bộ dữ liệu
+  level2:
+  - 'Máy khách giao dịch (Transactional Client): phạm vi gửi nhận trong giao dịch'
+  - 'Bài toán ghi kép: cập nhật cơ sở dữ liệu và gửi thông điệp'
+  - 'Hộp thư đi giao dịch (Transactional Outbox): ghi nghiệp vụ và sự kiện nguyên tử'
+  - Chuyển tiếp outbox bằng thăm dò và thu nhận thay đổi dữ liệu (CDC)
+  - Xử lý relay khởi động lại, gửi trùng và bảo toàn thứ tự theo thực thể
+  - 'Hộp thư đến (Inbox): ghi nhận nhận tin và cập nhật nghiệp vụ'
+  - Kết hợp Outbox và Inbox trong luồng nhiều dịch vụ
+  - Đối chiếu giao dịch cục bộ, giao dịch phân tán và nhất quán cuối cùng
+  - Dọn dữ liệu, theo dõi độ trễ và khôi phục bản ghi bị kẹt
+  - Thiết kế đọc lại trạng thái và đối soát khi dữ liệu hai bên lệch nhau
+- level1: Saga
+  level2:
+  - 'Saga: chia giao dịch nghiệp vụ dài thành các giao dịch cục bộ'
+  - 'Hành động bù trừ: ý nghĩa nghiệp vụ và khác biệt với rollback cơ sở dữ liệu'
+  - 'Saga theo choreography: chuỗi sự kiện và quyền sở hữu bước'
+  - 'Saga theo orchestration: lệnh, phản hồi và trạng thái điều phối'
+  - Thời hạn, lỗi vĩnh viễn và chuyển sang luồng bù trừ
+  - Lệnh hoặc phản hồi trùng, đến muộn và trái thứ tự trong Saga
+  - Bù trừ thất bại, thử lại và can thiệp thủ công
+  - Thiết kế bước không thể đảo ngược và giới hạn nhất quán khi đang xử lý
+  - 'Ví dụ đặt hàng–giữ hàng–thanh toán: luồng thành công và các nhánh thất bại'
+- level1: Hợp đồng và tiến hóa
+  level2:
+  - Thiết kế sự kiện theo miền nghiệp vụ và tránh phát nguyên cấu trúc bảng
+  - Quyền sở hữu hợp đồng giữa bên phát và các bên nhận
+  - Tương thích tiến và lùi khi thêm, đổi hoặc bỏ trường
+  - Dữ liệu cũ trong hàng đợi và yêu cầu hỗ trợ nhiều phiên bản
+  - Chuyển đổi tại biên và triển khai từng bước khi hợp đồng thay đổi
+  - Định danh sự kiện ổn định và quan hệ nhân quả giữa các thông điệp
+  - 'Phát lại lịch sử: phiên bản dữ liệu, tác dụng phụ và ranh giới Event Sourcing'
+  - Tránh hợp đồng dùng chung quá lớn và phụ thuộc thư viện miền xuyên dịch vụ
+- level1: Bảo mật
+  level2:
+  - Ranh giới tin cậy và xác thực bên gửi, bên nhận
+  - Phân quyền theo kênh, thao tác và miền nghiệp vụ
+  - Kiểm tra cấu trúc, kích thước và nội dung thông điệp không tin cậy
+  - Bảo vệ dữ liệu khi truyền, lưu bền, đưa vào kênh lỗi và ghi nhật ký
+  - Bảo vệ địa chỉ trả lời, tuyến động và tham chiếu Claim Check
+  - Ngăn xử lý lại trái phép và phân biệt với phát lại phục hồi
+  - Cô lập bên thuê và hạn chế lan truyền dữ liệu nhạy cảm qua nhiều nhánh
+- level1: Quản lý và quan sát
+  level2:
+  - 'Kênh điều khiển (Control Bus): quản trị thành phần và luồng tích hợp'
+  - 'Nhánh đi vòng (Detour): chèn bước kiểm tra hoặc chẩn đoán có kiểm soát'
+  - 'Nhánh sao chép quan sát (Wire Tap): theo dõi thông điệp ngoài luồng chính'
+  - 'Lịch sử thông điệp (Message History): ghi lại các bước đã đi qua'
+  - 'Kho thông điệp (Message Store): lưu phục vụ tra cứu, kiểm toán và phục hồi'
+  - 'Proxy theo dõi (Smart Proxy): quan sát hội thoại có địa chỉ trả lời động'
+  - 'Thông điệp kiểm tra (Test Message): kiểm tra cả đường đi và kết quả xử lý'
+  - 'Dọn kênh (Channel Purger): phạm vi, điều kiện và rủi ro mất dữ liệu'
+  - 'Truy vết xuyên luồng: mã tương quan, quan hệ nhân quả và nhiều nhánh'
+  - Chỉ số độ trễ đầu cuối, tuổi thông điệp, tồn đọng và tỷ lệ lỗi
+  - Cảnh báo theo tác động nghiệp vụ và phân biệt tắc nghẽn với lỗi xử lý
+  - Quy trình điều tra, sửa dữ liệu và phát lại có dấu vết kiểm toán
+- level1: Hiệu năng
+  level2:
+  - Thông lượng, độ trễ và thời gian chờ tại từng bước luồng
+  - 'Điều tiết ngược (Backpressure): giới hạn lượng việc được nhận'
+  - Giới hạn tốc độ, số việc đang xử lý và kích thước bộ đệm
+  - 'Gộp lô gửi nhận: đánh đổi thông lượng, độ trễ và phạm vi lỗi'
+  - Cân bằng tải và tách tải giữa nghiệp vụ quan trọng, chậm và thử lại
+  - Nút nghẽn tại bộ định tuyến, nguồn bổ sung dữ liệu và bộ hợp nhất
+  - Giảm kích thước thông điệp, chi phí chuyển đổi và số lần truyền
+  - Lập dung lượng theo lưu lượng đỉnh, thời gian lưu và nhu cầu phát lại
+  - Đo kiểm trước và sau tối ưu bằng cùng tiêu chí nghiệp vụ
+- level1: Kiểm thử
+  level2:
+  - 'Chiến lược kiểm thử: đơn vị, hợp đồng, tích hợp và toàn luồng'
+  - Kiểm thử bộ lọc, ánh xạ và bảng quyết định định tuyến
+  - Kiểm thử tách–hợp nhất với dữ liệu thiếu, trùng và đến lệch thứ tự
+  - Kiểm thử hỏi đáp với phản hồi đến muộn, mất dấu và quá thời hạn
+  - Kiểm thử giao nhận bằng cách gây lỗi tại các ranh giới lưu và xác nhận
+  - Kiểm thử Outbox, Inbox và chống trùng khi nhiều bên nhận chạy đồng thời
+  - Kiểm thử Saga và các nhánh bù trừ thất bại
+  - Dùng đồng hồ kiểm soát và chờ theo điều kiện thay cho thời gian chờ cố định
+  - Kiểm thử tải, gián đoạn kết nối và phục hồi tồn đọng
+  - 'Cách xác định đạt: trạng thái nghiệp vụ, tác dụng phụ, thứ tự và dấu vết'
+- level1: Hiện thực trong Java
+  level2:
+  - Tách nghiệp vụ Java khỏi mã gửi nhận bằng gateway, mapper và adapter
+  - Mô hình hóa phần đầu, nội dung và ngữ cảnh tương quan trong Java
+  - Ánh xạ mẫu thiết kế sang kênh, endpoint và luồng Spring Integration
+  - Xây dựng router, filter, transformer và service activator
+  - Xây dựng splitter, aggregator và quản lý trạng thái nhóm
+  - Thiết kế ranh giới giao dịch, lỗi và xác nhận trong ứng dụng Spring
+  - Ánh xạ bảo đảm của mẫu sang khả năng thực tế của từng broker
+  - Đối chiếu cách biểu diễn luồng trong Spring Integration và Apache Camel
+  - Kiểm thử luồng Java bằng thành phần giả và hạ tầng tích hợp có thể lặp lại
+- level1: Thiết kế và thực hành
+  level2:
+  - Chuyển yêu cầu nghiệp vụ thành sơ đồ luồng, kênh và hợp đồng
+  - Ma trận chọn mẫu theo số bên nhận, trạng thái, thứ tự và điều kiện hoàn tất
+  - Phối hợp mẫu và ghi rõ giả định, đánh đổi, ranh giới bảo đảm
+  - Bài thực hành xử lý đơn hàng bằng lọc, định tuyến, tách và hợp nhất
+  - Bài thực hành thu thập báo giá bằng Scatter-Gather có thời hạn
+  - Bài thực hành đồng bộ dữ liệu bằng Outbox, Inbox và phát lại
+  - Bài thực hành Saga đặt hàng với nhánh bù trừ và xử lý trùng
+  - 'Nhận diện phản mẫu: gọi vòng qua broker, sự kiện quá lớn và điều phối rối'
+  - 'Hoàn thiện tài liệu Markdown: sơ đồ, hợp đồng, tình huống lỗi và kết quả kỳ vọng'
+  - 'Bài tổng hợp: bảo vệ thiết kế bằng bằng chứng kiểm thử và số liệu quan sát'

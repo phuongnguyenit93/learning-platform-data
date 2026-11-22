@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan HTTP client
+  slug: http-client-overview
+  index: 0
+- title: Lựa chọn thư viện
+  slug: library-selection
+  index: 1
+- title: Vòng đời lời gọi
+  slug: call-lifecycle
+  index: 2
+- title: URI và tham số
+  slug: uris-parameters
+  index: 3
+- title: Yêu cầu HTTP
+  slug: http-requests
+  index: 4
+- title: Phản hồi và lỗi
+  slug: responses-errors
+  index: 5
+- title: JDK HttpClient
+  slug: jdk-httpclient
+  index: 6
+- title: Apache HttpClient 5
+  slug: apache-httpclient-5
+  index: 7
+- title: OkHttp
+  slug: okhttp
+  index: 8
+- title: Spring RestTemplate
+  slug: spring-resttemplate
+  index: 9
+- title: Spring RestClient
+  slug: spring-restclient
+  index: 10
+- title: Spring WebClient
+  slug: spring-webclient
+  index: 11
+- title: HTTP Interface
+  slug: http-interfaces
+  index: 12
+- title: Spring Cloud OpenFeign
+  slug: spring-openfeign
+  index: 13
+- title: Kết nối và pool
+  slug: connections-pooling
+  index: 14
+- title: Timeout và hủy
+  slug: timeouts-cancellation
+  index: 15
+- title: Thử lại an toàn
+  slug: safe-retries
+  index: 16
+- title: Ngắt mạch và cô lập
+  slug: circuit-breakers-isolation
+  index: 17
+- title: Đồng thời và tải
+  slug: concurrency-load
+  index: 18
+- title: Xác thực
+  slug: authentication
+  index: 19
+- title: TLS và proxy
+  slug: tls-proxies
+  index: 20
+- title: Bảo mật đầu ra
+  slug: outbound-security
+  index: 21
+- title: File và streaming
+  slug: files-streaming
+  index: 22
+- title: Cookie và cache
+  slug: cookies-caching
+  index: 23
+- title: Phân trang và tổng hợp
+  slug: pagination-aggregation
+  index: 24
+- title: Hợp đồng và dữ liệu
+  slug: contracts-data
+  index: 25
+- title: Thiết kế tầng tích hợp
+  slug: integration-layer-design
+  index: 26
+- title: Quan sát lời gọi
+  slug: request-observability
+  index: 27
+- title: Kiểm thử client
+  slug: client-testing
+  index: 28
+- title: Hiệu năng
+  slug: performance
+  index: 29
+- title: Vận hành và sự cố
+  slug: operations-incidents
+  index: 30
+- title: Chuyển đổi client
+  slug: client-migration
+  index: 31
+- title: Bài tập tổng hợp
+  slug: hands-on-exercises
+  index: 32

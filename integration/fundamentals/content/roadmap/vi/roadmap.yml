@@ -1,0 +1,57 @@
+roadmap:
+- id: muc-tieu-ranh-gioi-tich-hop
+  title: Mục tiêu & ranh giới tích hợp
+  purpose: Hiểu vì sao các hệ thống cần trao đổi dữ liệu và xác định trách nhiệm tại điểm kết nối.
+  objectives:
+  - Phân biệt tích hợp nội bộ với tích hợp đối tác.
+  - Vẽ producer, consumer, endpoint và luồng dữ liệu.
+  - Xác định ràng buộc độ trễ, tải và mức phụ thuộc.
+- id: dong-bo-bat-dong-bo
+  title: Đồng bộ & bất đồng bộ
+  purpose: Chọn kiểu giao tiếp phù hợp với thời gian phản hồi và mức độ tách rời giữa dịch vụ.
+  objectives:
+  - So sánh request–response với gửi thông điệp bất đồng bộ.
+  - Phân biệt queue và publish–subscribe.
+  - Nhận diện khi nào dùng polling, callback hoặc event.
+- id: giao-thuc-kenh-ket-noi
+  title: Giao thức & kênh kết nối
+  purpose: Nhận diện các lựa chọn truyền dữ liệu và tiêu chí đánh đổi khi tích hợp hệ thống.
+  objectives:
+  - Giải thích HTTP, gRPC và message broker ở mức cơ bản.
+  - Phân biệt API, protocol, transport và integration endpoint.
+  - Chọn kênh theo yêu cầu real-time, throughput và tương thích.
+- id: hop-dong-dinh-dang-du-lieu
+  title: Hợp đồng & định dạng dữ liệu
+  purpose: Giúp các hệ thống hiểu thống nhất cấu trúc, ngữ nghĩa và phiên bản của dữ liệu trao đổi.
+  objectives:
+  - Thiết kế request, response, event hoặc message schema.
+  - So sánh JSON, XML và Protobuf theo trường hợp sử dụng.
+  - Định nghĩa versioning và quy tắc tương thích ngược.
+- id: mau-tich-hop-pho-bien
+  title: Mẫu tích hợp phổ biến
+  purpose: Tổ chức chuyển đổi và phân phối thông điệp mà không gắn chặt các hệ thống.
+  objectives:
+  - Nhận diện adapter, message router và message translator.
+  - So sánh point-to-point với fan-out/pub-sub.
+  - Mô tả orchestration và choreography ở mức khái quát.
+- id: bao-mat-kiem-soat-truy-cap
+  title: Bảo mật & kiểm soát truy cập
+  purpose: Bảo vệ dữ liệu khi trao đổi giữa các dịch vụ và giới hạn quyền của từng bên.
+  objectives:
+  - Dùng TLS và cơ chế xác thực phù hợp với kênh tích hợp.
+  - Phân biệt authentication với authorization.
+  - Áp dụng ít quyền, giới hạn tốc độ và tránh lộ secret.
+- id: do-tin-cay-nhat-quan
+  title: Độ tin cậy & nhất quán
+  purpose: Giảm tác động của mạng lỗi, timeout, gửi lặp và cập nhật phân tán.
+  objectives:
+  - Thiết kế timeout, retry có backoff và circuit breaker.
+  - Giải thích idempotency, duplicate và dead-letter queue.
+  - Nhận diện eventual consistency và giới hạn của giao dịch phân tán.
+- id: kiem-thu-quan-sat-luong
+  title: Kiểm thử & quan sát luồng
+  purpose: Kiểm chứng khả năng tương tác và lần theo lỗi xuyên nhiều dịch vụ.
+  objectives:
+  - Viết contract test và integration test với lỗi giả lập.
+  - Gắn correlation ID hoặc trace context xuyên lời gọi.
+  - Theo dõi log, metrics, trace và thời gian xử lý.

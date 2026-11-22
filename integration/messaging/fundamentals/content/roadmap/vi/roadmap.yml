@@ -1,0 +1,57 @@
+roadmap:
+- id: messaging-bat-dong-bo
+  title: Messaging & bất đồng bộ
+  purpose: Hiểu lý do tách bên gửi và bên xử lý qua thông điệp, thay vì phụ thuộc hoàn toàn vào HTTP đồng bộ.
+  objectives:
+  - So sánh request-response với messaging bất đồng bộ
+  - Nêu lợi ích giảm coupling và làm phẳng tải
+  - Nhận diện tính eventual consistency trong một luồng xử lý
+- id: producer-broker-consumer
+  title: Producer, Broker, Consumer
+  purpose: Nắm đường đi của thông điệp và trách nhiệm của mỗi thành phần trong hệ thống.
+  objectives:
+  - Vẽ luồng producer → broker → consumer
+  - Phân biệt message broker với ứng dụng xử lý
+  - Giải thích lúc nào cần queue hoặc topic
+- id: payload-message-contract
+  title: Payload & Message Contract
+  purpose: Thiết kế thông điệp có ý nghĩa và đủ metadata để các dịch vụ tích hợp độc lập.
+  objectives:
+  - Phân biệt payload và message headers
+  - Gắn event ID, type, timestamp và correlation ID
+  - Chọn JSON/Avro/Protobuf và nguyên tắc tương thích schema
+- id: queue-work-distribution
+  title: Queue & Work Distribution
+  purpose: Phân phối công việc cho nhiều worker mà không xử lý đồng thời một tác vụ theo ý định của mô hình queue.
+  objectives:
+  - Tạo một hàng đợi và hai consumer đơn giản
+  - Quan sát phân chia task giữa các consumer
+  - Giải thích backlog, prefetch và tốc độ xử lý
+- id: publish-subscribe
+  title: Publish/Subscribe
+  purpose: Phân phối một sự kiện cho nhiều nhóm xử lý độc lập thông qua mô hình pub/sub.
+  objectives:
+  - Phân biệt work queue và fan-out sự kiện
+  - Ánh xạ exchange, binding, routing key trong RabbitMQ
+  - Giải thích vì sao mỗi subscriber cần đường nhận riêng
+- id: topic-event-log
+  title: Topic & Event Log
+  purpose: Nhận biết khác biệt cốt lõi giữa queue thông thường và luồng sự kiện lưu theo thời gian như Kafka.
+  objectives:
+  - Phân biệt topic, partition và offset
+  - Giải thích retention và đọc lại thông điệp
+  - Nêu tác động của partition key lên thứ tự và scale
+- id: ack-delivery-semantics
+  title: Ack & Delivery Semantics
+  purpose: Đặt kỳ vọng đúng về giao nhận, trường hợp gửi lại và xử lý trùng.
+  objectives:
+  - Phân biệt publisher confirm và consumer acknowledgment
+  - So sánh at-most-once với at-least-once
+  - Thiết kế consumer idempotent theo message ID
+- id: loi-quan-sat-thuc-hanh
+  title: Lỗi, quan sát & thực hành
+  purpose: Hoàn thiện một luồng messaging nhỏ có đường xử lý lỗi và dấu vết để kiểm chứng.
+  objectives:
+  - Phân loại lỗi tạm thời và lỗi không thể xử lý
+  - Giải thích retry, dead-letter queue và tránh retry vô hạn
+  - Theo dõi backlog, failure count, trace/correlation ID

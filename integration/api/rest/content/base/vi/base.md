@@ -1,0 +1,7 @@
+# Integration API REST
+
+REST (*Representational State Transfer*) là phong cách kiến trúc dùng để thiết kế giao diện trao đổi tài nguyên giữa các hệ thống. Trong thực tế, REST API thường được triển khai qua HTTP với URI định danh tài nguyên, phương thức như GET/POST/PUT/DELETE, mã trạng thái và biểu diễn JSON. Để một API dễ tích hợp, người phát triển cần hiểu ngữ nghĩa HTTP, tính *stateless*, khả năng xử lý yêu cầu lặp lại và hợp đồng dữ liệu, không chỉ tạo endpoint trả JSON. Module phù hợp với người đã biết Java, Spring Boot và HTTP cơ bản.
+
+Lộ trình đi từ khái niệm resource và cách thiết kế URI đến lựa chọn HTTP method, status code, headers và representation phù hợp. Người học tiếp tục hiện thực endpoint với Spring `@RestController`, DTO và `ResponseEntity`; kiểm tra đầu vào bằng Bean Validation và trả lỗi nhất quán theo *Problem Details* (RFC 9457). Các mốc sau tập trung vào filter, sort, phân trang, tương thích khi thay đổi API, kiểm soát truy cập, cache HTTP và mô tả hợp đồng bằng OpenAPI, đồng thời kiểm thử request/response bằng MockMvc.
+
+Sau module, bạn có thể thiết kế và triển khai REST API nhỏ cho ứng dụng Java, viết ví dụ CRUD với kết quả HTTP đúng ngữ nghĩa, xử lý lỗi và tạo đặc tả để client tích hợp. Cần lưu ý **authentication không thay thế authorization**: từng yêu cầu truy cập đối tượng phải được kiểm tra quyền, dữ liệu nhạy cảm không được đưa vào phản hồi hoặc log, và caching chỉ nên áp dụng khi phù hợp chính sách bảo mật cũng như tính mới của dữ liệu.

@@ -1,0 +1,7 @@
+# Integration Realtime RSocket
+
+RSocket là giao thức ứng dụng nhị phân dành cho giao tiếp bất đồng bộ, hai chiều và có hỗ trợ *Reactive Streams* qua kết nối mạng. Khác với việc chỉ gửi một HTTP request rồi chờ một response, RSocket cung cấp bốn kiểu tương tác: request-response, fire-and-forget, request-stream và request-channel. Module này dành cho người học Java đã quen Spring Boot và có kiến thức cơ bản về `Mono`, `Flux` và giao tiếp mạng.
+
+Lộ trình bắt đầu từ cách lựa chọn kiểu tương tác, transport TCP/WebSocket và quá trình thiết lập kết nối. Tiếp theo là triển khai RSocket responder với `@MessageMapping`, gọi dịch vụ bằng `RSocketRequester`, xây dựng luồng một chiều hoặc hai chiều và cấu hình routing metadata, codec. Các mốc cuối tập trung vào backpressure, leasing, keepalive, xử lý lỗi, bảo mật và kiểm thử khi kết nối realtime bị gián đoạn.
+
+Kết thúc module, bạn có thể tạo một ví dụ Spring Boot RSocket client/server, giải thích các điểm khác nhau giữa stream và channel, kiểm chứng luồng dữ liệu qua `Flux` và lựa chọn cách điều tiết hoặc phục hồi phù hợp. Cần phân biệt cơ chế *resume* tùy chọn của giao thức với việc tự động kết nối lại: khả năng tiếp tục một luồng còn phụ thuộc triển khai và trạng thái được duy trì ở cả hai đầu.

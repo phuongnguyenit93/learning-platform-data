@@ -1,0 +1,57 @@
+roadmap:
+- id: rest-resource
+  title: REST & Resource
+  purpose: Hiểu REST như cách thiết kế giao diện tài nguyên qua HTTP, thay vì chỉ gọi hành động qua URL.
+  objectives:
+  - Giải thích resource, representation và statelessness
+  - Phân biệt tài nguyên với endpoint thao tác nghiệp vụ
+  - Vẽ vòng request → response cho một ứng dụng Java
+- id: uri-http-methods
+  title: URI & HTTP Methods
+  purpose: Thiết kế đường dẫn dễ hiểu và sử dụng đúng ngữ nghĩa phương thức HTTP cho từng thao tác.
+  objectives:
+  - Đặt URI theo danh từ, path và query parameter
+  - Phân biệt GET, POST, PUT, PATCH và DELETE
+  - Giải thích tính safe và idempotent khi retry
+- id: status-representation
+  title: Status & Representation
+  purpose: Trả về kết quả nhất quán để client hiểu trạng thái và định dạng dữ liệu.
+  objectives:
+  - Chọn status 200, 201, 204, 400, 404, 409, 500 phù hợp
+  - Dùng Content-Type, Accept và Location đúng ngữ cảnh
+  - Thiết kế JSON response không lộ dữ liệu nội bộ
+- id: spring-rest-api
+  title: Spring REST API
+  purpose: Hiện thực các endpoint bằng Spring Boot theo ranh giới controller, service và DTO rõ ràng.
+  objectives:
+  - Tạo @RestController với @GetMapping và @PostMapping
+  - Nhận path, query và request body vào DTO
+  - Trả ResponseEntity cùng status và JSON phù hợp
+- id: validation-error
+  title: Validation & Error
+  purpose: Xử lý đầu vào không hợp lệ và lỗi nghiệp vụ nhất quán, dễ hiểu, có thể truy vết.
+  objectives:
+  - Áp dụng Bean Validation cho request DTO
+  - Ánh xạ lỗi bằng @ExceptionHandler/@ControllerAdvice
+  - Trả Problem Details theo RFC 9457 khi phù hợp
+- id: collection-api-evolution
+  title: Collection & API Evolution
+  purpose: Làm việc với danh sách dữ liệu lớn và phát triển hợp đồng API mà không phá client hiện tại.
+  objectives:
+  - Thiết kế filter, sort và pagination có giới hạn
+  - Phân biệt field optional, breaking change và versioning
+  - Lập ví dụ giữ tương thích cho client cũ
+- id: security-caching
+  title: Security & Caching
+  purpose: Bảo vệ quyền truy cập và tối ưu tải đọc theo hành vi HTTP thay vì tự đặt cơ chế riêng.
+  objectives:
+  - Phân biệt authentication và object-level authorization
+  - Áp dụng HTTPS, kiểm soát dữ liệu nhạy cảm và rate limit
+  - Giải thích Cache-Control, ETag và conditional GET
+- id: openapi-testing
+  title: OpenAPI & Testing
+  purpose: Mô tả hợp đồng công khai và kiểm thử endpoint theo cả luồng thành công lẫn thất bại.
+  objectives:
+  - Viết OpenAPI cho path, request, response và status
+  - Kiểm thử endpoint bằng MockMvc và dữ liệu thử
+  - Xác minh 2xx/4xx, validation, authorization và JSON

@@ -1,0 +1,3925 @@
+menu:
+- slug: rabbitmq-overview
+  title: Tổng quan RabbitMQ
+  childs:
+  - slug: rabbitmq-overview-001
+    title: RabbitMQ là gì và vai trò trong tích hợp hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-overview-002
+    title: Vì sao cần môi giới thông điệp giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-overview-003
+    title: Gửi nhận bất đồng bộ và giới hạn của gọi HTTP đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-overview-004
+    title: 'Ứng dụng gửi (publisher), broker và ứng dụng nhận (consumer): trách nhiệm từng bên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-overview-005
+    title: Bộ định tuyến (exchange), liên kết (binding), hàng đợi (queue) và consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-overview-006
+    title: Hành trình một thông điệp từ lúc gửi đến khi xử lý xong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-overview-007
+    title: Phân biệt lệnh, sự kiện và thông điệp phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-overview-008
+    title: Các bài toán phù hợp và trường hợp không nên dùng RabbitMQ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-overview-009
+    title: 'RabbitMQ, Kafka và ActiveMQ: ranh giới lựa chọn công nghệ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-overview-010
+    title: Lộ trình học và kiến thức Java, mạng, cơ sở dữ liệu cần có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-protocols
+  title: Kiến trúc và giao thức
+  childs:
+  - slug: architecture-protocols-001
+    title: Tiến trình Erlang, node RabbitMQ và các thành phần bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-protocols-002
+    title: Mô hình AMQP 0-9-1 và phần mở rộng của RabbitMQ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-protocols-003
+    title: Phân biệt AMQP 0-9-1, AMQP 1.0 và RabbitMQ Stream Protocol
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-protocols-004
+    title: 'Connection và channel: vì sao nhiều channel dùng chung kết nối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-protocols-005
+    title: Virtual host và phạm vi cô lập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-protocols-006
+    title: Phương thức AMQP, frame và vòng trao đổi giữa client với broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-protocols-007
+    title: Phân biệt dữ liệu thông điệp với dữ liệu khai báo topology
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-protocols-008
+    title: Đường đi của thông điệp khi queue nằm trên node khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-protocols-009
+    title: Management UI, HTTP API và công cụ dòng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-protocols-010
+    title: Plugin trong kiến trúc RabbitMQ và giới hạn tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lab-setup
+  title: Môi trường thực hành
+  childs:
+  - slug: lab-setup-001
+    title: Chọn phiên bản RabbitMQ, Erlang và thư viện client tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lab-setup-002
+    title: Khởi chạy RabbitMQ bằng Docker và Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lab-setup-003
+    title: Cổng AMQP, cổng quản trị và cách ánh xạ cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lab-setup-004
+    title: Tạo tài khoản thực hành và giới hạn truy cập của tài khoản guest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lab-setup-005
+    title: Bật Management Plugin và kiểm tra node sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lab-setup-006
+    title: Tạo virtual host riêng cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lab-setup-007
+    title: Gắn volume và kiểm chứng dữ liệu sau khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lab-setup-008
+    title: Khai báo exchange, queue và binding đầu tiên bằng giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lab-setup-009
+    title: Gửi nhận thông điệp đầu tiên và quan sát số lượng trong queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lab-setup-010
+    title: 'Dọn tài nguyên thực hành: phân biệt purge, delete và xóa volume'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connections-channels
+  title: Kết nối và channel
+  childs:
+  - slug: connections-channels-001
+    title: Thiết lập kết nối bằng URI và danh sách địa chỉ broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-channels-002
+    title: Vòng đời connection, channel và tài nguyên cần đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-channels-003
+    title: Tên kết nối để nhận diện ứng dụng trong công cụ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-channels-004
+    title: Heartbeat và phát hiện kết nối không còn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-channels-005
+    title: Connection timeout, handshake timeout và thời gian chờ thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-channels-006
+    title: Thương lượng frame_max, channel_max và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-channels-007
+    title: Lỗi ở cấp channel khác lỗi ở cấp connection như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-channels-008
+    title: Xử lý thông báo đóng kết nối, đóng channel và consumer bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-channels-009
+    title: Tái sử dụng kết nối và phân chia channel theo luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-channels-010
+    title: Tách kết nối gửi và nhận khi cần cô lập áp lực tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-channels-011
+    title: Kết nối bị block do cảnh báo tài nguyên và cách phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-structure
+  title: Cấu trúc thông điệp
+  childs:
+  - slug: message-structure-001
+    title: Body dạng byte và trách nhiệm mã hóa, giải mã của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-002
+    title: Properties chuẩn và headers tùy chỉnh trong AMQP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-003
+    title: contentType, contentEncoding và thống nhất định dạng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-004
+    title: messageId, correlationId và định danh phục vụ truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-005
+    title: replyTo, timestamp, type và các thuộc tính ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-006
+    title: deliveryMode và ý nghĩa lưu bền của thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-007
+    title: Thiết kế dữ liệu JSON và tránh phụ thuộc trực tiếp vào lớp Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-008
+    title: Phiên bản hợp đồng dữ liệu và khả năng tương thích người gửi, người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-009
+    title: Thông điệp thiếu trường, sai kiểu và chính sách từ chối dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-010
+    title: Kích thước thông điệp, giới hạn broker và chi phí sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-011
+    title: Dùng tham chiếu tới tệp lớn thay vì nhúng toàn bộ nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-012
+    title: Bảo vệ dữ liệu nhạy cảm trong body, header và nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exchanges
+  title: Exchange
+  childs:
+  - slug: exchanges-001
+    title: Exchange là gì và vì sao producer thường gửi qua exchange
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchanges-002
+    title: Default exchange và cơ chế định tuyến theo tên queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchanges-003
+    title: Direct exchange và so khớp chính xác routing key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchanges-004
+    title: Fanout exchange và phát bản sao tới các queue đã liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchanges-005
+    title: Topic exchange và cấu trúc routing key theo từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchanges-006
+    title: 'Ký tự đại diện * và # trong topic binding'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchanges-007
+    title: Headers exchange và điều kiện x-match all, any
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchanges-008
+    title: Durable, auto-delete và internal ở cấp exchange
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchanges-009
+    title: Khai báo, kiểm tra tồn tại và xóa exchange
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchanges-010
+    title: Exchange-to-exchange binding và chuỗi định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchanges-011
+    title: Alternate exchange cho thông điệp không có đường định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchanges-012
+    title: Chọn loại exchange theo yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queues
+  title: Hàng đợi
+  childs:
+  - slug: queues-001
+    title: Queue lưu giữ thông điệp như thế nào và khi nào thông điệp bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-002
+    title: 'Classic queue, quorum queue và stream: các mô hình lưu trữ khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-003
+    title: Durable queue và vòng đời qua lần khởi động lại broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-004
+    title: Exclusive queue và quan hệ với kết nối sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-005
+    title: Auto-delete queue và điều kiện xóa sau vòng đời consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-006
+    title: Queue có tên cố định và queue do broker sinh tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-007
+    title: Optional arguments, x-queue-type và default queue type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-008
+    title: Khai báo chủ động, khai báo thụ động và lỗi khác biệt thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-009
+    title: Xóa queue có điều kiện và purge các thông điệp đang chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-010
+    title: Giới hạn chiều dài, dung lượng và hành vi khi queue đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-011
+    title: Chọn loại queue và thuộc tính theo thời gian sống dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-012
+    title: Thiết kế tên queue và quyền sở hữu giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: topology-routing
+  title: Topology và định tuyến
+  childs:
+  - slug: topology-routing-001
+    title: Sơ đồ kết nối (topology) và quan hệ giữa exchange, queue, binding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-routing-002
+    title: Routing key của lần publish khác binding key như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-routing-003
+    title: Một queue có nhiều binding và một exchange phục vụ nhiều queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-routing-004
+    title: Nhiều consumer cùng queue khác nhiều queue cùng exchange
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-routing-005
+    title: Tách queue theo dịch vụ để mỗi bên nhận đủ sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-routing-006
+    title: Thiết kế routing key theo miền nghiệp vụ và loại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-routing-007
+    title: Định tuyến theo tenant và giới hạn của việc tạo quá nhiều queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-routing-008
+    title: Đường định tuyến trùng lặp và kiểm chứng số bản sao nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-routing-009
+    title: Quản lý topology do ứng dụng khai báo hay do hạ tầng cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-routing-010
+    title: Thay đổi binding và chuyển topology mà không làm gián đoạn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-routing-011
+    title: Thiết kế đường dự phòng cho thông điệp không được định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: topology-routing-012
+    title: Lập bảng kiểm định tuyến trước khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-publishing
+  title: Gửi thông điệp
+  childs:
+  - slug: message-publishing-001
+    title: basic.publish và các tham số exchange, routing key, properties, body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-publishing-002
+    title: Gửi tới default exchange và gửi tới exchange tự khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-publishing-003
+    title: Gửi vào exchange không tồn tại và hậu quả đối với channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-publishing-004
+    title: Thông điệp không khớp binding sẽ được xử lý ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-publishing-005
+    title: Cờ mandatory và tiếp nhận basic.return
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-publishing-006
+    title: Phân biệt publish thành công ở client với broker đã tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-publishing-007
+    title: Theo dõi thông điệp đang chờ xác nhận khi gửi bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-publishing-008
+    title: Giới hạn lượng thông điệp đang gửi để kiểm soát bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-publishing-009
+    title: Đặt thời gian chờ và xử lý kết quả gửi chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-publishing-010
+    title: Dừng publisher an toàn và chờ các lần gửi đang dở hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-consuming
+  title: Nhận thông điệp
+  childs:
+  - slug: message-consuming-001
+    title: basic.consume và mô hình broker đẩy thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-consuming-002
+    title: basic.get và những giới hạn của việc lấy từng thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-consuming-003
+    title: Đăng ký consumer, consumer tag và hủy đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-consuming-004
+    title: 'Thông tin delivery: exchange, routing key, delivery tag, redelivered'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-consuming-005
+    title: Phân biệt trạng thái ready và unacknowledged trong queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-consuming-006
+    title: Nhiều consumer cạnh tranh và phân phối công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-consuming-007
+    title: Consumer ưu tiên và giới hạn bảo đảm công bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-consuming-008
+    title: Single Active Consumer và chuyển quyền khi consumer ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-consuming-009
+    title: Thiết kế vòng xử lý nhận, kiểm tra, thực thi và xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-consuming-010
+    title: Giới hạn số luồng nghiệp vụ so với số consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-consuming-011
+    title: Consumer bị hủy từ phía broker và cách đăng ký lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-consuming-012
+    title: Dừng consumer an toàn khi còn công việc đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consumer-acknowledgements
+  title: Xác nhận xử lý
+  childs:
+  - slug: consumer-acknowledgements-001
+    title: Consumer acknowledgement xác nhận điều gì và không xác nhận điều gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-acknowledgements-002
+    title: Tự động xác nhận và nguy cơ mất công việc khi ứng dụng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-acknowledgements-003
+    title: Xác nhận thủ công sau khi nghiệp vụ hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-acknowledgements-004
+    title: basic.ack và phạm vi delivery tag trong một channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-acknowledgements-005
+    title: Tham số multiple và rủi ro xác nhận gộp khi xử lý song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-acknowledgements-006
+    title: basic.reject, basic.nack và khả năng từ chối một hay nhiều delivery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-acknowledgements-007
+    title: requeue=true và requeue=false dẫn thông điệp tới đâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-acknowledgements-008
+    title: Mất kết nối trước hoặc sau acknowledgement và khả năng giao lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-acknowledgements-009
+    title: Cờ redelivered và vì sao không đủ để phát hiện mọi bản trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-acknowledgements-010
+    title: Lỗi unknown delivery tag, xác nhận hai lần và dùng sai channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-acknowledgements-011
+    title: Thời hạn acknowledgement và cách xử lý tác vụ kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consumer-acknowledgements-012
+    title: Chọn thời điểm xác nhận khi có cơ sở dữ liệu hoặc dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: publisher-confirms
+  title: Xác nhận xuất bản
+  childs:
+  - slug: publisher-confirms-001
+    title: Publisher confirms và ranh giới xác nhận từ broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publisher-confirms-002
+    title: Bật confirm mode và theo dõi số thứ tự publish
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publisher-confirms-003
+    title: Chờ xác nhận từng thông điệp và đánh đổi thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publisher-confirms-004
+    title: Chờ xác nhận theo lô và xử lý khi một phần lô thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publisher-confirms-005
+    title: Xử lý xác nhận bất đồng bộ và cập nhật danh sách đang chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publisher-confirms-006
+    title: basic.ack, basic.nack và cờ multiple trong publisher confirms
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publisher-confirms-007
+    title: Kết hợp mandatory returns với confirms để phát hiện sai định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publisher-confirms-008
+    title: Phân biệt broker xác nhận lưu nhận với consumer xử lý thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publisher-confirms-009
+    title: Mất kết nối, hết thời gian chờ và kết quả publish chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publisher-confirms-010
+    title: Gửi lại sau lỗi và nguy cơ tạo thông điệp trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publisher-confirms-011
+    title: AMQP transaction và khác biệt so với publisher confirms
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publisher-confirms-012
+    title: Lựa chọn cơ chế xác nhận theo yêu cầu an toàn và hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-guarantees
+  title: Bảo đảm giao nhận
+  childs:
+  - slug: delivery-guarantees-001
+    title: Các điểm có thể mất dữ liệu trên hành trình gửi, lưu, nhận, xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-002
+    title: At-most-once và at-least-once trong cấu hình ứng dụng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-003
+    title: Vì sao không thể suy ra exactly-once nghiệp vụ chỉ từ acknowledgement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-004
+    title: Kết hợp durable queue, thông điệp persistent và publisher confirms
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-005
+    title: Độ bền exchange khác độ bền queue và body như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-006
+    title: Cửa sổ lỗi giữa xử lý nghiệp vụ và gửi acknowledgement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-007
+    title: Bảo đảm giao nhận khi node, mạng hoặc ứng dụng gặp lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-008
+    title: Phân biệt sao lưu, sao chép và bảo đảm không mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-009
+    title: Định nghĩa tiêu chí mất dữ liệu, giao trùng và thời gian phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-guarantees-010
+    title: Lập ma trận sự cố để kiểm chứng cam kết giao nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flow-control
+  title: Điều tiết tải
+  childs:
+  - slug: flow-control-001
+    title: Prefetch và cửa sổ thông điệp chưa được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-002
+    title: basic.qos và phạm vi áp dụng theo consumer, channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-003
+    title: Prefetch thấp, cao và ảnh hưởng tới độ trễ, thông lượng, bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-004
+    title: Prefetch khác số luồng xử lý và kích thước hàng đợi nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-005
+    title: Giới hạn tải khi consumer xử lý tác vụ nhanh, chậm không đồng đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-006
+    title: Phân biệt consumer prefetch với broker flow control
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-007
+    title: Cảnh báo bộ nhớ, dung lượng đĩa và tác động tới publisher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-008
+    title: Xử lý connection.blocked và tránh tiếp tục tích lũy dữ liệu vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-009
+    title: Điều tiết tốc độ gửi theo số lượng confirms đang chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-010
+    title: Giới hạn queue và lựa chọn chính sách overflow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-011
+    title: Hấp thụ tải đột biến mà vẫn kiểm soát thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ordering-priorities
+  title: Thứ tự và ưu tiên
+  childs:
+  - slug: ordering-priorities-001
+    title: Thứ tự publish, enqueue, delivery và hoàn tất nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-priorities-002
+    title: Bảo đảm thứ tự trong phạm vi một channel và một queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-priorities-003
+    title: Nhiều producer, nhiều channel và việc xen kẽ thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-priorities-004
+    title: Nhiều consumer và khả năng hoàn tất khác thứ tự nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-priorities-005
+    title: Requeue, redelivery và thay đổi thứ tự quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-priorities-006
+    title: Giữ thứ tự theo khóa nghiệp vụ bằng phân luồng queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-priorities-007
+    title: Single Active Consumer và giới hạn khi xử lý song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-priorities-008
+    title: Message priority và cấu hình theo loại queue, phiên bản RabbitMQ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-priorities-009
+    title: Phân biệt message priority với consumer priority
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-priorities-010
+    title: Chống bỏ đói công việc ít ưu tiên và đo ảnh hưởng của prefetch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ordering-priorities-011
+    title: Sequence number và kiểm tra thông điệp đến sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ttl-dead-lettering
+  title: TTL và dead lettering
+  childs:
+  - slug: ttl-dead-lettering-001
+    title: Message TTL ở cấp queue và từng thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-dead-lettering-002
+    title: Queue TTL và khác biệt với thời hạn sống của thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-dead-lettering-003
+    title: Thông điệp hết hạn được loại bỏ khi nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-dead-lettering-004
+    title: Dead Letter Exchange và các nguyên nhân dead lettering
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-dead-lettering-005
+    title: Dead letter routing key và đường đi tới queue xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-dead-lettering-006
+    title: Cấu hình DLX bằng policy hoặc optional arguments
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-dead-lettering-007
+    title: Header x-death và lịch sử dead lettering
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-dead-lettering-008
+    title: Phân biệt dead-letter queue với tính năng DLX của broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-dead-lettering-009
+    title: Thông điệp không định tuyến được tại DLX và rủi ro thất lạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-dead-lettering-010
+    title: Vòng lặp dead lettering và cách thiết kế đường đi hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-dead-lettering-011
+    title: Khác biệt bảo đảm dead lettering giữa các loại queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ttl-dead-lettering-012
+    title: Giới hạn chiều dài queue kết hợp TTL và dead lettering
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retries-failed-messages
+  title: Thử lại và thông điệp lỗi
+  childs:
+  - slug: retries-failed-messages-001
+    title: Phân loại lỗi tạm thời, lỗi dữ liệu và lỗi nghiệp vụ không thể thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-failed-messages-002
+    title: Thử lại ngay trong tiến trình và tác động tới consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-failed-messages-003
+    title: Thử lại qua queue với TTL và DLX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-failed-messages-004
+    title: Nhiều tầng queue thử lại và thời gian chờ tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-failed-messages-005
+    title: Giới hạn số lần thử và xác định điểm dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-failed-messages-006
+    title: Vì sao requeue liên tục tạo vòng lặp nóng và lãng phí tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-failed-messages-007
+    title: Poison message và queue cách ly để điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-failed-messages-008
+    title: Delivery limit của quorum queue và xử lý khi vượt giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-failed-messages-009
+    title: Gửi lại sang queue lỗi và kiểm chứng kết quả publish
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-failed-messages-010
+    title: Lập lịch trì hoãn bằng ứng dụng hoặc tính năng phù hợp phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-failed-messages-011
+    title: Xem xét tính tương thích trước khi dùng plugin trì hoãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-failed-messages-012
+    title: Phát lại thông điệp từ queue cách ly có kiểm soát và lưu dấu vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-consistency
+  title: Nhất quán nghiệp vụ
+  childs:
+  - slug: business-consistency-001
+    title: Tính lũy đẳng và tác động của việc xử lý lại cùng thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-002
+    title: Chọn khóa chống trùng từ messageId hoặc định danh nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-003
+    title: Bảng inbox và ràng buộc duy nhất trong cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-004
+    title: Kết hợp cập nhật nghiệp vụ với ghi dấu đã xử lý trong một giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-005
+    title: Cửa sổ lỗi của thao tác vừa ghi cơ sở dữ liệu vừa publish
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-006
+    title: Transactional outbox và tiến trình chuyển thông điệp sang RabbitMQ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-007
+    title: Xác nhận publish, đánh dấu outbox và khả năng gửi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-008
+    title: Bảo toàn thứ tự theo thực thể khi phát sự kiện từ outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-009
+    title: Gọi dịch vụ ngoài và giới hạn của giao dịch cơ sở dữ liệu cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-010
+    title: Tính lũy đẳng cho thanh toán, thông báo và các tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-011
+    title: Giao dịch bù và ranh giới sử dụng RabbitMQ trong saga
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-consistency-012
+    title: Quản lý thời gian lưu khóa chống trùng và dữ liệu outbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quorum-queues
+  title: Quorum queue
+  childs:
+  - slug: quorum-queues-001
+    title: Quorum queue giải quyết bài toán sao chép và an toàn dữ liệu nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quorum-queues-002
+    title: Leader, follower và vai trò của đồng thuận Raft
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quorum-queues-003
+    title: Đa số thành viên và điều kiện tiếp tục phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quorum-queues-004
+    title: Khai báo quorum queue và lựa chọn số bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quorum-queues-005
+    title: Phân bố bản sao theo node và miền sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quorum-queues-006
+    title: Xác nhận publish trong quan hệ với việc sao chép dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quorum-queues-007
+    title: Bầu leader, chuyển leader và ảnh hưởng khi một node dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quorum-queues-008
+    title: Mất đa số và khác biệt giữa còn dữ liệu với còn khả năng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quorum-queues-009
+    title: Thêm, bớt thành viên và tái cân bằng leader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quorum-queues-010
+    title: Poison message, delivery limit và dead lettering đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quorum-queues-011
+    title: Giới hạn tính năng, chi phí tài nguyên và bài toán không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quorum-queues-012
+    title: Kiểm chứng độ an toàn qua thử nghiệm dừng node có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: streams
+  title: Streams
+  childs:
+  - slug: streams-001
+    title: Stream lưu nhật ký nối tiếp khác queue truyền thống như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-002
+    title: Chọn stream cho lưu giữ lịch sử, phát lại và nhiều nhóm đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-003
+    title: Khai báo stream, retention theo thời gian và dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-004
+    title: Offset và lựa chọn vị trí bắt đầu đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-005
+    title: Đọc qua AMQP 0-9-1 và qua RabbitMQ Stream Protocol
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-006
+    title: Theo dõi offset và khôi phục tiến độ của từng consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-007
+    title: Publisher deduplication của stream và phạm vi bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-008
+    title: Batching, credit và kiểm soát tải của Stream Protocol
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-009
+    title: Super stream, partition và định tuyến theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-010
+    title: Thứ tự trong partition và xử lý nhiều consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-011
+    title: Kết nối tới replica của stream và khám phá topology
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-012
+    title: Ranh giới giữa RabbitMQ Streams và một nền tảng Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rabbitmq-java-client
+  title: RabbitMQ Java Client
+  childs:
+  - slug: rabbitmq-java-client-001
+    title: Thêm thư viện Java client và tạo ConnectionFactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-java-client-002
+    title: Khai báo exchange, queue, binding bằng API Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-java-client-003
+    title: Tạo publisher với BasicProperties và dữ liệu UTF-8
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-java-client-004
+    title: Tạo consumer với DeliverCallback và CancelCallback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-java-client-005
+    title: Xác nhận thủ công trên đúng channel trong mã Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-java-client-006
+    title: Xử lý mandatory returns và publisher confirms bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-java-client-007
+    title: Quản lý executor và tránh chia sẻ channel không an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-java-client-008
+    title: ShutdownListener, ReturnListener và theo dõi vòng đời client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-java-client-009
+    title: Tự động phục hồi connection và topology hoạt động ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-java-client-010
+    title: Lỗi kết nối ban đầu và lỗi channel không được phục hồi giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-java-client-011
+    title: Thông điệp gửi khi mất kết nối và trách nhiệm lưu, gửi lại của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-java-client-012
+    title: Phục hồi consumer với queue do broker sinh tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rabbitmq-java-client-013
+    title: Đóng tài nguyên, xử lý ngoại lệ và dừng ứng dụng đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-topology
+  title: Spring Boot và topology
+  childs:
+  - slug: spring-boot-topology-001
+    title: Quan hệ giữa Spring Boot, Spring AMQP và RabbitMQ Java Client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-topology-002
+    title: Thêm spring-boot-starter-amqp và quản lý phiên bản phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-topology-003
+    title: Cấu hình spring.rabbitmq theo môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-topology-004
+    title: Tài khoản, virtual host, địa chỉ broker và cấu hình TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-topology-005
+    title: CachingConnectionFactory và cơ chế tái sử dụng connection, channel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-topology-006
+    title: Khai báo Queue, Exchange, Binding bằng Spring bean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-topology-007
+    title: Dùng Declarables để tổ chức topology theo chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-topology-008
+    title: RabbitAdmin và thời điểm tự động khai báo tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-topology-009
+    title: Chọn classic, quorum, stream qua QueueBuilder và arguments phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-topology-010
+    title: Xử lý xung đột khai báo và phân quyền configure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-topology-011
+    title: Phân chia topology dùng chung với topology do từng dịch vụ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-topology-012
+    title: Cấu hình có điều kiện và tránh tạo nhầm tài nguyên ở môi trường thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-amqp-messaging
+  title: Gửi nhận với Spring AMQP
+  childs:
+  - slug: spring-amqp-messaging-001
+    title: RabbitTemplate, AmqpTemplate và cách gửi thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-amqp-messaging-002
+    title: convertAndSend khác send về chuyển đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-amqp-messaging-003
+    title: MessageConverter cho JSON và thống nhất hợp đồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-amqp-messaging-004
+    title: MessagePostProcessor và quản lý properties, headers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-amqp-messaging-005
+    title: '@RabbitListener, @RabbitHandler và ánh xạ dữ liệu đầu vào'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-amqp-messaging-006
+    title: SimpleMessageListenerContainer và DirectMessageListenerContainer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-amqp-messaging-007
+    title: RabbitListenerContainerFactory và cấu hình theo nhóm listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-amqp-messaging-008
+    title: AcknowledgeMode NONE, AUTO, MANUAL và ý nghĩa của từng chế độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-amqp-messaging-009
+    title: Xác nhận thủ công từ listener và xử lý delivery tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-amqp-messaging-010
+    title: Concurrency, prefetch và giới hạn luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-amqp-messaging-011
+    title: Nhận theo lô và phân biệt lô gửi với lô do consumer gom
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-amqp-messaging-012
+    title: Thông điệp không chuyển đổi được và xử lý trước khi vào listener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-amqp-messaging-013
+    title: Điều khiển khởi động, tạm dừng và dừng listener container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-reliability
+  title: Độ tin cậy trong Spring
+  childs:
+  - slug: spring-reliability-001
+    title: Bật correlated publisher confirms và theo dõi CorrelationData
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-reliability-002
+    title: Bật publisher returns, mandatory và xác định thông điệp sai định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-reliability-003
+    title: Kết hợp kết quả confirms, returns và timeout trong luồng gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-reliability-004
+    title: Ngoại lệ listener và quyết định acknowledgement của container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-reliability-005
+    title: AmqpRejectAndDontRequeueException và ngừng requeue theo chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-reliability-006
+    title: Cấu hình retry interceptor với backoff và giới hạn số lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-reliability-007
+    title: Retry có trạng thái, không trạng thái và vai trò messageId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-reliability-008
+    title: MessageRecoverer, RejectAndDontRequeueRecoverer và RepublishMessageRecoverer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-reliability-009
+    title: Kết hợp retry của Spring với DLX mà không tạo chu kỳ vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-reliability-010
+    title: Giao dịch channel và giới hạn khi kết hợp giao dịch cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-reliability-011
+    title: Phục hồi kết nối do Spring quản lý và tránh chồng cơ chế recovery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-reliability-012
+    title: Dừng ứng dụng an toàn khi listener và publisher còn công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-reliability-013
+    title: Chọn cấu hình phù hợp với phiên bản Spring AMQP đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rpc-integration-patterns
+  title: RPC và mẫu tích hợp
+  childs:
+  - slug: rpc-integration-patterns-001
+    title: Work queue cho tác vụ nền và phân chia người xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-integration-patterns-002
+    title: Publish-subscribe cho sự kiện có nhiều bên quan tâm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-integration-patterns-003
+    title: Định tuyến có chọn lọc với direct, topic và headers exchange
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-integration-patterns-004
+    title: Request-reply qua reply queue và correlationId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-integration-patterns-005
+    title: Direct Reply-To và những đánh đổi của phản hồi không qua queue thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-integration-patterns-006
+    title: Timeout RPC, phản hồi đến muộn và yêu cầu bị xử lý trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-integration-patterns-007
+    title: RabbitTemplate request-reply và AsyncRabbitTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-integration-patterns-008
+    title: Scatter-gather và theo dõi các phản hồi cùng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-integration-patterns-009
+    title: Luồng xử lý nhiều giai đoạn và chuyển thông điệp giữa các queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-integration-patterns-010
+    title: Saga điều phối qua RabbitMQ và ranh giới logic nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-integration-patterns-011
+    title: Lựa chọn tích hợp bất đồng bộ hay gọi đồng bộ theo trải nghiệm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Phân chia unit test, kiểm thử hợp đồng và kiểm thử với broker thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử mã chuyển đổi dữ liệu và tính tương thích của thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Chạy RabbitMQ Testcontainers trong kiểm thử Java, Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Cấp cấu hình broker động và cô lập virtual host, queue giữa các test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Chờ điều kiện bất đồng bộ thay vì phụ thuộc sleep cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử direct, topic, fanout và trường hợp không định tuyến được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử consumer ack, nack, requeue và redelivery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử confirms, returns và thời gian chờ chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử TTL, DLX, retry và đường tới queue cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử xử lý trùng với inbox, outbox và cơ sở dữ liệu thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Giả lập mất mạng, dừng consumer và khởi động lại broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử cụm mất node và kiểm chứng giới hạn bảo đảm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Làm sạch tài nguyên và tránh kiểm thử ảnh hưởng dữ liệu môi trường khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-policies
+  title: Cấu hình và chính sách
+  childs:
+  - slug: configuration-policies-001
+    title: rabbitmq.conf, advanced.config và biến môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-policies-002
+    title: Phân biệt cấu hình node, cấu hình virtual host và cấu hình tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-policies-003
+    title: Definitions và phạm vi dữ liệu được xuất, nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-policies-004
+    title: Policy, operator policy và optional arguments của client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-policies-005
+    title: Độ ưu tiên và quy tắc áp dụng policy cho tập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-policies-006
+    title: Cấu hình TTL, DLX, giới hạn queue bằng policy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-policies-007
+    title: Thuộc tính bất biến và vì sao không thể sửa mọi cấu hình tại chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-policies-008
+    title: Giới hạn connection, channel, queue theo tài khoản hoặc virtual host
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-policies-009
+    title: Cấu hình alarm bộ nhớ, dung lượng đĩa theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-policies-010
+    title: Quản lý plugin và kiểm tra tính năng thực sự được bật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-policies-011
+    title: Lưu cấu hình có phiên bản và phát hiện sai lệch giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Tách authentication, authorization và quyền truy cập quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Tạo tài khoản theo ứng dụng và nguyên tắc cấp quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Quyền configure, write, read theo biểu thức tên tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Virtual host cho môi trường, nhóm ứng dụng và tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Topic permissions và kiểm soát routing key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: TLS cho kết nối client và xác minh danh tính máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Mutual TLS và xác thực client bằng chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Quản lý mật khẩu, secret và luân phiên thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Các backend xác thực ngoài như LDAP, OAuth 2.0 và điều kiện tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Giới hạn cổng quản trị, HTTP API và luồng mạng giữa node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-011
+    title: User tags khác quyền đọc, ghi tài nguyên như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-012
+    title: Giảm rủi ro giải tuần tự hóa dữ liệu không đáng tin trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-013
+    title: Kiểm tra quyền, hết hạn chứng chỉ và nhật ký truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: clustering-availability
+  title: Cụm và tính sẵn sàng
+  childs:
+  - slug: clustering-availability-001
+    title: Cluster chia sẻ metadata khác sao chép dữ liệu queue như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-availability-002
+    title: Tên node, DNS và kết nối mạng nội bộ cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-availability-003
+    title: Erlang cookie và xác thực giữa các node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-availability-004
+    title: Khởi tạo cụm, thêm node và loại node có kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-availability-005
+    title: Phân biệt classic queue không sao chép với quorum queue và stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-availability-006
+    title: Đặt bản sao theo miền sự cố và tránh mất nhiều bản sao cùng lúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-availability-007
+    title: Client kết nối nhiều địa chỉ và vai trò của bộ cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-availability-008
+    title: Network partition và đánh đổi giữa nhất quán, khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-availability-009
+    title: Dừng một node, mất leader và hành vi quan sát từ client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-availability-010
+    title: Khởi động lại cụm và thứ tự phục hồi cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-availability-011
+    title: Giám sát sức khỏe cụm khác kiểm tra một cổng TCP còn mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: clustering-availability-012
+    title: Phân biệt nhiều node trong một cụm với nhiều cụm độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-system-connectivity
+  title: Kết nối nhiều hệ thống
+  childs:
+  - slug: multi-system-connectivity-001
+    title: Vì sao không kéo giãn cluster tùy tiện qua đường mạng WAN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-system-connectivity-002
+    title: Federation và mô hình trao đổi giữa các broker độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-system-connectivity-003
+    title: Exchange federation và queue federation phục vụ nhu cầu nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-system-connectivity-004
+    title: Upstream, policy và quản lý liên kết federation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-system-connectivity-005
+    title: Shovel và quá trình chuyển thông điệp giữa các đầu nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-system-connectivity-006
+    title: Chọn Federation, Shovel hoặc ứng dụng chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-system-connectivity-007
+    title: Acknowledgement, reconnect và khả năng trùng khi chuyển liên cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-system-connectivity-008
+    title: Bảo vệ thông tin xác thực và kết nối TLS liên hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-system-connectivity-009
+    title: Kiểm soát vòng lặp, băng thông và tồn đọng qua nhiều cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-system-connectivity-010
+    title: MQTT, STOMP và ranh giới sử dụng plugin giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: Đọc metrics ở cấp node, connection, channel và queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Ready, unacknowledged, total và ý nghĩa của số lượng tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Tốc độ publish, delivery, ack và redelivery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Đo tuổi thông điệp và độ trễ nghiệp vụ đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Consumer capacity, số consumer và phát hiện thiếu năng lực xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Quan sát confirm latency, returns và số lần gửi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Theo dõi bộ nhớ, đĩa, file descriptor và cảnh báo tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Prometheus Plugin, thu thập metrics và dashboard Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Kết hợp log ứng dụng với messageId, correlationId và trace context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Theo dõi listener Spring bằng Micrometer và cơ chế observation phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-011
+    title: Tracing, firehose và chi phí quan sát nội dung thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-012
+    title: Thiết kế cảnh báo có ngưỡng, thời gian duy trì và hướng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-capacity
+  title: Hiệu năng và dung lượng
+  childs:
+  - slug: performance-capacity-001
+    title: Xác định thông lượng, độ trễ và mức an toàn cần đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-002
+    title: Ước lượng tồn đọng từ tốc độ đến, tốc độ xử lý và thời gian gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-003
+    title: Tính dung lượng đĩa theo kích thước thông điệp, retention và số bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-004
+    title: RabbitMQ PerfTest và thiết kế kịch bản đo gần tải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-005
+    title: Ảnh hưởng của kích thước body, headers và số binding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-006
+    title: Ảnh hưởng của persistent, confirms và số bản sao tới độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-007
+    title: Điều chỉnh prefetch, concurrency và số queue dựa trên số đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-008
+    title: Gửi theo lô, xác nhận theo lô và giới hạn độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-009
+    title: Tránh tạo connection, channel, queue liên tục trong đường xử lý nóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-010
+    title: Phân bố queue, leader và tải giữa các node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-011
+    title: Tìm nút thắt CPU, mạng, bộ nhớ, IOPS và ứng dụng nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-012
+    title: Thử tải kéo dài, tải đột biến và thời gian giải phóng tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Chuẩn bị RabbitMQ cho môi trường thật khác môi trường thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Chọn tài nguyên CPU, bộ nhớ, đĩa và giới hạn hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Triển khai container với volume bền vững và định danh node ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: DNS, hostname và địa chỉ mà client có thể truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Readiness, liveness và tránh khởi động lại broker sai nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Triển khai Kubernetes bằng RabbitMQ Cluster Operator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Messaging Topology Operator và cấp phát tài nguyên qua manifest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Stateful workload, persistent volume và phân bố pod theo miền sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-009
+    title: Pod disruption budget và quy trình bảo trì từng node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-010
+    title: Đưa cấu hình, definitions và secrets qua quy trình triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-011
+    title: Kiểm tra sau triển khai bằng gửi nhận và xác minh dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-upgrades
+  title: Vận hành và nâng cấp
+  childs:
+  - slug: operations-upgrades-001
+    title: Dùng rabbitmqctl, rabbitmq-diagnostics và rabbitmqadmin đúng mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-002
+    title: Kiểm kê connection, channel, consumer và tài nguyên không còn dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-003
+    title: Xuất definitions khác sao lưu dữ liệu thông điệp như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-004
+    title: Lập kế hoạch sao lưu, khôi phục và kiểm chứng RPO, RTO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-005
+    title: Quản lý dung lượng đĩa và xử lý tồn đọng trước khi đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-006
+    title: Drain kết nối, dừng node và bảo trì có kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-007
+    title: Ma trận tương thích RabbitMQ, Erlang, plugin và Java client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-008
+    title: Feature flags và điều kiện nâng cấp qua các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-009
+    title: Nâng cấp tuần tự khi được hỗ trợ và điều kiện dừng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-010
+    title: Chuyển từ mirrored classic queue cũ sang quorum queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-011
+    title: Thay đổi queue type hoặc topology bằng tài nguyên mới và chuyển luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-012
+    title: Kế hoạch khôi phục khi nâng cấp lỗi và giới hạn hạ phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-013
+    title: Diễn tập phục hồi, luân phiên secret và rà soát quyền định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Kết nối bị từ chối: phân biệt DNS, TCP, cổng và broker chưa sẵn sàng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: ACCESS_REFUSED và kiểm tra tài khoản, virtual host, quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: PRECONDITION_FAILED khi khai báo tài nguyên khác thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: NOT_FOUND, exchange sai tên và channel bị đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Thông điệp biến mất do sai binding, hết hạn hoặc auto acknowledgement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: 'Queue tồn đọng: phân biệt consumer vắng, chậm và bị nghẽn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Unacknowledged tăng cao do tác vụ treo hoặc xác nhận sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Redelivery tăng và vòng lặp requeue không có điểm dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Publisher chậm do confirms, cảnh báo đĩa hoặc bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Unknown delivery tag và lỗi chia sẻ channel giữa nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Consumer bị hủy hoặc phục hồi liên tục sau khi mất mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: DLX không nhận được dữ liệu và kiểm tra đường dead lettering
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Cụm mất đa số, lỗi DNS nội bộ và bản sao không theo kịp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Đối chiếu broker metrics với log ứng dụng để xác định nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-015
+    title: Quy trình xử lý sự cố có bằng chứng và tránh purge dữ liệu tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Xây dựng ứng dụng Java gửi nhận và quan sát đầy đủ vòng đời thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Thực nghiệm direct, fanout, topic và kiểm chứng các binding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Xây dựng nhóm worker với prefetch và acknowledgement thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Thực nghiệm mất kết nối quanh publisher confirms và consumer ack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Xây dựng chuỗi retry có giới hạn, DLQ và công cụ phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Tích hợp Spring Boot với hợp đồng JSON có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Xử lý đơn hàng bằng outbox, inbox và nghiệp vụ lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Xây dựng request-reply với timeout và xử lý phản hồi đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Thực nghiệm quorum queue khi leader dừng và khi mất đa số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Xây dựng luồng đọc lại lịch sử bằng RabbitMQ Streams
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Đo tải, quan sát metrics và điều chỉnh cấu hình theo số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Hoàn thiện tài liệu topology, ma trận sự cố và hướng dẫn vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-013
+    title: Rà soát thiết kế theo độ an toàn dữ liệu, bảo mật và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,49 @@
+roadmap:
+- id: mo-hinh-sse
+  title: Mô hình SSE
+  purpose: Hiểu việc server đẩy sự kiện một chiều qua kết nối HTTP duy trì lâu.
+  objectives:
+  - Giải thích SSE và các tình huống thông báo thời gian thực.
+  - Phân biệt SSE với polling và WebSocket hai chiều.
+- id: dinh-dang-event-stream
+  title: Định dạng Event Stream
+  purpose: Đọc và phát đúng các bản tin SSE theo chuẩn HTML.
+  objectives:
+  - 'Thiết lập Content-Type: text/event-stream và UTF-8.'
+  - Sử dụng data, event, id, retry và dòng trống phân cách.
+- id: client-eventsource
+  title: Client EventSource
+  purpose: Nhận dữ liệu từ SSE endpoint trong trình duyệt.
+  objectives:
+  - Tạo EventSource, xử lý onmessage và named events.
+  - Theo dõi onerror, readyState và đóng kết nối bằng close().
+- id: spring-mvc-sseemitter
+  title: Spring MVC SseEmitter
+  purpose: Phát event bất đồng bộ từ một endpoint Java Spring MVC.
+  objectives:
+  - Tạo GET endpoint trả SseEmitter với MediaType.TEXT_EVENT_STREAM_VALUE.
+  - Gửi sự kiện có tên/id và xử lý complete hoặc timeout.
+- id: sse-voi-spring-webflux
+  title: SSE với Spring WebFlux
+  purpose: Làm quen lựa chọn reactive khi nguồn sự kiện là một stream.
+  objectives:
+  - Trả Flux<ServerSentEvent<?>> từ controller WebFlux.
+  - Phân biệt cơ chế non-blocking với SseEmitter của MVC.
+- id: reconnect-event-id
+  title: Reconnect & Event ID
+  purpose: Hiểu khả năng tự kết nối lại và giới hạn của việc khôi phục sự kiện.
+  objectives:
+  - Giải thích retry và header Last-Event-ID khi reconnect.
+  - Thiết kế replay trên server nếu cần tránh bỏ sót sự kiện.
+- id: heartbeat-vong-doi
+  title: Heartbeat & Vòng đời
+  purpose: Giữ kết nối lành mạnh và thu hồi tài nguyên khi client rời đi.
+  objectives:
+  - Gửi comment heartbeat để phát hiện kết nối đã mất.
+  - Xử lý disconnect, timeout và dọn dẹp subscriptions.
+- id: bao-mat-van-hanh
+  title: Bảo mật & Vận hành
+  purpose: Đánh giá độ tin cậy của SSE khi nhiều client cùng kết nối.
+  objectives:
+  - Áp dụng HTTPS, auth/cookie, CORS và giới hạn kết nối.
+  - Test stream bằng curl -N, kiểm tra buffering và tài nguyên.

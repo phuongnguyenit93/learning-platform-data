@@ -1,0 +1,7 @@
+# Integration HTTP Request Response Fundamentals
+
+**HTTP Request–Response** là mô hình giao tiếp nền tảng của Web và nhiều hệ thống tích hợp: client gửi yêu cầu tới một tài nguyên, server xử lý rồi phản hồi bằng mã trạng thái, headers và nội dung tương ứng. HTTP là giao thức tầng ứng dụng, có ngữ nghĩa dùng chung giữa các phiên bản HTTP/1.1, HTTP/2 và HTTP/3. Hiểu đúng request và response giúp thiết kế API rõ ràng, đọc lỗi chính xác và tránh các sự cố khi nhiều dịch vụ trao đổi dữ liệu.
+
+Module dành cho người đã biết khái niệm mạng máy tính và lập trình cơ bản, trước khi đi sâu vào HTTP client, REST hoặc framework Java/Spring. Bạn sẽ bắt đầu từ luồng client–server và tính stateless, đọc URI, lựa chọn phương thức theo ý nghĩa và tính idempotent, sau đó phân tích cấu trúc request/response, headers, media type và nhóm status code. Lộ trình tiếp tục với content negotiation, cookie/session, caching và conditional request; đồng thời giới thiệu HTTPS, xác thực, phân quyền và CORS trên trình duyệt.
+
+Qua tám mốc, bạn có thể giải thích một trao đổi HTTP cụ thể, tạo yêu cầu đơn giản bằng curl, xem dữ liệu trên DevTools và phân biệt lỗi giao thức với lỗi kết nối. Bạn cũng có thể nhận diện tình huống cần timeout, retry và bảo vệ thao tác ghi khỏi tác dụng phụ khi gọi lặp lại. Trọng tâm là **hiểu nguyên lý và hợp đồng giao tiếp**, không phụ thuộc vào một HTTP client hay server framework cụ thể.

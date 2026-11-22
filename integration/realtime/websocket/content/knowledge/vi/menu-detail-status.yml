@@ -1,0 +1,2479 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: WebSocket là gì và bài toán giao tiếp thời gian thực hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Kết nối, phiên, khung, thông điệp và đăng ký nhận tin: các khái niệm nền tảng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối liên hệ giữa TCP, TLS, HTTP, WebSocket và giao thức ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: So sánh WebSocket với polling, long polling và Server-Sent Events
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt WebSocket, STOMP, Socket.IO, RSocket và WebRTC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Các tình huống phù hợp và giới hạn của WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Kiến thức đầu vào và lộ trình từ kết nối đầu tiên đến hệ thống nhiều máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Vai trò của Java, Jakarta WebSocket, Spring MVC và Spring WebFlux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture
+  title: Kiến trúc
+  childs:
+  - slug: architecture-001
+    title: Mô hình máy khách–máy chủ và kênh truyền song công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-002
+    title: Luồng dữ liệu từ sự kiện nghiệp vụ đến thông điệp trên kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-003
+    title: Ranh giới giữa tầng truyền tải, giao thức thông điệp và xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-004
+    title: Tách dữ liệu lưu bền khỏi trạng thái kết nối tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-005
+    title: Kết hợp HTTP cho truy vấn, tải tệp và WebSocket cho cập nhật trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-006
+    title: Gửi riêng, phát cho nhóm và phát cho mọi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-007
+    title: Yêu cầu về độ trễ, lưu lượng, số kết nối và khả năng khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-008
+    title: Lựa chọn WebSocket thuần hoặc giao thức con theo nhu cầu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: handshake
+  title: Bắt tay
+  childs:
+  - slug: handshake-001
+    title: 'Cấu trúc địa chỉ ws và wss: máy chủ, cổng, đường dẫn và tham số truy vấn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handshake-002
+    title: Trình tự DNS, TCP, TLS và bắt tay WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handshake-003
+    title: Yêu cầu nâng cấp HTTP/1.1 với Upgrade và Connection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handshake-004
+    title: Sec-WebSocket-Key, Sec-WebSocket-Accept và kiểm chứng phản hồi 101
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handshake-005
+    title: Vai trò của Sec-WebSocket-Version và xử lý phiên bản không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handshake-006
+    title: Origin trong bắt tay và giới hạn của việc dùng Origin để xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handshake-007
+    title: Thương lượng giao thức con bằng Sec-WebSocket-Protocol
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handshake-008
+    title: Thương lượng phần mở rộng bằng Sec-WebSocket-Extensions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handshake-009
+    title: WebSocket trên HTTP/2 với Extended CONNECT và điều kiện hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handshake-010
+    title: 'Từ chối bắt tay: mã HTTP, thời hạn kết nối và lỗi cấu hình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: frames-messages
+  title: Khung và thông điệp
+  childs:
+  - slug: frames-messages-001
+    title: Phân biệt khung truyền tải, thông điệp WebSocket và sự kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frames-messages-002
+    title: 'Cấu trúc khung: FIN, RSV, opcode, độ dài và dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frames-messages-003
+    title: Khung văn bản, UTF-8 và xử lý chuỗi không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frames-messages-004
+    title: Khung nhị phân và lựa chọn cách biểu diễn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frames-messages-005
+    title: Masking từ máy khách và sự khác biệt với mã hóa TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frames-messages-006
+    title: Phân mảnh thông điệp và ghép các khung continuation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frames-messages-007
+    title: Khung điều khiển Ping, Pong, Close và khả năng xen giữa các mảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frames-messages-008
+    title: Thứ tự thông điệp trên một kết nối và giới hạn khi xử lý song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frames-messages-009
+    title: Giới hạn kích thước khung, thông điệp và bộ đệm nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: frames-messages-010
+    title: Nén permessage-deflate và đánh đổi giữa CPU, bộ nhớ, băng thông
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-lifecycle
+  title: Vòng đời kết nối
+  childs:
+  - slug: connection-lifecycle-001
+    title: Các giai đoạn thiết lập, hoạt động, đóng và giải phóng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-002
+    title: Đóng chủ động bằng Close frame và bắt tay đóng hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-003
+    title: Mã đóng thông dụng và cách chọn mã theo nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-004
+    title: 'Mã 1005, 1006, 1015: trạng thái dành riêng và giới hạn khi gửi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-005
+    title: Phát hiện đứt mạng, kết nối nửa mở và phiên không còn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-006
+    title: Ping/Pong của giao thức và nhịp kiểm tra ở tầng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-007
+    title: Phân biệt thời hạn bắt tay, thời gian chờ nhàn rỗi và thời hạn gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-008
+    title: Giải phóng phiên, bộ đệm, bộ hẹn giờ và đăng ký khi ngắt kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-009
+    title: Sơ đồ trạng thái và các cuộc đua giữa gửi, lỗi và đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: browser-clients
+  title: Máy khách trình duyệt
+  childs:
+  - slug: browser-clients-001
+    title: Tạo WebSocket và đăng ký các sự kiện open, message, error, close
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-clients-002
+    title: Kiểm tra readyState và gửi thông điệp đúng thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-clients-003
+    title: Nhận văn bản, Blob, ArrayBuffer và cấu hình binaryType
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-clients-004
+    title: send, bufferedAmount và giới hạn kiểm soát luồng của API trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-clients-005
+    title: close, code, reason, wasClean và giới hạn thông tin lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-clients-006
+    title: Giới hạn truy cập Ping/Pong và nhịp kiểm tra ở tầng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-clients-007
+    title: Cookie, giao thức con và giới hạn đặt header tùy ý từ JavaScript
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-clients-008
+    title: Quản lý một kết nối dùng chung và đăng ký nhận tin theo màn hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-clients-009
+    title: Dọn kết nối khi đổi trang, hủy thành phần và đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-clients-010
+    title: Xử lý tab nền, thiết bị ngủ, đổi mạng và nhiều tab cùng người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-clients-011
+    title: Hiển thị trạng thái kết nối và tránh báo gửi thành công quá sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-clients
+  title: Máy khách Java
+  childs:
+  - slug: java-clients-001
+    title: Tạo WebSocket bằng HttpClient và WebSocket.Builder trong JDK 21
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-002
+    title: Cấu hình URI, header, giao thức con và thời hạn kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-003
+    title: WebSocket.Listener và các callback mở, nhận, lỗi, đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-004
+    title: request(n) và điều tiết số lần gọi callback nhận dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-005
+    title: Ghép dữ liệu từng phần bằng cờ last trong onText và onBinary
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-006
+    title: Gửi bất đồng bộ với CompletableFuture và xử lý lỗi hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-007
+    title: Quản lý vòng đời ByteBuffer và tuần tự hóa thao tác gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-008
+    title: sendPing, sendPong, sendClose và abort
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-009
+    title: Lựa chọn JDK WebSocket, Jakarta client hoặc Spring WebSocketClient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jakarta-websocket
+  title: Jakarta WebSocket
+  childs:
+  - slug: jakarta-websocket-001
+    title: Mô hình endpoint máy chủ, máy khách và vai trò của container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-websocket-002
+    title: Tạo endpoint bằng @ServerEndpoint và @ClientEndpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-websocket-003
+    title: '@OnOpen, @OnMessage, @OnClose, @OnError và tham số callback'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-websocket-004
+    title: Session, PathParam, userProperties và dữ liệu riêng từng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-websocket-005
+    title: RemoteEndpoint.Basic, RemoteEndpoint.Async và kết quả gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-websocket-006
+    title: MessageHandler.Whole, MessageHandler.Partial và xử lý phân mảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-websocket-007
+    title: Encoder, Decoder và chuyển đổi thông điệp thành đối tượng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-websocket-008
+    title: Endpoint lập trình, Configurator và tùy biến quá trình bắt tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-websocket-009
+    title: Vòng đời endpoint, an toàn luồng và tích hợp dependency injection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jakarta-websocket-010
+    title: Triển khai trên container và lưu ý khi chuyển từ javax.websocket sang jakarta.websocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-websocket
+  title: Spring WebSocket
+  childs:
+  - slug: spring-websocket-001
+    title: Khởi tạo WebSocket Servlet với Spring Boot và các thành phần cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-websocket-002
+    title: '@EnableWebSocket, WebSocketConfigurer và đăng ký đường dẫn handler'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-websocket-003
+    title: TextWebSocketHandler, BinaryWebSocketHandler và các loại thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-websocket-004
+    title: WebSocketSession và các callback kết nối, thông điệp, lỗi, đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-websocket-005
+    title: HandshakeInterceptor và chia sẻ thuộc tính từ phiên HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-websocket-006
+    title: DefaultHandshakeHandler, Principal và thương lượng giao thức con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-websocket-007
+    title: Cấu hình nguồn kết nối được phép và giới hạn thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-websocket-008
+    title: Đăng ký phiên và gửi thông điệp từ tầng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-websocket-009
+    title: ConcurrentWebSocketSessionDecorator và kiểm soát gửi đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-websocket-010
+    title: StandardWebSocketClient và kiểm tra luồng trao đổi hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-webflux
+  title: Spring WebFlux
+  childs:
+  - slug: spring-webflux-001
+    title: WebSocket trong mô hình phản ứng và khác biệt với ngăn xếp Servlet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-002
+    title: WebSocketHandler, WebSocketSession và ánh xạ đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-003
+    title: receive, send và liên kết vòng đời bằng Mono
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-004
+    title: Biến đổi, lọc và phối hợp luồng Flux thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-005
+    title: Quản lý DataBuffer và giải phóng bộ nhớ đúng vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-006
+    title: Phát sự kiện nhiều nguồn qua Sinks và lựa chọn chính sách bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-007
+    title: Lan truyền hủy, lỗi và tín hiệu đóng trong chuỗi phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-008
+    title: Tách công việc chặn khỏi luồng xử lý I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-009
+    title: ReactorNettyWebSocketClient và kiểm thử trao đổi bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-messages
+  title: Thông điệp ứng dụng
+  childs:
+  - slug: application-messages-001
+    title: Thiết kế hợp đồng cho lệnh, sự kiện, phản hồi và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-messages-002
+    title: Vỏ thông điệp với type, version, messageId, correlationId và payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-messages-003
+    title: Lựa chọn JSON, văn bản hoặc định dạng nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-messages-004
+    title: Quy ước tên sự kiện và phân biệt lệnh với sự kiện đã xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-messages-005
+    title: Kiểm tra schema, trường bắt buộc và giới hạn dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-messages-006
+    title: Tương thích phiên bản giữa máy khách cũ và máy chủ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-messages-007
+    title: Thiết kế lỗi có cấu trúc và phân biệt lỗi thông điệp với lỗi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-messages-008
+    title: Ghép yêu cầu–phản hồi, thời hạn chờ và hủy thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-messages-009
+    title: Quy ước thời gian, số thứ tự và phạm vi định danh thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stomp
+  title: STOMP
+  childs:
+  - slug: stomp-001
+    title: Mục đích của STOMP và quan hệ giữa khung STOMP với thông điệp WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-002
+    title: Cấu trúc command, headers, body và ký tự kết thúc khung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-003
+    title: CONNECT, STOMP, CONNECTED và thương lượng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-004
+    title: SEND, SUBSCRIBE, UNSUBSCRIBE và định danh đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-005
+    title: MESSAGE, destination và ngữ nghĩa định tuyến do máy chủ quy định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-006
+    title: content-type, content-length và mã hóa header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-007
+    title: ACK, NACK và các chế độ auto, client, client-individual
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-008
+    title: RECEIPT và giới hạn của xác nhận xử lý khung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-009
+    title: BEGIN, COMMIT, ABORT và phạm vi giao dịch STOMP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stomp-010
+    title: Heart-beat, ERROR, DISCONNECT và kết thúc phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-stomp
+  title: Spring STOMP
+  childs:
+  - slug: spring-stomp-001
+    title: '@EnableWebSocketMessageBroker và WebSocketMessageBrokerConfigurer'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-stomp-002
+    title: Đăng ký endpoint STOMP và phân biệt endpoint với destination
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-stomp-003
+    title: Tiền tố /app, /topic, /queue và quy ước của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-stomp-004
+    title: Luồng clientInboundChannel, brokerChannel và clientOutboundChannel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-stomp-005
+    title: '@MessageMapping, @DestinationVariable, @Header và @Payload'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-stomp-006
+    title: Chuyển đổi JSON, kiểm tra @Valid và báo lỗi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-stomp-007
+    title: '@SendTo, @SendToUser và phản hồi cho nơi nhận phù hợp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-stomp-008
+    title: SimpMessagingTemplate và gửi sự kiện từ ngoài controller
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-stomp-009
+    title: ChannelInterceptor và các sự kiện kết nối, đăng ký, ngắt kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-stomp-010
+    title: '@MessageExceptionHandler và tách lỗi nghiệp vụ khỏi lỗi truyền tải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-stomp-011
+    title: WebSocketStompClient, StompSessionHandler và máy khách trình duyệt STOMP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: routing-groups
+  title: Định tuyến và nhóm
+  childs:
+  - slug: routing-groups-001
+    title: Thiết kế kênh nhận theo người dùng, nhóm, tài nguyên và phạm vi thuê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-groups-002
+    title: User destination /user và ánh xạ người dùng sang nhiều phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-groups-003
+    title: SimpUserRegistry và tra cứu người dùng, phiên, đăng ký đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-groups-004
+    title: Quản lý tham gia, rời phòng và đăng ký trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-groups-005
+    title: Gửi riêng một phiên hoặc gửi tới mọi thiết bị của một người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-groups-006
+    title: Phân biệt phát cho mọi người đăng ký với chia việc giữa các bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-groups-007
+    title: Trạng thái trực tuyến với nhịp kiểm tra và thời gian hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-groups-008
+    title: Sự kiện gõ tin, đã nhận, đã đọc và phạm vi cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-groups-009
+    title: Dọn thành viên nhóm khi mất kết nối và tránh trạng thái trực tuyến sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-brokers
+  title: Môi giới thông điệp
+  childs:
+  - slug: message-brokers-001
+    title: Simple broker của Spring và phạm vi sử dụng trong một tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-brokers-002
+    title: Cấu hình broker relay tới hệ thống môi giới bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-brokers-003
+    title: Ngữ nghĩa destination của RabbitMQ hoặc ActiveMQ khi dùng STOMP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-brokers-004
+    title: Nhịp kiểm tra và tình trạng khả dụng của kết nối broker relay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-brokers-005
+    title: Hàng đợi, đăng ký tạm thời và dọn tài nguyên ở broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-brokers-006
+    title: Giới hạn ACK, RECEIPT và giao dịch theo khả năng từng broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-brokers-007
+    title: Xác thực kết nối hệ thống, kết nối máy khách và bảo vệ broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-brokers-008
+    title: Tiêu chí chọn simple broker hoặc broker relay theo tải và yêu cầu tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sockjs
+  title: SockJS
+  childs:
+  - slug: sockjs-001
+    title: SockJS giải quyết bài toán tương thích nào và khi nào cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockjs-002
+    title: Phân biệt WebSocket nguyên bản với endpoint và máy khách SockJS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockjs-003
+    title: Thương lượng phương thức truyền, HTTP streaming và long polling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockjs-004
+    title: Cấu hình withSockJS và kết nối bằng máy khách tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockjs-005
+    title: Nhịp kiểm tra, phiên và các yêu cầu đối với proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockjs-006
+    title: Cookie, CORS, CSRF và cân bằng tải cho các phương thức dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sockjs-007
+    title: Chi phí vận hành, hạn chế và tiêu chí loại bỏ phương thức dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication
+  title: Xác thực
+  childs:
+  - slug: authentication-001
+    title: Tái sử dụng danh tính từ phiên đăng nhập HTTP trong bắt tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-002
+    title: Đưa Principal vào phiên và duy trì danh tính phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-003
+    title: Giới hạn Authorization header trên máy khách trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-004
+    title: So sánh cookie phiên, vé kết nối ngắn hạn và token trong thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-005
+    title: Tránh rò rỉ token qua URL, lịch sử, log và hệ thống theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-006
+    title: Xác thực STOMP CONNECT bằng interceptor và thứ tự áp dụng bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-007
+    title: Token hết hạn, gia hạn và xác thực lại kết nối dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-008
+    title: Đăng xuất, thu hồi quyền và đóng các phiên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-009
+    title: Ràng buộc danh tính, thiết bị và phạm vi thuê theo chính sách ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Mô hình đe dọa và ranh giới tin cậy của kết nối hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: WSS, kiểm chứng chứng chỉ và điểm kết thúc TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Kiểm tra Origin và phòng chống chiếm dụng WebSocket liên trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Phân biệt chính sách Origin của WebSocket với CORS của HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: CSRF cho ứng dụng dùng cookie và STOMP CONNECT trong Spring Security
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: AuthorizationManager và phân quyền theo loại thông điệp, destination
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Phân quyền SEND, SUBSCRIBE và bảo vệ destination do máy chủ phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Kiểm tra quyền sở hữu phòng, tài nguyên và phạm vi thuê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Giới hạn kết nối, tần suất, kích thước và chi phí xử lý thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Phòng chống dữ liệu độc hại, chèn mã và lạm dụng nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-011
+    title: Bảo vệ dữ liệu nhạy cảm trong thông điệp, nhật ký và lỗi trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability-recovery
+  title: Tin cậy và khôi phục
+  childs:
+  - slug: reliability-recovery-001
+    title: Phân biệt gửi vào bộ đệm, truyền tới đầu kia và xử lý nghiệp vụ thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-recovery-002
+    title: Phạm vi bảo đảm của TCP và WebSocket khi kết nối bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-recovery-003
+    title: Xác nhận ở tầng ứng dụng và phân biệt với STOMP ACK, RECEIPT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-recovery-004
+    title: Thời hạn chờ, gửi lại và khóa chống xử lý lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-recovery-005
+    title: Ngữ nghĩa giao nhận at-most-once, at-least-once và giới hạn exactly-once
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-recovery-006
+    title: Thứ tự sự kiện, số thứ tự theo luồng và phát hiện khoảng trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-recovery-007
+    title: Kết nối lại với backoff lũy tiến, jitter và giới hạn số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-recovery-008
+    title: Phân loại lỗi có thể thử lại và lỗi cần người dùng can thiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-recovery-009
+    title: Đăng ký lại sau kết nối và tránh tạo nhiều kết nối song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-recovery-010
+    title: Khôi phục bằng con trỏ, phát lại sự kiện hoặc tải ảnh chụp trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-recovery-011
+    title: Đồng bộ bản chụp với luồng trực tiếp và xử lý cửa sổ mất sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-recovery-012
+    title: Lưu tin ngoại tuyến, thời hạn lưu và hành vi khi không thể khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flow-control-performance
+  title: Luồng và hiệu năng
+  childs:
+  - slug: flow-control-performance-001
+    title: Phân biệt số kết nối, tốc độ thông điệp, thông lượng và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-performance-002
+    title: Ước tính bộ nhớ, bộ mô tả tệp và chi phí mỗi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-performance-003
+    title: Bộ đệm gửi có giới hạn và chính sách khi máy khách nhận chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-performance-004
+    title: Chặn bớt, loại bỏ, gộp hoặc giữ giá trị mới nhất theo loại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-performance-005
+    title: Kiểm soát luồng ở tầng ứng dụng và giới hạn của bufferedAmount
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-performance-006
+    title: Giới hạn kích thước, thời hạn gửi và bảo vệ khỏi thông điệp quá lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-performance-007
+    title: Đánh đổi của gộp lô, nén và mã hóa nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-performance-008
+    title: Điều chỉnh executor, số luồng và hàng đợi trong Spring messaging
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-performance-009
+    title: Đo tác động của xử lý chặn, tuần tự hóa và thu gom rác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-performance-010
+    title: Thiết kế phép đo với kết nối nhàn rỗi, tải đều và tải tăng đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-state
+  title: Đồng thời và trạng thái
+  childs:
+  - slug: concurrency-state-001
+    title: Vòng đời handler, endpoint và nguy cơ chia sẻ trạng thái giữa người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-state-002
+    title: WebSocket scope trong Spring STOMP và vòng đời bean theo phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-state-003
+    title: Tổ chức kho phiên và cấu trúc dữ liệu an toàn luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-state-004
+    title: Tuần tự hóa thao tác gửi trên cùng một phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-state-005
+    title: Giữ thứ tự xử lý và thứ tự phát trong đường ống Spring STOMP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-state-006
+    title: Tranh chấp giữa đăng ký, phát tin, rời nhóm và đóng phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-state-007
+    title: Chia tác vụ theo người dùng hoặc phòng để giới hạn tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-state-008
+    title: Tách trạng thái cục bộ khỏi trạng thái dùng chung nhiều máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-state-009
+    title: Dọn tác vụ nền, tài nguyên và tham chiếu để tránh rò rỉ bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-state-010
+    title: Lan truyền ngữ cảnh người dùng, mã truy vết và xử lý bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-integration
+  title: Tích hợp sự kiện
+  childs:
+  - slug: event-integration-001
+    title: Đưa sự kiện nghiệp vụ từ dịch vụ ứng dụng vào kênh WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-integration-002
+    title: Chỉ phát sự kiện sau khi giao dịch dữ liệu được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-integration-003
+    title: Mẫu outbox cho sự kiện cần lưu bền trước khi phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-integration-004
+    title: Kết nối Kafka, RabbitMQ hoặc Redis với tầng phát WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-integration-005
+    title: Phân biệt lưu trữ sự kiện, phân phối nội bộ và giao nhận tới máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-integration-006
+    title: Chuyển đổi sự kiện miền thành thông điệp phù hợp từng người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-integration-007
+    title: Lọc dữ liệu theo quyền và tránh lộ thông tin khi phát hàng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-integration-008
+    title: Xử lý lặp, lỗi nguồn sự kiện và phạm vi thử lại ở từng tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-scaling
+  title: Mở rộng hệ thống
+  childs:
+  - slug: system-scaling-001
+    title: Phân phối kết nối dài qua nhiều máy chủ WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-002
+    title: Vai trò và giới hạn của định tuyến bám phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-003
+    title: Định vị người dùng, phiên và nhóm trong cụm máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-004
+    title: Phát thông điệp liên máy chủ bằng broker hoặc kênh phân phối chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-005
+    title: User destination nhiều máy chủ và chuyển tiếp đích chưa phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-006
+    title: Phân mảnh theo phòng, người dùng hoặc phạm vi thuê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-007
+    title: Giảm chi phí phát hàng loạt và tránh nhân bản thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-008
+    title: Tự động mở rộng theo kết nối, bộ nhớ, hàng đợi và thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-009
+    title: Máy chủ lỗi, broker lỗi và tính nhất quán của trạng thái hiện diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-010
+    title: Ranh giới phục hồi khi triển khai nhiều vùng địa lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Cấu hình reverse proxy chuyển tiếp bắt tay WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: NGINX, header Upgrade, Connection và thời gian chờ proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Cân bằng tải, ingress và điều kiện hỗ trợ WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Kết thúc TLS, forwarded headers và địa chỉ công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Đồng bộ thời gian chờ giữa máy khách, proxy, máy chủ và nhịp kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Giới hạn kết nối, cổng, bộ mô tả tệp và tài nguyên container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Kubernetes readiness, ngừng nhận kết nối mới và thời gian chờ kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Đóng có kiểm soát, rút kết nối và triển khai luân phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-009
+    title: Tương thích phiên bản thông điệp trong giai đoạn triển khai hỗn hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-010
+    title: Kiểm tra đường truyền HTTP/1.1 và HTTP/2 qua từng thành phần hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: Chỉ số kết nối đang mở, bắt tay thành công và tỷ lệ kết nối lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Đếm mã đóng và phân loại nguyên nhân ngắt kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Đo độ trễ đầu cuối, thời gian xử lý và độ trễ hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Theo dõi thông điệp lỗi, bị loại bỏ và máy khách nhận chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: WebSocketMessageBrokerStats và số liệu thành phần Spring STOMP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Nhật ký có cấu trúc với sessionId, messageId và correlationId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Truy vết theo thông điệp thay vì giữ một span cho toàn bộ kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Kiểm soát dữ liệu nhạy cảm và độ đa dạng nhãn đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Thiết lập mục tiêu dịch vụ, bảng theo dõi và cảnh báo có thể xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử đơn vị xử lý thông điệp và quy tắc định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử hợp đồng schema và tương thích phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử bắt tay, giao thức con, Origin và từ chối truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử tích hợp với máy khách Java và máy chủ cổng thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: 'Kiểm thử Spring STOMP: gửi, đăng ký, nhận, lỗi và user destination'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử WebFlux với StepVerifier và kiểm soát thời gian bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử broker relay và nhiều máy chủ bằng môi trường container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử mất mạng, kết nối lại, phát lại và chống xử lý lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử máy khách chậm, tràn bộ đệm và gửi đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử tải kéo dài, bão kết nối lại và khởi động lại máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử bảo mật với người dùng, nhóm và phạm vi thuê khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Quan sát handshake và khung thông điệp trong công cụ phát triển trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Dùng máy khách dòng lệnh và nhật ký máy chủ để tái hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Lỗi 400, 401, 403, 404, 426 và thiếu phản hồi nâng cấp 101
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: 'Kết nối thành công nhưng không nhận tin: đường dẫn, destination và đăng ký'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Ngắt định kỳ do thời gian chờ proxy hoặc nhịp kiểm tra sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Mã đóng 1006 và cách điều tra khi không có Close frame
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Lỗi UTF-8, kích thước, phân mảnh và giao thức con không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Thông điệp trùng, sai thứ tự hoặc mất sau khi kết nối lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Lỗi chỉ xuất hiện khi chạy nhiều máy chủ hoặc nhiều thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Bộ nhớ tăng, CPU cao, phiên tồn đọng và máy khách nhận chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: Xây dựng ứng dụng echo để quan sát bắt tay, gửi và đóng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Xây dựng phòng chat với tham gia nhóm và phân quyền thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Xây dựng thông báo cá nhân cho nhiều thiết bị của một người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Xây dựng bảng theo dõi trực tiếp với chính sách gộp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Bổ sung xác nhận, chống lặp và khôi phục tin khi mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Mở rộng ứng dụng sang nhiều máy chủ qua broker bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Thử nghiệm triển khai luân phiên và bão kết nối lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Đánh giá thiết kế bằng hợp đồng thông điệp, số liệu tải và tình huống lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

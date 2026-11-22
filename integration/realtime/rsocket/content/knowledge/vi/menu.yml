@@ -1,0 +1,373 @@
+menu:
+- level1: Tổng quan RSocket
+  level2:
+  - RSocket là gì và vai trò trong tích hợp thời gian thực
+  - Vì sao cần giao tiếp bất đồng bộ và truyền dữ liệu liên tục
+  - Phân biệt giao thức RSocket, thư viện RSocket Java và hỗ trợ của Spring
+  - Quan hệ giữa kết nối, luồng tương tác (stream), thông điệp và payload
+  - Phân biệt bên mở kết nối với bên gửi yêu cầu và bên xử lý yêu cầu
+  - Bốn mô hình tương tác và cách chọn theo nhu cầu trao đổi dữ liệu
+  - So sánh RSocket với HTTP, WebSocket thuần, SSE và gRPC
+  - Phạm vi sử dụng, giới hạn và kiến thức cần có trước khi thực hành
+- level1: Nền tảng phản ứng
+  level2:
+  - Lập trình phản ứng và mô hình truyền tín hiệu Reactive Streams
+  - Vai trò của Publisher, Subscriber, Subscription và Processor
+  - Tín hiệu onSubscribe, onNext, onError và onComplete
+  - 'Mono và Flux: số lượng phần tử, kết quả rỗng và lỗi'
+  - Đăng ký nhận dữ liệu (subscription) và thời điểm thực thi
+  - Nguồn phát theo từng đăng ký và nguồn phát dùng chung (cold/hot)
+  - Bất đồng bộ, không chặn và luồng xử lý của Reactor Netty
+  - Quan hệ giữa nhu cầu nhận (demand), bộ đệm và tốc độ xử lý
+  - Các toán tử Reactor cần dùng khi xây dựng ứng dụng RSocket
+- level1: Kết nối và truyền tải
+  level2:
+  - TCP và WebSocket trong kiến trúc truyền tải RSocket
+  - Ranh giới giữa giao thức ứng dụng và cơ chế truyền tải bên dưới
+  - Cấu hình địa chỉ, cổng và đường dẫn WebSocket
+  - Trình duyệt kết nối RSocket qua WebSocket
+  - Giao tiếp hai chiều trên cùng một kết nối
+  - Ghép nhiều luồng tương tác (multiplexing) và định danh từng luồng
+  - Thứ tự thông điệp trong từng luồng và giới hạn giữa các luồng
+  - Ảnh hưởng của TCP head-of-line blocking đến các luồng dùng chung
+  - Vòng đời kết nối, trạng thái sẵn sàng và đóng kết nối
+- level1: Giao thức và frame
+  level2:
+  - 'Cấu trúc frame: độ dài, Stream ID, loại và cờ điều khiển'
+  - Stream ID bằng 0 và quy tắc định danh luồng do hai phía khởi tạo
+  - Nhóm frame thiết lập và quản lý kết nối
+  - Nhóm frame khởi tạo bốn mô hình tương tác
+  - PAYLOAD và các cờ NEXT, COMPLETE, FOLLOWS
+  - REQUEST_N và CANCEL trong điều khiển luồng tương tác
+  - ERROR và phạm vi lỗi của kết nối hoặc một luồng
+  - METADATA_PUSH và metadata ở phạm vi kết nối
+  - Khác biệt đóng khung trên TCP và WebSocket
+  - Frame EXT, cờ IGNORE và cách xử lý phần mở rộng chưa hỗ trợ
+  - Đọc sơ đồ trình tự frame để hiểu một lần trao đổi RSocket
+- level1: Payload và metadata
+  level2:
+  - Cấu trúc payload và vai trò riêng của data, metadata
+  - Khai báo MIME type cho data và metadata trong SETUP
+  - Mã hóa dữ liệu bằng JSON, CBOR, Protobuf hoặc định dạng tùy chỉnh
+  - Metadata định tuyến (routing metadata) và tên tuyến xử lý
+  - Composite metadata và nhiều loại metadata trong cùng payload
+  - WellKnownMimeType và định danh kiểu metadata
+  - Metadata xác thực, truy vết và thông tin ngữ cảnh
+  - Phân biệt metadata của kết nối với metadata từng yêu cầu
+  - Thiết kế DTO, giới hạn kích thước và kiểm tra dữ liệu đầu vào
+  - Tương thích schema, trường tùy chọn và nâng phiên bản hợp đồng dữ liệu
+- level1: Thiết lập phiên
+  level2:
+  - Trình tự mở kết nối và gửi frame SETUP
+  - Phiên bản giao thức và xử lý thiết lập không tương thích
+  - Setup data và setup metadata dùng để trao đổi thông tin ban đầu
+  - Khoảng gửi KEEPALIVE và thời gian sống tối đa của kết nối
+  - Phân biệt keepalive giao thức với TCP keepalive và timeout nghiệp vụ
+  - Đăng ký dùng leasing và resumption trong bước thiết lập
+  - Từ chối SETUP, kiểm tra quyền kết nối và giải phóng tài nguyên
+  - Thời điểm cho phép gửi yêu cầu sau khi thiết lập kết nối
+  - Quản lý thông tin phiên và tài nguyên gắn với kết nối
+- level1: Yêu cầu và phản hồi
+  level2:
+  - 'Mô hình request-response: một yêu cầu và tối đa một phản hồi'
+  - Trình tự REQUEST_RESPONSE, PAYLOAD, COMPLETE và ERROR
+  - Biểu diễn phản hồi có dữ liệu, hoàn thành rỗng và thất bại
+  - Thiết kế thao tác truy vấn hoặc lệnh cần xác nhận kết quả
+  - Thời hạn chờ phản hồi và hủy yêu cầu
+  - Thử lại khi mất phản hồi và nguy cơ thực thi lặp
+  - Thực hành truy vấn trạng thái đơn hàng bằng request-response
+- level1: Gửi một chiều
+  level2:
+  - Mô hình fire-and-forget và trình tự REQUEST_FNF
+  - Ý nghĩa hoàn tất gửi ở phía gọi và giới hạn xác nhận nghiệp vụ
+  - 'Các trường hợp phù hợp: tín hiệu đo lường và thông báo không cần phản hồi'
+  - Quan sát lỗi gửi, lỗi kết nối và lỗi xử lý phía nhận
+  - Thiết kế xác nhận ở tầng ứng dụng khi cần biết kết quả xử lý
+  - Kiểm soát tốc độ gửi khi mô hình không có luồng phản hồi
+  - Thực hành gửi dữ liệu cảm biến và xác minh việc tiếp nhận
+- level1: Luồng phản hồi
+  level2:
+  - 'Mô hình request-stream: một yêu cầu và nhiều phần tử phản hồi'
+  - Luồng hữu hạn, luồng liên tục và điều kiện hoàn thành
+  - Trình tự REQUEST_STREAM, PAYLOAD và REQUEST_N
+  - Lọc, chuyển đổi và giới hạn dữ liệu trước khi truyền
+  - Hủy đăng ký từ phía nhận và dừng nguồn phát ở phía gửi
+  - Xử lý bên nhận chậm, gián đoạn và lỗi giữa luồng
+  - Phân biệt đăng ký mới với tiếp tục một luồng đang tồn tại
+  - Thực hành theo dõi giá hoặc trạng thái thay đổi theo thời gian
+- level1: Kênh hai chiều
+  level2:
+  - Mô hình request-channel và hai luồng dữ liệu độc lập
+  - Vai trò của payload đầu tiên trong khởi tạo kênh
+  - Trình tự REQUEST_CHANNEL và các PAYLOAD tiếp theo
+  - Nhu cầu nhận và điều tiết dữ liệu theo từng chiều
+  - Hoàn thành một chiều trong khi chiều còn lại tiếp tục
+  - Phạm vi tác động của lỗi và hủy đối với kênh hai chiều
+  - Phối hợp luồng lệnh đầu vào với luồng kết quả đầu ra
+  - Quản lý trạng thái và tài nguyên trong một kênh dài hạn
+  - Thực hành hội thoại hoặc điều khiển thiết bị theo thời gian thực
+- level1: Điều tiết luồng
+  level2:
+  - Điều tiết theo nhu cầu (backpressure) và vấn đề bên nhận chậm
+  - Phân biệt nhu cầu theo số phần tử với giới hạn băng thông theo byte
+  - Nhu cầu ban đầu và bổ sung nhu cầu bằng REQUEST_N
+  - Theo dõi số phần tử được phép phát và trường hợp nhu cầu lớn
+  - Điều tiết hai chiều trong request-channel
+  - Ảnh hưởng của prefetch, limitRate, publishOn và flatMap
+  - 'Xử lý nguồn không tuân theo nhu cầu: đệm, bỏ bớt hoặc giữ giá trị mới nhất'
+  - Giới hạn bộ đệm và chính sách khi vượt khả năng tiếp nhận
+  - Truyền nhu cầu xuyên qua các tầng dịch vụ và nguồn dữ liệu
+  - Thực nghiệm bên nhận chậm để quan sát nhu cầu và mức sử dụng bộ nhớ
+- level1: Hạn ngạch yêu cầu
+  level2:
+  - Leasing và mục đích giới hạn số yêu cầu mới
+  - Phân biệt hạn ngạch yêu cầu với backpressure của luồng đang chạy
+  - 'Cấu trúc LEASE: thời hạn hiệu lực, số yêu cầu và metadata'
+  - Quy trình cấp, gia hạn và sử dụng hạn ngạch
+  - Hành vi khi hết hạn ngạch hoặc lease hết hiệu lực
+  - Giới hạn phạm vi bảo vệ của leasing trên từng kết nối
+  - Kết hợp leasing với giới hạn đồng thời và kiểm soát tải
+  - Thực nghiệm dịch vụ quá tải với và không có leasing
+- level1: Vòng đời và lỗi
+  level2:
+  - Vòng đời một luồng từ lúc khởi tạo đến khi kết thúc
+  - Phân biệt hoàn thành, hủy, lỗi ứng dụng và mất kết nối
+  - Phân loại lỗi thiết lập, lỗi kết nối và lỗi cấp luồng
+  - 'Các mã lỗi tiêu biểu: APPLICATION_ERROR, REJECTED, CANCELED, INVALID'
+  - Chuyển lỗi nghiệp vụ thành phản hồi hoặc tín hiệu lỗi phù hợp
+  - Phân biệt kết quả rỗng với tài nguyên không tồn tại
+  - Truyền tín hiệu hủy xuống nguồn dữ liệu và tác vụ nền
+  - Dọn dẹp tài nguyên khi hoàn thành, lỗi hoặc hủy
+  - Thiết kế thông báo lỗi đủ chẩn đoán và tránh lộ dữ liệu nhạy cảm
+- level1: Phục hồi kết nối
+  level2:
+  - Phân biệt reconnect, retry, resubscribe và resume
+  - Thử kết nối lại với backoff, jitter và số lần thử hữu hạn
+  - 'Resumption: resume token và trạng thái cần giữ ở hai phía'
+  - Vị trí frame, bộ đệm lưu lại và cơ chế tiếp tục phiên
+  - Trình tự RESUME, RESUME_OK và đồng bộ vị trí frame đã tiếp nhận
+  - Điều kiện resume thành công và trường hợp REJECTED_RESUME
+  - Giới hạn dung lượng bộ đệm và thời gian giữ phiên
+  - Ảnh hưởng của khởi động lại máy chủ đến khả năng resume
+  - Tránh lặp tác dụng phụ khi phục hồi yêu cầu đang dang dở
+  - Xử lý nhiều phía kết nối lại đồng thời sau sự cố
+  - Thực nghiệm ngắt mạng, resume thành công và chuyển sang phiên mới
+- level1: Phân mảnh dữ liệu
+  level2:
+  - Phân biệt phân mảnh RSocket với chia gói của TCP
+  - Phân mảnh payload và vai trò của cờ FOLLOWS
+  - Tái lắp ghép data, metadata và ranh giới thông điệp
+  - Cấu hình kích thước mảnh và giới hạn payload được chấp nhận
+  - Chi phí bộ nhớ, độ trễ và bảo vệ trước payload quá lớn
+  - Lựa chọn giữa một payload lớn và một luồng nhiều phần tử
+  - Thực hành truyền payload lớn và quan sát các frame
+- level1: RSocket Java
+  level2:
+  - Các thành phần rsocket-core, rsocket-transport-netty và rsocket-test
+  - Hợp đồng io.rsocket.RSocket và bốn phương thức tương tác
+  - Tạo máy chủ bằng RSocketServer và SocketAcceptor
+  - Tạo phía kết nối bằng RSocketConnector
+  - TcpClientTransport, TcpServerTransport và truyền tải WebSocket
+  - Tạo và đọc Payload bằng DefaultPayload hoặc ByteBufPayload
+  - Cài đặt phía xử lý cho requestResponse, fireAndForget, requestStream, requestChannel
+  - Cung cấp responder phía mở kết nối để nhận yêu cầu ngược
+  - Gửi metadata phạm vi kết nối bằng metadataPush
+  - Cấu hình connector, server và interceptor cho hành vi giao thức
+  - Quản lý dispose, onClose và đóng ứng dụng đúng cách
+- level1: Bộ nhớ và tài nguyên
+  level2:
+  - Bộ nhớ heap, bộ nhớ trực tiếp và ByteBuf của Netty
+  - Đếm tham chiếu và quyền sở hữu Payload qua từng lời gọi
+  - Quy tắc retain, release và thời điểm không còn được truy cập payload
+  - PayloadDecoder và đánh đổi giữa sao chép với zero-copy
+  - Giải phóng payload khi lỗi, hủy hoặc loại bỏ phần tử
+  - Quản lý kết nối, đăng ký dài hạn và tài nguyên dùng chung
+  - Phát hiện rò rỉ ByteBuf và lỗi IllegalReferenceCountException
+  - Đặt giới hạn bộ nhớ cho bộ đệm, phân mảnh và resume
+- level1: Khởi động Spring Boot
+  level2:
+  - Chuẩn bị Java 21, Gradle và spring-boot-starter-rsocket
+  - Quản lý phiên bản tương thích bằng dependency management của Spring Boot
+  - 'Cấu trúc ứng dụng: cấu hình, bộ xử lý, dịch vụ và DTO'
+  - Tự cấu hình RSocketStrategies, RSocketMessageHandler và RSocketRequester.Builder
+  - Cấu hình máy chủ TCP độc lập qua spring.rsocket.server
+  - Cấu hình RSocket qua WebSocket trên máy chủ WebFlux dùng Reactor Netty
+  - Phân biệt cổng RSocket độc lập với cổng HTTP của ứng dụng
+  - Tùy chỉnh bằng RSocketServerCustomizer và RSocketConnectorConfigurer
+  - Quản lý cấu hình môi trường, địa chỉ dịch vụ và thông tin bí mật
+- level1: Bộ xử lý Spring
+  level2:
+  - Vai trò của @Controller và @MessageMapping trong xử lý RSocket
+  - Thiết kế route, tiền tố ở cấp lớp và biến đường dẫn
+  - Nhận dữ liệu bằng @Payload và tham số DTO
+  - Đọc biến route bằng @DestinationVariable
+  - Chọn mô hình tương tác từ kiểu đầu vào và đầu ra của handler
+  - Xử lý request-response với Mono và fire-and-forget với Mono<Void>
+  - Xử lý request-stream với Flux và request-channel với Publisher đầu vào
+  - Tiếp nhận SETUP và METADATA_PUSH bằng @ConnectMapping
+  - Kiểm tra dữ liệu đầu vào và xử lý lỗi giải mã
+  - Xử lý ngoại lệ bằng @MessageExceptionHandler
+  - Nhận RSocketRequester trong handler để gọi ngược phía kết nối
+- level1: RSocketRequester
+  level2:
+  - Khởi tạo requester bằng builder và lựa chọn TCP hoặc WebSocket
+  - Khai báo setupRoute, setupData và setupMetadata
+  - Cấu hình dataMimeType, metadataMimeType và RSocketStrategies
+  - Gửi route và dữ liệu bằng route(...), data(...)
+  - Nhận một kết quả bằng retrieveMono và nhiều kết quả bằng retrieveFlux
+  - Gửi fire-and-forget bằng send và hiểu tín hiệu hoàn tất
+  - Tạo request-channel từ Publisher đầu vào
+  - Truyền thông tin kiểu dữ liệu cho generic và Publisher
+  - Cung cấp RSocketMessageHandler để xử lý yêu cầu ngược
+  - Chia sẻ requester, quản lý kết nối và thời điểm dispose
+  - Đặt timeout, hủy đăng ký và xử lý lỗi trong chuỗi gọi
+- level1: Metadata trong Spring
+  level2:
+  - Mã hóa và giải mã composite metadata bằng RSocketStrategies
+  - Đăng ký encoder, decoder và thứ tự lựa chọn codec
+  - Trích xuất metadata bằng MetadataExtractor và metadataToExtract
+  - Đưa metadata đã trích xuất vào tham số @Header
+  - Phân biệt route của Spring với địa chỉ HTTP và header HTTP
+  - Truyền đồng thời route, thông tin xác thực và mã tương quan
+  - Thiết kế metadata tùy chỉnh và xử lý kiểu chưa hỗ trợ
+  - Phối hợp MIME type và codec giữa hai ứng dụng độc lập
+- level1: Bảo mật RSocket
+  level2:
+  - Mô hình đe dọa cho kết nối dài hạn và luồng dữ liệu hai chiều
+  - Bảo vệ truyền tải bằng TLS, WSS và kiểm tra chứng chỉ
+  - Xác thực ở bước SETUP, từng yêu cầu hoặc kết hợp cả hai
+  - Metadata xác thực dạng simple authentication và bearer token
+  - Tích hợp @EnableRSocketSecurity và PayloadSocketAcceptorInterceptor
+  - Xác thực JWT bằng ReactiveJwtDecoder
+  - Phân quyền theo route, loại trao đổi và quyền của người gọi
+  - Bảo vệ riêng yêu cầu ngược từ máy chủ về phía kết nối
+  - Truyền danh tính khi nhiều người dùng chung một kết nối dịch vụ
+  - Xử lý token hết hạn, thu hồi quyền và kết nối đang hoạt động
+  - Giới hạn kích thước, số luồng và tốc độ để chống lạm dụng
+  - Che thông tin xác thực trong log, trace và thông báo lỗi
+- level1: Thiết kế luồng dữ liệu
+  level2:
+  - Chọn nguồn dữ liệu theo từng đăng ký hoặc dùng chung cho nhiều bên nhận
+  - Phát dữ liệu qua Reactor Sinks và xử lý kết quả phát thất bại
+  - Phân phối một nguồn tới nhiều bên nhận với bộ đệm có giới hạn
+  - Chọn chính sách cho bên nhận chậm theo yêu cầu nghiệp vụ
+  - Dùng map, flatMap và concatMap theo yêu cầu đồng thời và thứ tự
+  - Gom nhóm, lấy mẫu và giảm tần suất khi truyền dữ liệu thời gian thực
+  - Tách tác vụ chặn khỏi event loop và giới hạn tài nguyên thực thi
+  - Truyền ngữ cảnh bằng Reactor Context qua các ranh giới bất đồng bộ
+  - Đóng nguồn dữ liệu khi không còn bên nhận và tránh đăng ký bị bỏ quên
+- level1: Độ tin cậy nghiệp vụ
+  level2:
+  - Phân biệt độ tin cậy truyền tải, tiếp tục phiên và lưu trữ bền vững
+  - Các tình huống không biết chắc yêu cầu đã được xử lý hay chưa
+  - Thiết kế khóa chống xử lý lặp (idempotency key) cho lệnh có tác dụng phụ
+  - Mã định danh thông điệp, số thứ tự và phát hiện khoảng trống dữ liệu
+  - Xác nhận, checkpoint và phát lại dữ liệu ở tầng ứng dụng
+  - Phối hợp transaction cơ sở dữ liệu với việc gửi thông điệp
+  - Ranh giới nhất quán khi một luồng dữ liệu đi qua nhiều dịch vụ
+  - Thiết kế tiếp tục từ vị trí nghiệp vụ khi không thể resume giao thức
+  - Chọn retry theo loại lỗi và tránh nhân bản tác dụng phụ
+- level1: Trình duyệt và tương thích
+  level2:
+  - Luồng kết nối RSocket từ ứng dụng trình duyệt qua WebSocket
+  - Lựa chọn thư viện phía trình duyệt và kiểm tra phiên bản tương thích
+  - Thống nhất route, composite metadata và định dạng dữ liệu giữa Java và JavaScript
+  - Đăng ký, hủy và dọn dẹp luồng theo vòng đời giao diện
+  - Ảnh hưởng của đổi mạng, tab nền và đóng trình duyệt
+  - Truyền thông tin xác thực và xử lý hết hạn ở phía trình duyệt
+  - Giới hạn môi trường WebSocket, proxy và chính sách Origin
+  - Kiểm thử tương thích giữa các ngôn ngữ bằng hợp đồng payload và metadata
+- level1: Tích hợp hệ thống
+  level2:
+  - Chọn ranh giới dùng RSocket trong kiến trúc nhiều dịch vụ
+  - Chuyển yêu cầu HTTP thành lời gọi RSocket và quản lý hủy
+  - Chuyển nguồn dữ liệu phản ứng thành request-stream
+  - Tích hợp nguồn dữ liệu chặn mà không chặn event loop
+  - Cầu nối tới Kafka hoặc RabbitMQ và ranh giới xác nhận thông điệp
+  - Phân biệt RSocket trực tiếp với broker trong lưu trữ và phát lại
+  - Giới thiệu inbound gateway và outbound gateway của Spring Integration
+  - Bảo toàn thời hạn xử lý, danh tính và mã tương quan qua các giao thức
+  - Chọn giao thức theo nhu cầu thời gian thực, độ bền và hệ sinh thái
+- level1: Cân bằng tải
+  level2:
+  - Ảnh hưởng của kết nối dài hạn đến phân phối tải giữa các máy chủ
+  - Cân bằng kết nối ở tầng mạng và cân bằng yêu cầu ở phía gọi
+  - Khám phá dịch vụ và cập nhật danh sách đích kết nối
+  - Giới thiệu rsocket-load-balancer và lựa chọn máy chủ theo tải
+  - Quản lý số kết nối và giới hạn số luồng trên mỗi máy chủ
+  - Ảnh hưởng của trạng thái phiên và resume đến việc đổi máy chủ
+  - Giảm tải có kiểm soát khi loại một máy chủ khỏi cụm
+  - Tránh thử lại qua nhiều tầng và khuếch đại lưu lượng khi có sự cố
+- level1: Quan sát hệ thống
+  level2:
+  - Phân biệt chỉ số kết nối, luồng tương tác, payload và nghiệp vụ
+  - Theo dõi độ trễ, lưu lượng, lỗi và số luồng đang hoạt động
+  - Theo dõi bộ đệm, nhu cầu nhận và dấu hiệu bên nhận chậm
+  - Theo dõi reconnect, resume, lease và lỗi thiết lập phiên
+  - Tích hợp Micrometer và công cụ giám sát ứng dụng
+  - Truyền mã tương quan và ngữ cảnh truy vết qua metadata
+  - Log theo vòng đời luồng và giới hạn dữ liệu payload được ghi
+  - Thiết kế cảnh báo cho mất kết nối, quá tải và rò rỉ tài nguyên
+- level1: Hiệu năng
+  level2:
+  - Thiết kế phép đo theo kích thước payload, số kết nối và số luồng
+  - Đo thông lượng và phân vị độ trễ thay vì chỉ thời gian trung bình
+  - So sánh TCP với WebSocket trong cùng điều kiện tải
+  - Đánh giá JSON, CBOR và Protobuf theo chi phí mã hóa và kích thước
+  - Ảnh hưởng của prefetch, bộ đệm và mức xử lý đồng thời
+  - Ảnh hưởng của phân mảnh, zero-copy và bộ nhớ trực tiếp
+  - Đánh đổi giữa dùng chung kết nối và phân tách nhóm lưu lượng
+  - Phân biệt điểm nghẽn mạng, CPU, GC, event loop và dịch vụ phụ thuộc
+  - Kiểm thử tải kéo dài, nhiều bên nhận chậm và ngắt kết nối hàng loạt
+- level1: Kiểm thử
+  level2:
+  - 'Phân tầng kiểm thử: hàm xử lý, giao thức, tích hợp và toàn tuyến'
+  - Kiểm thử Mono, Flux và tín hiệu lỗi bằng StepVerifier
+  - Điều khiển nhu cầu nhận và hủy trong kiểm thử backpressure
+  - Dùng thời gian ảo cho timeout, retry và nguồn phát định kỳ
+  - Tạo nguồn kiểm thử bằng TestPublisher
+  - Kiểm thử RSocket Java bằng truyền tải cục bộ không qua mạng
+  - Kiểm thử tích hợp Spring Boot với cổng động và RSocketRequester
+  - Kiểm thử đủ bốn mô hình tương tác và yêu cầu ngược
+  - Kiểm thử metadata, codec, dữ liệu sai và tương thích hợp đồng
+  - Kiểm thử xác thực, phân quyền và token hết hạn
+  - Mô phỏng mất mạng, resume bị từ chối và máy chủ khởi động lại
+  - Kiểm thử giải phóng tài nguyên sau lỗi, hủy và đóng kết nối
+- level1: Chẩn đoán sự cố
+  level2:
+  - 'Kết nối thất bại: sai cổng, transport, đường dẫn hoặc chứng chỉ'
+  - SETUP bị từ chối do MIME type, phiên bản hoặc chính sách truy cập
+  - Route không khớp và mô hình tương tác không đúng chữ ký handler
+  - Lỗi giải mã payload và không tương thích cấu trúc dữ liệu
+  - Không có dữ liệu do chưa subscribe hoặc chưa phát nhu cầu nhận
+  - Bộ đệm tăng khi bên nhận chậm hoặc nguồn phát không tuân theo nhu cầu
+  - Timeout do tác vụ chặn trên event loop
+  - Mất kết nối định kỳ do keepalive, proxy hoặc thời gian chờ nhàn rỗi
+  - Resume thất bại do mất trạng thái hoặc bộ đệm không còn đủ
+  - Rò rỉ payload, giải phóng sớm và lỗi đếm tham chiếu
+  - Đọc log io.rsocket.FrameLogger và dựng lại trình tự trao đổi
+  - Phân biệt lỗi ứng dụng, Reactor, RSocket và lớp truyền tải
+- level1: Triển khai vận hành
+  level2:
+  - Đóng gói ứng dụng và công bố cổng TCP hoặc WebSocket
+  - Cấu hình reverse proxy và load balancer cho kết nối dài hạn
+  - Kiểm tra WebSocket Upgrade, giới hạn frame và thời gian chờ nhàn rỗi
+  - Cấu hình TLS, quản lý chứng chỉ và thay đổi thông tin bí mật
+  - Giới hạn số kết nối, số luồng, bộ nhớ và tài nguyên hệ điều hành
+  - Kiểm tra sức khỏe, readiness và khả năng chấp nhận kết nối mới
+  - Dừng có kiểm soát và xử lý các luồng đang hoạt động
+  - Triển khai cuốn chiếu và tương thích giữa hai phiên bản ứng dụng
+  - Đặt chính sách phục hồi sau khởi động lại và mất trạng thái phiên
+  - Định nghĩa mục tiêu độ trễ, tỷ lệ lỗi và quy trình ứng phó sự cố
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng cặp ứng dụng RSocket Java để quan sát bốn mô hình tương tác
+  - Xây dựng dịch vụ Spring Boot truy vấn và theo dõi đơn hàng
+  - Xây dựng kênh hai chiều cho điều khiển thiết bị và phản hồi trạng thái
+  - Phân phối dữ liệu thời gian thực tới nhiều bên nhận có tốc độ khác nhau
+  - Tích hợp giao diện trình duyệt qua RSocket over WebSocket
+  - Bảo vệ dịch vụ bằng JWT và phân quyền theo route
+  - Thử nghiệm mất mạng, tiếp tục phiên và chống xử lý lặp
+  - Đo tải, tìm điểm nghẽn và kiểm tra giới hạn bộ nhớ
+  - Thiết kế phương án HTTP, SSE hoặc broker khi RSocket không phù hợp
+  - Hoàn thiện sơ đồ luồng, hợp đồng dữ liệu và tiêu chí nghiệm thu hệ thống

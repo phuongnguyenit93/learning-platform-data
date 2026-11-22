@@ -1,0 +1,49 @@
+roadmap:
+- id: khai-niem-http-webhook
+  title: Khái niệm HTTP Webhook
+  purpose: Hiểu cách hệ thống chủ động thông báo sự kiện qua HTTP thay vì liên tục polling.
+  objectives:
+  - Mô tả producer, endpoint nhận và event notification.
+  - Phân biệt webhook với REST request-response và polling.
+- id: endpoint-payload
+  title: Endpoint & Payload
+  purpose: Định nghĩa hợp đồng nhận sự kiện rõ ràng, dễ xác minh và mở rộng.
+  objectives:
+  - Thiết kế HTTPS POST endpoint với JSON body và headers.
+  - Xác định event type, event ID và mã phản hồi HTTP.
+- id: dang-ky-phat-su-kien
+  title: Đăng ký & Phát sự kiện
+  purpose: Cấu hình phía gửi để chỉ truyền những sự kiện thực sự cần thiết.
+  objectives:
+  - Đăng ký event types và callback URL ở hệ thống nguồn.
+  - Gửi một payload thử nghiệm và kiểm tra delivery.
+- id: xac-thuc-chu-ky
+  title: Xác thực & Chữ ký
+  purpose: Bảo vệ endpoint khỏi payload giả mạo và replay không mong muốn.
+  objectives:
+  - Xác minh HMAC signature trên raw request body.
+  - Giữ secret an toàn, dùng HTTPS và kiểm tra replay.
+- id: tiep-nhan-bat-dong-bo
+  title: Tiếp nhận Bất đồng bộ
+  purpose: Trả phản hồi nhanh mà vẫn lưu được công việc cần xử lý.
+  objectives:
+  - Xác thực, ghi nhận hoặc enqueue event rồi trả 2xx.
+  - Tách xử lý nghiệp vụ chậm sang worker hoặc queue.
+- id: retry-idempotency
+  title: Retry & Idempotency
+  purpose: Chống mất hoặc xử lý trùng sự kiện khi gửi lại và mạng lỗi.
+  objectives:
+  - Lưu event/delivery ID để tránh xử lý lặp.
+  - Thiết kế retry/backoff và không giả định thứ tự sự kiện.
+- id: webhook-receiver-voi-java
+  title: Webhook Receiver với Java
+  purpose: Xây một endpoint Java nhỏ thực thi các nguyên tắc đã học.
+  objectives:
+  - Tạo Spring Boot POST handler nhận payload và headers.
+  - Kiểm tra chữ ký trước khi parse JSON và xử lý event.
+- id: kiem-thu-quan-sat
+  title: Kiểm thử & Quan sát
+  purpose: Kiểm chứng khả năng nhận, xử lý và phục hồi sau lỗi thực tế.
+  objectives:
+  - Test chữ ký sai, timeout, duplicate và redelivery.
+  - Theo dõi delivery status, latency và failed events.

@@ -1,0 +1,281 @@
+menu:
+- level1: Mô hình GraphQL
+  level2:
+  - 'GraphQL là gì: ngôn ngữ truy vấn và cơ chế thực thi cho API'
+  - Bài toán lấy thừa, lấy thiếu dữ liệu và nhiều lượt gọi API
+  - Lược đồ (schema), kiểu, trường, thao tác (operation) và bộ phân giải (resolver)
+  - Hành trình từ yêu cầu của máy khách đến dữ liệu phản hồi
+  - Đồ thị dữ liệu của API và khác biệt với cơ sở dữ liệu đồ thị
+  - So sánh GraphQL với REST và RPC theo nhu cầu tích hợp
+  - Vai trò của máy khách, máy chủ GraphQL và các nguồn dữ liệu
+  - Kiến thức nền và lộ trình xây dựng một API GraphQL hoàn chỉnh
+- level1: Query cơ bản
+  level2:
+  - Viết query với tập trường lựa chọn (selection set)
+  - Truy vấn trường lồng nhau và danh sách đối tượng
+  - Truyền đối số (argument) cho trường cần lấy dữ liệu
+  - Đặt tên operation và lựa chọn operationName khi có nhiều operation
+  - Bí danh (alias) và cách truy vấn cùng một trường với đối số khác nhau
+  - Khai báo biến (variable) và tách dữ liệu khỏi tài liệu truy vấn
+  - Giá trị mặc định, biến bắt buộc và biến không được sử dụng
+  - Trường __typename và nhận diện kiểu đối tượng trả về
+  - Đọc cấu trúc phản hồi theo tập trường và bí danh đã yêu cầu
+- level1: Schema và kiểu
+  level2:
+  - Ngôn ngữ định nghĩa schema (SDL) và cấu trúc tệp schema
+  - Kiểu gốc Query, Mutation, Subscription và khai báo schema
+  - Kiểu Object, trường và đối số của trường
+  - Các scalar chuẩn Int, Float, String, Boolean và ID
+  - Giới hạn giá trị Int, độ chính xác số và ý nghĩa của ID
+  - Enum và tập giá trị được phép trong hợp đồng
+  - List, Non-Null và các tổ hợp [T], [T!], [T]! và [T!]!
+  - Interface và hợp đồng chung giữa nhiều kiểu đối tượng
+  - Union và kết quả có thể thuộc nhiều kiểu khác nhau
+  - Scalar tùy chỉnh cho ngày giờ, tiền tệ và định danh
+  - Mô tả schema, mở rộng type và quy tắc tên dành riêng
+- level1: Dữ liệu đầu vào
+  level2:
+  - Input Object và khác biệt với kiểu Object đầu ra
+  - Kết hợp scalar, enum, danh sách và input lồng nhau
+  - Phân biệt bỏ qua trường, truyền null và giá trị mặc định
+  - Quy tắc chuyển đổi giá trị (coercion) cho literal và biến
+  - Khả năng tương thích giữa kiểu biến với kiểu đối số
+  - Thiết kế input cho tạo mới, cập nhật và cập nhật một phần
+  - Kiểm tra cấu trúc GraphQL và kiểm tra ràng buộc nghiệp vụ
+  - OneOf Input Object, @oneOf và điều kiện hỗ trợ của phiên bản triển khai
+  - Giới hạn độ sâu, số phần tử và kích thước dữ liệu đầu vào
+- level1: Fragment và directive
+  level2:
+  - Fragment có tên và tái sử dụng tập trường
+  - Điều kiện kiểu của fragment trên Object, Interface và Union
+  - Inline fragment để chọn trường theo kiểu thực tế
+  - Phạm vi sử dụng biến trong fragment
+  - Phát hiện fragment không dùng, tham chiếu sai và chu trình fragment
+  - Điều khiển tập trường bằng @skip và @include
+  - Phân biệt directive trên operation với directive trong schema
+  - Định nghĩa directive tùy chỉnh và trách nhiệm cài đặt hành vi
+- level1: Cơ chế thực thi
+  level2:
+  - Các giai đoạn phân tích cú pháp, kiểm tra hợp lệ và thực thi
+  - Kiểm tra trường tồn tại, đối số hợp lệ và tập trường bắt buộc
+  - Kiểm tra xung đột trường và gộp các lựa chọn tương thích
+  - Resolver nhận đối tượng cha, đối số, ngữ cảnh và thông tin trường
+  - Resolver mặc định và cách lấy giá trị từ đối tượng nguồn
+  - Hoàn tất kết quả cho scalar, đối tượng và danh sách
+  - Chiến lược thực thi query và tuần tự các trường gốc của mutation
+  - Resolver bất đồng bộ và phối hợp nhiều nguồn dữ liệu
+  - Ngữ cảnh theo yêu cầu và truyền thông tin đến resolver con
+  - Thời hạn xử lý, hủy tác vụ và giới hạn dừng lời gọi phụ thuộc
+- level1: Phản hồi và lỗi
+  level2:
+  - Cấu trúc data, errors và extensions trong phản hồi GraphQL
+  - Lỗi cú pháp, kiểm tra tài liệu và chuyển đổi biến trước khi thực thi
+  - Lỗi xảy ra tại resolver và dữ liệu trả về một phần
+  - Đọc message, locations, path và extensions của lỗi
+  - Đường dẫn lỗi theo bí danh và chỉ số phần tử trong danh sách
+  - Lan truyền null khi trường Non-Null không hoàn tất được
+  - Phân biệt lỗi truyền tải, lỗi GraphQL và kết quả lỗi nghiệp vụ
+  - Quy ước mã lỗi ổn định và bảo vệ chi tiết nội bộ
+  - Chính sách máy khách khi phản hồi đồng thời có dữ liệu và lỗi
+- level1: Mutation
+  level2:
+  - Thiết kế mutation theo hành động và mục tiêu nghiệp vụ
+  - Tách kiểu input với đối tượng kết quả của mutation
+  - Trả trạng thái sau cập nhật và dữ liệu máy khách cần đồng bộ
+  - Biểu diễn lỗi nghiệp vụ bằng kiểu dữ liệu có cấu trúc
+  - Thực thi tuần tự ở gốc mutation và giới hạn bảo đảm giao dịch
+  - Xác định ranh giới giao dịch tại tầng dịch vụ
+  - Chống cập nhật mất dữ liệu bằng phiên bản và kiểm tra xung đột
+  - Thử lại mutation, khóa lũy đẳng và ngăn tác động trùng lặp
+  - Phát sự kiện sau khi giao dịch hoàn tất và đồng bộ với subscription
+- level1: Thiết kế schema
+  level2:
+  - Thiết kế từ nhu cầu nghiệp vụ và hành trình lấy dữ liệu
+  - Đặt tên kiểu, trường, đối số và operation nhất quán
+  - Chọn điểm vào Query và mô hình quan hệ giữa các đối tượng
+  - Tách mô hình schema khỏi bảng dữ liệu và thực thể lưu trữ
+  - Chọn nullability theo cam kết nghiệp vụ và khả năng lỗi
+  - Thiết kế Interface, Union và mô hình kết quả nhiều biến thể
+  - Định danh đối tượng, ID toàn cục và mẫu Node của Relay
+  - Giữ query không có tác động làm thay đổi trạng thái nghiệp vụ
+  - Cân bằng khả năng tái sử dụng với độ sâu và chi phí đồ thị
+- level1: Phân trang và lọc
+  level2:
+  - Thiết kế đối số lọc theo nhu cầu và quyền truy cập dữ liệu
+  - Sắp xếp ổn định, khóa phụ và danh sách trường được phép sắp xếp
+  - Phân trang offset–limit và hạn chế khi dữ liệu thay đổi
+  - Phân trang theo cursor và lựa chọn khóa tiếp tục
+  - Mô hình Relay Connection với edges, node, cursor và pageInfo
+  - Phân trang tiến, phân trang lùi và các đối số tương ứng
+  - Thiết kế totalCount và đánh đổi chi phí tính tổng
+  - Giới hạn kích thước trang và danh sách lồng nhau
+  - Kiểm tra cursor, kết hợp bộ lọc và tránh bỏ sót hoặc lặp dữ liệu
+- level1: GraphQL qua HTTP
+  level2:
+  - Phân biệt đặc tả GraphQL với bản nháp GraphQL over HTTP
+  - Cấu trúc yêu cầu với query, operationName, variables và extensions
+  - POST, GET và giới hạn thực thi mutation qua GET
+  - Content-Type, Accept và application/graphql-response+json
+  - Mã trạng thái HTTP theo loại lỗi, media type và cách triển khai
+  - Phân biệt nhiều operation trong tài liệu với gửi nhiều yêu cầu theo lô
+  - Header, cookie, CORS và ngữ cảnh xác thực của yêu cầu
+  - Timeout, giới hạn nội dung yêu cầu và proxy trước endpoint GraphQL
+  - Tải tệp qua URL ký sẵn và phạm vi của các mở rộng multipart
+- level1: GraphQL Java
+  level2:
+  - Vai trò của GraphQL Java và quan hệ với Spring for GraphQL
+  - Tạo schema từ SDL với SchemaParser và SchemaGenerator
+  - Liên kết schema với DataFetcher bằng RuntimeWiring
+  - Đọc đối số, đối tượng nguồn và ngữ cảnh từ DataFetchingEnvironment
+  - Chuẩn bị ExecutionInput và đọc ExecutionResult
+  - Ánh xạ Interface, Union bằng TypeResolver
+  - Cài đặt scalar tùy chỉnh và kiểm tra giá trị hai chiều
+  - Kết quả bất đồng bộ với CompletionStage và quản lý Executor
+  - Instrumentation và các điểm mở rộng trong vòng đời thực thi
+- level1: Spring for GraphQL
+  level2:
+  - Thiết lập Spring Boot và lựa chọn nền tảng web phù hợp
+  - Nạp tệp schema, cấu hình endpoint và kiểm tra schema lúc khởi động
+  - Ánh xạ trường gốc bằng @QueryMapping và @MutationMapping
+  - Ánh xạ trường con bằng @SchemaMapping với typeName và field
+  - Nhận đối số bằng @Argument và liên kết input vào đối tượng Java
+  - Nhận biết đối số bị bỏ qua với ArgumentValue
+  - Kiểm tra đầu vào bằng Bean Validation và ràng buộc tùy chỉnh
+  - Truy cập GraphQLContext và các giá trị được truyền theo yêu cầu
+  - Sử dụng WebGraphQlInterceptor để bổ sung ngữ cảnh và xử lý yêu cầu
+  - Đăng ký scalar, TypeResolver và cấu hình bằng RuntimeWiringConfigurer
+  - Ánh xạ ngoại lệ với DataFetcherExceptionResolver và @GraphQlExceptionHandler
+  - Sử dụng GraphiQL trong môi trường phát triển và quản lý quyền truy cập
+- level1: Truy cập dữ liệu
+  level2:
+  - Tách resolver, dịch vụ nghiệp vụ và tầng truy cập dữ liệu
+  - Kết hợp cơ sở dữ liệu, REST API và dịch vụ ngoài trong cùng đồ thị
+  - Thiết kế truy vấn dữ liệu theo bộ lọc, phân trang và tập trường
+  - Tích hợp Spring Data và lựa chọn kiểu truy vấn phù hợp
+  - Quan hệ tải lười, vòng đời phiên làm việc và giới hạn giao dịch
+  - Tránh ánh xạ trực tiếp thực thể lưu trữ thành hợp đồng công khai
+  - Lan truyền ngữ cảnh xác thực đến nguồn dữ liệu phụ thuộc
+  - Đặt timeout, cô lập tài nguyên và xử lý lỗi từng nguồn dữ liệu
+  - Phối hợp lời gọi chặn và không chặn mà không làm nghẽn luồng xử lý
+- level1: DataLoader
+  level2:
+  - Nhận diện vấn đề N+1 trong resolver quan hệ
+  - Gom nhiều khóa tải dữ liệu và tái sử dụng kết quả trong cùng yêu cầu
+  - Vai trò của DataLoader, BatchLoader và DataLoaderRegistry
+  - Phạm vi theo yêu cầu và ngăn rò rỉ dữ liệu giữa người dùng
+  - Thứ tự kết quả, khóa không tồn tại và lỗi của từng phần tử
+  - Đăng ký tải theo lô bằng BatchLoaderRegistry trong Spring
+  - Sử dụng @BatchMapping và chọn trường hợp cần DataLoader trực tiếp
+  - Thiết kế khóa theo đối số, quyền truy cập và ngữ cảnh dữ liệu
+  - Điều phối lượt tải, lời gọi bất đồng bộ và khác biệt theo phiên bản thư viện
+  - Xóa hoặc cập nhật dữ liệu đã lưu sau mutation và đo số lượt truy cập thực tế
+- level1: Subscription
+  level2:
+  - Mô hình đăng ký sự kiện và khác biệt với polling hoặc live query
+  - Quy tắc một trường gốc cho mỗi subscription operation
+  - Tạo nguồn sự kiện và lựa chọn dữ liệu cho từng thông báo
+  - Lựa chọn WebSocket, SSE hoặc RSocket theo khả năng hỗ trợ
+  - Giao thức graphql-transport-ws và quá trình thiết lập phiên
+  - Xây dựng @SubscriptionMapping với Publisher hoặc Flux
+  - Lọc sự kiện theo người dùng, đối số đăng ký và quyền truy cập
+  - Hủy đăng ký, xử lý lỗi và dọn tài nguyên khi kết nối đóng
+  - Kết nối lại, đồng bộ trạng thái và giới hạn bảo đảm phát lại
+  - Máy khách chậm, bộ đệm giới hạn và phân phối sự kiện qua nhiều máy chủ
+- level1: Máy khách GraphQL
+  level2:
+  - Gửi query và biến bằng công cụ HTTP hoặc thư viện GraphQL
+  - Sử dụng HttpGraphQlClient và đọc dữ liệu theo đường dẫn
+  - Xử lý lỗi truyền tải, lỗi GraphQL và phản hồi thiếu dữ liệu
+  - Sử dụng máy khách WebSocket hoặc RSocket cho subscription
+  - Tổ chức tệp operation và fragment theo tính năng
+  - Sinh kiểu và mã máy khách từ schema cùng tài liệu operation
+  - Ánh xạ scalar tùy chỉnh giữa Java, JSON và phía giao diện
+  - Quản lý hủy yêu cầu, timeout và thử lại an toàn theo loại operation
+  - Trạng thái giao diện khi đang tải, lỗi một phần và cập nhật lạc quan
+- level1: Bộ nhớ đệm
+  level2:
+  - Phân biệt lưu tài liệu đã phân tích, kết quả resolver và phản hồi operation
+  - Khóa bộ nhớ đệm theo operation, biến và phạm vi xác thực
+  - Lưu thực thể chuẩn hóa phía máy khách bằng định danh và kiểu
+  - Đồng bộ dữ liệu đã lưu sau mutation hoặc sự kiện subscription
+  - Phạm vi bộ nhớ đệm DataLoader so với dữ liệu dùng chung giữa yêu cầu
+  - Truy vấn lưu sẵn, Automatic Persisted Queries và chi phí truyền tài liệu
+  - Điều kiện sử dụng bộ nhớ đệm HTTP hoặc CDN cho query
+  - Thời hạn lưu, hủy dữ liệu cũ và ngăn chia sẻ kết quả riêng tư
+- level1: Bảo mật và phân quyền
+  level2:
+  - Xác thực yêu cầu trước khi thực thi GraphQL
+  - Đặt phân quyền ở tầng nghiệp vụ và bảo vệ từng đối tượng dữ liệu
+  - Kiểm soát quyền đọc trường và quyền thực hiện mutation
+  - Cách ly dữ liệu theo người dùng và khách hàng thuê dịch vụ (tenant)
+  - Phân quyền nhất quán qua resolver, DataLoader và bộ nhớ đệm
+  - Chống giả mạo yêu cầu với cookie và kiểm soát CORS, CSRF
+  - Kiểm tra đầu vào trước khi gọi cơ sở dữ liệu hoặc dịch vụ ngoài
+  - Ẩn chi tiết lỗi, dữ liệu nhạy cảm và giá trị biến trong nhật ký
+  - Kiểm soát introspection, GraphiQL và mức công bố thông tin schema
+  - Xác thực subscription, phiên hết hạn và thay đổi quyền khi kết nối đang mở
+- level1: Giới hạn truy vấn
+  level2:
+  - Ước lượng chi phí theo trường, độ sâu và số phần tử danh sách
+  - Giới hạn độ sâu, độ rộng, alias và fragment sau khi mở rộng
+  - Giới hạn số operation hoặc yêu cầu trong một lô nếu có hỗ trợ
+  - Áp dụng hạn ngạch theo người dùng và chi phí thực tế
+  - Giới hạn thời gian thực thi, số lượt truy cập và kích thước phản hồi
+  - Giới hạn trang, bộ lọc tốn kém và tải dữ liệu lồng nhau
+  - Danh sách tài liệu tin cậy và khác biệt với chỉ lưu truy vấn bằng hash
+  - Kết hợp từ chối sớm, điều tiết tải và bảo vệ hệ thống phụ thuộc
+- level1: Quản lý schema
+  level2:
+  - Introspection với __schema, __type và công cụ khám phá hợp đồng
+  - Tài liệu mô tả kiểu, trường, đối số và ví dụ sử dụng
+  - Phân loại thay đổi tương thích và thay đổi phá vỡ máy khách
+  - Thay đổi nullability, enum, kiểu đối số và giá trị mặc định
+  - Đánh dấu ngừng dùng bằng @deprecated và kế hoạch loại bỏ
+  - Theo dõi operation đang sử dụng trước khi thay đổi schema
+  - Kiểm tra schema cùng tài liệu operation trong quy trình tích hợp liên tục
+  - Phân chia quyền sở hữu schema và tổ chức schema nhiều tệp
+  - Quản lý phiên bản đặc tả, thư viện và các tính năng như @oneOf
+- level1: Kiểm thử GraphQL
+  level2:
+  - Kiểm thử resolver, dịch vụ nghiệp vụ và bộ chuyển đổi dữ liệu
+  - Kiểm thử operation với GraphQlTester và ExecutionGraphQlServiceTester
+  - Kiểm thử HTTP bằng HttpGraphQlTester và kiểm tra lớp truyền tải
+  - Kiểm thử context, xác thực và phân quyền theo dữ liệu
+  - Kiểm thử input thiếu trường, null, enum và scalar không hợp lệ
+  - Kiểm thử fragment, alias và tài liệu không hợp lệ
+  - Kiểm thử phản hồi một phần, đường dẫn lỗi và lan truyền null
+  - Kiểm thử mutation, xung đột cập nhật và tính lũy đẳng
+  - Kiểm thử DataLoader, số lượt truy vấn và giới hạn N+1
+  - Kiểm thử subscription với dữ liệu hữu hạn, hủy và hết thời gian chờ
+  - Kiểm thử tương thích schema, giới hạn chi phí và tải thực tế
+- level1: Quan sát và vận hành
+  level2:
+  - Đo độ trễ theo operation, resolver và nguồn dữ liệu
+  - Phân biệt thành công HTTP với lỗi hoặc dữ liệu thiếu trong GraphQL
+  - Theo dõi operationName, loại operation và mã tương quan yêu cầu
+  - Liên kết dấu vết phân tán qua resolver và lời gọi phụ thuộc
+  - Đo hiệu quả tải theo lô, tỷ lệ dùng bộ nhớ đệm và truy vấn N+1
+  - Kiểm soát số lượng nhãn số đo và bảo vệ dữ liệu ghi nhận
+  - Theo dõi subscription đang mở, tốc độ sự kiện và tài nguyên bị giữ
+  - Cấu hình giới hạn, dừng ứng dụng và triển khai thay đổi có kiểm soát
+  - Chẩn đoán truy vấn treo, resolver trả null và thiếu ánh xạ schema
+- level1: Mở rộng kiến trúc
+  level2:
+  - Đặt GraphQL tại lớp phục vụ giao diện (BFF) hoặc lớp tổng hợp API
+  - Ghép nhiều nguồn dữ liệu và ranh giới sở hữu nghiệp vụ
+  - Phân biệt ghép schema (schema stitching) với federation
+  - Vai trò của subgraph, schema hợp nhất và bộ định tuyến federation
+  - Định danh thực thể, lập kế hoạch truy vấn và lỗi xuyên nhiều dịch vụ
+  - Đánh đổi hiệu năng, phân quyền và khả năng vận hành khi hợp nhất schema
+  - Trả kết quả tăng dần với @defer, @stream và tính thử nghiệm theo triển khai
+  - Phân biệt subscription, live query và các mở rộng ngoài đặc tả cốt lõi
+- level1: Thực hành tổng hợp
+  level2:
+  - API danh mục sách với tác giả, quan hệ lồng nhau và truy vấn có biến
+  - Thiết kế schema, input và hợp đồng lỗi cho quản lý đơn hàng
+  - Phân trang Connection, bộ lọc và kiểm chứng thứ tự ổn định
+  - Tái hiện N+1 và so sánh số truy vấn trước, sau DataLoader
+  - Mutation có giao dịch, kiểm tra phiên bản và đồng bộ dữ liệu máy khách
+  - Subscription thông báo trạng thái với phân quyền và hủy kết nối
+  - Tổng hợp dữ liệu từ dịch vụ ngoài và xử lý lỗi một phần
+  - Hoàn thiện kiểm thử, giới hạn truy vấn và bảng theo dõi vận hành

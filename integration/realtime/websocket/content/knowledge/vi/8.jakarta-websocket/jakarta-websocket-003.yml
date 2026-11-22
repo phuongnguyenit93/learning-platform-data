@@ -1,0 +1,3 @@
+menuLevel1: Jakarta WebSocket
+menuLevel2: '@OnOpen, @OnMessage, @OnClose, @OnError và tham số callback'
+status: ''

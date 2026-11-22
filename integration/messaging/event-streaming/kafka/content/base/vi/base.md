@@ -1,0 +1,7 @@
+# Integration Messaging Event Streaming Kafka
+
+Apache Kafka là nền tảng event streaming phân tán, cho phép ứng dụng phát, lưu trữ và xử lý các sự kiện theo thời gian. Khác với cách chỉ chuyển thông điệp từ bên gửi sang bên nhận, Kafka duy trì các bản ghi trong topic được chia thành partition, nhờ đó nhiều ứng dụng có thể đọc độc lập hoặc phát lại dữ liệu theo offset. Module này tập trung vào những khái niệm nền tảng và kỹ năng thiết kế luồng tích hợp với Kafka, không gắn với một thư viện ứng dụng cụ thể.
+
+Roadmap một cấp gồm tám mốc: tìm hiểu event streaming và cấu trúc cluster, topic, partition, key; xây dựng producer và consumer; sau đó nắm consumer group, offset, replication, các bảo đảm delivery và chiến lược retention hoặc compaction. Các mốc cuối giới thiệu Kafka Connect, Kafka Streams, bảo mật, quan sát hệ thống và kiểm thử tình huống lỗi trong luồng xử lý.
+
+Module phù hợp với người đã có kiến thức Java, lập trình dịch vụ và giao tiếp bất đồng bộ cơ bản. Sau khi hoàn thành, bạn có thể chạy môi trường Kafka thử nghiệm, thiết kế topic và key hợp lý, gửi/đọc sự kiện, giải thích giới hạn về thứ tự và exactly-once, đồng thời xác minh hành vi của một luồng producer-consumer trong các tình huống bình thường và khi có lỗi.

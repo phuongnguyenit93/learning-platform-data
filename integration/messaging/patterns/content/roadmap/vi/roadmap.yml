@@ -1,0 +1,57 @@
+roadmap:
+- id: message-flow-eip
+  title: Message Flow & EIP
+  purpose: Nắm ngôn ngữ Enterprise Integration Patterns để mô tả luồng trao đổi thông điệp độc lập với công nghệ.
+  objectives:
+  - Nhận diện Message, Channel và Endpoint
+  - Phân biệt payload với headers
+  - Vẽ luồng producer → channel → consumer
+- id: point-to-point-pub-sub
+  title: Point-to-Point & Pub/Sub
+  purpose: Chọn cách phân phối thông điệp theo nhu cầu một bên nhận hoặc nhiều bên cùng nhận.
+  objectives:
+  - So sánh queue một consumer với pub/sub nhiều subscriber
+  - Minh họa luồng xử lý đơn và phát sự kiện
+  - Nhận diện đánh đổi về fan-out và thứ tự
+- id: request-reply-correlation
+  title: Request-Reply & Correlation
+  purpose: Thiết kế tương tác có phản hồi trên hai kênh thông điệp và ghép đúng reply với request.
+  objectives:
+  - Vẽ request channel và reply channel
+  - Sử dụng correlation ID để ghép phản hồi
+  - Xác định tình huống phản hồi chậm hoặc thất lạc
+- id: router-filter
+  title: Router & Filter
+  purpose: Điều hướng hoặc loại bỏ thông điệp theo điều kiện mà không buộc producer biết nơi nhận.
+  objectives:
+  - Phân biệt content-based router và filter
+  - Xây dựng quy tắc định tuyến theo header/payload
+  - Mô tả nhánh không có nơi nhận phù hợp
+- id: translator-enricher
+  title: Translator & Enricher
+  purpose: Thích ứng định dạng và bổ sung thông tin để các hệ thống trao đổi dữ liệu không phụ thuộc nhau.
+  objectives:
+  - Ánh xạ payload giữa hai data contract
+  - Phân biệt translator với content enricher
+  - Giải thích vị trí chuyển đổi trong message flow
+- id: splitter-aggregator
+  title: Splitter & Aggregator
+  purpose: Xử lý từng phần của thông điệp phức hợp rồi hợp nhất kết quả theo cùng một nhóm.
+  objectives:
+  - Tách message chứa nhiều phần tử bằng splitter
+  - Gom kết quả theo correlation key
+  - Đặt điều kiện hoàn tất hoặc timeout cho aggregator
+- id: competing-consumers
+  title: Competing Consumers
+  purpose: Mở rộng năng lực xử lý với nhiều consumer trên một hàng đợi và hiểu đánh đổi đi kèm.
+  objectives:
+  - Mô tả nhiều worker nhận từ cùng point-to-point channel
+  - Giải thích ảnh hưởng lên throughput và thứ tự xử lý
+  - Phân biệt competing consumers với pub/sub
+- id: pipes-and-filters-qa
+  title: Pipes-and-Filters & QA
+  purpose: Ghép các pattern thành một luồng dễ kiểm chứng và chọn pattern theo bài toán tích hợp.
+  objectives:
+  - Thiết kế flow gồm filter, router, transformer và handler
+  - Kiểm thử nhánh định tuyến và dữ liệu sau biến đổi
+  - Đối chiếu thứ tự, correlation và đầu ra mong đợi

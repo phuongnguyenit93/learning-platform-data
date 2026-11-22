@@ -1,0 +1,7 @@
+# Integration Messaging Message Broker Activemq
+
+Apache ActiveMQ là hệ sinh thái message broker hỗ trợ giao tiếp bất đồng bộ giữa các ứng dụng thông qua cơ chế gửi và nhận thông điệp. Module tập trung vào nền tảng Java/JMS (Jakarta Messaging), nơi producer không cần chờ consumer xử lý xong từng tác vụ. ActiveMQ Classic và ActiveMQ Artemis là hai dòng broker có kiến trúc, cách cấu hình và tính năng riêng; khi thực hành cần chọn một dòng và phiên bản cụ thể, không coi cấu hình của chúng là hoàn toàn hoán đổi.
+
+Người học nên biết Java, kết nối mạng và nguyên lý messaging cơ bản. Lộ trình bắt đầu từ vai trò broker và cài đặt ActiveMQ Artemis, sau đó tìm hiểu Queue, Topic, address/routing và cách gửi, nhận message bằng JMS hoặc Spring Boot. Tiếp theo là acknowledgment, transaction, persistent delivery và cách khôi phục luồng xử lý khi có lỗi thông qua redelivery, dead-letter queue và consumer idempotency. Phần cuối đề cập đến authentication, authorization, TLS và giám sát queue/consumer.
+
+Hoàn thành module, bạn có thể thiết lập broker để thử nghiệm, tạo ứng dụng Java gửi/nhận thông điệp, phân biệt luồng point-to-point và publish/subscribe, xử lý thông điệp lỗi mà hạn chế nhân đôi tác dụng phụ, đồng thời nhận diện cấu hình bảo mật và chỉ số vận hành cần theo dõi.

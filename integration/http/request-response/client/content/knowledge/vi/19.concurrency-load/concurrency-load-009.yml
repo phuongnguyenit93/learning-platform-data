@@ -1,0 +1,3 @@
+menuLevel1: Đồng thời và tải
+menuLevel2: Tránh tạo executor, scheduler hoặc client mới trong mỗi vòng lặp
+status: ''

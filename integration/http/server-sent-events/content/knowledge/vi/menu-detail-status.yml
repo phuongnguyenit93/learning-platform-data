@@ -1,0 +1,2605 @@
+menu:
+- slug: sse-overview
+  title: Tổng quan SSE
+  childs:
+  - slug: sse-overview-001
+    title: Mô hình giao tiếp sự kiện một chiều từ server đến client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-overview-002
+    title: Cách SSE duy trì luồng phản hồi trên một kết nối HTTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-overview-003
+    title: Vai trò của server, trình duyệt và EventSource
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-overview-004
+    title: So sánh SSE với polling và long polling
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-overview-005
+    title: So sánh SSE với WebSocket và streaming qua Fetch API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-overview-006
+    title: 'Các trường hợp sử dụng: thông báo, tiến độ và dữ liệu cập nhật trực tiếp'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-overview-007
+    title: Giới hạn của SSE đối với dữ liệu nhị phân và giao tiếp hai chiều
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-overview-008
+    title: Phân biệt kết nối HTTP, luồng sự kiện và phiên nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-overview-009
+    title: Lựa chọn Spring MVC SseEmitter hoặc Spring WebFlux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-overview-010
+    title: Chuẩn bị môi trường Java, Spring Boot và công cụ quan sát HTTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-for-sse
+  title: HTTP cho SSE
+  childs:
+  - slug: http-for-sse-001
+    title: Thiết kế endpoint GET trả về một luồng sự kiện dài hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-for-sse-002
+    title: Content-Type text/event-stream và mã hóa UTF-8
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-for-sse-003
+    title: Accept header và thương lượng nội dung với client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-for-sse-004
+    title: Gửi header sớm và flush dữ liệu để client nhận kịp thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-for-sse-005
+    title: Phân biệt truyền dữ liệu theo chunk ở HTTP/1.1 và stream ở HTTP/2
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-for-sse-006
+    title: Bộ nhớ đệm HTTP, Cache-Control và nguy cơ cache nhầm luồng sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-for-sse-007
+    title: Content-Length, response streaming và phản hồi chưa kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-for-sse-008
+    title: Ảnh hưởng của nén nội dung đến buffering và độ trễ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-for-sse-009
+    title: Mã trạng thái HTTP trước khi mở luồng và giới hạn sau khi commit response
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-for-sse-010
+    title: Phân biệt TCP keepalive, HTTP keep-alive và heartbeat của SSE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: event-stream-format
+  title: Định dạng event-stream
+  childs:
+  - slug: event-stream-format-001
+    title: Cấu trúc thông điệp SSE và dòng trống kết thúc một sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-format-002
+    title: Trường data và cách ghép nhiều dòng dữ liệu bằng ký tự xuống dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-format-003
+    title: Trường event và phân biệt message mặc định với sự kiện có tên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-format-004
+    title: Trường id và trạng thái ID sự kiện cuối cùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-format-005
+    title: Trường retry và giá trị thời gian reconnect tính bằng mili giây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-format-006
+    title: Dòng comment bắt đầu bằng dấu hai chấm để gửi heartbeat
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-format-007
+    title: Quy tắc dấu hai chấm, khoảng trắng đầu giá trị và trường không được nhận diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-format-008
+    title: Xử lý LF, CRLF, CR và thông điệp bị chia giữa các lần đọc mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-format-009
+    title: Trường id rỗng, ký tự NUL và các giá trị retry không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-format-010
+    title: Đóng gói JSON, Unicode và dữ liệu nhiều dòng trong thông điệp SSE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: eventsource-basics
+  title: EventSource cơ bản
+  childs:
+  - slug: eventsource-basics-001
+    title: Khởi tạo EventSource và đăng ký một endpoint SSE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eventsource-basics-002
+    title: Theo dõi readyState với CONNECTING, OPEN và CLOSED
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eventsource-basics-003
+    title: Xử lý onopen, onmessage và onerror
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eventsource-basics-004
+    title: Lắng nghe sự kiện có tên bằng addEventListener
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eventsource-basics-005
+    title: Đọc data, lastEventId và origin từ MessageEvent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eventsource-basics-006
+    title: Phân tích JSON và xử lý payload không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eventsource-basics-007
+    title: Đóng kết nối chủ động bằng close
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eventsource-basics-008
+    title: Kết nối cùng origin và cấu hình withCredentials cho khác origin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eventsource-basics-009
+    title: Giới hạn của EventSource gốc đối với method, request body và custom header
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eventsource-basics-010
+    title: Lựa chọn Fetch streaming hoặc thư viện thay thế khi cần kiểm soát request
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: client-reconnection
+  title: Reconnect phía client
+  childs:
+  - slug: client-reconnection-001
+    title: Vòng đời kết nối khi mở trang, mất mạng và kết nối trở lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-reconnection-002
+    title: Cơ chế reconnect tự động của EventSource và tác động của trường retry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-reconnection-003
+    title: Phân biệt sự kiện lỗi kết nối với sự kiện lỗi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-reconnection-004
+    title: Hành vi khi stream kết thúc, sai Content-Type hoặc nhận phản hồi HTTP lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-reconnection-005
+    title: Dùng HTTP 204 để thông báo client ngừng reconnect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-reconnection-006
+    title: Thiết kế backoff và jitter khi ứng dụng tự quản lý việc kết nối lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-reconnection-007
+    title: Tránh tạo nhiều vòng reconnect đồng thời với cơ chế của EventSource
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-reconnection-008
+    title: Quản lý kết nối khi chuyển trang, đăng xuất hoặc component bị hủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-reconnection-009
+    title: Khôi phục sau khi tab ngủ, thiết bị đổi mạng hoặc trình duyệt quay lại trang
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: client-reconnection-010
+    title: Hiển thị trạng thái đang kết nối, gián đoạn và dữ liệu có thể đã cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: event-ids-and-replay
+  title: Event ID và phát lại
+  childs:
+  - slug: event-ids-and-replay-001
+    title: Thiết kế event ID duy nhất và phạm vi thứ tự theo luồng hoặc partition
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-ids-and-replay-002
+    title: Cách trình duyệt gửi Last-Event-ID khi EventSource reconnect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-ids-and-replay-003
+    title: Phân biệt reconnect của cùng EventSource với tạo một đối tượng mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-ids-and-replay-004
+    title: Lưu cursor phía ứng dụng để tiếp tục sau khi tải lại trang
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-ids-and-replay-005
+    title: Xác định ranh giới replay và tránh bỏ sót giữa dữ liệu cũ với dữ liệu mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-ids-and-replay-006
+    title: Lưu sự kiện trong bộ đệm có giới hạn hoặc nhật ký bền vững
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-ids-and-replay-007
+    title: Xử lý cursor quá cũ, không hợp lệ hoặc nằm ngoài cửa sổ lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-ids-and-replay-008
+    title: Kết hợp snapshot ban đầu với cập nhật tăng dần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-ids-and-replay-009
+    title: Khử trùng lặp và xử lý idempotent khi sự kiện được gửi lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-ids-and-replay-010
+    title: Giới hạn bảo đảm giao nhận của SSE và thiết kế xác nhận qua API riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: event-contracts
+  title: Hợp đồng sự kiện
+  childs:
+  - slug: event-contracts-001
+    title: Đặt tên sự kiện theo ngữ nghĩa nghiệp vụ và vòng đời tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-contracts-002
+    title: Thiết kế envelope gồm ID, loại, thời gian, phiên bản và payload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-contracts-003
+    title: Chọn định dạng thời gian, múi giờ và quy tắc biểu diễn giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-contracts-004
+    title: Phân biệt dữ liệu snapshot, delta và thông báo vô hiệu hóa cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-contracts-005
+    title: Thiết kế sự kiện bắt đầu, tiến độ, hoàn tất và thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-contracts-006
+    title: Phân biệt sự kiện kết thúc nghiệp vụ với thao tác đóng kết nối mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-contracts-007
+    title: Tiến hóa schema và duy trì tương thích với client cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-contracts-008
+    title: Giới hạn kích thước payload và tham chiếu dữ liệu lớn qua API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-contracts-009
+    title: Lọc sự kiện theo chủ đề, tài nguyên và quyền truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-contracts-010
+    title: Tài liệu hóa endpoint, schema, mã lỗi và quy tắc reconnect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: event-stream-architecture
+  title: Kiến trúc luồng sự kiện
+  childs:
+  - slug: event-stream-architecture-001
+    title: Tách nguồn phát sự kiện, tầng phân phối và tầng HTTP SSE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-architecture-002
+    title: Ánh xạ người dùng, tenant và chủ đề tới các subscriber
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-architecture-003
+    title: Quản lý registry kết nối và định danh từng phiên kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-architecture-004
+    title: Kết hợp REST API cho lệnh ghi với SSE cho thông báo thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-architecture-005
+    title: Phân phối một sự kiện tới nhiều client theo mô hình fan-out
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-architecture-006
+    title: Phát sự kiện sau khi giao dịch cơ sở dữ liệu commit thành công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-architecture-007
+    title: Áp dụng transactional outbox hoặc CDC để giảm khoảng trống đồng bộ dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-architecture-008
+    title: Tích hợp Redis Pub/Sub, Redis Streams hoặc Kafka theo nhu cầu lưu trữ và replay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-architecture-009
+    title: Phân biệt broadcast tới mọi node với chia tải qua consumer group
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: event-stream-architecture-010
+    title: Tách thứ tự sự kiện tại nguồn khỏi thứ tự nhận và áp dụng ở client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spring-mvc-sse
+  title: Spring MVC với SSE
+  childs:
+  - slug: spring-mvc-sse-001
+    title: Khai báo controller trả về SseEmitter với text/event-stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-sse-002
+    title: Thiết lập timeout cho SseEmitter và xử lý request bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-sse-003
+    title: Gửi dữ liệu bằng SseEmitter.event với data, name, id và reconnectTime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-sse-004
+    title: Cấu hình chuyển đổi JSON và kiểm soát kiểu dữ liệu payload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-sse-005
+    title: Đăng ký emitter theo người dùng, tenant hoặc chủ đề
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-sse-006
+    title: Phát sự kiện từ service nghiệp vụ tới các emitter phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-sse-007
+    title: Cấu hình executor có giới hạn cho tác vụ phát sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-sse-008
+    title: Đồng bộ việc gửi khi nhiều producer cùng ghi vào một emitter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-sse-009
+    title: Cấu hình Servlet async và các thành phần filter liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-sse-010
+    title: Hoàn tất luồng bằng complete và xử lý lỗi với completeWithError
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sse-emitter-lifecycle
+  title: Vòng đời SseEmitter
+  childs:
+  - slug: sse-emitter-lifecycle-001
+    title: Đăng ký onCompletion, onTimeout và onError để theo dõi emitter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-emitter-lifecycle-002
+    title: Dọn registry, timer và subscription theo cách idempotent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-emitter-lifecycle-003
+    title: Nhận diện client ngắt kết nối khi ghi dữ liệu hoặc nhận callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-emitter-lifecycle-004
+    title: Xử lý IOException và tránh tiếp tục gửi trên emitter đã đóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-emitter-lifecycle-005
+    title: Lập lịch heartbeat dùng chung và hủy lịch khi kết nối kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-emitter-lifecycle-006
+    title: Phân biệt timeout Servlet async với timeout của proxy và mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-emitter-lifecycle-007
+    title: Xử lý race condition giữa gửi sự kiện, timeout và đóng kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-emitter-lifecycle-008
+    title: Giới hạn hàng đợi gửi và cách ly emitter của client chậm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-emitter-lifecycle-009
+    title: Truyền ngữ cảnh log và thông tin người dùng sang tác vụ bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sse-emitter-lifecycle-010
+    title: Thu hồi kết nối và tài nguyên khi ứng dụng dừng hoặc người dùng đăng xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spring-webflux-sse
+  title: Spring WebFlux với SSE
+  childs:
+  - slug: spring-webflux-sse-001
+    title: Khai báo endpoint trả về Flux với text/event-stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-sse-002
+    title: Sử dụng ServerSentEvent để biểu diễn data, event, id, retry và comment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-sse-003
+    title: Phân biệt Flux payload thuần với Flux ServerSentEvent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-sse-004
+    title: Tạo luồng từ nguồn nghiệp vụ, timer hoặc message broker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-sse-005
+    title: Kết hợp heartbeat với sự kiện dữ liệu trong cùng một response
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-sse-006
+    title: Cấu hình codec JSON, kiểu payload và giới hạn dữ liệu liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-sse-007
+    title: Thiết kế endpoint bằng annotated controller hoặc functional routing
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-sse-008
+    title: Xử lý lỗi trước và sau khi response được commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-sse-009
+    title: Xây dựng client Java nhận SSE bằng WebClient
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-sse-010
+    title: Chọn mô hình reactive dựa trên nguồn dữ liệu và cách quản lý tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reactive-stream-management
+  title: Quản lý luồng reactive
+  childs:
+  - slug: reactive-stream-management-001
+    title: Phân biệt publisher cold và hot khi có nhiều subscriber SSE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-stream-management-002
+    title: Chọn Sinks unicast, multicast hoặc replay theo nhu cầu phân phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-stream-management-003
+    title: Xử lý kết quả phát của Sinks và tình huống phát đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-stream-management-004
+    title: Quản lý share, publish và refCount khi subscriber xuất hiện hoặc rời đi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-stream-management-005
+    title: Giới hạn bộ nhớ replay và thời gian giữ sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-stream-management-006
+    title: Xử lý cancel và dọn tài nguyên bằng doFinally hoặc cơ chế quản lý tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-stream-management-007
+    title: Đưa tác vụ blocking khỏi event loop và kiểm soát scheduler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-stream-management-008
+    title: Phân biệt demand trong Reactive Streams với tốc độ xử lý thực tế ở trình duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-stream-management-009
+    title: Bảo toàn thứ tự khi dùng map, flatMap hoặc concatMap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reactive-stream-management-010
+    title: Tránh subscription trùng, rò rỉ nguồn phát và chia sẻ dữ liệu giữa tenant
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: frontend-integration
+  title: Tích hợp giao diện
+  childs:
+  - slug: frontend-integration-001
+    title: Đóng gói EventSource thành service dùng chung trong ứng dụng frontend
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frontend-integration-002
+    title: Đăng ký và hủy listener đúng vòng đời component
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frontend-integration-003
+    title: Kết hợp tải dữ liệu ban đầu qua REST với cập nhật SSE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frontend-integration-004
+    title: Áp dụng sự kiện theo ID và tránh cập nhật trùng trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frontend-integration-005
+    title: Gộp nhiều cập nhật để giảm số lần render giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frontend-integration-006
+    title: Giới hạn lịch sử sự kiện và dữ liệu lưu trong bộ nhớ trình duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frontend-integration-007
+    title: Xử lý sự kiện đến muộn hoặc sai thứ tự so với trạng thái hiện tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frontend-integration-008
+    title: Phối hợp nhiều tab bằng BroadcastChannel hoặc SharedWorker khi phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frontend-integration-009
+    title: Quản lý kết nối theo trạng thái đăng nhập và chuyển đổi tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: frontend-integration-010
+    title: Thiết kế thông báo lỗi, thao tác thử lại và khả năng tiếp cận giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: authentication-and-authorization
+  title: Xác thực và phân quyền
+  childs:
+  - slug: authentication-and-authorization-001
+    title: Áp dụng Spring Security cho endpoint SSE của MVC hoặc WebFlux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-and-authorization-002
+    title: Xác thực bằng session cookie và tích hợp EventSource cùng origin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-and-authorization-003
+    title: Kết nối khác origin với cookie, withCredentials và CORS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-and-authorization-004
+    title: Truyền Authorization header bằng client hỗ trợ tùy biến request
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-and-authorization-005
+    title: Dùng vé kết nối ngắn hạn khi EventSource gốc không đáp ứng cơ chế xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-and-authorization-006
+    title: Đánh giá nguy cơ lộ token trong URL, log và công cụ giám sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-and-authorization-007
+    title: Phân quyền theo tài nguyên, chủ đề, người dùng và tenant
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-and-authorization-008
+    title: Xử lý hết hạn thông tin xác thực trong một kết nối dài hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-and-authorization-009
+    title: Thu hồi quyền và đóng các kết nối còn hoạt động khi đăng xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-and-authorization-010
+    title: Phân quyền lại dữ liệu replay và ngăn truy cập cursor của người khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-security
+  title: Bảo mật ứng dụng
+  childs:
+  - slug: application-security-001
+    title: Bảo vệ luồng sự kiện bằng HTTPS và kiểm tra cấu hình TLS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-002
+    title: Cấu hình allowlist origin và tránh hiểu CORS như cơ chế xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-003
+    title: Giữ endpoint GET không có tác dụng ghi và đánh giá CSRF theo cơ chế đăng nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-004
+    title: Cấu hình SameSite, Secure và HttpOnly cho cookie liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-005
+    title: Giới hạn kết nối và tốc độ reconnect theo tài khoản hoặc nguồn truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-006
+    title: Kiểm tra đầu vào và ngăn chèn trường SSE qua ký tự xuống dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-007
+    title: Kiểm tra payload và tránh XSS khi hiển thị dữ liệu sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-008
+    title: Tối thiểu hóa dữ liệu nhạy cảm trong payload, cursor và log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-009
+    title: Cấu hình Content Security Policy với connect-src cho endpoint SSE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-security-010
+    title: Ngăn rò rỉ dữ liệu do dùng chung cache, sink hoặc kênh phát giữa tenant
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: backpressure-and-slow-clients
+  title: Backpressure và client chậm
+  childs:
+  - slug: backpressure-and-slow-clients-001
+    title: Nhận diện chênh lệch tốc độ giữa producer, server và client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-and-slow-clients-002
+    title: Phân biệt bộ đệm tại ứng dụng, HTTP server, proxy và trình duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-and-slow-clients-003
+    title: Thiết lập hàng đợi có giới hạn cho từng kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-and-slow-clients-004
+    title: Chọn chính sách drop, giữ giá trị mới nhất, gộp cập nhật hoặc ngắt kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-and-slow-clients-005
+    title: Phân loại sự kiện được phép bỏ qua và sự kiện cần lưu để replay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-and-slow-clients-006
+    title: Cách ly client chậm để tránh chặn toàn bộ quá trình fan-out
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-and-slow-clients-007
+    title: Áp dụng toán tử backpressure trong Reactor theo đặc điểm nguồn phát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-and-slow-clients-008
+    title: Điều tiết tốc độ, batching và lấy mẫu theo mục tiêu độ trễ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-and-slow-clients-009
+    title: Giới hạn kích thước thông điệp và ngân sách bộ nhớ trên mỗi kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backpressure-and-slow-clients-010
+    title: Đo độ trễ hàng đợi và xây dựng cơ chế đồng bộ lại sau khi quá tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: proxies-and-network-intermediaries
+  title: Proxy và mạng trung gian
+  childs:
+  - slug: proxies-and-network-intermediaries-001
+    title: Mô hình đường đi qua reverse proxy, ingress, load balancer và CDN
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-network-intermediaries-002
+    title: Tắt response buffering phù hợp cho endpoint SSE trên Nginx
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-network-intermediaries-003
+    title: Sử dụng X-Accel-Buffering theo khả năng và cấu hình của proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-network-intermediaries-004
+    title: Điều chỉnh idle timeout, read timeout và giới hạn thời lượng kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-network-intermediaries-005
+    title: Thiết kế chu kỳ heartbeat phù hợp với các tầng hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-network-intermediaries-006
+    title: Kiểm tra buffering do gzip và các lớp nén trung gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-network-intermediaries-007
+    title: Cấu hình cache bypass và tránh biến đổi nội dung event-stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-network-intermediaries-008
+    title: Đánh giá giới hạn kết nối ở HTTP/1.1 và khả năng ghép luồng của HTTP/2
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-network-intermediaries-009
+    title: Kiểm tra hành vi WAF, API gateway và CDN đối với response streaming
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-network-intermediaries-010
+    title: Đo đường truyền thực tế qua proxy với curl và công cụ trình duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: system-scaling
+  title: Mở rộng hệ thống
+  childs:
+  - slug: system-scaling-001
+    title: Ước lượng số kết nối đồng thời và mức fan-out trên từng node
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scaling-002
+    title: Thiết kế node SSE không giữ trạng thái bền vững cục bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scaling-003
+    title: Chia sẻ sự kiện giữa các node qua broker hoặc nhật ký sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scaling-004
+    title: Định tuyến sự kiện tới node đang giữ kết nối của người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scaling-005
+    title: Đánh giá sticky session và giới hạn khi node bị mất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scaling-006
+    title: Chia partition theo tenant, chủ đề hoặc khóa nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scaling-007
+    title: Điều phối replay khi client reconnect sang một node khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scaling-008
+    title: Mở rộng tự động theo kết nối, tốc độ sự kiện và áp lực tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scaling-009
+    title: Giới hạn và phân bổ công bằng tài nguyên cho từng tenant
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-scaling-010
+    title: Ngăn reconnect đồng loạt khi triển khai, mất node hoặc gián đoạn mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: recovery-and-reliability
+  title: Phục hồi và độ tin cậy
+  childs:
+  - slug: recovery-and-reliability-001
+    title: Xây dựng mô hình lỗi từ nguồn dữ liệu tới quá trình áp dụng ở client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-reliability-002
+    title: Phân biệt đã gửi vào socket, client đã nhận và nghiệp vụ đã xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-reliability-003
+    title: Thiết kế replay hỗ trợ xử lý ít nhất một lần trong phạm vi lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-reliability-004
+    title: Phát hiện khoảng trống sự kiện và yêu cầu đồng bộ lại bằng snapshot
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-reliability-005
+    title: Xử lý broker gián đoạn và giới hạn dữ liệu giữ trong bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-reliability-006
+    title: Khôi phục subscription khi nguồn phát hoạt động trở lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-reliability-007
+    title: Bảo toàn thứ tự trong phạm vi khóa và xử lý dữ liệu đến muộn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-reliability-008
+    title: Cách ly payload lỗi để một sự kiện không làm hỏng toàn bộ luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-reliability-009
+    title: Thiết kế chế độ suy giảm bằng polling hoặc thông báo dữ liệu tạm ngừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recovery-and-reliability-010
+    title: Xác định mục tiêu phục hồi và cửa sổ replay phù hợp nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-resources
+  title: Hiệu năng và tài nguyên
+  childs:
+  - slug: performance-and-resources-001
+    title: Lập ngân sách bộ nhớ, socket và file descriptor cho kết nối dài hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-002
+    title: Đánh giá mô hình thread của Servlet async và event loop reactive
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-003
+    title: Đo chi phí serialization JSON và tái sử dụng payload đã mã hóa khi phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-004
+    title: Tối ưu flush, batching và đánh đổi giữa throughput với độ trễ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-005
+    title: Ước lượng băng thông theo kích thước sự kiện, tần suất và số subscriber
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-006
+    title: Tính chi phí heartbeat khi số kết nối tăng lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-007
+    title: Theo dõi GC, heap và bộ đệm bị giữ bởi kết nối lâu dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-008
+    title: Giới hạn tác vụ gửi đồng thời và kích thước executor hoặc scheduler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-009
+    title: Thiết lập giới hạn hệ điều hành và HTTP server theo kết quả đo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resources-010
+    title: So sánh MVC và WebFlux dưới cùng kịch bản tải và nguồn dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: monitoring-and-tracing
+  title: Giám sát và truy vết
+  childs:
+  - slug: monitoring-and-tracing-001
+    title: Đo số kết nối hoạt động, kết nối mới và nguyên nhân đóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-tracing-002
+    title: Theo dõi tốc độ phát, số lần gửi lỗi và sự kiện bị bỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-tracing-003
+    title: Đo độ trễ từ thời điểm tạo sự kiện tới client bằng tín hiệu bổ sung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-tracing-004
+    title: Theo dõi độ sâu hàng đợi, client chậm và áp lực bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-tracing-005
+    title: Giám sát tần suất reconnect, replay và yêu cầu snapshot lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-tracing-006
+    title: Gắn connection ID, event ID và correlation ID vào log có cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-tracing-007
+    title: Thiết kế tracing cho sự kiện trong một response kéo dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-tracing-008
+    title: Tránh metric label có cardinality cao theo người dùng hoặc kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-tracing-009
+    title: Xây dựng dashboard và cảnh báo theo mục tiêu độ trễ, lỗi và khả dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-tracing-010
+    title: Ghi nhận log lấy mẫu và che dữ liệu nhạy cảm để kiểm soát chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: protocol-testing
+  title: Kiểm thử giao thức
+  childs:
+  - slug: protocol-testing-001
+    title: Quan sát luồng thô bằng curl với tùy chọn không đệm đầu ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-testing-002
+    title: Kiểm tra response header, Content-Type và thời điểm nhận byte đầu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-testing-003
+    title: Kiểm thử phân tách sự kiện bằng dòng trống và ghép data nhiều dòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-testing-004
+    title: Kiểm thử Unicode, JSON và thông điệp bị chia ở ranh giới byte
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-testing-005
+    title: Kiểm thử comment heartbeat, named event và message mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-testing-006
+    title: Kiểm thử id rỗng, Last-Event-ID và giá trị retry không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-testing-007
+    title: Mô phỏng ngắt mạng để xác minh reconnect và tiếp tục từ cursor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-testing-008
+    title: Kiểm thử HTTP 204, phản hồi lỗi và sai Content-Type
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-testing-009
+    title: Kiểm thử cookie, CORS và chính sách origin bằng trình duyệt thật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocol-testing-010
+    title: Xác minh sự kiện chưa có dòng trống kết thúc không bị xử lý sớm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spring-and-load-testing
+  title: Kiểm thử Spring và tải
+  childs:
+  - slug: spring-and-load-testing-001
+    title: Kiểm thử controller MVC bất đồng bộ và metadata sự kiện của SseEmitter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-and-load-testing-002
+    title: Kiểm thử WebFlux SSE bằng WebTestClient với số sự kiện hữu hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-and-load-testing-003
+    title: Dùng StepVerifier và thời gian ảo cho heartbeat hoặc luồng theo thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-and-load-testing-004
+    title: Xác minh callback hoàn tất, timeout, cancel và dọn tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-and-load-testing-005
+    title: Kiểm thử phân quyền người dùng, tenant và dữ liệu replay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-and-load-testing-006
+    title: Kiểm thử tích hợp với broker và tình huống nguồn phát bị gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-and-load-testing-007
+    title: Kiểm thử tải kết nối đồng thời, fan-out và tốc độ sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-and-load-testing-008
+    title: Mô phỏng client đọc chậm để xác minh giới hạn hàng đợi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-and-load-testing-009
+    title: Kiểm thử reconnect đồng loạt, mất node và rolling deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-and-load-testing-010
+    title: Chạy soak test để phát hiện rò rỉ bộ nhớ, thread và subscription
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deployment-and-operations
+  title: Triển khai và vận hành
+  childs:
+  - slug: deployment-and-operations-001
+    title: Quản lý cấu hình timeout, heartbeat, hàng đợi và replay theo môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-002
+    title: Cấu hình container, ingress và service cho kết nối HTTP dài hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-003
+    title: Thiết kế readiness và liveness không phụ thuộc vào một stream đang mở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-004
+    title: Graceful shutdown và ngừng nhận kết nối mới trước khi drain
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-005
+    title: Phối hợp thời gian drain với termination grace period và load balancer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-006
+    title: Triển khai phiên bản mới khi client và server dùng schema khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-007
+    title: Cấu hình lưu trữ, retention và dung lượng cho dữ liệu replay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-008
+    title: Xử lý thay đổi chứng chỉ, cấu hình proxy hoặc broker khi hệ thống đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-009
+    title: Xây dựng runbook cho quá tải, tăng reconnect và mất luồng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-010
+    title: Đánh giá chi phí hạ tầng theo thời lượng kết nối và lưu lượng truyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Server đã gửi nhưng client chỉ nhận dữ liệu thành từng đợt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-002
+    title: Kết nối tự đóng sau một khoảng thời gian cố định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-003
+    title: EventSource báo lỗi liên tục và tạo nhiều lần reconnect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-004
+    title: Sự kiện có tên không kích hoạt onmessage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-005
+    title: Client nhận dữ liệu trùng, sai thứ tự hoặc bỏ sót sau reconnect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-006
+    title: Cookie không được gửi hoặc endpoint bị từ chối do cấu hình CORS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-007
+    title: Emitter còn trong registry sau khi người dùng đã đóng trang
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-008
+    title: Heap tăng, thread bị nghẽn hoặc event loop bị chặn khi tăng tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-009
+    title: Chỉ một phần client nhận dữ liệu khi ứng dụng chạy nhiều node
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-010
+    title: Phân biệt lỗi ứng dụng, giao thức, trình duyệt và hạ tầng bằng bằng chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spring-mvc-lab
+  title: Thực hành Spring MVC
+  childs:
+  - slug: spring-mvc-lab-001
+    title: Xây dựng endpoint SseEmitter phát sự kiện và heartbeat
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-lab-002
+    title: Tạo trang EventSource hiển thị thông báo và trạng thái kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-lab-003
+    title: Phát tiến độ một tác vụ nền với sự kiện bắt đầu, cập nhật và hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-lab-004
+    title: Quản lý nhiều emitter theo người dùng và chủ đề đăng ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-lab-005
+    title: Bổ sung event ID, bộ đệm replay có giới hạn và Last-Event-ID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-lab-006
+    title: Xử lý timeout, ngắt kết nối và dọn registry bằng callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-lab-007
+    title: Bảo vệ endpoint bằng Spring Security và session cookie
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-lab-008
+    title: Thiết kế hàng đợi gửi có giới hạn và xử lý một client đọc chậm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-lab-009
+    title: Bổ sung kiểm thử tích hợp và số liệu theo dõi kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-mvc-lab-010
+    title: Kiểm chứng reconnect, không rò rỉ tài nguyên và nhận dữ liệu qua proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spring-webflux-lab
+  title: Thực hành Spring WebFlux
+  childs:
+  - slug: spring-webflux-lab-001
+    title: Xây dựng endpoint Flux ServerSentEvent phát dữ liệu liên tục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-lab-002
+    title: Tạo nguồn dữ liệu dùng Sinks và đăng ký nhiều subscriber
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-lab-003
+    title: Kết hợp heartbeat với sự kiện nghiệp vụ và event ID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-lab-004
+    title: Tích hợp WebClient để tiêu thụ luồng SSE từ dịch vụ khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-lab-005
+    title: Thiết lập chính sách backpressure và đo hành vi khi client chậm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-lab-006
+    title: Dọn subscription khi cancel và xử lý lỗi nguồn phát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-lab-007
+    title: Tích hợp nguồn dữ liệu hoặc broker mà không chặn event loop
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-lab-008
+    title: Bảo vệ endpoint bằng reactive Spring Security và phân quyền chủ đề
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-lab-009
+    title: Kiểm thử bằng WebTestClient, StepVerifier và mô phỏng gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-webflux-lab-010
+    title: Đo tải và so sánh kết quả với phiên bản Spring MVC tương đương
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: capstone-project
+  title: Dự án tổng hợp
+  childs:
+  - slug: capstone-project-001
+    title: Thiết kế hệ thống thông báo hoặc bảng theo dõi tiến độ theo tenant
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-002
+    title: Xác định hợp đồng sự kiện, quyền truy cập và mục tiêu chất lượng dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-003
+    title: Kết hợp REST API, snapshot ban đầu và cập nhật SSE tăng dần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-004
+    title: Lưu sự kiện bền vững và hỗ trợ reconnect bằng cursor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-005
+    title: Chạy nhiều node và phân phối dữ liệu qua broker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-006
+    title: Triển khai qua reverse proxy với heartbeat và cấu hình timeout phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-007
+    title: Bổ sung giới hạn kết nối, xử lý client chậm và cơ chế đồng bộ lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-008
+    title: Xây dựng dashboard theo dõi kết nối, độ trễ, replay và lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-009
+    title: Diễn tập mất node, broker gián đoạn và triển khai phiên bản mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-010
+    title: Đánh giá kết quả theo bảo mật, giao nhận, hiệu năng và khả năng vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

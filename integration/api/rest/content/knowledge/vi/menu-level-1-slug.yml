@@ -1,0 +1,109 @@
+menu:
+- title: Tổng quan
+  slug: rest-overview
+  index: 0
+- title: Ràng buộc REST
+  slug: rest-constraints
+  index: 1
+- title: Nền tảng HTTP
+  slug: http-foundations
+  index: 2
+- title: Mô hình tài nguyên
+  slug: resource-modeling
+  index: 3
+- title: Thiết kế URI
+  slug: uri-design
+  index: 4
+- title: Biểu diễn dữ liệu
+  slug: data-representations
+  index: 5
+- title: Phương thức HTTP
+  slug: http-methods
+  index: 6
+- title: Mã trạng thái
+  slug: http-status-codes
+  index: 7
+- title: Thao tác tài nguyên
+  slug: resource-operations
+  index: 8
+- title: Lỗi API
+  slug: api-errors
+  index: 9
+- title: Truy vấn tập hợp
+  slug: collection-queries
+  index: 10
+- title: Hypermedia
+  slug: hypermedia
+  index: 11
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 12
+- title: Điều kiện và đồng thời
+  slug: conditional-requests-concurrency
+  index: 13
+- title: Lũy đẳng và thử lại
+  slug: idempotency-retries
+  index: 14
+- title: Xử lý bất đồng bộ
+  slug: asynchronous-processing
+  index: 15
+- title: Tệp và dữ liệu lớn
+  slug: files-large-payloads
+  index: 16
+- title: Hợp đồng OpenAPI
+  slug: openapi-contracts
+  index: 17
+- title: Tiến hóa API
+  slug: api-evolution
+  index: 18
+- title: Spring MVC
+  slug: spring-mvc
+  index: 19
+- title: Dữ liệu và lỗi Spring
+  slug: spring-data-errors
+  index: 20
+- title: Spring WebFlux
+  slug: spring-webflux
+  index: 21
+- title: Jakarta REST
+  slug: jakarta-rest
+  index: 22
+- title: Client Java
+  slug: java-clients
+  index: 23
+- title: Xác thực
+  slug: authentication
+  index: 24
+- title: Phân quyền và an toàn
+  slug: authorization-security
+  index: 25
+- title: API trên trình duyệt
+  slug: browser-apis
+  index: 26
+- title: Giới hạn và chống lỗi
+  slug: rate-limiting-resilience
+  index: 27
+- title: Nhất quán nghiệp vụ
+  slug: business-consistency
+  index: 28
+- title: Kiểm thử
+  slug: testing
+  index: 29
+- title: Quan sát hệ thống
+  slug: observability
+  index: 30
+- title: Hiệu năng
+  slug: performance
+  index: 31
+- title: Triển khai và vận hành
+  slug: deployment-operations
+  index: 32
+- title: Tài liệu và trải nghiệm
+  slug: documentation-developer-experience
+  index: 33
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 34
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 35

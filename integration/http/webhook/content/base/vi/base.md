@@ -1,0 +1,7 @@
+# Integration HTTP Webhook — Tích hợp hệ thống theo sự kiện
+
+HTTP Webhook là cơ chế một hệ thống gửi yêu cầu HTTP đến một endpoint đã đăng ký khi sự kiện xảy ra. Thay vì ứng dụng nhận liên tục gọi API để hỏi xem có thay đổi hay chưa, bên phát sự kiện chủ động đẩy thông báo chứa loại sự kiện và dữ liệu liên quan. Webhook phù hợp cho tích hợp thanh toán, quản lý mã nguồn và tự động hóa công việc, nhưng không mặc nhiên bảo đảm sự kiện đến đúng một lần hoặc đúng thứ tự.
+
+Module dành cho người đã biết HTTP, REST, JSON và lập trình Java/Spring cơ bản. Lộ trình bắt đầu từ mô hình bên gửi–bên nhận, hợp đồng payload, cách đăng ký sự kiện và thử gửi một webhook. Bạn sẽ tìm hiểu HTTPS, secret và xác minh chữ ký HMAC từ *raw request body* trước khi tin cậy dữ liệu. Tiếp theo là kỹ thuật ghi nhận sự kiện và trả phản hồi nhanh, xử lý chậm bằng queue/worker, đồng thời dùng event ID và idempotency để tránh tác động lặp khi nhận bản gửi lại. Chính sách retry khác nhau theo nhà cung cấp; cần đọc hợp đồng của từng nguồn.
+
+Cuối module, bạn sẽ triển khai một webhook receiver nhỏ bằng Spring Boot, kiểm thử xác thực, lỗi mạng, timeout, redelivery, sự kiện trùng và trường hợp đến sai thứ tự. Hoàn thành lộ trình, bạn có thể thiết kế endpoint webhook an toàn, giải thích đường đi và trạng thái của một event, cũng như theo dõi lỗi giao nhận để phục hồi có kiểm soát.

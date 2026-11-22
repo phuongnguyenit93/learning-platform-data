@@ -1,0 +1,405 @@
+menu:
+- level1: Tổng quan hợp đồng
+  level2:
+  - Hợp đồng tích hợp là gì và vì sao các hệ thống cần thỏa thuận rõ ràng
+  - Quan hệ giữa bên cung cấp (provider), bên sử dụng (consumer) và điểm tích hợp
+  - Phân biệt hợp đồng, tài liệu, schema, giao thức và mã triển khai
+  - Phân biệt hợp đồng HTTP, RPC, sự kiện và dữ liệu trao đổi theo lô
+  - Rủi ro của giả định ngầm khi các nhóm phát triển độc lập
+  - Các lớp cấu trúc dữ liệu, ngữ nghĩa, hành vi và chất lượng dịch vụ
+  - Giới hạn của kiểu dữ liệu Java trong bảo đảm tương thích qua mạng
+  - Trình tự học từ mô tả thỏa thuận đến xác minh và quản lý thay đổi
+- level1: Thành phần hợp đồng
+  level2:
+  - Định danh dịch vụ, thao tác, thông điệp và phiên bản
+  - Địa chỉ kết nối, giao thức và định dạng nội dung
+  - Dữ liệu đầu vào, đầu ra, metadata và các ràng buộc
+  - Điều kiện trước, điều kiện sau và quy tắc bất biến
+  - Kết quả thành công, lỗi và trạng thái đang xử lý
+  - Xác thực, phân quyền và yêu cầu bảo vệ dữ liệu
+  - Timeout, quota, giới hạn kích thước và mục tiêu chất lượng dịch vụ
+  - Quyền sở hữu, bên sử dụng, vòng đời và bằng chứng xác minh
+- level1: Ngữ nghĩa nghiệp vụ
+  level2:
+  - Định nghĩa thuật ngữ và ranh giới nghiệp vụ giữa các hệ thống
+  - Đơn vị đo, tiền tệ, tỷ giá và quy tắc làm tròn
+  - Thời điểm xảy ra, thời điểm ghi nhận và múi giờ
+  - Ý nghĩa của trường vắng mặt, null, giá trị rỗng và mặc định
+  - Phân biệt yêu cầu tạo mới, thay thế toàn bộ và cập nhật từng phần
+  - Định nghĩa trạng thái hợp lệ và chuyển trạng thái được phép
+  - Phân biệt chấp nhận yêu cầu với hoàn tất xử lý nghiệp vụ
+  - Quy tắc định danh, liên kết dữ liệu và nguồn dữ liệu có thẩm quyền
+  - Tính nhất quán, độ mới dữ liệu và kết quả quan sát sau thao tác ghi
+- level1: Thiết kế hợp đồng
+  level2:
+  - Contract-first, code-first và cách kiểm soát nguồn chuẩn
+  - Thiết kế từ tình huống sử dụng và nhu cầu của bên sử dụng
+  - Phân biệt provider-driven và consumer-driven contract
+  - Tách mô hình tích hợp khỏi entity và cấu trúc lưu trữ nội bộ
+  - Chọn mức chi tiết vừa đủ để xác minh mà không khóa chặt triển khai
+  - Quy tắc đặt tên và phạm vi tái sử dụng thành phần
+  - Thiết kế ví dụ hợp lệ, ví dụ lỗi và điều kiện biên
+  - Phân biệt quy tắc máy kiểm tra được với cam kết cần bằng chứng bổ sung
+  - Rà soát hợp đồng trước khi triển khai và thống nhất tiêu chí chấp nhận
+- level1: Mô hình dữ liệu
+  level2:
+  - Kiểu nguyên thủy, object, array, map và cấu trúc lồng nhau
+  - Trường bắt buộc, trường tùy chọn và khả năng nhận null
+  - Giới hạn chuỗi, mẫu ký tự và quy tắc chuẩn hóa
+  - Giới hạn số, độ chính xác thập phân và tràn miền giá trị
+  - Ngày giờ, khoảng thời gian, UUID và định danh có cấu trúc
+  - Enum đóng, enum có thể mở rộng và giá trị chưa nhận diện
+  - Quan hệ giữa các trường và ràng buộc phụ thuộc
+  - Đa hình, biến thể dữ liệu và cách phân biệt loại
+  - Dữ liệu nhị phân, nội dung lớn và tham chiếu tài nguyên bên ngoài
+  - Quy tắc thứ tự phần tử, tập hợp duy nhất và khóa của map
+- level1: JSON Schema
+  level2:
+  - Vai trò của JSON Schema và lựa chọn dialect bằng $schema
+  - $id, $ref, $defs và tổ chức schema có thể tái sử dụng
+  - type, properties, required và kiểm tra cấu trúc object
+  - additionalProperties, unevaluatedProperties và chính sách trường lạ
+  - items, prefixItems, uniqueItems và giới hạn mảng
+  - enum, const, minimum, maximum, length và pattern
+  - anyOf, oneOf, allOf, not và khác biệt với kế thừa lớp
+  - if, then, else, dependentRequired và ràng buộc có điều kiện
+  - Phân biệt null với thuộc tính không xuất hiện
+  - format là annotation hay assertion tùy dialect và validator
+  - default và examples không tự điền dữ liệu cho ứng dụng
+  - Thông báo lỗi, đường dẫn trường sai và kiểm thử schema độc lập
+- level1: Hợp đồng HTTP
+  level2:
+  - Method, path, tham số và ý nghĩa của từng thao tác
+  - Path, query, header, cookie và quy tắc mã hóa tham số
+  - Request body, media type và thương lượng nội dung
+  - Status code, response header và dữ liệu trả về
+  - Hợp đồng cho tạo tài nguyên, xử lý bất đồng bộ và body rỗng
+  - Phân trang, lọc, sắp xếp và giới hạn kết quả
+  - ETag, điều kiện cập nhật và xung đột đồng thời
+  - Idempotency key, correlation ID và metadata xuyên lời gọi
+  - Rate limit, Retry-After, timeout và giới hạn đầu vào
+  - Callback, webhook và điều kiện xác nhận việc tiếp nhận
+- level1: OpenAPI
+  level2:
+  - Cấu trúc info, servers, paths, operations và components
+  - Phân biệt phiên bản OpenAPI với phiên bản API trong info.version
+  - operationId, tag và định danh ổn định cho công cụ sinh mã
+  - Parameter, requestBody, response và khai báo nhiều media type
+  - Schema Object và khác biệt OpenAPI 3.0 với 3.1
+  - required, nullable và cách mô tả null theo phiên bản
+  - Tái sử dụng thành phần bằng $ref và xử lý tài liệu nhiều tệp
+  - oneOf, allOf, discriminator và giới hạn suy luận đa hình
+  - Security scheme và security requirement theo API hoặc thao tác
+  - Examples, links, callbacks và webhooks
+  - Validation, lint, bundle và phát hiện tham chiếu bị lỗi
+  - Giới hạn của OpenAPI trong mô tả quy tắc liên trường và hành vi nghiệp vụ
+- level1: Hợp đồng sự kiện
+  level2:
+  - Phân biệt lệnh, sự kiện đã xảy ra và thông báo thay đổi
+  - Định danh sự kiện, loại sự kiện và phiên bản dữ liệu
+  - Payload, envelope, header và metadata của thông điệp
+  - Correlation ID, causation ID và liên hệ giữa chuỗi xử lý
+  - Khóa phân vùng hoặc nhóm xử lý và phạm vi bảo đảm thứ tự
+  - Thời điểm nghiệp vụ, thời điểm phát và chính sách sự kiện đến muộn
+  - Thông điệp lặp, phát lại và yêu cầu consumer lũy đẳng
+  - Snapshot, dữ liệu thay đổi từng phần và tombstone theo thỏa thuận
+  - CloudEvents và phân biệt chuẩn envelope với schema của data
+  - Thời hạn lưu giữ, thời hạn hữu ích và khả năng đọc sự kiện lịch sử
+  - Giới hạn hợp đồng ứng dụng so với bảo đảm của broker hoặc giao thức
+- level1: AsyncAPI
+  level2:
+  - Vai trò của AsyncAPI trong mô tả giao tiếp bất đồng bộ
+  - Servers, channels, messages, operations và components
+  - Phân biệt địa chỉ channel với tên định danh trong tài liệu
+  - send, receive và góc nhìn của ứng dụng được mô tả
+  - Payload, headers, correlationId và contentType
+  - Protocol binding và các thuộc tính phụ thuộc Kafka, AMQP hoặc MQTT
+  - Tham chiếu schema ngoài và tái sử dụng message
+  - Reply, request–reply và các giới hạn theo phiên bản đặc tả
+  - Security, examples và thông tin môi trường kết nối
+  - Khác biệt AsyncAPI 2.x, 3.x và khả năng hỗ trợ của công cụ
+- level1: Avro
+  level2:
+  - Schema record, field, namespace và kiểu dữ liệu phức hợp
+  - Writer schema, reader schema và cơ chế schema resolution
+  - Union có null và phân biệt khả năng nhận null với giá trị mặc định
+  - Default value được sử dụng khi đọc dữ liệu thiếu trường
+  - Aliases và điều kiện áp dụng khi thay đổi tên
+  - Enum, fixed và giới hạn khi bổ sung hoặc thay đổi kiểu
+  - Logical type cho decimal, date và timestamp
+  - Schema đi cùng dữ liệu, schema ID và định dạng đóng gói
+  - SpecificRecord, GenericRecord và lựa chọn ánh xạ Java
+  - Kiểm tra đọc chéo dữ liệu cũ, mới trước khi đăng ký schema
+- level1: Protobuf và gRPC
+  level2:
+  - Message, field number, package và khai báo service trong .proto
+  - Phân biệt cú pháp proto2, proto3 và Protobuf Editions
+  - Field presence, optional, giá trị mặc định và cập nhật từng phần
+  - repeated, map, oneof và biểu diễn các biến thể dữ liệu
+  - Enum mặc định và xử lý giá trị chưa nhận diện
+  - Xóa trường bằng reserved và không tái sử dụng field number
+  - Tương thích binary wire format khác với ProtoJSON và mã nguồn sinh ra
+  - Thay đổi kiểu trường, di chuyển oneof và đánh giá mất dữ liệu
+  - Hợp đồng gRPC cho unary và streaming ở mức giao diện
+  - Status, metadata, deadline và cấu trúc lỗi gRPC
+  - Kiểm tra schema breaking change bằng công cụ và kiểm thử tương thích
+- level1: XML và SOAP
+  level2:
+  - Namespace, QName và định danh phần tử XML
+  - XSD element, attribute, simpleType và complexType
+  - minOccurs, maxOccurs, nillable và phân biệt thiếu phần tử với xsi:nil
+  - sequence, choice, enum và ràng buộc giá trị
+  - Import, include và quản lý nhiều phiên bản schema
+  - WSDL type, message, operation, binding và service
+  - SOAP Fault và hợp đồng lỗi
+  - Ảnh hưởng của namespace, thứ tự phần tử và mã Java sinh từ schema
+- level1: GraphQL SDL
+  level2:
+  - Schema, type, field và operation trong hợp đồng GraphQL
+  - Input type, argument, enum và custom scalar
+  - Nullable, non-null, list và khác biệt giữa đầu vào với đầu ra
+  - Interface, union và ảnh hưởng đến bên sử dụng
+  - Thêm, xóa, đổi tên field hoặc argument và đánh giá tương thích
+  - '@deprecated và kế hoạch chuyển đổi truy vấn của client'
+  - Phản hồi data, errors và kết quả thành công một phần
+  - Giới hạn schema trong mô tả phân quyền, chi phí truy vấn và ngữ nghĩa
+- level1: Hợp đồng dữ liệu
+  level2:
+  - Phạm vi dataset, bản ghi và ranh giới bên tạo, bên sử dụng dữ liệu
+  - Định dạng file, encoding, dấu phân cách và quy ước header
+  - Thứ tự cột, tên cột, kiểu giá trị và quy tắc biểu diễn rỗng
+  - Khóa bản ghi, khóa phân vùng và phạm vi dữ liệu của từng lô
+  - Tính đầy đủ, tính duy nhất và ràng buộc chất lượng dữ liệu
+  - Thời điểm cung cấp, độ mới và tín hiệu hoàn tất một lô
+  - Phân biệt schema file với ngữ nghĩa, quyền sở hữu và cam kết vận hành
+  - Thay đổi cột, định dạng hoặc lịch cung cấp và đánh giá bên sử dụng
+- level1: Lỗi và trạng thái
+  level2:
+  - Phân biệt lỗi giao thức, xác thực, dữ liệu và nghiệp vụ
+  - Thiết kế mã lỗi ổn định tách khỏi thông báo hiển thị
+  - Problem Details và cấu trúc lỗi tùy chỉnh
+  - Mô tả nhiều lỗi trường và vị trí dữ liệu không hợp lệ
+  - Trạng thái đang xử lý, thành công một phần và thất bại cuối cùng
+  - Thông tin retryable, thời điểm thử lại và kết quả chưa xác định
+  - Trace ID, correlation ID và dữ liệu được phép đưa vào lỗi
+  - Thay đổi mã lỗi, status hoặc ý nghĩa lỗi và tác động đến client
+- level1: Cam kết xử lý
+  level2:
+  - Phân biệt delivery guarantee với hoàn tất nghiệp vụ
+  - Định nghĩa idempotency key, phạm vi duy nhất và thời hạn lưu
+  - Retry, timeout và điều kiện phát lại yêu cầu
+  - Cam kết thứ tự theo khóa, phiên hoặc toàn luồng
+  - Trùng lặp, xử lý lũy đẳng và giới hạn của tuyên bố exactly-once
+  - Quy tắc xử lý sự kiện đến muộn hoặc sai thứ tự
+  - DLQ, thông điệp không hợp lệ và quy trình phát lại
+  - Quota, kích thước tối đa, lưu giữ và mục tiêu độ trễ
+  - Kiểm chứng cam kết hành vi ngoài phần schema dữ liệu
+- level1: Bảo mật hợp đồng
+  level2:
+  - Khai báo cơ chế xác thực, scope và quyền của từng thao tác
+  - Phân biệt mô tả security scheme với thực thi phân quyền
+  - Phân loại dữ liệu nhạy cảm và giới hạn dữ liệu được trao đổi
+  - Quy định che dữ liệu trong ví dụ, nhật ký, stub và bộ kiểm thử
+  - Định danh tenant và ngăn dữ liệu vượt ranh giới khách hàng
+  - Ràng buộc kích thước, độ sâu và định dạng để bảo vệ bộ xử lý
+  - Chữ ký thông điệp, timestamp và điều kiện chống phát lại
+  - Thay đổi yêu cầu xác thực hoặc scope như một thay đổi hợp đồng
+  - Kiểm soát quyền đọc, sửa và công bố tài liệu hợp đồng
+- level1: Tương thích hợp đồng
+  level2:
+  - Phân biệt tương thích mã nguồn, binary, wire format và ngữ nghĩa
+  - 'Backward compatibility: bên đọc mới tiếp nhận dữ liệu của bên ghi cũ'
+  - 'Forward compatibility: bên đọc cũ tiếp nhận dữ liệu của bên ghi mới'
+  - Full compatibility và điều kiện đáp ứng cả hai chiều
+  - Transitive compatibility và kiểm tra mọi phiên bản liên quan
+  - Phân biệt hướng tương thích của request với response
+  - Thay đổi cấu trúc hợp lệ nhưng làm sai giả định nghiệp vụ
+  - Thêm trường, bỏ trường, đổi tên và chuyển trường thành bắt buộc
+  - Thêm giá trị enum, thay giới hạn và đổi giá trị mặc định
+  - Chính sách tiếp nhận trường lạ và giới hạn của tolerant reader
+  - Ma trận bên cung cấp, bên sử dụng, phiên bản và môi trường triển khai
+  - Xác minh khả năng đọc dữ liệu lịch sử cùng khả năng rollback
+- level1: Tiến hóa schema
+  level2:
+  - Phân loại thay đổi bổ sung, thay đổi có điều kiện và thay đổi phá vỡ
+  - Thêm trường tùy chọn với ngữ nghĩa phù hợp cho dữ liệu cũ
+  - Đổi tên trường bằng giai đoạn hỗ trợ tên cũ và tên mới
+  - Thay đổi kiểu số, độ chính xác, đơn vị đo hoặc múi giờ
+  - Chuyển trường scalar thành collection hoặc cấu trúc lồng nhau
+  - Tiến hóa enum, union, oneof và mô hình đa hình
+  - Giữ tương thích khi bổ sung ràng buộc validation
+  - Thay đổi envelope, header hoặc khóa định tuyến của sự kiện
+  - Upcaster, adapter và phân biệt chuyển đổi dữ liệu với đổi schema
+  - Kiểm thử dữ liệu thực đại diện và các trường hợp biên trước khi phát hành
+- level1: Phiên bản và vòng đời
+  level2:
+  - Phân biệt phiên bản đặc tả, schema, API, artifact và ứng dụng
+  - Semantic Versioning và giới hạn của nhãn phiên bản trong bảo đảm tương thích
+  - Version trong URL, header, media type hoặc thông điệp
+  - Khi nào cần phiên bản mới và khi nào có thể thay đổi tương thích
+  - Quản lý nhiều phiên bản đang hoạt động và ma trận hỗ trợ
+  - Deprecation, Sunset và thời gian chuyển đổi đã thỏa thuận
+  - Thông báo thay đổi, migration guide và xác định bên sử dụng bị ảnh hưởng
+  - Ngừng hỗ trợ dựa trên bằng chứng sử dụng và kết quả chuyển đổi
+  - Lưu trữ phiên bản bất biến và truy xuất hợp đồng của lần triển khai cũ
+- level1: Schema Registry
+  level2:
+  - Vai trò của registry so với Git, tài liệu và broker thông điệp
+  - Phân biệt schema ID, subject, version và tài nguyên dữ liệu
+  - Subject naming strategy và phạm vi kiểm tra tương thích
+  - Đăng ký schema, tra cứu schema và tái sử dụng schema reference
+  - BACKWARD, FORWARD, FULL và các chế độ TRANSITIVE
+  - Quy tắc tương thích khác nhau giữa Avro, Protobuf và JSON Schema
+  - Tự đăng ký schema lúc chạy hay đăng ký trước qua CI/CD
+  - Serializer, deserializer, schema cache và phụ thuộc khi registry lỗi
+  - Quyền truy cập, môi trường, chính sách xóa và khôi phục schema
+  - Phân biệt kiểm tra schema khi đăng ký với kiểm tra mọi bản tin lúc chạy
+- level1: Ánh xạ Java
+  level2:
+  - DTO, record, enum và ranh giới với mô hình nghiệp vụ
+  - Jackson property naming, unknown field và cấu hình null
+  - Primitive, wrapper và khả năng phân biệt thiếu trường với giá trị mặc định
+  - BigDecimal, java.time, UUID và quy tắc biểu diễn qua mạng
+  - Jakarta Bean Validation và giới hạn so với JSON Schema
+  - Validation group, ràng buộc liên trường và vị trí thực hiện kiểm tra
+  - Ánh xạ lỗi giải mã, lỗi validation và lỗi nghiệp vụ
+  - Avro generated type, Protobuf generated type và chuyển đổi sang domain
+  - 'Đa ngôn ngữ: đối chiếu kiểu số, ngày giờ và enum giữa các client'
+  - Kiểm tra serialize–deserialize và tính nhất quán của cấu hình thực tế
+- level1: Sinh mã và stub
+  level2:
+  - Sinh server interface, client SDK và model từ hợp đồng
+  - Phân biệt generated client, mock server và stub kiểm thử
+  - OpenAPI Generator, protoc và công cụ sinh kiểu dữ liệu Avro
+  - Khóa phiên bản generator, template và cấu hình đầu vào
+  - Tách mã sinh khỏi phần tùy chỉnh để có thể tái sinh
+  - Kiểm soát package, tên kiểu và thay đổi chữ ký API
+  - Đóng gói hợp đồng, schema, SDK và stub thành artifact có phiên bản
+  - Kiểm tra mã sinh biên dịch được và xác minh hành vi trên đường truyền
+  - Giới hạn của sinh mã trong bảo đảm ngữ nghĩa và tương thích nghiệp vụ
+- level1: Kiểm thử hợp đồng
+  level2:
+  - Phân biệt schema validation, contract test, integration test và end-to-end test
+  - Kiểm thử phía cung cấp và phía sử dụng
+  - Consumer-driven contract và xác minh các giả định thật sự được sử dụng
+  - Provider-driven contract và kiểm tra triển khai theo đặc tả
+  - Interaction, provider state, fixture và dữ liệu xác định
+  - Matcher theo kiểu, mẫu hoặc giá trị và tránh so sánh quá chặt
+  - Phạm vi assertion cho request, response, header và lỗi
+  - Giới hạn của mock hoặc stub khi chưa xác minh với provider
+  - Kiểm thử âm để chứng minh thay đổi sai bị phát hiện
+  - 'Phần hợp đồng cần kiểm thử riêng: bảo mật, hiệu năng và chuỗi nghiệp vụ'
+- level1: Spring Cloud Contract
+  level2:
+  - Contract DSL, Contract Verifier và Stub Runner
+  - Viết hợp đồng HTTP bằng Groovy DSL hoặc YAML
+  - Request, response, header, body và matcher động
+  - Phân biệt giá trị phía consumer với giá trị phía producer trong DSL
+  - Sinh kiểm thử phía producer và cấu hình lớp kiểm thử nền
+  - Chuẩn bị dữ liệu, mock tầng phụ thuộc và bảo toàn phần xử lý cần xác minh
+  - Sinh và đóng gói WireMock stub thành artifact
+  - Chạy Stub Runner cho consumer với phiên bản stub xác định
+  - Hợp đồng messaging và MessageVerifier theo hạ tầng hỗ trợ
+  - Tích hợp Gradle, quản lý phiên bản và phát hành stub
+  - Giới hạn của stub tĩnh với luồng nhiều bước hoặc trạng thái phức tạp
+- level1: Pact
+  level2:
+  - Vai trò consumer, provider, pact file và Pact Broker
+  - Tạo consumer test với mock provider và xuất pact
+  - Matcher, generator và dữ liệu mẫu không phụ thuộc giá trị ngẫu nhiên
+  - Provider state và chuẩn bị dữ liệu khi verification
+  - Xác minh pact với provider thật ở ranh giới tích hợp phù hợp
+  - Xuất bản pact và verification result gắn với phiên bản ứng dụng
+  - Branch, environment và thông tin phiên bản đã triển khai
+  - Ma trận tương thích và can-i-deploy cho các phiên bản đã được xác minh
+  - Pending pact, WIP pact và cách diễn giải kết quả verification
+  - Message pact và ranh giới xác minh phần tạo, xử lý thông điệp
+  - Giới hạn theo công cụ, phiên bản đặc tả và các consumer chưa đăng ký
+- level1: Kiểm thử thông điệp
+  level2:
+  - Xác minh payload, header, schema ID và envelope
+  - Kiểm thử độc lập bên tạo thông điệp và bên xử lý
+  - Đọc dữ liệu do phiên bản cũ và phiên bản mới tạo ra
+  - Kiểm thử field vắng mặt, enum mới và dữ liệu lịch sử
+  - Phân biệt message contract test với kiểm thử broker, routing và delivery
+  - Đối chiếu định dạng giữa serializer, registry và consumer
+  - Kiểm thử thông điệp lỗi, tombstone hoặc biến thể dữ liệu đặc biệt
+  - Tách kiểm thử thứ tự, trùng lặp và retry khỏi giả định của schema
+- level1: CI/CD cho hợp đồng
+  level2:
+  - Validation cú pháp, lint và kiểm tra tham chiếu trong mỗi pull request
+  - So sánh hợp đồng với bản đã phát hành và bản đang được triển khai
+  - Phát hiện breaking change bằng schema diff hoặc API diff
+  - Sinh mã, biên dịch và kiểm thử cả producer lẫn consumer liên quan
+  - Chạy provider verification trước khi công bố kết quả tương thích
+  - Đóng gói artifact bất biến gắn commit, checksum và phiên bản
+  - Đăng ký schema hoặc phát hành stub sau khi các cổng kiểm tra đạt yêu cầu
+  - Chặn triển khai khi thiếu verification của tổ hợp phiên bản cần hỗ trợ
+  - Quản lý bí mật và môi trường chạy kiểm thử hợp đồng
+  - Lưu bằng chứng kiểm tra và khôi phục bản hợp đồng của lần phát hành
+- level1: Quản trị thay đổi
+  level2:
+  - Xác định nhóm sở hữu hợp đồng và đầu mối của từng bên sử dụng
+  - Quy trình đề xuất, review và phê duyệt thay đổi theo phạm vi ảnh hưởng
+  - Style guide, quy tắc đặt tên và danh sách kiểm tra tự động
+  - Phân loại hợp đồng nội bộ, đối tác và công khai
+  - Kiểm kê phụ thuộc và đánh giá phạm vi ảnh hưởng
+  - Tái sử dụng schema có chọn lọc để tránh ràng buộc phụ thuộc chéo giữa dịch vụ
+  - Changelog, quyết định thiết kế và lý do của thay đổi
+  - Quản lý ngoại lệ có thời hạn và bằng chứng chuyển đổi
+  - Tránh thư viện DTO dùng chung buộc các hệ thống phát hành đồng thời
+- level1: Tài liệu và ví dụ
+  level2:
+  - Tổ chức tài liệu tổng quan, thao tác, schema và quy tắc hành vi
+  - Ví dụ thành công, lỗi, dữ liệu biên và kết quả xử lý một phần
+  - Mẫu HTTP request, thông điệp và file dữ liệu có thể kiểm tra tự động
+  - Đồng bộ ví dụ với schema và contract test
+  - Trình bày thuật ngữ nghiệp vụ, đơn vị đo và quy tắc thời gian
+  - Công bố tài liệu theo phiên bản và phân quyền phù hợp
+  - Catalog hợp đồng, chủ sở hữu và liên kết đến artifact chuẩn
+  - Migration guide với thay đổi cụ thể và hành động của bên sử dụng
+- level1: Giám sát tuân thủ
+  level2:
+  - Phân biệt kiểm tra khi build với phát hiện lệch hợp đồng lúc chạy
+  - Theo dõi lỗi giải mã, validation và giá trị enum chưa nhận diện
+  - Phát hiện status, header hoặc loại thông điệp ngoài hợp đồng
+  - Đo mức sử dụng phiên bản và bên sử dụng còn phụ thuộc bản cũ
+  - Giám sát quota, độ trễ, độ mới và các cam kết vận hành
+  - Thu thập mẫu dữ liệu an toàn, có giới hạn và đã che thông tin nhạy cảm
+  - Cảnh báo theo chủ sở hữu và quy trình xử lý vi phạm
+  - Giới hạn của kiểm tra schema lúc chạy đối với ngữ nghĩa và hành vi
+- level1: Chuyển đổi hợp đồng
+  level2:
+  - Lập danh sách producer, consumer và dữ liệu lịch sử cần hỗ trợ
+  - Mở rộng–chuyển đổi–thu gọn (expand–migrate–contract) qua nhiều giai đoạn
+  - Quyết định nâng bên đọc trước hay bên ghi trước theo hướng tương thích
+  - Dual read, dual write và đối soát dữ liệu trong giai đoạn chuyển tiếp
+  - Dùng adapter hoặc upcaster để giới hạn ảnh hưởng của định dạng cũ
+  - Backfill, replay và xử lý dữ liệu lưu với schema trước đây
+  - Canary, kiểm tra tổ hợp phiên bản và điều kiện rollback
+  - Kết thúc chuyển đổi dựa trên dữ liệu sử dụng và bằng chứng tương thích
+  - Di chuyển từ code-first sang contract-first mà giữ một nguồn chuẩn rõ ràng
+- level1: Chẩn đoán sai lệch
+  level2:
+  - Schema hợp lệ nhưng sai đơn vị, múi giờ hoặc ý nghĩa nghiệp vụ
+  - Thêm trường tùy chọn nhưng consumer từ chối trường lạ
+  - Enum mới làm consumer lỗi dù schema mới vẫn hợp lệ
+  - Thay đổi default, nullability hoặc validation làm sai dữ liệu cũ
+  - Sai dialect, nullable hoặc $ref khi đổi phiên bản OpenAPI và JSON Schema
+  - Protobuf binary đọc được nhưng ProtoJSON hoặc mã sinh không tương thích
+  - Nhầm schema ID, subject, version hoặc artifact stub
+  - Kiểm thử với stub đạt nhưng xác minh provider hoặc môi trường thật thất bại
+  - Khác biệt giữa hợp đồng trong Git, artifact phát hành và dịch vụ đang chạy
+  - Contract test quá chặt, quá lỏng hoặc bỏ qua consumer chưa được kiểm kê
+- level1: Bài tập tổng hợp
+  level2:
+  - Thiết kế hợp đồng đơn hàng với ngữ nghĩa tiền tệ, ngày giờ và trạng thái
+  - Viết OpenAPI và JSON Schema kèm ví dụ hợp lệ, ví dụ lỗi
+  - Mô tả sự kiện đơn hàng bằng AsyncAPI và envelope có metadata rõ ràng
+  - Tiến hóa một schema Avro và kiểm thử đọc chéo dữ liệu
+  - Thay đổi Protobuf có reserved field và kiểm tra tương thích binary, JSON
+  - Xây dựng contract test HTTP bằng Spring Cloud Contract
+  - Xây dựng consumer test, provider verification và ma trận Pact
+  - Thiết lập CI phát hiện breaking change trước khi phát hành artifact
+  - Diễn tập chuyển đổi nhiều phiên bản với adapter và điều kiện rollback
+  - Hoàn thiện catalog, tài liệu chuyển đổi và bằng chứng xác minh hợp đồng

@@ -1,0 +1,7 @@
+# Integration API Fundamentals
+
+API (Application Programming Interface) là giao diện mà một hệ thống công bố để hệ thống khác có thể yêu cầu dữ liệu hoặc sử dụng chức năng mà không cần biết chi tiết triển khai bên trong. Trong tích hợp ứng dụng, API đóng vai trò như một hợp đồng giữa bên cung cấp và bên sử dụng, quy định cách gọi, dữ liệu trao đổi, kết quả trả về và hành vi khi có lỗi. Một API dễ sử dụng cần rõ ràng, nhất quán, bảo mật và có khả năng thay đổi có kiểm soát.
+
+Module dành cho người đã biết kiến thức lập trình cơ bản, cấu trúc dữ liệu JSON và khái niệm client–server. Lộ trình bắt đầu từ luồng request/response, HTTP và các phong cách API thường gặp, sau đó chuyển sang thiết kế endpoint, mô tả request/response contract và sử dụng OpenAPI. Người học cũng sẽ tìm hiểu lỗi HTTP, timeout/retry/idempotency, phân biệt xác thực với phân quyền, rồi thực hành versioning và kiểm thử. REST, GraphQL, SOAP và RPC được giới thiệu ở mức định hướng; các module chuyên sâu sẽ đi vào từng phong cách.
+
+Sau khi hoàn thành, bạn có thể đọc một hợp đồng API, tự thiết kế một số endpoint đơn giản, gửi request và phân tích response, xử lý lỗi theo quy ước, kiểm tra trường hợp truy cập không hợp lệ và đánh giá tác động khi thay đổi API. Trọng tâm là tư duy contract-first, khả năng tương tác và tính tương thích với client, không phụ thuộc framework cụ thể.

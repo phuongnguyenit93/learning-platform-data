@@ -1,0 +1,2230 @@
+menu:
+- slug: messaging-overview
+  title: Bức tranh tổng thể
+  childs:
+  - slug: messaging-overview-001
+    title: Tích hợp bằng thông điệp là gì và bài toán cần giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-overview-002
+    title: Từ cuộc gọi trực tiếp đến giao tiếp qua thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-overview-003
+    title: 'Bất đồng bộ là gì: thời điểm gửi, nhận và hoàn tất công việc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-overview-004
+    title: Giảm phụ thuộc về thời gian, vị trí và tốc độ giữa các hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-overview-005
+    title: 'Ví dụ xuyên suốt: đặt hàng, thanh toán và gửi thông báo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-overview-006
+    title: Toàn cảnh luồng gửi → trung gian → nhận → xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-overview-007
+    title: Khi nên và không nên dùng thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-overview-008
+    title: 'Chi phí phải đánh đổi: độ trễ, tính nhất quán và vận hành'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-overview-009
+    title: Các nhóm thuật ngữ và trình tự học nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: core-terminology
+  title: Thuật ngữ cốt lõi
+  childs:
+  - slug: core-terminology-001
+    title: Thông điệp (message), tải dữ liệu (payload) và siêu dữ liệu (metadata)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-terminology-002
+    title: Bên gửi (producer), bên nhận (consumer) và trình xử lý (handler)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-terminology-003
+    title: Máy chủ trung gian (message broker) và trách nhiệm điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-terminology-004
+    title: Kênh truyền (channel), đích nhận (destination) và đăng ký nhận (subscription)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-terminology-005
+    title: Phân biệt queue, topic và nhật ký sự kiện (event log)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-terminology-006
+    title: Hệ thống thông điệp (messaging system) và phần mềm trung gian (MOM)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-terminology-007
+    title: Phân biệt gửi, chuyển giao, nhận và xử lý thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-terminology-008
+    title: Phân biệt thông điệp, sự kiện, tác vụ và bản ghi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-terminology-009
+    title: Mô hình có trung gian và giao tiếp không qua trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-semantics
+  title: Ý nghĩa thông điệp
+  childs:
+  - slug: message-semantics-001
+    title: 'Lệnh (command): yêu cầu một bên thực hiện hành động'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-semantics-002
+    title: 'Sự kiện (event): thông báo một sự việc đã xảy ra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-semantics-003
+    title: 'Thông điệp tài liệu (document message): truyền trạng thái hoặc dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-semantics-004
+    title: 'Ý định và sự thật: phân biệt lệnh với sự kiện qua ví dụ đơn hàng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-semantics-005
+    title: Người sở hữu nghiệp vụ và người chịu trách nhiệm xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-semantics-006
+    title: Đặt tên thông điệp theo ý nghĩa nghiệp vụ và thời điểm xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-semantics-007
+    title: 'Thông báo sự kiện và sự kiện mang theo dữ liệu: hai cách cung cấp thông tin'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-semantics-008
+    title: Thông điệp tích hợp và sự kiện nội bộ trong một ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-semantics-009
+    title: Chọn dữ liệu cần mang theo để hạn chế phụ thuộc ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-semantics-010
+    title: 'Các lỗi thiết kế: sự kiện giả lệnh và thông điệp không rõ mục đích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communication-models
+  title: Mô hình giao tiếp
+  childs:
+  - slug: communication-models-001
+    title: 'Một bên gửi, một bên nhận: mô hình điểm đến điểm (point-to-point)'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-002
+    title: 'Nhiều bên nhận chia việc: mô hình cạnh tranh (competing consumers)'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-003
+    title: 'Một thông điệp, nhiều nhóm nhận độc lập: xuất bản–đăng ký (publish–subscribe)'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-004
+    title: 'Phát đến nhiều đích (fan-out) và phân phối công việc: khác nhau ở đâu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-005
+    title: Yêu cầu–phản hồi (request–reply) qua thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-006
+    title: Luồng thông điệp một chiều và thời điểm thông báo kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-007
+    title: Xâu chuỗi các bước xử lý và chuyển tiếp thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-008
+    title: Đăng ký nhận độc lập và nhóm bên nhận dùng chung tiến độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-009
+    title: So sánh giao tiếp HTTP trực tiếp, thông điệp và xử lý theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-models-010
+    title: Ranh giới giữa messaging, kiến trúc hướng sự kiện và event streaming
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: channels-destinations
+  title: Kênh và đích nhận
+  childs:
+  - slug: channels-destinations-001
+    title: 'Hàng đợi (queue): công việc chờ nhận và phân phối cho bên xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-destinations-002
+    title: 'Chủ đề (topic): phân loại thông điệp và các đăng ký nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-destinations-003
+    title: Tên đích nhận, không gian tên và quy ước đặt tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-destinations-004
+    title: 'Định tuyến (routing): đưa thông điệp đến đúng đích nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-destinations-005
+    title: 'Định tuyến theo địa chỉ, thuộc tính và nội dung: ý tưởng và đánh đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-destinations-006
+    title: Bộ lọc thông điệp (message filter) và nơi thực hiện lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-destinations-007
+    title: Đích nhận cố định, tạm thời và vòng đời sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-destinations-008
+    title: 'Đăng ký nhận bền vững và tạm thời: quyền nhận khi ngắt kết nối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-destinations-009
+    title: Tách kênh nghiệp vụ, phản hồi và xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-destinations-010
+    title: 'Sơ đồ kết nối (topology): biểu diễn bên gửi, đích và bên nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: channels-destinations-011
+    title: Quyền sở hữu việc tạo, cấu hình và xóa đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-structure
+  title: Cấu trúc thông điệp
+  childs:
+  - slug: message-structure-001
+    title: 'Phong bì thông điệp (envelope): phần mô tả và phần dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-002
+    title: Mã thông điệp (message ID) và phạm vi duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-003
+    title: Mã liên kết (correlation ID) để ghép yêu cầu với phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-004
+    title: Mã nguyên nhân (causation ID) để theo dõi chuỗi phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-005
+    title: 'Mã nghiệp vụ và khóa chống trùng: vì sao khác message ID'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-006
+    title: Loại thông điệp, phiên bản hợp đồng và kiểu nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-007
+    title: Thời điểm xảy ra, thời điểm gửi và thời điểm nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-008
+    title: Khóa định tuyến, khóa thứ tự và thông tin phân nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-009
+    title: Hạn sử dụng, hạn xử lý và địa chỉ phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-010
+    title: Ngữ cảnh truy vết và thông tin về nguồn phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-011
+    title: Phân biệt trường nghiệp vụ với trường do hạ tầng quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-structure-012
+    title: Kích thước thông điệp và cách tham chiếu dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-contracts
+  title: Hợp đồng dữ liệu
+  childs:
+  - slug: data-contracts-001
+    title: 'Hợp đồng thông điệp: cấu trúc, ý nghĩa và các ràng buộc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-002
+    title: Tuần tự hóa và giải tuần tự hóa (serialization/deserialization)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-003
+    title: 'Dữ liệu văn bản và nhị phân: tiêu chí lựa chọn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-004
+    title: 'JSON, Avro và Protocol Buffers: vai trò trong hợp đồng thông điệp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-005
+    title: Kiểm tra trường bắt buộc, kiểu dữ liệu và giá trị không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-006
+    title: Phân biệt trường vắng mặt, giá trị null và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-007
+    title: Quy ước thời gian, múi giờ, số tiền và đơn vị đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-008
+    title: Tương thích ngược và tương thích xuôi khi thay đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-009
+    title: 'Thêm, đổi tên và xóa trường: đánh giá ảnh hưởng đến bên nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-010
+    title: Quản lý phiên bản khi nhiều phiên bản ứng dụng cùng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-011
+    title: Lược đồ (schema), kho quản lý lược đồ và quyền sở hữu hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-012
+    title: Tránh truyền trực tiếp đối tượng nội bộ và chi tiết lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-lifecycle
+  title: Vòng đời truyền nhận
+  childs:
+  - slug: message-lifecycle-001
+    title: Lần theo một thông điệp từ lúc tạo đến lúc hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-lifecycle-002
+    title: 'Các trạng thái: đang gửi, đã tiếp nhận, đang chờ và đang xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-lifecycle-003
+    title: 'Xác nhận phía gửi (publisher confirmation): xác nhận điều gì'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-lifecycle-004
+    title: 'Xác nhận phía nhận (acknowledgement): xác nhận ở giai đoạn nào'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-lifecycle-005
+    title: Từ chối nhận, đưa lại hàng đợi và chuyển sang xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-lifecycle-006
+    title: Thông điệp đang được xử lý (in-flight) và quyền nhận tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-lifecycle-007
+    title: Cơ chế đẩy (push), kéo (pull) và thăm dò (polling)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-lifecycle-008
+    title: Nhận từng thông điệp và nhận theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-lifecycle-009
+    title: Điểm kết thúc trách nhiệm của bên gửi, trung gian và bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-lifecycle-010
+    title: Vẽ dòng thời gian để phân tích một ca truyền nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: senders
+  title: Phía gửi
+  childs:
+  - slug: senders-001
+    title: 'Trách nhiệm của bên gửi: tạo dữ liệu, chọn đích và gửi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: senders-002
+    title: Tách tạo thông điệp khỏi thao tác gửi trong mã Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: senders-003
+    title: Lời gọi gửi đồng bộ và bất đồng bộ ở cấp thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: senders-004
+    title: 'Kết quả gửi thành công và kết quả xử lý nghiệp vụ: hai mốc riêng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: senders-005
+    title: Chờ xác nhận, hết thời gian chờ và kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: senders-006
+    title: Bộ đệm gửi phía ứng dụng và giới hạn bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: senders-007
+    title: 'Gộp thông điệp khi gửi: hiệu năng và độ trễ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: senders-008
+    title: Xử lý lỗi trước, trong và sau khi trung gian tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: senders-009
+    title: Gửi lại sau lỗi kết nối và nguy cơ tạo bản trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: senders-010
+    title: Quản lý ngoại lệ và trả kết quả cho luồng gọi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: receivers
+  title: Phía nhận
+  childs:
+  - slug: receivers-001
+    title: 'Trách nhiệm của bên nhận: đọc, kiểm tra, xử lý và xác nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-002
+    title: Vòng lặp nhận và hàm xử lý gọi lại (listener/callback)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-003
+    title: 'Xác nhận tự động và thủ công: phạm vi phụ thuộc thư viện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-004
+    title: Chọn thời điểm xác nhận so với thao tác nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-005
+    title: Xử lý tuần tự và xử lý đồng thời trong một tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-006
+    title: Số bên nhận, số luồng và giới hạn xử lý song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-007
+    title: Nhận trước (prefetch) và giới hạn thông điệp đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-008
+    title: Ngoại lệ nghiệp vụ, dữ liệu sai và lỗi hạ tầng trong bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-009
+    title: Khởi động lại bên nhận và xử lý thông điệp chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-010
+    title: 'Dừng có kiểm soát: ngừng nhận mới và hoàn tất công việc đang chạy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-011
+    title: Phân biệt đã đọc, đã xác nhận và đã lưu tiến độ nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-retention
+  title: Lưu trữ và lưu giữ
+  childs:
+  - slug: storage-retention-001
+    title: Thông điệp trong bộ nhớ và thông điệp được lưu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-002
+    title: 'Lưu bền vững thông điệp, đích nhận và đăng ký nhận: ba khái niệm riêng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-003
+    title: Lưu rồi chuyển tiếp (store-and-forward) khi bên nhận chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-004
+    title: 'Xóa sau xác nhận và lưu theo thời hạn: hai cơ chế khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-005
+    title: Thời gian sống (TTL), thời hạn lưu giữ (retention) và hạn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-006
+    title: Thông điệp hết hạn khi chờ và khi đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-007
+    title: Tồn đọng (backlog), dung lượng hàng đợi và đầy kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-008
+    title: 'Phát lại (replay): điều kiện hỗ trợ và hệ quả với tác dụng phụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-009
+    title: 'Sao chép dữ liệu và chuyển đổi khi lỗi: vai trò đối với tính sẵn sàng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-010
+    title: Đọc cam kết lưu trữ theo cấu hình thay vì suy luận từ tên tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-commitments
+  title: Cam kết chuyển giao
+  childs:
+  - slug: delivery-commitments-001
+    title: Cam kết chuyển giao (delivery guarantee) được xác định ở ranh giới nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-commitments-002
+    title: 'Nhiều nhất một lần (at-most-once): khả năng mất thông điệp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-commitments-003
+    title: 'Ít nhất một lần (at-least-once): khả năng nhận trùng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-commitments-004
+    title: 'Đúng một lần (exactly-once): phạm vi cam kết và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-commitments-005
+    title: Phân biệt số lần chuyển giao với số lần tạo hiệu ứng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-commitments-006
+    title: Xác nhận đã gửi không đồng nghĩa đã xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-commitments-007
+    title: 'Mất kết nối sau khi trung gian tiếp nhận: kết quả gửi chưa xác định'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-commitments-008
+    title: Bên nhận dừng trước và sau khi lưu kết quả xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-commitments-009
+    title: Xác nhận bị thất lạc và nguyên nhân chuyển giao lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-commitments-010
+    title: Lập bảng tình huống lỗi để đánh giá mất, trùng và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-commitments-011
+    title: Diễn đạt cam kết thực tế cho toàn bộ luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-order
+  title: Thứ tự xử lý
+  childs:
+  - slug: processing-order-001
+    title: Thứ tự phát sinh, gửi, nhận và hoàn tất xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-order-002
+    title: Thứ tự toàn cục và thứ tự theo một thực thể nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-order-003
+    title: Vì sao FIFO chưa đủ bảo đảm thứ tự hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-order-004
+    title: Nhiều bên gửi, nhiều bên nhận và tác động đến thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-order-005
+    title: 'Khóa phân nhóm và phân vùng: ý tưởng giữ thứ tự cục bộ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-order-006
+    title: Xử lý song song giữa các nhóm và tuần tự trong từng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-order-007
+    title: Gửi lại, chuyển giao lại và thông điệp ưu tiên làm thay đổi thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-order-008
+    title: Số thứ tự và phiên bản nghiệp vụ để phát hiện dữ liệu cũ hoặc thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-order-009
+    title: Thông điệp đến muộn và thông điệp đến sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-order-010
+    title: Đánh đổi giữa yêu cầu thứ tự, thông lượng và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failures-recovery
+  title: Lỗi và phục hồi
+  childs:
+  - slug: failures-recovery-001
+    title: Phân loại lỗi tạm thời, lỗi lâu dài và lỗi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-recovery-002
+    title: 'Thử lại (retry) ở bên gửi và bên nhận: mục đích khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-recovery-003
+    title: Giới hạn số lần thử, thời gian chờ và ngân sách xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-recovery-004
+    title: Tăng thời gian chờ (backoff) và thêm độ lệch ngẫu nhiên (jitter)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-recovery-005
+    title: Tránh vòng lặp đưa lại hàng đợi và cơn bão thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-recovery-006
+    title: Thông điệp không thể xử lý (poison message) và cách cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-recovery-007
+    title: 'Hàng đợi lỗi (dead-letter queue): mục đích và dữ liệu chẩn đoán'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-recovery-008
+    title: Phân biệt từ chối, hết hạn và vượt số lần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-recovery-009
+    title: Khắc phục nguyên nhân và phát lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-recovery-010
+    title: Vai trò của vận hành và trách nhiệm nghiệp vụ khi phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-recovery-011
+    title: 'Ranh giới học tiếp: chính sách độ tin cậy và các mẫu phục hồi chuyên sâu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: duplicate-handling
+  title: Xử lý trùng lặp
+  childs:
+  - slug: duplicate-handling-001
+    title: 'Tính lũy đẳng (idempotency): lặp lại yêu cầu không lặp hiệu ứng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-002
+    title: Các nguồn tạo bản trùng trong toàn bộ luồng truyền nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-003
+    title: Chọn khóa chống trùng theo ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-004
+    title: Phát hiện trùng bằng mã thông điệp và hạn chế của cách này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-005
+    title: Lưu dấu đã xử lý và kiểm tra trùng trong cùng giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-006
+    title: Ràng buộc duy nhất và cập nhật có điều kiện ở cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-007
+    title: Thời hạn lưu dấu, phạm vi khóa và nguy cơ nhận nhầm là trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-008
+    title: Hai bên nhận đồng thời xử lý cùng một thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-009
+    title: Tác dụng phụ bên ngoài như gửi email và gọi dịch vụ thanh toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: duplicate-handling-010
+    title: Phân biệt khử trùng lặp, tính lũy đẳng và cam kết đúng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-consistency
+  title: Nhất quán dữ liệu
+  childs:
+  - slug: data-consistency-001
+    title: Ranh giới giao dịch giữa ứng dụng, cơ sở dữ liệu và hệ thống thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-002
+    title: 'Lỗi ghi kép (dual write): lưu dữ liệu thành công nhưng gửi thất bại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-003
+    title: 'Đảo thứ tự gửi và lưu dữ liệu: vì sao chưa giải quyết tính nguyên tử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-004
+    title: Nhất quán sau cùng (eventual consistency) và trạng thái chờ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-005
+    title: 'Thông điệp hộp thư đi (outbox): ý tưởng giải quyết ranh giới gửi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-006
+    title: 'Thông điệp hộp thư đến (inbox): ý tưởng kiểm soát tiếp nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-007
+    title: Phân biệt giao dịch cục bộ, giao dịch của broker và giao dịch phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-008
+    title: 'Đọc dữ liệu sau khi phát sự kiện: độ trễ và phiên bản trạng thái'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-009
+    title: Thất bại ở một bước và nhu cầu bù trừ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-010
+    title: 'Ranh giới học tiếp: mẫu tích hợp, Saga và độ tin cậy chuyên sâu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-load
+  title: Hiệu năng và tải
+  childs:
+  - slug: performance-load-001
+    title: 'Độ trễ, thông lượng và thời gian xử lý: đo ở từng chặng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-load-002
+    title: Tốc độ gửi vượt tốc độ xử lý và tốc độ tăng tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-load-003
+    title: Dùng hàng đợi để hấp thụ tải tăng đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-load-004
+    title: 'Hàng đợi hữu hạn và giới hạn tài nguyên: vì sao cần sức chứa tối đa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-load-005
+    title: 'Điều tiết ngược (backpressure): truyền tín hiệu giảm tải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-load-006
+    title: Tăng số bên nhận và giới hạn mở rộng do thứ tự hoặc tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-load-007
+    title: Tác động của kích thước dữ liệu, gộp lô và nhận trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-load-008
+    title: Cân bằng tải giữa bên nhận nhanh và chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-load-009
+    title: Thông điệp lớn, xử lý chậm và tắc nghẽn đầu hàng (head-of-line blocking)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-load-010
+    title: Ưu tiên công việc và nguy cơ công việc ưu tiên thấp bị chờ lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-load-011
+    title: Xây dựng ngân sách độ trễ và năng lực xử lý theo tải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connections-resources
+  title: Kết nối và tài nguyên
+  childs:
+  - slug: connections-resources-001
+    title: Vòng đời kết nối, phiên làm việc và đăng ký nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-resources-002
+    title: 'Tạo mới hay tái sử dụng kết nối: chi phí và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-resources-003
+    title: Phát hiện kết nối chết bằng heartbeat và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-resources-004
+    title: Kết nối lại và khôi phục đăng ký nhận sau gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-resources-005
+    title: Phân biệt kết nối đã phục hồi với công việc đã phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-resources-006
+    title: Giới hạn kết nối, luồng, bộ đệm và thông điệp đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-resources-007
+    title: 'An toàn luồng của đối tượng thư viện: kiểm tra theo API cụ thể'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-resources-008
+    title: Thứ tự đóng tài nguyên khi ứng dụng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-resources-009
+    title: Cấu hình theo môi trường và tách bí mật khỏi mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Ranh giới tin cậy giữa bên gửi, broker và bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Xác thực danh tính và phân quyền gửi, nhận, quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Nguyên tắc quyền tối thiểu theo đích nhận và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Mã hóa đường truyền bằng TLS và kiểm tra chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Bảo vệ dữ liệu nhạy cảm trong nội dung và siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Không coi dữ liệu nhận từ broker là dữ liệu mặc nhiên đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Giới hạn kích thước, kiểm tra lược đồ và phòng tránh giải tuần tự hóa nguy hiểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Tránh lộ thông tin cá nhân, thông tin đăng nhập và dữ liệu nghiệp vụ trong log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Cách ly môi trường, đơn vị sử dụng và vùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Luân chuyển thông tin xác thực và ghi nhận hoạt động truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: Theo dõi đường đi thông điệp bằng message ID và correlation ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Log có cấu trúc cho các mốc gửi, nhận, xử lý và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Truy vết phân tán qua ranh giới bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Đo tốc độ gửi, nhận, xử lý thành công và xử lý thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Độ sâu hàng đợi, số đang xử lý và tuổi thông điệp cũ nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Độ trễ tiến độ nhận (consumer lag) trong hệ thống lưu nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Đếm chuyển giao lại, thử lại, trùng lặp và thông điệp bị cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Phân biệt không có tải, kết nối hỏng và bên nhận bị treo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Cảnh báo theo thời gian chờ nghiệp vụ và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Điều tra sự cố từ dấu thời gian, trạng thái và nguyên nhân lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử đơn vị cho việc tạo thông điệp và xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử hợp đồng và dữ liệu giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử tích hợp với broker thật và phạm vi của bản giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Chờ kết quả bất đồng bộ bằng điều kiện và thời hạn rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử bên nhận chưa chạy khi bên gửi phát thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Mô phỏng mất kết nối và kết quả gửi chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Dừng bên nhận trước hoặc sau khi ghi dữ liệu và xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử nhận trùng, nhận sai thứ tự và thông điệp không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử hết hạn, hàng đợi lỗi và phát lại sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử tải, tồn đọng và thời gian giải phóng tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Cô lập đích nhận, dữ liệu và tài nguyên giữa các lần kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: technology-selection
+  title: Lựa chọn công nghệ
+  childs:
+  - slug: technology-selection-001
+    title: Phân biệt sản phẩm broker, giao thức và API lập trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-002
+    title: 'AMQP, MQTT và các giao thức khác: nhận diện phạm vi sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-003
+    title: 'Jakarta Messaging (JMS): vai trò API và quan hệ với nhà cung cấp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-004
+    title: 'RabbitMQ và ActiveMQ: định hướng học về hệ thống message broker'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-005
+    title: 'Kafka: định hướng học về nhật ký sự kiện và event streaming'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-006
+    title: Thư viện Java gốc, Spring JMS, Spring AMQP và lớp trừu tượng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-007
+    title: 'Hàng đợi trong tiến trình Java và broker phân tán: ranh giới bảo đảm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-008
+    title: 'Tự vận hành và dịch vụ được quản lý: trách nhiệm của mỗi bên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-009
+    title: So sánh theo định tuyến, lưu giữ, thứ tự, phát lại và mô hình bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-010
+    title: Đánh giá hệ sinh thái, chi phí vận hành và mức phụ thuộc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-011
+    title: Từ yêu cầu nghiệp vụ đến bảng tiêu chí lựa chọn công nghệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: 'Mô hình hóa luồng đơn hàng: lệnh, sự kiện và bên chịu trách nhiệm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Thiết kế hợp đồng thông điệp và quy ước định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Dựng mô phỏng Java bằng BlockingQueue và chỉ rõ giới hạn trong tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Thực nghiệm một thông điệp, một bên nhận và nhiều bên nhận chia việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Thực nghiệm nhiều đăng ký nhận độc lập và quan sát sự khác biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Kết nối ứng dụng Java với một broker theo môi trường thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Quan sát xác nhận gửi, xác nhận nhận và các mốc xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Tạo tình huống nhận trùng và bảo vệ hiệu ứng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Tạo tình huống mất thứ tự, hết hạn và thông điệp không xử lý được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Đo tồn đọng khi tăng tải và thay đổi số bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Hoàn thiện bảng tình huống lỗi, tiêu chí nghiệm thu và cách phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Tổng kết mô hình nền tảng và chọn hướng học chuyên sâu tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

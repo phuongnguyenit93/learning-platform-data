@@ -1,0 +1,3112 @@
+menu:
+- slug: contracts-overview
+  title: Tổng quan hợp đồng
+  childs:
+  - slug: contracts-overview-001
+    title: Hợp đồng tích hợp là gì và vì sao các hệ thống cần thỏa thuận rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-overview-002
+    title: Quan hệ giữa bên cung cấp (provider), bên sử dụng (consumer) và điểm tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-overview-003
+    title: Phân biệt hợp đồng, tài liệu, schema, giao thức và mã triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-overview-004
+    title: Phân biệt hợp đồng HTTP, RPC, sự kiện và dữ liệu trao đổi theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-overview-005
+    title: Rủi ro của giả định ngầm khi các nhóm phát triển độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-overview-006
+    title: Các lớp cấu trúc dữ liệu, ngữ nghĩa, hành vi và chất lượng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-overview-007
+    title: Giới hạn của kiểu dữ liệu Java trong bảo đảm tương thích qua mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contracts-overview-008
+    title: Trình tự học từ mô tả thỏa thuận đến xác minh và quản lý thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-components
+  title: Thành phần hợp đồng
+  childs:
+  - slug: contract-components-001
+    title: Định danh dịch vụ, thao tác, thông điệp và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-components-002
+    title: Địa chỉ kết nối, giao thức và định dạng nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-components-003
+    title: Dữ liệu đầu vào, đầu ra, metadata và các ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-components-004
+    title: Điều kiện trước, điều kiện sau và quy tắc bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-components-005
+    title: Kết quả thành công, lỗi và trạng thái đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-components-006
+    title: Xác thực, phân quyền và yêu cầu bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-components-007
+    title: Timeout, quota, giới hạn kích thước và mục tiêu chất lượng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-components-008
+    title: Quyền sở hữu, bên sử dụng, vòng đời và bằng chứng xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-semantics
+  title: Ngữ nghĩa nghiệp vụ
+  childs:
+  - slug: business-semantics-001
+    title: Định nghĩa thuật ngữ và ranh giới nghiệp vụ giữa các hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-semantics-002
+    title: Đơn vị đo, tiền tệ, tỷ giá và quy tắc làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-semantics-003
+    title: Thời điểm xảy ra, thời điểm ghi nhận và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-semantics-004
+    title: Ý nghĩa của trường vắng mặt, null, giá trị rỗng và mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-semantics-005
+    title: Phân biệt yêu cầu tạo mới, thay thế toàn bộ và cập nhật từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-semantics-006
+    title: Định nghĩa trạng thái hợp lệ và chuyển trạng thái được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-semantics-007
+    title: Phân biệt chấp nhận yêu cầu với hoàn tất xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-semantics-008
+    title: Quy tắc định danh, liên kết dữ liệu và nguồn dữ liệu có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-semantics-009
+    title: Tính nhất quán, độ mới dữ liệu và kết quả quan sát sau thao tác ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-design
+  title: Thiết kế hợp đồng
+  childs:
+  - slug: contract-design-001
+    title: Contract-first, code-first và cách kiểm soát nguồn chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-002
+    title: Thiết kế từ tình huống sử dụng và nhu cầu của bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-003
+    title: Phân biệt provider-driven và consumer-driven contract
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-004
+    title: Tách mô hình tích hợp khỏi entity và cấu trúc lưu trữ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-005
+    title: Chọn mức chi tiết vừa đủ để xác minh mà không khóa chặt triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-006
+    title: Quy tắc đặt tên và phạm vi tái sử dụng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-007
+    title: Thiết kế ví dụ hợp lệ, ví dụ lỗi và điều kiện biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-008
+    title: Phân biệt quy tắc máy kiểm tra được với cam kết cần bằng chứng bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-design-009
+    title: Rà soát hợp đồng trước khi triển khai và thống nhất tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-modeling
+  title: Mô hình dữ liệu
+  childs:
+  - slug: data-modeling-001
+    title: Kiểu nguyên thủy, object, array, map và cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-002
+    title: Trường bắt buộc, trường tùy chọn và khả năng nhận null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-003
+    title: Giới hạn chuỗi, mẫu ký tự và quy tắc chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-004
+    title: Giới hạn số, độ chính xác thập phân và tràn miền giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-005
+    title: Ngày giờ, khoảng thời gian, UUID và định danh có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-006
+    title: Enum đóng, enum có thể mở rộng và giá trị chưa nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-007
+    title: Quan hệ giữa các trường và ràng buộc phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-008
+    title: Đa hình, biến thể dữ liệu và cách phân biệt loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-009
+    title: Dữ liệu nhị phân, nội dung lớn và tham chiếu tài nguyên bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-010
+    title: Quy tắc thứ tự phần tử, tập hợp duy nhất và khóa của map
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: json-schema
+  title: JSON Schema
+  childs:
+  - slug: json-schema-001
+    title: Vai trò của JSON Schema và lựa chọn dialect bằng $schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-002
+    title: $id, $ref, $defs và tổ chức schema có thể tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-003
+    title: type, properties, required và kiểm tra cấu trúc object
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-004
+    title: additionalProperties, unevaluatedProperties và chính sách trường lạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-005
+    title: items, prefixItems, uniqueItems và giới hạn mảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-006
+    title: enum, const, minimum, maximum, length và pattern
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-007
+    title: anyOf, oneOf, allOf, not và khác biệt với kế thừa lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-008
+    title: if, then, else, dependentRequired và ràng buộc có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-009
+    title: Phân biệt null với thuộc tính không xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-010
+    title: format là annotation hay assertion tùy dialect và validator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-011
+    title: default và examples không tự điền dữ liệu cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-schema-012
+    title: Thông báo lỗi, đường dẫn trường sai và kiểm thử schema độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-contracts
+  title: Hợp đồng HTTP
+  childs:
+  - slug: http-contracts-001
+    title: Method, path, tham số và ý nghĩa của từng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-002
+    title: Path, query, header, cookie và quy tắc mã hóa tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-003
+    title: Request body, media type và thương lượng nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-004
+    title: Status code, response header và dữ liệu trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-005
+    title: Hợp đồng cho tạo tài nguyên, xử lý bất đồng bộ và body rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-006
+    title: Phân trang, lọc, sắp xếp và giới hạn kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-007
+    title: ETag, điều kiện cập nhật và xung đột đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-008
+    title: Idempotency key, correlation ID và metadata xuyên lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-009
+    title: Rate limit, Retry-After, timeout và giới hạn đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-contracts-010
+    title: Callback, webhook và điều kiện xác nhận việc tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: openapi
+  title: OpenAPI
+  childs:
+  - slug: openapi-001
+    title: Cấu trúc info, servers, paths, operations và components
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-002
+    title: Phân biệt phiên bản OpenAPI với phiên bản API trong info.version
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-003
+    title: operationId, tag và định danh ổn định cho công cụ sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-004
+    title: Parameter, requestBody, response và khai báo nhiều media type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-005
+    title: Schema Object và khác biệt OpenAPI 3.0 với 3.1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-006
+    title: required, nullable và cách mô tả null theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-007
+    title: Tái sử dụng thành phần bằng $ref và xử lý tài liệu nhiều tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-008
+    title: oneOf, allOf, discriminator và giới hạn suy luận đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-009
+    title: Security scheme và security requirement theo API hoặc thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-010
+    title: Examples, links, callbacks và webhooks
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-011
+    title: Validation, lint, bundle và phát hiện tham chiếu bị lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openapi-012
+    title: Giới hạn của OpenAPI trong mô tả quy tắc liên trường và hành vi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-contracts
+  title: Hợp đồng sự kiện
+  childs:
+  - slug: event-contracts-001
+    title: Phân biệt lệnh, sự kiện đã xảy ra và thông báo thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-002
+    title: Định danh sự kiện, loại sự kiện và phiên bản dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-003
+    title: Payload, envelope, header và metadata của thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-004
+    title: Correlation ID, causation ID và liên hệ giữa chuỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-005
+    title: Khóa phân vùng hoặc nhóm xử lý và phạm vi bảo đảm thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-006
+    title: Thời điểm nghiệp vụ, thời điểm phát và chính sách sự kiện đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-007
+    title: Thông điệp lặp, phát lại và yêu cầu consumer lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-008
+    title: Snapshot, dữ liệu thay đổi từng phần và tombstone theo thỏa thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-009
+    title: CloudEvents và phân biệt chuẩn envelope với schema của data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-010
+    title: Thời hạn lưu giữ, thời hạn hữu ích và khả năng đọc sự kiện lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-contracts-011
+    title: Giới hạn hợp đồng ứng dụng so với bảo đảm của broker hoặc giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asyncapi
+  title: AsyncAPI
+  childs:
+  - slug: asyncapi-001
+    title: Vai trò của AsyncAPI trong mô tả giao tiếp bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asyncapi-002
+    title: Servers, channels, messages, operations và components
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asyncapi-003
+    title: Phân biệt địa chỉ channel với tên định danh trong tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asyncapi-004
+    title: send, receive và góc nhìn của ứng dụng được mô tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asyncapi-005
+    title: Payload, headers, correlationId và contentType
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asyncapi-006
+    title: Protocol binding và các thuộc tính phụ thuộc Kafka, AMQP hoặc MQTT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asyncapi-007
+    title: Tham chiếu schema ngoài và tái sử dụng message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asyncapi-008
+    title: Reply, request–reply và các giới hạn theo phiên bản đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asyncapi-009
+    title: Security, examples và thông tin môi trường kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asyncapi-010
+    title: Khác biệt AsyncAPI 2.x, 3.x và khả năng hỗ trợ của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: avro
+  title: Avro
+  childs:
+  - slug: avro-001
+    title: Schema record, field, namespace và kiểu dữ liệu phức hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: avro-002
+    title: Writer schema, reader schema và cơ chế schema resolution
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: avro-003
+    title: Union có null và phân biệt khả năng nhận null với giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: avro-004
+    title: Default value được sử dụng khi đọc dữ liệu thiếu trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: avro-005
+    title: Aliases và điều kiện áp dụng khi thay đổi tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: avro-006
+    title: Enum, fixed và giới hạn khi bổ sung hoặc thay đổi kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: avro-007
+    title: Logical type cho decimal, date và timestamp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: avro-008
+    title: Schema đi cùng dữ liệu, schema ID và định dạng đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: avro-009
+    title: SpecificRecord, GenericRecord và lựa chọn ánh xạ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: avro-010
+    title: Kiểm tra đọc chéo dữ liệu cũ, mới trước khi đăng ký schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protobuf-grpc
+  title: Protobuf và gRPC
+  childs:
+  - slug: protobuf-grpc-001
+    title: Message, field number, package và khai báo service trong .proto
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-grpc-002
+    title: Phân biệt cú pháp proto2, proto3 và Protobuf Editions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-grpc-003
+    title: Field presence, optional, giá trị mặc định và cập nhật từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-grpc-004
+    title: repeated, map, oneof và biểu diễn các biến thể dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-grpc-005
+    title: Enum mặc định và xử lý giá trị chưa nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-grpc-006
+    title: Xóa trường bằng reserved và không tái sử dụng field number
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-grpc-007
+    title: Tương thích binary wire format khác với ProtoJSON và mã nguồn sinh ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-grpc-008
+    title: Thay đổi kiểu trường, di chuyển oneof và đánh giá mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-grpc-009
+    title: Hợp đồng gRPC cho unary và streaming ở mức giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-grpc-010
+    title: Status, metadata, deadline và cấu trúc lỗi gRPC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protobuf-grpc-011
+    title: Kiểm tra schema breaking change bằng công cụ và kiểm thử tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-soap
+  title: XML và SOAP
+  childs:
+  - slug: xml-soap-001
+    title: Namespace, QName và định danh phần tử XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-soap-002
+    title: XSD element, attribute, simpleType và complexType
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-soap-003
+    title: minOccurs, maxOccurs, nillable và phân biệt thiếu phần tử với xsi:nil
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-soap-004
+    title: sequence, choice, enum và ràng buộc giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-soap-005
+    title: Import, include và quản lý nhiều phiên bản schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-soap-006
+    title: WSDL type, message, operation, binding và service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-soap-007
+    title: SOAP Fault và hợp đồng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-soap-008
+    title: Ảnh hưởng của namespace, thứ tự phần tử và mã Java sinh từ schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graphql-sdl
+  title: GraphQL SDL
+  childs:
+  - slug: graphql-sdl-001
+    title: Schema, type, field và operation trong hợp đồng GraphQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-sdl-002
+    title: Input type, argument, enum và custom scalar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-sdl-003
+    title: Nullable, non-null, list và khác biệt giữa đầu vào với đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-sdl-004
+    title: Interface, union và ảnh hưởng đến bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-sdl-005
+    title: Thêm, xóa, đổi tên field hoặc argument và đánh giá tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-sdl-006
+    title: '@deprecated và kế hoạch chuyển đổi truy vấn của client'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-sdl-007
+    title: Phản hồi data, errors và kết quả thành công một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-sdl-008
+    title: Giới hạn schema trong mô tả phân quyền, chi phí truy vấn và ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-contracts
+  title: Hợp đồng dữ liệu
+  childs:
+  - slug: data-contracts-001
+    title: Phạm vi dataset, bản ghi và ranh giới bên tạo, bên sử dụng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-002
+    title: Định dạng file, encoding, dấu phân cách và quy ước header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-003
+    title: Thứ tự cột, tên cột, kiểu giá trị và quy tắc biểu diễn rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-004
+    title: Khóa bản ghi, khóa phân vùng và phạm vi dữ liệu của từng lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-005
+    title: Tính đầy đủ, tính duy nhất và ràng buộc chất lượng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-006
+    title: Thời điểm cung cấp, độ mới và tín hiệu hoàn tất một lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-007
+    title: Phân biệt schema file với ngữ nghĩa, quyền sở hữu và cam kết vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-008
+    title: Thay đổi cột, định dạng hoặc lịch cung cấp và đánh giá bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-status-models
+  title: Lỗi và trạng thái
+  childs:
+  - slug: error-status-models-001
+    title: Phân biệt lỗi giao thức, xác thực, dữ liệu và nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-status-models-002
+    title: Thiết kế mã lỗi ổn định tách khỏi thông báo hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-status-models-003
+    title: Problem Details và cấu trúc lỗi tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-status-models-004
+    title: Mô tả nhiều lỗi trường và vị trí dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-status-models-005
+    title: Trạng thái đang xử lý, thành công một phần và thất bại cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-status-models-006
+    title: Thông tin retryable, thời điểm thử lại và kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-status-models-007
+    title: Trace ID, correlation ID và dữ liệu được phép đưa vào lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-status-models-008
+    title: Thay đổi mã lỗi, status hoặc ý nghĩa lỗi và tác động đến client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-guarantees
+  title: Cam kết xử lý
+  childs:
+  - slug: processing-guarantees-001
+    title: Phân biệt delivery guarantee với hoàn tất nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-guarantees-002
+    title: Định nghĩa idempotency key, phạm vi duy nhất và thời hạn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-guarantees-003
+    title: Retry, timeout và điều kiện phát lại yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-guarantees-004
+    title: Cam kết thứ tự theo khóa, phiên hoặc toàn luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-guarantees-005
+    title: Trùng lặp, xử lý lũy đẳng và giới hạn của tuyên bố exactly-once
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-guarantees-006
+    title: Quy tắc xử lý sự kiện đến muộn hoặc sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-guarantees-007
+    title: DLQ, thông điệp không hợp lệ và quy trình phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-guarantees-008
+    title: Quota, kích thước tối đa, lưu giữ và mục tiêu độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-guarantees-009
+    title: Kiểm chứng cam kết hành vi ngoài phần schema dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-security
+  title: Bảo mật hợp đồng
+  childs:
+  - slug: contract-security-001
+    title: Khai báo cơ chế xác thực, scope và quyền của từng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-002
+    title: Phân biệt mô tả security scheme với thực thi phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-003
+    title: Phân loại dữ liệu nhạy cảm và giới hạn dữ liệu được trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-004
+    title: Quy định che dữ liệu trong ví dụ, nhật ký, stub và bộ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-005
+    title: Định danh tenant và ngăn dữ liệu vượt ranh giới khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-006
+    title: Ràng buộc kích thước, độ sâu và định dạng để bảo vệ bộ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-007
+    title: Chữ ký thông điệp, timestamp và điều kiện chống phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-008
+    title: Thay đổi yêu cầu xác thực hoặc scope như một thay đổi hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-security-009
+    title: Kiểm soát quyền đọc, sửa và công bố tài liệu hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-compatibility
+  title: Tương thích hợp đồng
+  childs:
+  - slug: contract-compatibility-001
+    title: Phân biệt tương thích mã nguồn, binary, wire format và ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-002
+    title: 'Backward compatibility: bên đọc mới tiếp nhận dữ liệu của bên ghi cũ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-003
+    title: 'Forward compatibility: bên đọc cũ tiếp nhận dữ liệu của bên ghi mới'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-004
+    title: Full compatibility và điều kiện đáp ứng cả hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-005
+    title: Transitive compatibility và kiểm tra mọi phiên bản liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-006
+    title: Phân biệt hướng tương thích của request với response
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-007
+    title: Thay đổi cấu trúc hợp lệ nhưng làm sai giả định nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-008
+    title: Thêm trường, bỏ trường, đổi tên và chuyển trường thành bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-009
+    title: Thêm giá trị enum, thay giới hạn và đổi giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-010
+    title: Chính sách tiếp nhận trường lạ và giới hạn của tolerant reader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-011
+    title: Ma trận bên cung cấp, bên sử dụng, phiên bản và môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-compatibility-012
+    title: Xác minh khả năng đọc dữ liệu lịch sử cùng khả năng rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema-evolution
+  title: Tiến hóa schema
+  childs:
+  - slug: schema-evolution-001
+    title: Phân loại thay đổi bổ sung, thay đổi có điều kiện và thay đổi phá vỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-002
+    title: Thêm trường tùy chọn với ngữ nghĩa phù hợp cho dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-003
+    title: Đổi tên trường bằng giai đoạn hỗ trợ tên cũ và tên mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-004
+    title: Thay đổi kiểu số, độ chính xác, đơn vị đo hoặc múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-005
+    title: Chuyển trường scalar thành collection hoặc cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-006
+    title: Tiến hóa enum, union, oneof và mô hình đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-007
+    title: Giữ tương thích khi bổ sung ràng buộc validation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-008
+    title: Thay đổi envelope, header hoặc khóa định tuyến của sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-009
+    title: Upcaster, adapter và phân biệt chuyển đổi dữ liệu với đổi schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-evolution-010
+    title: Kiểm thử dữ liệu thực đại diện và các trường hợp biên trước khi phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versioning-lifecycle
+  title: Phiên bản và vòng đời
+  childs:
+  - slug: versioning-lifecycle-001
+    title: Phân biệt phiên bản đặc tả, schema, API, artifact và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-lifecycle-002
+    title: Semantic Versioning và giới hạn của nhãn phiên bản trong bảo đảm tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-lifecycle-003
+    title: Version trong URL, header, media type hoặc thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-lifecycle-004
+    title: Khi nào cần phiên bản mới và khi nào có thể thay đổi tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-lifecycle-005
+    title: Quản lý nhiều phiên bản đang hoạt động và ma trận hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-lifecycle-006
+    title: Deprecation, Sunset và thời gian chuyển đổi đã thỏa thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-lifecycle-007
+    title: Thông báo thay đổi, migration guide và xác định bên sử dụng bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-lifecycle-008
+    title: Ngừng hỗ trợ dựa trên bằng chứng sử dụng và kết quả chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-lifecycle-009
+    title: Lưu trữ phiên bản bất biến và truy xuất hợp đồng của lần triển khai cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema-registry
+  title: Schema Registry
+  childs:
+  - slug: schema-registry-001
+    title: Vai trò của registry so với Git, tài liệu và broker thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-registry-002
+    title: Phân biệt schema ID, subject, version và tài nguyên dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-registry-003
+    title: Subject naming strategy và phạm vi kiểm tra tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-registry-004
+    title: Đăng ký schema, tra cứu schema và tái sử dụng schema reference
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-registry-005
+    title: BACKWARD, FORWARD, FULL và các chế độ TRANSITIVE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-registry-006
+    title: Quy tắc tương thích khác nhau giữa Avro, Protobuf và JSON Schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-registry-007
+    title: Tự đăng ký schema lúc chạy hay đăng ký trước qua CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-registry-008
+    title: Serializer, deserializer, schema cache và phụ thuộc khi registry lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-registry-009
+    title: Quyền truy cập, môi trường, chính sách xóa và khôi phục schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-registry-010
+    title: Phân biệt kiểm tra schema khi đăng ký với kiểm tra mọi bản tin lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-mapping
+  title: Ánh xạ Java
+  childs:
+  - slug: java-mapping-001
+    title: DTO, record, enum và ranh giới với mô hình nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-mapping-002
+    title: Jackson property naming, unknown field và cấu hình null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-mapping-003
+    title: Primitive, wrapper và khả năng phân biệt thiếu trường với giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-mapping-004
+    title: BigDecimal, java.time, UUID và quy tắc biểu diễn qua mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-mapping-005
+    title: Jakarta Bean Validation và giới hạn so với JSON Schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-mapping-006
+    title: Validation group, ràng buộc liên trường và vị trí thực hiện kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-mapping-007
+    title: Ánh xạ lỗi giải mã, lỗi validation và lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-mapping-008
+    title: Avro generated type, Protobuf generated type và chuyển đổi sang domain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-mapping-009
+    title: 'Đa ngôn ngữ: đối chiếu kiểu số, ngày giờ và enum giữa các client'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-mapping-010
+    title: Kiểm tra serialize–deserialize và tính nhất quán của cấu hình thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: codegen-stubs
+  title: Sinh mã và stub
+  childs:
+  - slug: codegen-stubs-001
+    title: Sinh server interface, client SDK và model từ hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codegen-stubs-002
+    title: Phân biệt generated client, mock server và stub kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codegen-stubs-003
+    title: OpenAPI Generator, protoc và công cụ sinh kiểu dữ liệu Avro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codegen-stubs-004
+    title: Khóa phiên bản generator, template và cấu hình đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codegen-stubs-005
+    title: Tách mã sinh khỏi phần tùy chỉnh để có thể tái sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codegen-stubs-006
+    title: Kiểm soát package, tên kiểu và thay đổi chữ ký API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codegen-stubs-007
+    title: Đóng gói hợp đồng, schema, SDK và stub thành artifact có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codegen-stubs-008
+    title: Kiểm tra mã sinh biên dịch được và xác minh hành vi trên đường truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: codegen-stubs-009
+    title: Giới hạn của sinh mã trong bảo đảm ngữ nghĩa và tương thích nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-testing
+  title: Kiểm thử hợp đồng
+  childs:
+  - slug: contract-testing-001
+    title: Phân biệt schema validation, contract test, integration test và end-to-end test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-002
+    title: Kiểm thử phía cung cấp và phía sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-003
+    title: Consumer-driven contract và xác minh các giả định thật sự được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-004
+    title: Provider-driven contract và kiểm tra triển khai theo đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-005
+    title: Interaction, provider state, fixture và dữ liệu xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-006
+    title: Matcher theo kiểu, mẫu hoặc giá trị và tránh so sánh quá chặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-007
+    title: Phạm vi assertion cho request, response, header và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-008
+    title: Giới hạn của mock hoặc stub khi chưa xác minh với provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-009
+    title: Kiểm thử âm để chứng minh thay đổi sai bị phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-testing-010
+    title: 'Phần hợp đồng cần kiểm thử riêng: bảo mật, hiệu năng và chuỗi nghiệp vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-cloud-contract
+  title: Spring Cloud Contract
+  childs:
+  - slug: spring-cloud-contract-001
+    title: Contract DSL, Contract Verifier và Stub Runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-002
+    title: Viết hợp đồng HTTP bằng Groovy DSL hoặc YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-003
+    title: Request, response, header, body và matcher động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-004
+    title: Phân biệt giá trị phía consumer với giá trị phía producer trong DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-005
+    title: Sinh kiểm thử phía producer và cấu hình lớp kiểm thử nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-006
+    title: Chuẩn bị dữ liệu, mock tầng phụ thuộc và bảo toàn phần xử lý cần xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-007
+    title: Sinh và đóng gói WireMock stub thành artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-008
+    title: Chạy Stub Runner cho consumer với phiên bản stub xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-009
+    title: Hợp đồng messaging và MessageVerifier theo hạ tầng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-010
+    title: Tích hợp Gradle, quản lý phiên bản và phát hành stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-cloud-contract-011
+    title: Giới hạn của stub tĩnh với luồng nhiều bước hoặc trạng thái phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pact
+  title: Pact
+  childs:
+  - slug: pact-001
+    title: Vai trò consumer, provider, pact file và Pact Broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-002
+    title: Tạo consumer test với mock provider và xuất pact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-003
+    title: Matcher, generator và dữ liệu mẫu không phụ thuộc giá trị ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-004
+    title: Provider state và chuẩn bị dữ liệu khi verification
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-005
+    title: Xác minh pact với provider thật ở ranh giới tích hợp phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-006
+    title: Xuất bản pact và verification result gắn với phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-007
+    title: Branch, environment và thông tin phiên bản đã triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-008
+    title: Ma trận tương thích và can-i-deploy cho các phiên bản đã được xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-009
+    title: Pending pact, WIP pact và cách diễn giải kết quả verification
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-010
+    title: Message pact và ranh giới xác minh phần tạo, xử lý thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pact-011
+    title: Giới hạn theo công cụ, phiên bản đặc tả và các consumer chưa đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-contract-testing
+  title: Kiểm thử thông điệp
+  childs:
+  - slug: message-contract-testing-001
+    title: Xác minh payload, header, schema ID và envelope
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contract-testing-002
+    title: Kiểm thử độc lập bên tạo thông điệp và bên xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contract-testing-003
+    title: Đọc dữ liệu do phiên bản cũ và phiên bản mới tạo ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contract-testing-004
+    title: Kiểm thử field vắng mặt, enum mới và dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contract-testing-005
+    title: Phân biệt message contract test với kiểm thử broker, routing và delivery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contract-testing-006
+    title: Đối chiếu định dạng giữa serializer, registry và consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contract-testing-007
+    title: Kiểm thử thông điệp lỗi, tombstone hoặc biến thể dữ liệu đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-contract-testing-008
+    title: Tách kiểm thử thứ tự, trùng lặp và retry khỏi giả định của schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-ci-cd
+  title: CI/CD cho hợp đồng
+  childs:
+  - slug: contract-ci-cd-001
+    title: Validation cú pháp, lint và kiểm tra tham chiếu trong mỗi pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-ci-cd-002
+    title: So sánh hợp đồng với bản đã phát hành và bản đang được triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-ci-cd-003
+    title: Phát hiện breaking change bằng schema diff hoặc API diff
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-ci-cd-004
+    title: Sinh mã, biên dịch và kiểm thử cả producer lẫn consumer liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-ci-cd-005
+    title: Chạy provider verification trước khi công bố kết quả tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-ci-cd-006
+    title: Đóng gói artifact bất biến gắn commit, checksum và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-ci-cd-007
+    title: Đăng ký schema hoặc phát hành stub sau khi các cổng kiểm tra đạt yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-ci-cd-008
+    title: Chặn triển khai khi thiếu verification của tổ hợp phiên bản cần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-ci-cd-009
+    title: Quản lý bí mật và môi trường chạy kiểm thử hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-ci-cd-010
+    title: Lưu bằng chứng kiểm tra và khôi phục bản hợp đồng của lần phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-governance
+  title: Quản trị thay đổi
+  childs:
+  - slug: change-governance-001
+    title: Xác định nhóm sở hữu hợp đồng và đầu mối của từng bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-002
+    title: Quy trình đề xuất, review và phê duyệt thay đổi theo phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-003
+    title: Style guide, quy tắc đặt tên và danh sách kiểm tra tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-004
+    title: Phân loại hợp đồng nội bộ, đối tác và công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-005
+    title: Kiểm kê phụ thuộc và đánh giá phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-006
+    title: Tái sử dụng schema có chọn lọc để tránh ràng buộc phụ thuộc chéo giữa dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-007
+    title: Changelog, quyết định thiết kế và lý do của thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-008
+    title: Quản lý ngoại lệ có thời hạn và bằng chứng chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-009
+    title: Tránh thư viện DTO dùng chung buộc các hệ thống phát hành đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: documentation-examples
+  title: Tài liệu và ví dụ
+  childs:
+  - slug: documentation-examples-001
+    title: Tổ chức tài liệu tổng quan, thao tác, schema và quy tắc hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-examples-002
+    title: Ví dụ thành công, lỗi, dữ liệu biên và kết quả xử lý một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-examples-003
+    title: Mẫu HTTP request, thông điệp và file dữ liệu có thể kiểm tra tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-examples-004
+    title: Đồng bộ ví dụ với schema và contract test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-examples-005
+    title: Trình bày thuật ngữ nghiệp vụ, đơn vị đo và quy tắc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-examples-006
+    title: Công bố tài liệu theo phiên bản và phân quyền phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-examples-007
+    title: Catalog hợp đồng, chủ sở hữu và liên kết đến artifact chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-examples-008
+    title: Migration guide với thay đổi cụ thể và hành động của bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compliance-monitoring
+  title: Giám sát tuân thủ
+  childs:
+  - slug: compliance-monitoring-001
+    title: Phân biệt kiểm tra khi build với phát hiện lệch hợp đồng lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-monitoring-002
+    title: Theo dõi lỗi giải mã, validation và giá trị enum chưa nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-monitoring-003
+    title: Phát hiện status, header hoặc loại thông điệp ngoài hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-monitoring-004
+    title: Đo mức sử dụng phiên bản và bên sử dụng còn phụ thuộc bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-monitoring-005
+    title: Giám sát quota, độ trễ, độ mới và các cam kết vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-monitoring-006
+    title: Thu thập mẫu dữ liệu an toàn, có giới hạn và đã che thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-monitoring-007
+    title: Cảnh báo theo chủ sở hữu và quy trình xử lý vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-monitoring-008
+    title: Giới hạn của kiểm tra schema lúc chạy đối với ngữ nghĩa và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-migration
+  title: Chuyển đổi hợp đồng
+  childs:
+  - slug: contract-migration-001
+    title: Lập danh sách producer, consumer và dữ liệu lịch sử cần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-002
+    title: Mở rộng–chuyển đổi–thu gọn (expand–migrate–contract) qua nhiều giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-003
+    title: Quyết định nâng bên đọc trước hay bên ghi trước theo hướng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-004
+    title: Dual read, dual write và đối soát dữ liệu trong giai đoạn chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-005
+    title: Dùng adapter hoặc upcaster để giới hạn ảnh hưởng của định dạng cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-006
+    title: Backfill, replay và xử lý dữ liệu lưu với schema trước đây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-007
+    title: Canary, kiểm tra tổ hợp phiên bản và điều kiện rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-008
+    title: Kết thúc chuyển đổi dựa trên dữ liệu sử dụng và bằng chứng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-migration-009
+    title: Di chuyển từ code-first sang contract-first mà giữ một nguồn chuẩn rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contract-drift-diagnostics
+  title: Chẩn đoán sai lệch
+  childs:
+  - slug: contract-drift-diagnostics-001
+    title: Schema hợp lệ nhưng sai đơn vị, múi giờ hoặc ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-drift-diagnostics-002
+    title: Thêm trường tùy chọn nhưng consumer từ chối trường lạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-drift-diagnostics-003
+    title: Enum mới làm consumer lỗi dù schema mới vẫn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-drift-diagnostics-004
+    title: Thay đổi default, nullability hoặc validation làm sai dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-drift-diagnostics-005
+    title: Sai dialect, nullable hoặc $ref khi đổi phiên bản OpenAPI và JSON Schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-drift-diagnostics-006
+    title: Protobuf binary đọc được nhưng ProtoJSON hoặc mã sinh không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-drift-diagnostics-007
+    title: Nhầm schema ID, subject, version hoặc artifact stub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-drift-diagnostics-008
+    title: Kiểm thử với stub đạt nhưng xác minh provider hoặc môi trường thật thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-drift-diagnostics-009
+    title: Khác biệt giữa hợp đồng trong Git, artifact phát hành và dịch vụ đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contract-drift-diagnostics-010
+    title: Contract test quá chặt, quá lỏng hoặc bỏ qua consumer chưa được kiểm kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Bài tập tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Thiết kế hợp đồng đơn hàng với ngữ nghĩa tiền tệ, ngày giờ và trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Viết OpenAPI và JSON Schema kèm ví dụ hợp lệ, ví dụ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Mô tả sự kiện đơn hàng bằng AsyncAPI và envelope có metadata rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Tiến hóa một schema Avro và kiểm thử đọc chéo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Thay đổi Protobuf có reserved field và kiểm tra tương thích binary, JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Xây dựng contract test HTTP bằng Spring Cloud Contract
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Xây dựng consumer test, provider verification và ma trận Pact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Thiết lập CI phát hiện breaking change trước khi phát hành artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Diễn tập chuyển đổi nhiều phiên bản với adapter và điều kiện rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Hoàn thiện catalog, tài liệu chuyển đổi và bằng chứng xác minh hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,3 @@
+menuLevel1: Spring WebSocket
+menuLevel2: '@EnableWebSocket, WebSocketConfigurer và đăng ký đường dẫn handler'
+status: ''

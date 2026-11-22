@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan gRPC
+  slug: grpc-overview
+  index: 0
+- title: Ngữ nghĩa RPC
+  slug: rpc-semantics
+  index: 1
+- title: HTTP/2 và giao thức
+  slug: http2-protocol
+  index: 2
+- title: Cấu trúc Protobuf
+  slug: protobuf-structure
+  index: 3
+- title: Mô hình dữ liệu
+  slug: data-modeling
+  index: 4
+- title: Tiến hóa hợp đồng
+  slug: contract-evolution
+  index: 5
+- title: Sinh mã Java
+  slug: java-codegen
+  index: 6
+- title: Máy chủ Java
+  slug: java-server
+  index: 7
+- title: Máy khách Java
+  slug: java-client
+  index: 8
+- title: Server streaming
+  slug: server-streaming
+  index: 9
+- title: Client streaming
+  slug: client-streaming
+  index: 10
+- title: Streaming hai chiều
+  slug: bidirectional-streaming
+  index: 11
+- title: Điều khiển luồng
+  slug: flow-control
+  index: 12
+- title: Metadata và Context
+  slug: metadata-context
+  index: 13
+- title: Interceptor
+  slug: interceptors
+  index: 14
+- title: Trạng thái và lỗi
+  slug: statuses-errors
+  index: 15
+- title: Deadline và hủy
+  slug: deadlines-cancellation
+  index: 16
+- title: Retry và chống trùng
+  slug: retries-deduplication
+  index: 17
+- title: Đồng thời và tài nguyên
+  slug: concurrency-resources
+  index: 18
+- title: TLS và mTLS
+  slug: tls-mtls
+  index: 19
+- title: Xác thực và phân quyền
+  slug: authentication-authorization
+  index: 20
+- title: Discovery và cân bằng tải
+  slug: discovery-load-balancing
+  index: 21
+- title: Health và kết nối
+  slug: health-connectivity
+  index: 22
+- title: Spring Boot
+  slug: spring-boot
+  index: 23
+- title: Công cụ phát triển
+  slug: development-tools
+  index: 24
+- title: Kiểm thử
+  slug: testing
+  index: 25
+- title: Quan sát hệ thống
+  slug: observability
+  index: 26
+- title: Hiệu năng
+  slug: performance
+  index: 27
+- title: Triển khai
+  slug: deployment
+  index: 28
+- title: Liên thông hệ thống
+  slug: interoperability
+  index: 29
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 30
+- title: Thực hành tích hợp
+  slug: integration-labs
+  index: 31

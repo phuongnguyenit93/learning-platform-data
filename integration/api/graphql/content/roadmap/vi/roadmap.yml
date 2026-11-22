@@ -1,0 +1,49 @@
+roadmap:
+- id: graphql-api-contract
+  title: GraphQL & API Contract
+  purpose: Hiểu tư duy truy vấn theo nhu cầu client và sự khác biệt với API REST thông thường.
+  objectives:
+  - '- Giải thích schema, operation, field và resolver.'
+  - '- Phân biệt query, mutation và subscription theo mục đích.'
+- id: schema-sdl-types
+  title: Schema SDL & Types
+  purpose: Thiết kế hợp đồng dữ liệu rõ kiểu và có thể kiểm tra trước khi thực thi.
+  objectives:
+  - '- Viết SDL với type, scalar, enum, input và field arguments.'
+  - '- Áp dụng List, Non-Null và mô tả các quan hệ dữ liệu.'
+- id: query-variables-fragments
+  title: Query, Variables & Fragments
+  purpose: Tạo request đọc dữ liệu chính xác và tái sử dụng cấu trúc trường cần lấy.
+  objectives:
+  - '- Viết query với selection set, arguments và variables.'
+  - '- Sử dụng alias, fragment và đọc response data.'
+- id: mutation-error-semantics
+  title: Mutation & Error Semantics
+  purpose: Thay đổi dữ liệu có chủ đích và giải thích kết quả thành công hoặc lỗi.
+  objectives:
+  - '- Khai báo Mutation với input type và kiểm tra dữ liệu đầu vào.'
+  - '- Phân biệt validation error, field error và partial data.'
+- id: graphql-server-java
+  title: GraphQL Server Java
+  purpose: Triển khai endpoint GraphQL dựa trên schema với thư viện Java phổ biến.
+  objectives:
+  - '- Cấu hình Spring for GraphQL hoặc graphql-java với schema SDL.'
+  - '- Viết @QueryMapping, @MutationMapping và kiểm tra request.'
+- id: resolver-dataloader
+  title: Resolver & DataLoader
+  purpose: Liên kết trường GraphQL với dữ liệu nghiệp vụ và giảm truy vấn lặp.
+  objectives:
+  - '- Dùng @SchemaMapping hoặc DataFetcher cho nested fields.'
+  - '- Nhận diện N+1 và áp dụng batching/caching bằng DataLoader.'
+- id: pagination-subscription
+  title: Pagination & Subscription
+  purpose: Phân phối tập kết quả lớn và cập nhật sự kiện thời gian thực khi cần.
+  objectives:
+  - '- Thiết kế cursor pagination với edges/pageInfo.'
+  - '- Mô tả Subscription và lựa chọn transport phù hợp.'
+- id: security-test-operations
+  title: Security, Test & Operations
+  purpose: Bảo vệ API khỏi truy vấn đắt đỏ và xác minh hợp đồng dữ liệu khi triển khai.
+  objectives:
+  - '- Kiểm tra authorization theo field, depth/complexity và rate limit.'
+  - '- Viết GraphQlTester test cho query, mutation, lỗi và giới hạn.'

@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-activemq
+  title: Tổng quan ActiveMQ
+  purpose: Hiểu vai trò message broker và phân biệt hai dòng ActiveMQ Classic và Artemis.
+  objectives:
+  - '- Giải thích producer, broker, consumer và xử lý bất đồng bộ.'
+  - '- Phân biệt Classic với Artemis về cấu hình và tài liệu.'
+- id: cai-dat-ket-noi
+  title: Cài đặt & Kết nối
+  purpose: Khởi chạy một broker và thiết lập kết nối Java an toàn đến dịch vụ nhắn tin.
+  objectives:
+  - '- Tạo, chạy và kiểm tra instance ActiveMQ Artemis.'
+  - '- Cấu hình broker endpoint, credentials và JMS ConnectionFactory.'
+- id: queue-topic-routing
+  title: Queue, Topic & Routing
+  purpose: Thiết kế đích nhận tin theo nhu cầu phân phối một-nhiều hay nhiều-nhiều.
+  objectives:
+  - '- Phân biệt Queue/Topic và point-to-point/pub-sub.'
+  - '- Giải thích address, queue, anycast và multicast của Artemis.'
+- id: jms-producer
+  title: JMS Producer
+  purpose: Gửi thông điệp có cấu trúc rõ ràng và metadata phục vụ định tuyến, theo dõi.
+  objectives:
+  - '- Tạo/gửi message qua JMS hoặc Spring JmsTemplate.'
+  - '- Phân biệt delivery mode, header và message properties.'
+- id: jms-consumer
+  title: JMS Consumer
+  purpose: Tiếp nhận và xử lý message độc lập với thời điểm producer gửi.
+  objectives:
+  - '- Dùng MessageConsumer hoặc @JmsListener để đọc message.'
+  - '- Nhận diện competing consumer và durable topic subscription.'
+- id: ack-transaction-durability
+  title: ACK, Transaction & Durability
+  purpose: Kiểm soát thời điểm xác nhận xử lý và độ bền dữ liệu khi broker/client gặp lỗi.
+  objectives:
+  - '- Phân biệt acknowledge mode với commit/rollback JMS session.'
+  - '- Chọn persistent delivery và kiểm thử khôi phục sau restart.'
+- id: redelivery-dead-letter
+  title: Redelivery & Dead Letter
+  purpose: Xử lý thông điệp thất bại có giới hạn và tránh tác dụng phụ lặp lại.
+  objectives:
+  - '- Cấu hình redelivery delay và dead-letter address/queue.'
+  - '- Áp dụng idempotency, retry có giới hạn và quan sát poison message.'
+- id: security-van-hanh
+  title: Security & Vận hành
+  purpose: Bảo vệ broker và theo dõi luồng thông điệp trong môi trường triển khai.
+  objectives:
+  - '- Cấu hình authentication, authorization và TLS.'
+  - '- Giám sát queue depth, consumer, log và back-pressure.'

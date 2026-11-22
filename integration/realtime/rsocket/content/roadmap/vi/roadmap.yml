@@ -1,0 +1,57 @@
+roadmap:
+- id: rsocket-4-kieu-trao-doi
+  title: RSocket & 4 kiểu trao đổi
+  purpose: Hiểu RSocket là giao thức tương tác hai chiều và chọn kiểu trao đổi phù hợp với luồng dữ liệu.
+  objectives:
+  - Phân biệt request-response, fire-and-forget
+  - Giải thích request-stream và request-channel
+  - Chọn mô hình cho ba tình huống realtime
+- id: transport-ket-noi
+  title: Transport & kết nối
+  purpose: Thiết lập đường truyền RSocket qua TCP hoặc WebSocket và nhận biết các tham số kết nối.
+  objectives:
+  - Phân biệt RSocket với chính transport TCP/WebSocket
+  - Giải thích SETUP frame và MIME type
+  - Cấu hình cổng/transport trong Spring Boot
+- id: responder-voi-spring
+  title: Responder với Spring
+  purpose: Xây dựng phía tiếp nhận RSocket bằng Spring Messaging thay vì thao tác trực tiếp với frame.
+  objectives:
+  - Dùng spring-boot-starter-rsocket để cấu hình server
+  - Xử lý route với @MessageMapping
+  - Nhận biết vai trò của @ConnectMapping
+- id: client-rsocketrequester
+  title: Client RSocketRequester
+  purpose: Gọi dịch vụ RSocket bằng API kiểu dữ liệu thay vì tự tạo frame giao thức.
+  objectives:
+  - Kết nối với RSocketRequester.Builder qua TCP/WebSocket
+  - Gửi route và payload bằng data(...)
+  - Đọc Mono hoặc kết quả gửi một chiều phù hợp
+- id: streaming-channel
+  title: Streaming & Channel
+  purpose: Triển khai luồng phản hồi và luồng hai chiều theo Reactive Streams.
+  objectives:
+  - Trả Flux cho request-stream
+  - Gửi và nhận Flux trong request-channel
+  - Xử lý hủy subscription và kết thúc luồng
+- id: routing-metadata
+  title: Routing & Metadata
+  purpose: Trao đổi payload có cấu trúc và định tuyến đúng handler giữa hai đầu kết nối.
+  objectives:
+  - Phân biệt route metadata với application data
+  - Cấu hình RSocketStrategies và encoder/decoder
+  - Kiểm tra MIME type và dữ liệu không hợp lệ
+- id: backpressure-khoi-phuc
+  title: Backpressure & khôi phục
+  purpose: Điều tiết tốc độ nhận và hiểu các giới hạn khi kết nối dài hạn bị gián đoạn.
+  objectives:
+  - Giải thích REQUEST_N và demand theo Reactive Streams
+  - Phân biệt backpressure với leasing
+  - Đánh giá keepalive, reconnect và resume tùy hỗ trợ
+- id: loi-bao-mat-kiem-thu
+  title: Lỗi, bảo mật & kiểm thử
+  purpose: Chứng minh luồng realtime hoạt động đúng khi kết nối, payload hoặc phía xử lý gặp sự cố.
+  objectives:
+  - Phân biệt lỗi ứng dụng và lỗi kết nối
+  - Kiểm tra metadata xác thực và TLS theo môi trường
+  - Test request, stream, timeout và reconnect

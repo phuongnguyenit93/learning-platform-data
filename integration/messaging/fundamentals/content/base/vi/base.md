@@ -1,0 +1,7 @@
+# Integration Messaging Fundamentals
+
+Messaging là cách các thành phần phần mềm trao đổi dữ liệu thông qua thông điệp, thường với một *message broker* đứng giữa bên gửi (*producer*) và bên nhận (*consumer*). Khác với request-response đồng bộ, hệ thống có thể gửi một công việc hoặc sự kiện rồi xử lý bất đồng bộ, giúp giảm phụ thuộc thời điểm chạy giữa các dịch vụ và hấp thụ lưu lượng tăng đột biến. Module này dành cho người đã có nền tảng Java, giao tiếp HTTP và kiến thức cơ bản về ứng dụng phân tán.
+
+Lộ trình bắt đầu từ nguyên lý bất đồng bộ và đường đi của thông điệp, sau đó học payload, headers và hợp đồng dữ liệu giữa các bên. Người học thực hành hai mô hình quan trọng: *work queue* để phân phối tác vụ và *publish/subscribe* để nhiều bên phản ứng cùng một sự kiện. Tiếp theo là nhận biết đặc điểm topic/partition/offset của event log như Kafka, cơ chế acknowledgment, các mức bảo đảm giao nhận và nhu cầu xử lý trùng. Phần cuối kết hợp retry, dead-letter queue và các tín hiệu giám sát để quan sát một luồng thực tế.
+
+Sau khi hoàn thành, bạn có thể phác thảo một hệ thống producer–broker–consumer, xây dựng ví dụ gửi/nhận bằng Java hoặc Spring AMQP, lựa chọn queue hay pub/sub theo yêu cầu và giải thích vì sao việc broker xác nhận đã nhận thông điệp không đồng nghĩa nghiệp vụ đã xử lý thành công. Đây là nền tảng để học tiếp về các broker, messaging patterns và kỹ thuật reliability chuyên sâu.

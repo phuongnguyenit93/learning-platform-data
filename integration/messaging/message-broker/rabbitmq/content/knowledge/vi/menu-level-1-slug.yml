@@ -1,0 +1,109 @@
+menu:
+- title: Tổng quan RabbitMQ
+  slug: rabbitmq-overview
+  index: 0
+- title: Kiến trúc và giao thức
+  slug: architecture-protocols
+  index: 1
+- title: Môi trường thực hành
+  slug: lab-setup
+  index: 2
+- title: Kết nối và channel
+  slug: connections-channels
+  index: 3
+- title: Cấu trúc thông điệp
+  slug: message-structure
+  index: 4
+- title: Exchange
+  slug: exchanges
+  index: 5
+- title: Hàng đợi
+  slug: queues
+  index: 6
+- title: Topology và định tuyến
+  slug: topology-routing
+  index: 7
+- title: Gửi thông điệp
+  slug: message-publishing
+  index: 8
+- title: Nhận thông điệp
+  slug: message-consuming
+  index: 9
+- title: Xác nhận xử lý
+  slug: consumer-acknowledgements
+  index: 10
+- title: Xác nhận xuất bản
+  slug: publisher-confirms
+  index: 11
+- title: Bảo đảm giao nhận
+  slug: delivery-guarantees
+  index: 12
+- title: Điều tiết tải
+  slug: flow-control
+  index: 13
+- title: Thứ tự và ưu tiên
+  slug: ordering-priorities
+  index: 14
+- title: TTL và dead lettering
+  slug: ttl-dead-lettering
+  index: 15
+- title: Thử lại và thông điệp lỗi
+  slug: retries-failed-messages
+  index: 16
+- title: Nhất quán nghiệp vụ
+  slug: business-consistency
+  index: 17
+- title: Quorum queue
+  slug: quorum-queues
+  index: 18
+- title: Streams
+  slug: streams
+  index: 19
+- title: RabbitMQ Java Client
+  slug: rabbitmq-java-client
+  index: 20
+- title: Spring Boot và topology
+  slug: spring-boot-topology
+  index: 21
+- title: Gửi nhận với Spring AMQP
+  slug: spring-amqp-messaging
+  index: 22
+- title: Độ tin cậy trong Spring
+  slug: spring-reliability
+  index: 23
+- title: RPC và mẫu tích hợp
+  slug: rpc-integration-patterns
+  index: 24
+- title: Kiểm thử
+  slug: testing
+  index: 25
+- title: Cấu hình và chính sách
+  slug: configuration-policies
+  index: 26
+- title: Bảo mật
+  slug: security
+  index: 27
+- title: Cụm và tính sẵn sàng
+  slug: clustering-availability
+  index: 28
+- title: Kết nối nhiều hệ thống
+  slug: multi-system-connectivity
+  index: 29
+- title: Quan sát hệ thống
+  slug: observability
+  index: 30
+- title: Hiệu năng và dung lượng
+  slug: performance-capacity
+  index: 31
+- title: Triển khai
+  slug: deployment
+  index: 32
+- title: Vận hành và nâng cấp
+  slug: operations-upgrades
+  index: 33
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 34
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 35

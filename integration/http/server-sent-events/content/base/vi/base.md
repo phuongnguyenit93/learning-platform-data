@@ -1,0 +1,7 @@
+# Integration HTTP Server Sent Events — SSE với Java và Spring
+
+Server-Sent Events (SSE) cho phép server liên tục gửi sự kiện đến client qua một kết nối HTTP dài hạn. Trình duyệt dùng `EventSource` để nhận các bản tin `text/event-stream` khi trạng thái ứng dụng thay đổi, chẳng hạn tiến độ xử lý, cập nhật bảng điều khiển hoặc thông báo vận hành. SSE chủ yếu truyền dữ liệu một chiều từ server đến client; nếu cần giao tiếp hai chiều liên tục, WebSocket có thể phù hợp hơn.
+
+Module hướng tới người đã biết HTTP, Java, Spring Boot và JavaScript căn bản. Bạn sẽ học định dạng dữ liệu UTF-8 với các trường `data`, `event`, `id`, `retry`, cách phân tách sự kiện bằng dòng trống và cách dùng `EventSource` để lắng nghe, xử lý lỗi, đóng kết nối. Trên server Java, lộ trình giới thiệu `SseEmitter` trong Spring MVC và phương án reactive với `Flux<ServerSentEvent<?>>` của Spring WebFlux. Đây là hai cách triển khai khác nhau, không phải bắt buộc dùng đồng thời.
+
+Phần cuối tập trung vào tự kết nối lại, `Last-Event-ID`, heartbeat, timeout, quản lý kết nối và bảo mật. Cơ chế reconnect của trình duyệt không tự bảo đảm phát lại các sự kiện đã bỏ lỡ: muốn tiếp tục từ một ID, server phải có dữ liệu và hỗ trợ replay. Sau module, bạn có thể tạo endpoint SSE đơn giản, kiểm thử bằng trình duyệt hoặc `curl -N`, và nhận diện các vấn đề proxy buffering, số lượng kết nối và tài nguyên vận hành.

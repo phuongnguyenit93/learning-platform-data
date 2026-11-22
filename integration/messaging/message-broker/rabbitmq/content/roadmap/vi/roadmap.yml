@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-rabbitmq
+  title: Tổng quan RabbitMQ
+  purpose: Hiểu vai trò của message broker khi các ứng dụng trao đổi dữ liệu bất đồng bộ.
+  objectives:
+  - Giải thích producer, consumer, queue và broker.
+  - Mô tả lợi ích và giới hạn của giao tiếp qua message.
+- id: thiet-lap-broker-java
+  title: Thiết lập Broker & Java
+  purpose: Chuẩn bị môi trường thực hành RabbitMQ và kết nối bằng Java client.
+  objectives:
+  - Khởi chạy broker và kiểm tra Management UI.
+  - Tạo ConnectionFactory, Connection và Channel.
+- id: publish-consume
+  title: Publish & Consume
+  purpose: Thực hiện luồng gửi và nhận thông điệp Java đầu tiên.
+  objectives:
+  - Gửi message bằng basicPublish và nhận bằng basicConsume.
+  - Xác minh nội dung payload và queue nhận.
+- id: exchange-routing
+  title: Exchange & Routing
+  purpose: Hiểu cách exchange dùng binding để đưa message đến các queue.
+  objectives:
+  - Phân biệt direct, fanout và topic exchange.
+  - Thực hành routing key và binding phù hợp.
+- id: queue-durability
+  title: Queue & Durability
+  purpose: Chọn cấu hình queue và message cho yêu cầu lưu trữ, khôi phục.
+  objectives:
+  - Phân biệt classic và quorum queue cơ bản.
+  - Giải thích durable queue và persistent message.
+- id: ack-confirms-prefetch
+  title: Ack, Confirms & Prefetch
+  purpose: Kiểm soát xử lý và xác nhận message ở hai phía producer và consumer.
+  objectives:
+  - Phân biệt consumer acknowledgement và publisher confirm.
+  - Dùng basicQos để giới hạn message chưa ack.
+- id: retry-dead-letter
+  title: Retry & Dead Letter
+  purpose: Xử lý lỗi tiêu thụ thông điệp mà không tạo vòng lặp gửi lại vô hạn.
+  objectives:
+  - Phân biệt ack, nack và requeue khi xử lý lỗi.
+  - Thiết kế dead-letter exchange và consumer idempotent.
+- id: monitoring-bao-mat
+  title: Monitoring & Bảo mật
+  purpose: Theo dõi backlog và giới hạn quyền truy cập broker khi vận hành.
+  objectives:
+  - Quan sát queue depth, unacked và message rate.
+  - Cấu hình vhost, user và quyền tối thiểu.

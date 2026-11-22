@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan hợp đồng
+  slug: contracts-overview
+  index: 0
+- title: Thành phần hợp đồng
+  slug: contract-components
+  index: 1
+- title: Ngữ nghĩa nghiệp vụ
+  slug: business-semantics
+  index: 2
+- title: Thiết kế hợp đồng
+  slug: contract-design
+  index: 3
+- title: Mô hình dữ liệu
+  slug: data-modeling
+  index: 4
+- title: JSON Schema
+  slug: json-schema
+  index: 5
+- title: Hợp đồng HTTP
+  slug: http-contracts
+  index: 6
+- title: OpenAPI
+  slug: openapi
+  index: 7
+- title: Hợp đồng sự kiện
+  slug: event-contracts
+  index: 8
+- title: AsyncAPI
+  slug: asyncapi
+  index: 9
+- title: Avro
+  slug: avro
+  index: 10
+- title: Protobuf và gRPC
+  slug: protobuf-grpc
+  index: 11
+- title: XML và SOAP
+  slug: xml-soap
+  index: 12
+- title: GraphQL SDL
+  slug: graphql-sdl
+  index: 13
+- title: Hợp đồng dữ liệu
+  slug: data-contracts
+  index: 14
+- title: Lỗi và trạng thái
+  slug: error-status-models
+  index: 15
+- title: Cam kết xử lý
+  slug: processing-guarantees
+  index: 16
+- title: Bảo mật hợp đồng
+  slug: contract-security
+  index: 17
+- title: Tương thích hợp đồng
+  slug: contract-compatibility
+  index: 18
+- title: Tiến hóa schema
+  slug: schema-evolution
+  index: 19
+- title: Phiên bản và vòng đời
+  slug: versioning-lifecycle
+  index: 20
+- title: Schema Registry
+  slug: schema-registry
+  index: 21
+- title: Ánh xạ Java
+  slug: java-mapping
+  index: 22
+- title: Sinh mã và stub
+  slug: codegen-stubs
+  index: 23
+- title: Kiểm thử hợp đồng
+  slug: contract-testing
+  index: 24
+- title: Spring Cloud Contract
+  slug: spring-cloud-contract
+  index: 25
+- title: Pact
+  slug: pact
+  index: 26
+- title: Kiểm thử thông điệp
+  slug: message-contract-testing
+  index: 27
+- title: CI/CD cho hợp đồng
+  slug: contract-ci-cd
+  index: 28
+- title: Quản trị thay đổi
+  slug: change-governance
+  index: 29
+- title: Tài liệu và ví dụ
+  slug: documentation-examples
+  index: 30
+- title: Giám sát tuân thủ
+  slug: compliance-monitoring
+  index: 31
+- title: Chuyển đổi hợp đồng
+  slug: contract-migration
+  index: 32
+- title: Chẩn đoán sai lệch
+  slug: contract-drift-diagnostics
+  index: 33
+- title: Bài tập tổng hợp
+  slug: hands-on-project
+  index: 34

@@ -1,0 +1,17 @@
+# Per-module transient working files
+**/content/temp/
+**/src/main/resources/step7-temp/
+**/content/sheet/*/module.xlsx
+
+# Editor, build and local runtime output
+.idea/
+.gradle/
+build/
+target/
+__pycache__/
+*.py[cod]
+*.log
+.env
+.env.*
+*.DS_Store
+Thumbs.db

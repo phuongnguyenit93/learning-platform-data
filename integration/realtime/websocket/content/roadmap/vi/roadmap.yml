@@ -1,0 +1,57 @@
+roadmap:
+- id: realtime-chon-giao-thuc
+  title: Realtime & chọn giao thức
+  purpose: Hiểu nhu cầu trao đổi hai chiều thời gian thực và đánh đổi so với HTTP polling hoặc SSE.
+  objectives:
+  - Phân biệt WebSocket, HTTP request-response và SSE.
+  - Nêu tình huống phù hợp cho tương tác hai chiều.
+  - Nhận diện chi phí duy trì kết nối dài.
+- id: handshake-vong-doi
+  title: Handshake & vòng đời
+  purpose: Nắm cách thiết lập, duy trì và đóng một phiên WebSocket đúng giao thức.
+  objectives:
+  - Giải thích HTTP Upgrade, mã 101 và ws/wss.
+  - Theo dõi trạng thái mở, lỗi, đóng và mã đóng.
+  - Phân biệt heartbeat với sự kiện dữ liệu ứng dụng.
+- id: message-dinh-dang
+  title: Message & định dạng
+  purpose: Thiết kế hợp đồng dữ liệu rõ ràng trên luồng text hoặc binary của WebSocket.
+  objectives:
+  - Phân biệt frame với message, text với binary.
+  - Quy ước loại thông điệp, payload và phiên bản JSON.
+  - Kiểm tra kích thước, tính hợp lệ và thứ tự xử lý.
+- id: websocket-server-spring
+  title: WebSocket server Spring
+  purpose: Xây endpoint trao đổi hai chiều trong ứng dụng Java/Spring và quản lý session.
+  objectives:
+  - Đăng ký endpoint với WebSocketConfigurer.
+  - Xử lý message bằng WebSocketHandler.
+  - Quản lý session, kết nối đóng và tài nguyên dùng chung.
+- id: websocket-client
+  title: WebSocket client
+  purpose: Gửi nhận thông điệp từ client và phục hồi tương tác khi kết nối gián đoạn.
+  objectives:
+  - Kết nối bằng WebSocket API và xử lý open/message/error/close.
+  - Kiểm tra readyState và bufferedAmount trước khi gửi.
+  - Tái kết nối có backoff và khôi phục đăng ký/phiên.
+- id: stomp-phan-phoi
+  title: STOMP & phân phối
+  purpose: Dùng giao thức ứng dụng và broker để chuyển từ message thô sang mô hình pub/sub.
+  objectives:
+  - Phân biệt raw WebSocket với STOMP over WebSocket.
+  - Cấu hình @EnableWebSocketMessageBroker và destination prefixes.
+  - Xử lý @MessageMapping, subscribe và gửi theo người dùng.
+- id: bao-mat-quyen-truy-cap
+  title: Bảo mật & quyền truy cập
+  purpose: Bảo vệ phiên realtime khỏi truy cập trái phép và lộ thông tin người dùng.
+  objectives:
+  - Áp dụng wss, xác thực khi bắt tay và kiểm tra Origin.
+  - Phân quyền destination/message; không xem Origin là xác thực.
+  - Giới hạn payload, tốc độ gửi và thông tin nhạy cảm.
+- id: do-tin-cay-kiem-thu
+  title: Độ tin cậy & kiểm thử
+  purpose: Giữ hệ thống hoạt động ổn định khi mất kết nối, tải tăng hoặc chạy nhiều instance.
+  objectives:
+  - Kiểm thử handshake, gửi nhận, lỗi và đóng kết nối.
+  - Thiết kế ID sự kiện, xử lý trùng và đồng bộ lại sau reconnect.
+  - Giám sát số session, độ trễ, buffer và ping/pong.

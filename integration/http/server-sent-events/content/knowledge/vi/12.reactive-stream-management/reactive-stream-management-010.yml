@@ -1,0 +1,3 @@
+menuLevel1: Quản lý luồng reactive
+menuLevel2: Tránh subscription trùng, rò rỉ nguồn phát và chia sẻ dữ liệu giữa tenant
+status: ""

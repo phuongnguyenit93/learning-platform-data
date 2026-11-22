@@ -1,0 +1,57 @@
+roadmap:
+- id: soap-truong-hop-su-dung
+  title: SOAP & trường hợp sử dụng
+  purpose: Hiểu SOAP là giao thức trao đổi thông điệp XML và nhận diện tình huống cần hợp đồng web service chặt chẽ.
+  objectives:
+  - Mô tả vai trò client, service và SOAP endpoint.
+  - So sánh SOAP với REST theo kiểu giao tiếp và hợp đồng.
+  - Phân biệt SOAP 1.1 với SOAP 1.2 ở mức cơ bản.
+- id: envelope-thong-diep-xml
+  title: Envelope & thông điệp XML
+  purpose: Đọc được cấu trúc SOAP và cách sử dụng namespace để định danh chính xác nội dung.
+  objectives:
+  - Nhận diện Envelope, Header và Body trong XML.
+  - Giải thích namespace, prefix và mustUnderstand.
+  - Tạo request và response SOAP mẫu đúng cấu trúc.
+- id: wsdl-xml-schema
+  title: WSDL & XML Schema
+  purpose: Hiểu hợp đồng mô tả thao tác, kiểu dữ liệu và điểm kết nối để hai hệ thống tương tác nhất quán.
+  objectives:
+  - Đọc types/XSD, message, portType, binding và service trong WSDL 1.1.
+  - Định nghĩa element và kiểu dữ liệu bằng XSD.
+  - Phân biệt contract-first với code-first.
+- id: soap-qua-http
+  title: SOAP qua HTTP
+  purpose: Gửi thông điệp SOAP tới endpoint và giải thích quan hệ giữa protocol binding, header và payload.
+  objectives:
+  - Tạo HTTP POST chứa SOAP Envelope.
+  - Nhận biết Content-Type và SOAPAction theo phiên bản SOAP.
+  - Giải thích request–response và mã HTTP gắn với SOAP.
+- id: xay-dung-soap-service-java
+  title: Xây dựng SOAP Service Java
+  purpose: Tạo SOAP endpoint Java theo hợp đồng để ứng dụng khác gọi được.
+  objectives:
+  - Khai báo schema/XSD và công bố WSDL.
+  - Xử lý XML payload bằng Spring Web Services.
+  - Ánh xạ request/response sang đối tượng Java phù hợp.
+- id: tich-hop-soap-client
+  title: Tích hợp SOAP Client
+  purpose: Gọi SOAP service từ ứng dụng và kiểm tra dữ liệu trao đổi ở cả hai phía.
+  objectives:
+  - Tạo client từ WSDL hoặc dùng WebServiceTemplate.
+  - Gửi request, đọc response và cấu hình endpoint.
+  - Kiểm tra XML namespace và schema khi tích hợp.
+- id: soap-fault-do-tin-cay
+  title: SOAP Fault & độ tin cậy
+  purpose: Xử lý lỗi đúng ngữ nghĩa và tránh lặp thao tác khi hệ thống từ xa không ổn định.
+  objectives:
+  - Đọc Fault Code, Reason và Detail theo SOAP 1.2.
+  - Phân biệt lỗi xác thực, schema và lỗi nghiệp vụ.
+  - Áp dụng timeout, retry có kiểm soát và idempotency.
+- id: bao-mat-kiem-thu
+  title: Bảo mật & kiểm thử
+  purpose: Đảm bảo thông điệp trao đổi an toàn, đúng hợp đồng và tương thích giữa các nền tảng.
+  objectives:
+  - Bảo vệ đường truyền bằng HTTPS/TLS.
+  - 'Giải thích WS-Security: token, chữ ký và mã hóa message.'
+  - Kiểm thử WSDL/XSD, request–response và fault bằng công cụ SOAP.

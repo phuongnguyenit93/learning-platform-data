@@ -1,0 +1,7 @@
+# Integration API Soap
+
+**SOAP (Simple Object Access Protocol)** là giao thức trao đổi thông điệp có cấu trúc XML giữa các ứng dụng, thường được sử dụng trong những hệ thống cần hợp đồng dịch vụ rõ ràng và khả năng tương tác giữa nhiều nền tảng. Một thông điệp SOAP gồm `Envelope`, phần `Header` tùy chọn và `Body`; hợp đồng `WSDL` cùng `XSD` xác định thao tác và cấu trúc dữ liệu. SOAP có thể được gắn với nhiều giao thức truyền tải, trong đó SOAP qua HTTP là trường hợp phổ biến.
+
+Module phù hợp với người đã biết HTTP, XML, Java và khái niệm web service cơ bản. Bạn sẽ bắt đầu từ vai trò của SOAP và cấu trúc XML message, đọc WSDL/XSD theo hướng *contract-first*, sau đó thực hành gửi SOAP request qua HTTP. Tiếp theo là xây dựng SOAP service Java với Spring Web Services, tạo client để gọi endpoint, phân tích `SOAP Fault` và thiết kế timeout/retry phù hợp. Phần cuối tập trung vào HTTPS/TLS, nguyên tắc WS-Security và kiểm thử tính tương thích của hợp đồng.
+
+Qua tám mốc, bạn có thể đọc một WSDL, tạo thông điệp SOAP hợp lệ, kết nối client–server và xử lý phản hồi lỗi có cấu trúc. Cần chú ý sự khác biệt giữa SOAP 1.1 và SOAP 1.2 về namespace, HTTP content type và fault format; không thể tùy tiện trộn quy tắc của hai phiên bản. WS-Security bảo vệ thông điệp, còn HTTPS bảo vệ kênh truyền — hai cơ chế phục vụ các mục tiêu bổ sung cho nhau.

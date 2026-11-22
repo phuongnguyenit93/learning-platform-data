@@ -1,0 +1,5 @@
+# Integration Contracts
+
+Integration Contracts là những thỏa thuận rõ ràng giữa các thành phần trao đổi dữ liệu, từ HTTP API đồng bộ đến message và event bất đồng bộ. Một contract không chỉ nêu tên trường hay kiểu dữ liệu mà còn xác định ý nghĩa, yêu cầu xác thực, hành vi lỗi và kỳ vọng tương thích khi hệ thống thay đổi. Việc mô tả hợp đồng bằng chuẩn có thể đọc bằng máy giúp các nhóm phát triển và kiểm tra tích hợp mà không phải dựa vào suy đoán từ mã nguồn.
+
+Module phù hợp với người đã nắm HTTP/REST, JSON và kiến thức cơ bản về hệ thống phân tán hoặc messaging. Bạn sẽ học thiết kế hợp đồng HTTP bằng OpenAPI, định nghĩa message/event bằng AsyncAPI, kiểm tra payload với JSON Schema, rồi làm rõ lỗi và quy tắc nghiệp vụ. Lộ trình tiếp tục với backward/forward compatibility, versioning, migration và consumer-driven contract testing. Cuối cùng, bạn đưa các bước lint, validation, compatibility check và review vào CI để quản lý thay đổi hợp đồng an toàn.

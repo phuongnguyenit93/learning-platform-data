@@ -1,0 +1,359 @@
+menu:
+- level1: Tổng quan gRPC
+  level2:
+  - 'RPC là gì: lời gọi từ xa khác lời gọi phương thức cục bộ như thế nào'
+  - 'gRPC là gì: vai trò của hợp đồng, mã sinh, máy khách và máy chủ'
+  - Luồng một lời gọi gRPC từ mã ứng dụng đến mạng và dịch vụ đích
+  - 'Thuật ngữ nền tảng: service, method, message, stub, channel và transport'
+  - 'Bốn kiểu RPC: unary, server streaming, client streaming và bidirectional streaming'
+  - Điểm mạnh, chi phí và giới hạn của gRPC trong tích hợp hệ thống
+  - So sánh gRPC với REST/JSON, GraphQL và cơ chế truyền thông điệp
+  - 'Khi nào chọn gRPC: giao tiếp nội bộ, trình duyệt, hệ thống ngoài và ranh giới dịch vụ'
+  - 'Lộ trình thực hành: từ RPC đơn giản đến dịch vụ có thể vận hành'
+- level1: Ngữ nghĩa RPC
+  level2:
+  - 'Mạng không đáng tin cậy: độ trễ, mất kết nối và lỗi từng phần'
+  - Thành công ở máy chủ nhưng máy khách không nhận được phản hồi
+  - Tính lũy đẳng và tác động của việc thực thi một yêu cầu nhiều lần
+  - Phân biệt lỗi truyền tải, lỗi giao thức và lỗi nghiệp vụ
+  - Ranh giới giao dịch giữa các dịch vụ và giới hạn của lời gọi đồng bộ
+  - Thứ tự thông điệp trong một luồng và giữa các RPC độc lập
+  - Cam kết xử lý yêu cầu, dấu vết kiểm toán và yêu cầu chống trùng
+  - Thiết kế thao tác dài hạn bằng mã tác vụ, truy vấn trạng thái và hủy tác vụ
+- level1: HTTP/2 và giao thức
+  level2:
+  - Vai trò của HTTP/2 trong truyền tải gRPC
+  - 'Connection, stream và multiplexing: nhiều RPC trên một kết nối'
+  - Headers, DATA và trailers trong vòng đời một RPC
+  - Đường dẫn phương thức, content-type và mã trạng thái gRPC
+  - Đóng khung thông điệp gRPC và phân biệt khung gRPC với HTTP/2
+  - Điều khiển luồng ở cấp kết nối và cấp stream
+  - 'Nén thông điệp: cơ chế, đánh đổi và giới hạn kích thước'
+  - HTTP/2 qua TLS, ALPN và kết nối không mã hóa
+  - Proxy, gateway và cân bằng tải phải bảo toàn đặc tính gRPC nào
+  - Chẩn đoán lỗi HTTP/2, GOAWAY và kết nối bị đóng
+- level1: Cấu trúc Protobuf
+  level2:
+  - 'Tệp .proto: syntax, package, import và tổ chức hợp đồng'
+  - Khai báo message, field, kiểu dữ liệu vô hướng và số hiệu trường
+  - Giá trị mặc định và sự hiện diện của trường trong proto3
+  - optional và cách phân biệt chưa truyền với giá trị mặc định
+  - 'repeated và map: mô hình dữ liệu, thứ tự và cách sử dụng'
+  - 'enum: giá trị mặc định, số hiệu và xử lý giá trị chưa biết'
+  - 'oneof: biểu diễn các lựa chọn loại trừ nhau'
+  - Message lồng nhau và tham chiếu kiểu giữa các tệp
+  - bytes, string và lựa chọn biểu diễn dữ liệu nhị phân
+  - Khai báo service và chữ ký của bốn kiểu RPC
+- level1: Mô hình dữ liệu
+  level2:
+  - Thiết kế request/response riêng và tránh gắn hợp đồng với thực thể lưu trữ
+  - 'Well-known types: Empty, Timestamp và Duration'
+  - Wrapper types, optional và lựa chọn biểu diễn giá trị vắng mặt
+  - Any và đánh đổi giữa khả năng mở rộng với an toàn kiểu
+  - Struct, Value và dữ liệu có cấu trúc động
+  - FieldMask cho cập nhật một phần và lựa chọn trường
+  - Phân trang, lọc, sắp xếp và thiết kế truy vấn danh sách
+  - Biểu diễn tiền tệ, số thập phân, thời gian và múi giờ
+  - Quy tắc kiểm tra dữ liệu và thông báo lỗi theo trường
+  - 'ProtoJSON: tên trường, enum, bytes, số nguyên lớn và chuyển đổi JSON'
+- level1: Tiến hóa hợp đồng
+  level2:
+  - Tương thích ở mức dữ liệu nhị phân, mã nguồn và ProtoJSON
+  - Thêm trường mới và thiết kế máy khách chịu được dữ liệu mở rộng
+  - Xóa trường an toàn với reserved cho tên và số hiệu
+  - Đổi tên, đổi kiểu, đổi số hiệu và các thay đổi phá vỡ tương thích
+  - Thay đổi enum, oneof và collection trong hợp đồng đang được dùng
+  - Unknown fields và hành vi khi đi qua hệ thống trung gian
+  - Thêm hoặc thay đổi service/method và chiến lược phiên bản API
+  - Triển khai cuốn chiếu khi máy khách và máy chủ dùng hợp đồng khác phiên bản
+  - Phân phối tệp .proto, tạo thư viện hợp đồng và quản lý phụ thuộc
+  - Kiểm tra khác biệt hợp đồng và phát hiện thay đổi phá vỡ trong CI
+- level1: Sinh mã Java
+  level2:
+  - 'Chuỗi công cụ: protoc, plugin gRPC Java và thư viện chạy'
+  - Cấu hình Gradle để sinh mã Protobuf và gRPC
+  - Bố trí src/main/proto, nguồn sinh và các tác vụ build
+  - Tùy chọn java_package, java_multiple_files và java_outer_classname
+  - 'Mã message Java: đối tượng bất biến, builder và phép truy cập trường'
+  - 'Mã service Java: lớp cơ sở, descriptor và các loại stub'
+  - Phụ thuộc grpc-api, grpc-stub, grpc-protobuf và transport
+  - Đồng bộ phiên bản plugin, mã sinh và thư viện bằng quản lý phụ thuộc
+  - Full runtime, lite runtime và phạm vi lựa chọn cho ứng dụng Java
+  - Tái sử dụng hợp đồng giữa nhiều module và build có thể tái lập
+- level1: Máy chủ Java
+  level2:
+  - Xây dựng dịch vụ bằng lớp cơ sở sinh từ hợp đồng
+  - Đăng ký dịch vụ, chọn cổng và khởi động Server
+  - Triển khai unary RPC với request, response và StreamObserver
+  - Vòng đời onNext, onError, onCompleted và quy tắc kết thúc lời gọi
+  - Kiểm tra dữ liệu đầu vào và tách xử lý nghiệp vụ khỏi lớp truyền tải
+  - Đưa kết quả bất đồng bộ vào RPC và xử lý lỗi đúng luồng
+  - Quản lý tài nguyên dùng chung và trạng thái giữa nhiều lời gọi
+  - Cấu hình transport, executor và các giới hạn phía máy chủ
+  - Dừng máy chủ có thời hạn và chờ hoàn tất các RPC đang chạy
+- level1: Máy khách Java
+  level2:
+  - 'ManagedChannel: đích kết nối, cấu hình và vòng đời'
+  - Blocking stub, asynchronous stub và future stub
+  - Gọi unary RPC và tiếp nhận kết quả hoặc lỗi
+  - Tái sử dụng channel/stub và tránh tạo kết nối cho từng yêu cầu
+  - 'Cấu hình theo lời gọi: deadline, metadata, credentials và CallOptions'
+  - Gắn kết quả RPC vào luồng xử lý đồng bộ hoặc bất đồng bộ
+  - Theo dõi trạng thái kết nối và xử lý channel không sẵn sàng
+  - Name resolver, target URI và phân biệt địa chỉ với định danh dịch vụ
+  - Đóng channel đúng cách và chờ giải phóng tài nguyên
+- level1: Server streaming
+  level2:
+  - Mô hình một yêu cầu, nhiều phản hồi và trường hợp sử dụng
+  - Triển khai server streaming bằng StreamObserver
+  - Tiêu thụ luồng bằng blocking stub và asynchronous stub
+  - Quản lý thứ tự thông điệp và thời điểm hoàn tất luồng
+  - Phát hiện máy khách ngắt kết nối hoặc hủy lời gọi
+  - Hạn chế bộ đệm khi tốc độ sản xuất vượt tốc độ tiêu thụ
+  - Lỗi sau khi đã gửi một phần dữ liệu và hợp đồng phục hồi
+  - Thiết kế phân trang, checkpoint và tiếp tục luồng khi cần
+- level1: Client streaming
+  level2:
+  - Mô hình nhiều yêu cầu, một phản hồi và trường hợp sử dụng
+  - Khởi tạo RPC, gửi thông điệp và hoàn tất chiều yêu cầu
+  - Tổng hợp dữ liệu phía máy chủ và trả phản hồi cuối
+  - Kiểm tra lỗi từng thông điệp và xử lý thông điệp không hợp lệ
+  - Giới hạn số lượng, tổng kích thước và thời gian nhận dữ liệu
+  - Xử lý máy chủ trả lỗi trước khi máy khách gửi xong
+  - So sánh client streaming với batch unary và tải tệp
+  - Thiết kế upload có chia khối, kiểm tra toàn vẹn và tiếp tục truyền
+- level1: Streaming hai chiều
+  level2:
+  - Hai chiều độc lập và vòng đời của bidirectional streaming
+  - Phối hợp luồng đọc, luồng ghi và thao tác half-close
+  - Liên kết yêu cầu/phản hồi bằng mã tương quan khi ứng dụng cần
+  - Bảo đảm thứ tự gửi và tránh ghi đồng thời vào cùng StreamObserver
+  - Quản lý phiên, tài nguyên và trạng thái của kết nối dài
+  - Xử lý lỗi, hủy và hoàn tất khi hai phía kết thúc khác thời điểm
+  - Kết nối lại, khôi phục phiên và chống xử lý trùng thông điệp
+  - Thiết kế ví dụ trao đổi sự kiện và phản hồi tương tác hai chiều
+- level1: Điều khiển luồng
+  level2:
+  - 'Backpressure: vì sao HTTP/2 chưa đủ để giới hạn tải ứng dụng'
+  - ServerCallStreamObserver và ClientCallStreamObserver
+  - isReady, onReady và điều phối việc gửi không chặn
+  - Điều khiển nhận thủ công bằng request(n)
+  - Giới hạn hàng đợi, bộ đệm và số thông điệp đang xử lý
+  - Tránh deadlock khi cả hai phía cùng chờ đọc hoặc chờ ghi
+  - Đo tốc độ tiêu thụ và nhận diện máy khách chậm
+  - Kiểm thử luồng dài với dữ liệu lớn và tài nguyên hữu hạn
+- level1: Metadata và Context
+  level2:
+  - Metadata trong request headers, response headers và trailers
+  - Khóa metadata văn bản và nhị phân với hậu tố -bin
+  - Truyền mã tương quan, thông tin yêu cầu và ngữ cảnh nghiệp vụ
+  - Context của gRPC Java và phạm vi dữ liệu theo lời gọi
+  - Truyền Context qua executor và tác vụ bất đồng bộ
+  - Deadline và tín hiệu hủy được lan truyền trong Context
+  - Giới hạn kích thước, dữ liệu nhạy cảm và xác thực metadata
+  - Phân biệt metadata truyền qua mạng với Context nội bộ tiến trình
+- level1: Interceptor
+  level2:
+  - ClientInterceptor và ServerInterceptor trong chuỗi xử lý lời gọi
+  - Thứ tự interceptor và tác động tới xử lý yêu cầu/phản hồi
+  - Đọc, bổ sung và chuyển tiếp metadata an toàn
+  - Bao bọc listener/call để theo dõi thông điệp và kết quả kết thúc
+  - Xác thực tập trung và đưa danh tính vào Context
+  - Ghi log có cấu trúc và che dữ liệu nhạy cảm
+  - Đo thời gian, gắn trace và thu thập số liệu theo phương thức
+  - Ranh giới của interceptor với nghiệp vụ, flow control và xử lý lỗi
+- level1: Trạng thái và lỗi
+  level2:
+  - Status, StatusRuntimeException và StatusException trong Java
+  - Nhóm mã trạng thái gRPC và cách lựa chọn theo ý nghĩa lỗi
+  - Phân biệt INVALID_ARGUMENT, FAILED_PRECONDITION và OUT_OF_RANGE
+  - Phân biệt UNAUTHENTICATED, PERMISSION_DENIED và NOT_FOUND
+  - Phân biệt UNAVAILABLE, RESOURCE_EXHAUSTED, ABORTED và INTERNAL
+  - Chuyển đổi ngoại lệ nghiệp vụ sang lỗi gRPC nhất quán
+  - 'Rich error model: google.rpc.Status, details và StatusProto'
+  - Thông tin lỗi theo trường, hướng dẫn thử lại và bảo vệ dữ liệu nội bộ
+  - Lỗi giữa luồng, kết quả từng phần và thông tin trong trailers
+  - Thiết kế hợp đồng lỗi để máy khách xử lý bằng mã thay vì chuỗi thông báo
+- level1: Deadline và hủy
+  level2:
+  - Deadline khác timeout và lựa chọn ngân sách thời gian cho RPC
+  - Thiết lập deadline theo lời gọi và theo yêu cầu nghiệp vụ
+  - Lan truyền ngân sách thời gian qua chuỗi dịch vụ
+  - DEADLINE_EXCEEDED và giới hạn suy luận về kết quả phía máy chủ
+  - Hủy từ máy khách và phát hiện hủy tại máy chủ
+  - Dừng công việc nền, giải phóng tài nguyên và xử lý hủy hợp tác
+  - Phân biệt CANCELLED, deadline hết hạn và transport bị ngắt
+  - Kiểm thử race giữa phản hồi thành công, hủy và hết hạn
+- level1: Retry và chống trùng
+  level2:
+  - 'Transparent retry và retry được cấu hình: phân biệt phạm vi'
+  - 'Retry policy: mã lỗi, số lần thử và thời gian chờ tăng dần'
+  - Ngân sách deadline cho toàn lời gọi và từng lần thử
+  - Điểm cam kết của RPC, bộ đệm retry và giới hạn với streaming
+  - Retry throttling, server pushback và bảo vệ dịch vụ khi quá tải
+  - 'Hedging: gửi yêu cầu dự phòng và các điều kiện áp dụng'
+  - Thiết kế khóa idempotency và lưu kết quả chống thực thi trùng
+  - Tránh retry chồng lớp giữa ứng dụng, thư viện và proxy
+  - Wait-for-ready và khác biệt với retry
+  - Kịch bản lỗi để kiểm chứng retry, tác dụng phụ và kết quả không xác định
+- level1: Đồng thời và tài nguyên
+  level2:
+  - 'Mô hình luồng của gRPC Java: event loop, executor và callback'
+  - Tránh công việc chặn trên luồng xử lý I/O
+  - Thread safety của service, stub và StreamObserver
+  - Đồng bộ hóa ghi luồng và điều phối xử lý bất đồng bộ
+  - Giới hạn RPC đồng thời và kiểm soát tải nhận vào
+  - Tích hợp CompletableFuture và xử lý hủy/lỗi liên quan
+  - 'Virtual threads trong Java 21: lựa chọn điểm tích hợp và giới hạn'
+  - Tích hợp Reactor hoặc adapter reactive khi ứng dụng có nhu cầu
+  - Truyền Context, MDC và bảo toàn trace giữa các luồng
+  - Phát hiện rò rỉ thread, channel, buffer và công việc sau khi RPC kết thúc
+- level1: TLS và mTLS
+  level2:
+  - Mô hình tin cậy và mục tiêu bảo vệ kênh gRPC
+  - Cấu hình TLS cho máy chủ và máy khách Java
+  - Chuỗi chứng chỉ, trust store và xác minh danh tính máy chủ
+  - Server name, authority, SNI và lỗi chứng chỉ thường gặp
+  - 'mTLS: xác thực máy khách bằng chứng chỉ'
+  - Quản lý private key, cấp phát và luân chuyển chứng chỉ
+  - Kết thúc TLS tại proxy và bảo vệ chặng kết nối tới dịch vụ
+  - Phân biệt cấu hình plaintext cho thử nghiệm với kết nối cần bảo mật
+- level1: Xác thực và phân quyền
+  level2:
+  - Phân biệt channel credentials với call credentials
+  - Truyền access token bằng metadata và CallCredentials
+  - Kiểm tra token, thời hạn và ánh xạ danh tính
+  - Phân quyền theo service, method, tài nguyên và tenant
+  - Truyền danh tính giữa các dịch vụ và tránh tin metadata tùy ý
+  - Xử lý UNAUTHENTICATED và PERMISSION_DENIED nhất quán
+  - Bảo vệ refresh token, dữ liệu cá nhân và thông tin trong log
+  - Giới hạn kích thước, tốc độ, thời gian và truy cập để chống lạm dụng
+  - Bảo vệ reflection, health service và giao diện chẩn đoán
+- level1: Discovery và cân bằng tải
+  level2:
+  - DNS, name resolution và tập địa chỉ dịch vụ
+  - Service config và cách phân phối chính sách cho máy khách
+  - pick_first, round_robin và lựa chọn chính sách cân bằng tải
+  - Cân bằng tải phía máy khách so với proxy hoặc load balancer
+  - Kết nối HTTP/2 dài và hiện tượng phân bố tải không đều
+  - xDS và vai trò của control plane khi hạ tầng sử dụng
+  - Thay đổi endpoint, kết nối lại và backoff
+  - Phân biệt cân bằng theo RPC với phân phối một stream dài
+  - Kiểm chứng phân bố tải, chuyển tuyến và hành vi khi mất một instance
+- level1: Health và kết nối
+  level2:
+  - Health Checking Protocol và trạng thái phục vụ theo service
+  - Phân biệt liveness, readiness và khả năng xử lý yêu cầu thực tế
+  - Tích hợp health checking với máy khách và hạ tầng triển khai
+  - Keepalive bằng HTTP/2 PING và các tham số hai phía
+  - Phân biệt keepalive, kiểm tra sức khỏe và deadline
+  - Idle timeout, max connection age và tái tạo kết nối
+  - Xử lý GOAWAY và draining khi thay thế instance
+  - Kết nối dài qua NAT, firewall và proxy
+- level1: Spring Boot
+  level2:
+  - Tổ chức lớp hợp đồng, endpoint gRPC và service nghiệp vụ
+  - Quản lý Server, ManagedChannel và stub bằng Spring beans
+  - Tích hợp thủ công hoặc bằng starter và tiêu chí lựa chọn
+  - Cấu hình bên ngoài theo môi trường cho địa chỉ, cổng và TLS
+  - Đăng ký interceptor và credentials trong ứng dụng Spring
+  - Vòng đời khởi động, readiness và graceful shutdown
+  - Chạy gRPC cùng ứng dụng Servlet hoặc Reactive khi có nhu cầu
+  - Ranh giới giao dịch cơ sở dữ liệu trong phương thức RPC
+  - Kiểm thử tích hợp với Spring và cấu hình cô lập
+  - Đóng gói ứng dụng và kiểm tra tương thích giữa các thư viện tích hợp
+- level1: Công cụ phát triển
+  level2:
+  - 'Server reflection: mục đích, bật/tắt và giới hạn truy cập'
+  - 'grpcurl: gọi unary RPC bằng reflection hoặc tệp .proto'
+  - Thử metadata, TLS, deadline và phản hồi lỗi bằng công cụ dòng lệnh
+  - Thử streaming và quan sát vòng đời thông điệp
+  - Descriptor set và gọi dịch vụ khi không bật reflection
+  - Kiểm tra hợp đồng bằng công cụ lint và breaking-change detection
+  - Channelz và chẩn đoán channel, subchannel, socket khi được bật
+  - Tái hiện lỗi bằng request mẫu mà không lộ thông tin nhạy cảm
+- level1: Kiểm thử
+  level2:
+  - Ma trận kiểm thử cho hợp đồng, nghiệp vụ và hành vi truyền tải
+  - Unit test lớp nghiệp vụ độc lập với gRPC
+  - In-process server/channel để kiểm thử dịch vụ Java
+  - Giới hạn của in-process test và khi cần dùng transport thật
+  - Kiểm thử unary, ba kiểu streaming và thứ tự hoàn tất
+  - Kiểm thử metadata, interceptor, authentication và authorization
+  - Kiểm thử status code, rich error details và lỗi giữa luồng
+  - Kiểm thử deadline, cancellation, retry và idempotency
+  - Kiểm thử slow consumer, flow control và bộ đệm hữu hạn
+  - Kiểm thử TLS/mTLS và lỗi chứng chỉ
+  - Kiểm thử tương thích máy khách/máy chủ khác phiên bản hoặc ngôn ngữ
+  - Tích hợp kiểm thử hợp đồng và kiểm thử hồi quy vào CI
+- level1: Quan sát hệ thống
+  level2:
+  - Log, metrics và trace trong một lời gọi gRPC
+  - Gắn trace bằng OpenTelemetry và lan truyền ngữ cảnh
+  - Đo lưu lượng, độ trễ, lỗi và số RPC đang hoạt động
+  - Đo số thông điệp, kích thước và thời gian sống của streaming RPC
+  - Phân biệt số lời gọi logic với số lần thử retry/hedging
+  - Giới hạn cardinality của nhãn và bảo vệ dữ liệu quan sát
+  - Xây dựng SLI/SLO và cảnh báo theo phương thức RPC
+  - Liên kết status code với log, trace và sự kiện hạ tầng
+  - Chẩn đoán bằng số liệu channel, connection và tài nguyên JVM
+- level1: Hiệu năng
+  level2:
+  - Lập baseline cho độ trễ, throughput và mức sử dụng tài nguyên
+  - Benchmark bằng công cụ tải gRPC và thiết kế dữ liệu đo
+  - Kích thước message, serialization và chi phí cấp phát
+  - Lựa chọn nén theo loại dữ liệu, CPU và băng thông
+  - Tái sử dụng channel, warm-up và giới hạn số stream đồng thời
+  - Tuning executor, event loop và giới hạn nhận/gửi
+  - So sánh unary, batch và streaming theo khối lượng công việc
+  - Ảnh hưởng của mạng, TLS, proxy và khoảng cách triển khai
+  - Phân tích p95/p99, GC, hàng đợi và điểm bão hòa
+  - Kiểm thử quá tải và xác định giới hạn vận hành an toàn
+- level1: Triển khai
+  level2:
+  - Đóng gói dịch vụ gRPC trong container và cấu hình theo môi trường
+  - Cổng dịch vụ, HTTP/2 và TLS qua ingress hoặc reverse proxy
+  - Kubernetes Service, DNS, probes và phân phối kết nối
+  - Service mesh và ranh giới trách nhiệm với gRPC client
+  - 'Graceful shutdown: ngừng nhận việc mới và hoàn tất RPC đang chạy'
+  - Rolling update với hợp đồng tương thích và stream dài
+  - Giới hạn tài nguyên, autoscaling và tín hiệu phản ánh tải RPC
+  - Cấu hình timeout giữa client, proxy, load balancer và server
+  - Phục hồi sau sự cố, rollback và kiểm chứng sau triển khai
+  - Quản lý cấu hình, chứng chỉ và secret trong môi trường chạy
+- level1: Liên thông hệ thống
+  level2:
+  - Máy khách đa ngôn ngữ và hợp đồng chung từ Protobuf
+  - 'gRPC-Web: kiến trúc trình duyệt, proxy và giới hạn cần kiểm tra'
+  - JSON transcoding qua gateway và ánh xạ HTTP sang phương thức RPC
+  - Lựa chọn cung cấp đồng thời REST và gRPC
+  - Ánh xạ xác thực, metadata và lỗi qua gateway
+  - Phân biệt gRPC streaming với WebSocket, SSE và event streaming
+  - Ranh giới giữa RPC đồng bộ và message broker trong quy trình tích hợp
+  - Tích hợp hệ thống cũ bằng adapter mà không làm méo hợp đồng
+  - Chuyển đổi dần từ REST hoặc RPC cũ sang gRPC
+- level1: Chẩn đoán sự cố
+  level2:
+  - 'UNAVAILABLE: DNS, cổng, TLS, proxy hay dịch vụ không sẵn sàng'
+  - 'UNIMPLEMENTED: sai service/method, lệch hợp đồng hoặc định tuyến'
+  - 'DEADLINE_EXCEEDED: độ trễ mạng, hàng đợi hay xử lý nghiệp vụ'
+  - 'RESOURCE_EXHAUSTED: quota, kích thước thông điệp hay giới hạn tài nguyên'
+  - 'Luồng bị treo: thiếu hoàn tất, chờ flow control hoặc tắc executor'
+  - Lỗi TLS, ALPN và HTTP/2 khi đi qua proxy
+  - Kết nối bị ngắt, keepalive bị từ chối và GOAWAY
+  - Trùng tác dụng phụ do retry hoặc kết quả RPC không xác định
+  - Rò rỉ channel, thread và bộ nhớ dưới tải kéo dài
+  - Quy trình khoanh vùng từ dấu hiệu đến bằng chứng và biện pháp khắc phục
+- level1: Thực hành tích hợp
+  level2:
+  - Xây dựng dịch vụ unary Java từ hợp đồng đến máy khách
+  - Xây dựng server streaming có flow control và hủy lời gọi
+  - Xây dựng upload bằng client streaming có giới hạn tài nguyên
+  - Xây dựng phiên bidirectional streaming có quản lý vòng đời
+  - Thêm lỗi có cấu trúc, metadata, interceptor và phân quyền
+  - Thực nghiệm deadline, retry và chống xử lý trùng
+  - Triển khai hai phiên bản hợp đồng và kiểm chứng tương thích
+  - Chạy nhiều instance với health checking và cân bằng tải
+  - Bổ sung TLS/mTLS, metrics, tracing và kiểm thử tích hợp
+  - Diễn tập quá tải, mất kết nối và rolling update
+  - Đánh giá giải pháp theo tính đúng đắn, độ tin cậy và khả năng vận hành

@@ -1,0 +1,2665 @@
+menu:
+- slug: integration-foundations
+  title: Nền tảng tích hợp
+  childs:
+  - slug: integration-foundations-001
+    title: Mục tiêu tích hợp ứng dụng, hệ thống và dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-foundations-002
+    title: Ranh giới hệ thống, thành phần tham gia và quyền sở hữu dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-foundations-003
+    title: Phân biệt API, lệnh, thông điệp, sự kiện và bản ghi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-foundations-004
+    title: Tích hợp nội bộ, giữa tổ chức và với dịch vụ bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-foundations-005
+    title: Khác biệt giữa lời gọi nội bộ và giao tiếp qua mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-foundations-006
+    title: Độ trễ, lỗi từng phần và kết quả xử lý không xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-foundations-007
+    title: Liên kết về thời gian, vị trí, giao thức và mô hình dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-foundations-008
+    title: Yêu cầu chức năng, độ tin cậy và ràng buộc vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-foundations-009
+    title: Bản đồ hệ thống và cách mô tả một luồng tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: synchronous-and-asynchronous
+  title: Đồng bộ và bất đồng bộ
+  childs:
+  - slug: synchronous-and-asynchronous-001
+    title: Request-response và thời gian chờ của bên gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronous-and-asynchronous-002
+    title: Gửi bất đồng bộ và tiếp nhận kết quả xử lý sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronous-and-asynchronous-003
+    title: Phân biệt bất đồng bộ ở mã nguồn với bất đồng bộ giữa hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronous-and-asynchronous-004
+    title: Fire-and-forget và giới hạn bảo đảm hoàn tất nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronous-and-asynchronous-005
+    title: Polling, long polling, callback và thông báo kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronous-and-asynchronous-006
+    title: Trạng thái tác vụ và tài nguyên theo dõi tiến độ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronous-and-asynchronous-007
+    title: Correlation ID và ghép yêu cầu với phản hồi bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronous-and-asynchronous-008
+    title: SSE, WebSocket và kết nối cập nhật dữ liệu liên tục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronous-and-asynchronous-009
+    title: Đánh đổi giữa phản hồi tức thời, thông lượng và khả năng phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronous-and-asynchronous-010
+    title: Kết hợp bước đồng bộ với quy trình xử lý bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-architecture
+  title: Kiến trúc tích hợp
+  childs:
+  - slug: integration-architecture-001
+    title: Tích hợp point-to-point và vấn đề kết nối chằng chịt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-002
+    title: Hub-and-spoke, ESB và giới hạn của trung tâm tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-003
+    title: API gateway, reverse proxy và ranh giới trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-004
+    title: Message broker, event broker và vai trò trung gian truyền tin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-005
+    title: Adapter, connector và cổng giao tiếp với hệ thống ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-006
+    title: Anti-corruption layer và bảo vệ mô hình nghiệp vụ nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-007
+    title: Tích hợp trong monolith, modular monolith và microservices
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-008
+    title: Phân biệt điều phối tập trung và phối hợp bằng sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-009
+    title: Sơ đồ ngữ cảnh, sơ đồ tuần tự và luồng lỗi giữa các thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-contracts
+  title: Hợp đồng tích hợp
+  childs:
+  - slug: integration-contracts-001
+    title: Contract-first và code-first trong thiết kế tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-contracts-002
+    title: Hợp đồng cú pháp và ý nghĩa nghiệp vụ của dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-contracts-003
+    title: Thiết kế thao tác, tài nguyên, lệnh và sự kiện theo mục đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-contracts-004
+    title: Trường bắt buộc, trường tùy chọn, giá trị mặc định và null
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-contracts-005
+    title: Tiền điều kiện, hậu điều kiện và quy tắc kiểm tra đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-contracts-006
+    title: Mã lỗi, cấu trúc lỗi và khả năng thử lại của từng loại lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-contracts-007
+    title: OpenAPI cho API HTTP và AsyncAPI cho giao tiếp bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-contracts-008
+    title: Protobuf IDL và mô tả giao diện RPC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-contracts-009
+    title: Cam kết về thời gian phản hồi, giao nhận và hoàn tất nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-contracts-010
+    title: Ví dụ yêu cầu, phản hồi, sự kiện và tình huống biên trong tài liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-representation
+  title: Biểu diễn dữ liệu
+  childs:
+  - slug: data-representation-001
+    title: JSON, XML và định dạng nhị phân trong trao đổi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representation-002
+    title: Serialization, deserialization và chi phí chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representation-003
+    title: JSON Schema, XSD, Avro và Protobuf ở mức nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representation-004
+    title: Mã định danh, enum và ý nghĩa ổn định của các trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representation-005
+    title: Ngày giờ, múi giờ và thời điểm nghiệp vụ so với thời điểm xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representation-006
+    title: Số thập phân, tiền tệ, đơn vị đo và độ chính xác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representation-007
+    title: Unicode, mã hóa ký tự và chuẩn hóa chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representation-008
+    title: Message envelope, metadata và payload nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-representation-009
+    title: Giới hạn kích thước, nén dữ liệu và truyền tham chiếu tới tệp lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-and-rest
+  title: HTTP và REST
+  childs:
+  - slug: http-and-rest-001
+    title: Request, response, header, URI và vòng đời kết nối HTTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-rest-002
+    title: Thiết kế tài nguyên và ngữ nghĩa các phương thức HTTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-rest-003
+    title: Tính an toàn, tính lũy đẳng và giới hạn khi thử lại thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-rest-004
+    title: Mã trạng thái và phân biệt tiếp nhận với hoàn tất xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-rest-005
+    title: Content negotiation, media type và cấu trúc phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-rest-006
+    title: Phân trang bằng offset hoặc cursor và tính ổn định của kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-rest-007
+    title: Lọc, sắp xếp, tìm kiếm và giới hạn truy vấn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-rest-008
+    title: Cache, ETag và yêu cầu có điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-rest-009
+    title: Kiểm soát cập nhật đồng thời bằng phiên bản tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-rest-010
+    title: Thiết kế API cho tác vụ dài và thao tác xử lý hàng loạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: rpc-and-grpc
+  title: RPC và gRPC
+  childs:
+  - slug: rpc-and-grpc-001
+    title: Mô hình lời gọi thủ tục từ xa và khác biệt với REST
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rpc-and-grpc-002
+    title: Định nghĩa service, method và message trong gRPC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rpc-and-grpc-003
+    title: Unary RPC, server streaming, client streaming và bidirectional streaming
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rpc-and-grpc-004
+    title: Stub, client SDK và sự phụ thuộc vào mã sinh từ hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rpc-and-grpc-005
+    title: Metadata, mã trạng thái và truyền ngữ cảnh lời gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rpc-and-grpc-006
+    title: Deadline, hủy yêu cầu và giới hạn truyền hủy giữa các dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rpc-and-grpc-007
+    title: Kết nối, cân bằng tải và tác động của proxy tới RPC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rpc-and-grpc-008
+    title: SOAP, WSDL và các đặc trưng của tích hợp dịch vụ cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rpc-and-grpc-009
+    title: Lựa chọn RPC cho giao tiếp nội bộ và các giới hạn tương tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: webhooks
+  title: Webhook
+  childs:
+  - slug: webhooks-001
+    title: Webhook và sự khác biệt với polling hoặc lời gọi API chủ động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webhooks-002
+    title: Đăng ký endpoint, loại sự kiện và vòng đời subscription
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webhooks-003
+    title: Xác thực nguồn gửi bằng chữ ký và kiểm tra thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webhooks-004
+    title: Tiếp nhận nhanh, lưu bền vững và xử lý sau khi phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webhooks-005
+    title: Chính sách gửi lại và ý nghĩa mã phản hồi của bên nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webhooks-006
+    title: Xử lý webhook trùng lặp, đến muộn hoặc sai thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webhooks-007
+    title: Bảo vệ endpoint công khai và xác minh địa chỉ callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webhooks-008
+    title: Theo dõi lịch sử giao nhận, replay và đối soát sự kiện bị thiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: webhooks-009
+    title: Thay đổi endpoint, xoay khóa và kiểm thử webhook ở môi trường phát triển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: message-queues
+  title: Hàng đợi thông điệp
+  childs:
+  - slug: message-queues-001
+    title: Producer, consumer, queue và vòng đời một thông điệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-queues-002
+    title: Point-to-point, competing consumers và phân chia công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-queues-003
+    title: Thông điệp lệnh và trách nhiệm xử lý của bên nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-queues-004
+    title: Xác nhận phía producer và xác nhận xử lý phía consumer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-queues-005
+    title: Ack, nack, requeue và thời hạn giữ thông điệp đang xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-queues-006
+    title: Thông điệp bền vững, lưu trữ và khôi phục sau sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-queues-007
+    title: At-most-once, at-least-once và điều kiện của các bảo đảm giao nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-queues-008
+    title: Prefetch, số thông điệp đang xử lý và tốc độ tiêu thụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-queues-009
+    title: TTL, hàng đợi trì hoãn và giới hạn tuổi thọ thông điệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: message-queues-010
+    title: Poison message, dead-letter queue và tiêu chí chuyển lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: events-and-pubsub
+  title: Sự kiện và pub/sub
+  childs:
+  - slug: events-and-pubsub-001
+    title: Sự kiện là sự việc đã xảy ra và khác biệt với yêu cầu thực hiện lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-pubsub-002
+    title: Domain event, integration event và ranh giới công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-pubsub-003
+    title: Topic, subscription, fan-out và consumer độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-pubsub-004
+    title: Thiết kế tên sự kiện và dữ liệu theo ý nghĩa nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-pubsub-005
+    title: Event notification và event-carried state transfer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-pubsub-006
+    title: Định danh sự kiện, nguồn phát, thời điểm xảy ra và quan hệ nhân quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-pubsub-007
+    title: Lọc subscription và tránh phụ thuộc vào sự kiện không liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-pubsub-008
+    title: Khám phá luồng nghiệp vụ trong kiến trúc hướng sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-pubsub-009
+    title: Vòng lặp sự kiện, phát tán ngoài ý muốn và kiểm soát liên kết ngầm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-pubsub-010
+    title: Phân biệt event-driven integration, event sourcing và CQRS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-streaming
+  title: Luồng dữ liệu
+  childs:
+  - slug: data-streaming-001
+    title: Luồng liên tục, dữ liệu hữu hạn và khác biệt với hàng đợi tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-002
+    title: Append-only log, partition, offset và consumer group
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-003
+    title: Retention, compacted log và khả năng đọc lại dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-004
+    title: Khóa phân vùng, phân phối tải và phạm vi bảo đảm thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-005
+    title: Event time, processing time và dữ liệu đến muộn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-006
+    title: Window, watermark và đánh đổi giữa độ trễ với độ đầy đủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-007
+    title: Biến đổi, lọc, gộp và kết nối các luồng ở mức nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-008
+    title: State, checkpoint và khôi phục tiến độ xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-009
+    title: Backpressure, consumer lag và thay đổi tốc độ nguồn dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-010
+    title: Replay, backfill và giới hạn hiệu ứng phụ khi xử lý lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: files-and-batch-processing
+  title: Tệp và xử lý lô
+  childs:
+  - slug: files-and-batch-processing-001
+    title: Khi nào chọn trao đổi tệp hoặc xử lý lô
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-batch-processing-002
+    title: CSV, JSON Lines, XML và định dạng trao đổi theo lô
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-batch-processing-003
+    title: SFTP, object storage và cơ chế bàn giao tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-batch-processing-004
+    title: Tên tệp, manifest, checksum và dấu hiệu tệp đã sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-batch-processing-005
+    title: Tránh đọc tệp chưa hoàn tất bằng vùng tạm và công bố nguyên tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-batch-processing-006
+    title: Kiểm tra định dạng, cách ly bản ghi lỗi và báo cáo chất lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-batch-processing-007
+    title: Chunk, checkpoint và tiếp tục lô bị gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-batch-processing-008
+    title: Lịch chạy, vùng thời gian, cửa sổ xử lý và chạy bù
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-batch-processing-009
+    title: Biên nhận, chống nạp trùng và đối soát tổng số bản ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-integration
+  title: Tích hợp dữ liệu
+  childs:
+  - slug: data-integration-001
+    title: Phân biệt tích hợp nghiệp vụ và đồng bộ dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integration-002
+    title: ETL, ELT và vị trí thực hiện chuyển đổi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integration-003
+    title: Full load, incremental load và mốc theo dõi thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integration-004
+    title: CDC dựa trên log và ý nghĩa của bản ghi thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integration-005
+    title: Phối hợp snapshot ban đầu với luồng thay đổi liên tục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integration-006
+    title: Lan truyền thao tác xóa, tombstone và thay đổi khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integration-007
+    title: Nguồn dữ liệu chuẩn, bản sao và quyền ghi của từng hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integration-008
+    title: Rủi ro dùng chung cơ sở dữ liệu và truy cập trực tiếp schema nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integration-009
+    title: Data lineage, kiểm tra chất lượng và phát hiện sai lệch dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: routing-and-transformation
+  title: Định tuyến và chuyển đổi
+  childs:
+  - slug: routing-and-transformation-001
+    title: Message channel và pipeline xử lý tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routing-and-transformation-002
+    title: Content-based router và định tuyến theo metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routing-and-transformation-003
+    title: Message filter và kiểm soát thông điệp không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routing-and-transformation-004
+    title: Message translator và ánh xạ mô hình dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routing-and-transformation-005
+    title: Content enricher và quản lý phụ thuộc khi bổ sung dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routing-and-transformation-006
+    title: Splitter, aggregator và điều kiện hoàn tất tổng hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routing-and-transformation-007
+    title: Recipient list, multicast và scatter-gather
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routing-and-transformation-008
+    title: Canonical data model và đánh đổi với ánh xạ trực tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routing-and-transformation-009
+    title: Bảo toàn định danh, trace context và lỗi qua các bước chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: workflow-orchestration
+  title: Điều phối quy trình
+  childs:
+  - slug: workflow-orchestration-001
+    title: Orchestration và choreography trong quy trình nhiều hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-orchestration-002
+    title: Máy trạng thái và lưu tiến độ quy trình dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-orchestration-003
+    title: Phân tách bước tiếp nhận, thực thi và xác nhận kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-orchestration-004
+    title: Nhánh điều kiện, xử lý song song và điểm đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-orchestration-005
+    title: Bộ hẹn giờ, hạn hoàn thành và chờ phản hồi từ hệ thống ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-orchestration-006
+    title: Hủy tác vụ, hết hạn và phản hồi đến sau khi quy trình đóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-orchestration-007
+    title: Quyền sở hữu trạng thái và tránh nhiều bên cùng điều khiển quy trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-orchestration-008
+    title: Khôi phục quy trình sau khi worker hoặc dịch vụ khởi động lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workflow-orchestration-009
+    title: Điểm can thiệp thủ công và dấu vết quyết định nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: timeouts-deadlines-and-retries
+  title: Thời hạn và thử lại
+  childs:
+  - slug: timeouts-deadlines-and-retries-001
+    title: Phân loại lỗi tạm thời, lỗi vĩnh viễn và lỗi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retries-002
+    title: Connection timeout, read timeout và deadline toàn bộ thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retries-003
+    title: Phân bổ ngân sách thời gian qua chuỗi lời gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retries-004
+    title: Timeout không đồng nghĩa với bên nhận chưa xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retries-005
+    title: Điều kiện thử lại theo loại thao tác và trạng thái kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retries-006
+    title: Exponential backoff, jitter và giới hạn số lần thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retries-007
+    title: Retry budget và khuếch đại tải khi nhiều tầng cùng thử lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retries-008
+    title: Retry-After, giới hạn tốc độ và thời điểm gửi lại phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retries-009
+    title: Truy vấn trạng thái hoặc đối soát trước khi lặp thao tác chưa rõ kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retries-010
+    title: Truyền deadline, hủy công việc và kiểm thử chính sách thử lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: fault-isolation-and-recovery
+  title: Cô lập và phục hồi
+  childs:
+  - slug: fault-isolation-and-recovery-001
+    title: Lỗi từng phần và nguy cơ lỗi lan truyền giữa các dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-isolation-and-recovery-002
+    title: Circuit breaker và các trạng thái đóng, mở, thăm dò
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-isolation-and-recovery-003
+    title: Bulkhead và cô lập pool kết nối, luồng xử lý hoặc tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-isolation-and-recovery-004
+    title: Load shedding, giới hạn đồng thời và từ chối tải vượt khả năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-isolation-and-recovery-005
+    title: Fallback, dữ liệu cũ và giới hạn chấp nhận theo nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-isolation-and-recovery-006
+    title: Store-and-forward khi hệ thống đích tạm thời không sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-isolation-and-recovery-007
+    title: Cách ly thông điệp lỗi và bảo vệ luồng xử lý chính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-isolation-and-recovery-008
+    title: Phục hồi có kiểm soát để tránh dồn tải sau sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-isolation-and-recovery-009
+    title: Đối soát và xử lý bù cho công việc bị bỏ dở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: idempotency-and-deduplication
+  title: Chống xử lý trùng
+  childs:
+  - slug: idempotency-and-deduplication-001
+    title: Nguồn phát sinh trùng ở phía gửi, truyền tải và phía nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-and-deduplication-002
+    title: Phân biệt tính lũy đẳng với loại bỏ thông điệp trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-and-deduplication-003
+    title: Idempotency key và phạm vi duy nhất theo khách hàng hoặc thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-and-deduplication-004
+    title: Lưu trạng thái đang xử lý, kết quả và phản hồi cho yêu cầu lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-and-deduplication-005
+    title: Phát hiện cùng khóa nhưng payload khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-and-deduplication-006
+    title: Unique constraint, thao tác nguyên tử và tranh chấp giữa worker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-and-deduplication-007
+    title: Inbox pattern và gắn nhận thông điệp với giao dịch nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-and-deduplication-008
+    title: TTL, lưu trữ khóa và cửa sổ chống trùng khi replay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-and-deduplication-009
+    title: Chống lặp hiệu ứng phụ với thanh toán, email và dịch vụ ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: idempotency-and-deduplication-010
+    title: Giới hạn exactly-once và cách xác định phạm vi bảo đảm thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ordering-and-concurrency
+  title: Thứ tự và đồng thời
+  childs:
+  - slug: ordering-and-concurrency-001
+    title: Thứ tự toàn cục, thứ tự theo khóa và thứ tự nhân quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-concurrency-002
+    title: Sequence number, phiên bản thực thể và phát hiện khoảng trống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-concurrency-003
+    title: Thông điệp đến muộn, sai thứ tự và dữ liệu cũ ghi đè dữ liệu mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-concurrency-004
+    title: Tuần tự hóa theo thực thể và xử lý song song giữa các thực thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-concurrency-005
+    title: Optimistic locking, compare-and-set và kiểm tra phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-concurrency-006
+    title: Khóa, lease, fencing token và giới hạn phối hợp phân tán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-concurrency-007
+    title: Ảnh hưởng của retry, redelivery và rebalance tới thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-concurrency-008
+    title: Buffer, resequencer và giới hạn thời gian chờ thông điệp thiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ordering-and-concurrency-009
+    title: Chọn chính sách xung đột theo bất biến nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: distributed-transactions
+  title: Giao dịch phân tán
+  childs:
+  - slug: distributed-transactions-001
+    title: Phạm vi ACID cục bộ và ranh giới giao dịch giữa hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-transactions-002
+    title: Dual write và các cửa sổ mất hoặc lệch dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-transactions-003
+    title: Two-phase commit, XA và đánh đổi về phối hợp, khóa và khả dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-transactions-004
+    title: Transactional outbox và ghi dữ liệu cùng sự kiện trong một giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-transactions-005
+    title: Outbox relay bằng polling hoặc CDC và khả năng phát trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-transactions-006
+    title: Kết hợp outbox với inbox và consumer có tính lũy đẳng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-transactions-007
+    title: Saga và chuỗi giao dịch cục bộ của quy trình nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-transactions-008
+    title: Compensation và khác biệt với rollback của cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-transactions-009
+    title: Điểm không thể đảo ngược, đặt chỗ và xác nhận tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-transactions-010
+    title: Saga bị kẹt, thử lại bước bù và đối soát trạng thái cuối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-consistency
+  title: Nhất quán dữ liệu
+  childs:
+  - slug: data-consistency-001
+    title: Strong consistency, eventual consistency và yêu cầu nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-consistency-002
+    title: Phân vùng mạng và đánh đổi giữa nhất quán với khả dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-consistency-003
+    title: Độ trễ lan truyền, cửa sổ không nhất quán và giới hạn chấp nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-consistency-004
+    title: Read-your-writes và phản hồi sau khi chấp nhận yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-consistency-005
+    title: Projection, read model và đồng bộ trạng thái dẫn xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-consistency-006
+    title: Đồng bộ một chiều, hai chiều và giải quyết cập nhật xung đột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-consistency-007
+    title: Bất biến nghiệp vụ, quyền quyết định và tránh nhiều nguồn dữ liệu chuẩn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-consistency-008
+    title: Đối soát định kỳ, phát hiện thiếu và sửa sai lệch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-consistency-009
+    title: Thiết kế trải nghiệm cho trạng thái chờ, thất bại và cần can thiệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-security
+  title: Bảo mật tích hợp
+  childs:
+  - slug: integration-security-001
+    title: Trust boundary và mô hình đe dọa của từng luồng tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-002
+    title: TLS, mTLS và xác minh danh tính hệ thống đối tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-003
+    title: API key, OAuth 2.0 và thông tin xác thực giữa dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-004
+    title: Kiểm tra token, audience, issuer, scope và thời hạn hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-005
+    title: Phân quyền tài nguyên, topic, queue và nguyên tắc tối thiểu quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-006
+    title: Quản lý secret, chứng thư và xoay vòng khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-007
+    title: Chữ ký thông điệp, toàn vẹn dữ liệu và chống phát lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-008
+    title: Kiểm tra đầu vào, deserialization an toàn và giới hạn payload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-009
+    title: SSRF qua callback, kiểm soát egress và địa chỉ đích được phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-010
+    title: Mã hóa, che giấu dữ liệu nhạy cảm và chính sách lưu giữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-security-011
+    title: Cô lập tenant, audit và kiểm soát truy cập dữ liệu tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: Logs, metrics, traces và vai trò trong chẩn đoán tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-002
+    title: Correlation ID, trace ID và truyền ngữ cảnh qua API hoặc broker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-003
+    title: Structured logging, metadata cần có và loại bỏ dữ liệu nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-004
+    title: Đo lưu lượng, tỷ lệ lỗi, độ trễ và mức sử dụng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-005
+    title: Queue depth, consumer lag, tuổi thông điệp và tốc độ xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-006
+    title: Theo dõi retry, timeout, circuit breaker và dead-letter queue
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-007
+    title: SLI, SLO và độ trễ từ đầu đến cuối quy trình nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-008
+    title: Phân biệt giao nhận kỹ thuật thành công với kết quả nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-009
+    title: Dashboard, cảnh báo có hành động và truy vết điểm nghẽn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-010
+    title: Lấy mẫu trace, độ đa dạng nhãn metrics và chi phí quan sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-load
+  title: Hiệu năng và tải
+  childs:
+  - slug: performance-and-load-001
+    title: Thông lượng, độ trễ trung bình, phân vị và giới hạn tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-load-002
+    title: Ước lượng tốc độ vào, tốc độ ra và dung lượng hàng đợi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-load-003
+    title: Connection pooling, keep-alive và giới hạn kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-load-004
+    title: Batching, compression và đánh đổi giữa thông lượng với độ trễ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-load-005
+    title: Caching và nguy cơ dữ liệu cũ hoặc cache stampede
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-load-006
+    title: Rate limiting, quota và công bằng giữa các bên sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-load-007
+    title: Backpressure và kiểm soát tốc độ xuyên suốt luồng xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-load-008
+    title: Scale consumer, phân vùng và giới hạn do khóa hoặc hot key
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-load-009
+    title: Buffer hữu hạn, giới hạn bộ nhớ và chính sách khi quá tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-load-010
+    title: Đo hiệu năng với tải thực tế, tải đột biến và backlog phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-testing
+  title: Kiểm thử tích hợp
+  childs:
+  - slug: integration-testing-001
+    title: Phân biệt unit test, integration test, contract test và end-to-end test
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-002
+    title: Provider contract test và consumer-driven contract test
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-003
+    title: Kiểm tra schema, quy tắc nghiệp vụ và khả năng tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-004
+    title: Stub, mock, fake, sandbox và giới hạn độ trung thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-005
+    title: Kiểm thử với cơ sở dữ liệu, broker và phụ thuộc gần môi trường thật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-006
+    title: Kiểm thử bất đồng bộ bằng điều kiện chờ và thời hạn rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-007
+    title: Mô phỏng timeout, mất kết nối và lỗi từng phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-008
+    title: Kiểm thử trùng lặp, sai thứ tự, retry và kết quả không xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-009
+    title: Kiểm thử outbox, inbox, compensation và khôi phục sau sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-010
+    title: Kiểm thử tải, bảo mật và quyền truy cập giữa các hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-testing-011
+    title: Dữ liệu kiểm thử, cô lập môi trường và xác minh kết quả từ đầu đến cuối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: versioning-and-evolution
+  title: Phiên bản và tiến hóa
+  childs:
+  - slug: versioning-and-evolution-001
+    title: Tương thích ngược, tương thích xuôi và ma trận bên gửi với bên nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-evolution-002
+    title: Thay đổi bổ sung, thay đổi phá vỡ và ý nghĩa nghiệp vụ bị đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-evolution-003
+    title: Tiến hóa trường dữ liệu, enum và quy tắc đối với trường không biết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-evolution-004
+    title: Phiên bản API, sự kiện và schema theo vòng đời riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-evolution-005
+    title: Schema registry và kiểm soát tương thích khi công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-evolution-006
+    title: Expand-contract và giai đoạn cùng tồn tại nhiều phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-evolution-007
+    title: Replay dữ liệu cũ, upcasting và khả năng đọc lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-evolution-008
+    title: Thông báo ngừng hỗ trợ, thời hạn chuyển đổi và theo dõi bên còn sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-evolution-009
+    title: Kiểm tra hợp đồng trong CI và phát hành độc lập giữa các nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deployment-and-operations
+  title: Triển khai và vận hành
+  childs:
+  - slug: deployment-and-operations-001
+    title: Cấu hình endpoint, thông tin xác thực và tham số theo môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-002
+    title: Service discovery, DNS, cân bằng tải và thay đổi địa chỉ đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-003
+    title: Readiness, liveness và kiểm tra phụ thuộc ngoài hợp lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-004
+    title: Graceful shutdown, drain và xử lý công việc đang thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-005
+    title: Rolling deployment, canary và consumer chạy nhiều phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-006
+    title: Phục hồi offset, checkpoint và tiến độ tác vụ sau khởi động lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-007
+    title: Runbook cho hàng đợi tắc, lỗi đối tác và dead-letter queue tăng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-008
+    title: Replay có kiểm soát, giới hạn tốc độ và nhật ký thao tác vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-009
+    title: Backup, khôi phục thảm họa, RPO và RTO của luồng tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-operations-010
+    title: Quản lý sự cố, đối soát sau phục hồi và cập nhật biện pháp phòng ngừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-governance
+  title: Quản trị tích hợp
+  childs:
+  - slug: integration-governance-001
+    title: Danh mục API, sự kiện, dữ liệu và chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-governance-002
+    title: Quy ước đặt tên, định danh và tiêu chuẩn hợp đồng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-governance-003
+    title: Trách nhiệm producer, consumer và cam kết hỗ trợ giữa các nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-governance-004
+    title: Onboarding đối tác, cấp quyền, sandbox và tiêu chí nghiệm thu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-governance-005
+    title: Tài liệu ví dụ, sơ đồ luồng, mã lỗi và hướng dẫn xử lý sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-governance-006
+    title: Hạn mức sử dụng, chi phí hạ tầng và chi phí vận hành kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-governance-007
+    title: ADR ghi nhận bối cảnh, phương án và đánh đổi của quyết định tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-governance-008
+    title: Rà soát phụ thuộc, thay đổi hợp đồng và loại bỏ kết nối không còn dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-approach-selection
+  title: Lựa chọn giải pháp
+  childs:
+  - slug: integration-approach-selection-001
+    title: Lập bảng yêu cầu về độ trễ, thông lượng, mất dữ liệu và thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-approach-selection-002
+    title: Chọn đồng bộ hay bất đồng bộ theo nhu cầu phản hồi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-approach-selection-003
+    title: Chọn REST, RPC, webhook, queue, pub/sub, stream hoặc tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-approach-selection-004
+    title: Phân biệt cần lệnh xử lý, thông báo sự kiện hay đồng bộ trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-approach-selection-005
+    title: Chọn batch hay streaming theo độ mới dữ liệu và chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-approach-selection-006
+    title: Chọn nhất quán tức thời hay chấp nhận hội tụ có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-approach-selection-007
+    title: Đánh giá khả năng hệ thống cũ và giới hạn của nhà cung cấp ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-approach-selection-008
+    title: So sánh tự xây, dùng nền tảng và dịch vụ tích hợp được quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-approach-selection-009
+    title: Nhận diện chống mẫu và kiểm chứng phương án bằng tình huống lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integration-practice-001
+    title: Thiết kế API đơn hàng với hợp đồng, mã lỗi và kiểm soát phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-practice-002
+    title: Tiếp nhận tác vụ dài và cung cấp API theo dõi trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-practice-003
+    title: Tích hợp thanh toán bằng idempotency key, webhook và đối soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-practice-004
+    title: Xây dựng luồng đặt hàng, giữ tồn kho và thanh toán bằng saga
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-practice-005
+    title: Phát sự kiện bằng outbox và nhận an toàn bằng inbox
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-practice-006
+    title: Đồng bộ dữ liệu qua CDC với snapshot, xóa bản ghi và xử lý trễ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-practice-007
+    title: Tiếp nhận tệp đối tác theo lô với manifest và kiểm tra tổng số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-practice-008
+    title: Thiết kế pipeline streaming với partition, checkpoint và backpressure
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-practice-009
+    title: Diễn tập lỗi đối tác, thông điệp trùng và phục hồi từ dead-letter queue
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-practice-010
+    title: Hoàn thiện sơ đồ, ADR, kiểm thử, dashboard và runbook cho một luồng tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

@@ -1,0 +1,70 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: messaging-overview
+  index: 0
+- title: Thuật ngữ cốt lõi
+  slug: core-terminology
+  index: 1
+- title: Ý nghĩa thông điệp
+  slug: message-semantics
+  index: 2
+- title: Mô hình giao tiếp
+  slug: communication-models
+  index: 3
+- title: Kênh và đích nhận
+  slug: channels-destinations
+  index: 4
+- title: Cấu trúc thông điệp
+  slug: message-structure
+  index: 5
+- title: Hợp đồng dữ liệu
+  slug: data-contracts
+  index: 6
+- title: Vòng đời truyền nhận
+  slug: message-lifecycle
+  index: 7
+- title: Phía gửi
+  slug: senders
+  index: 8
+- title: Phía nhận
+  slug: receivers
+  index: 9
+- title: Lưu trữ và lưu giữ
+  slug: storage-retention
+  index: 10
+- title: Cam kết chuyển giao
+  slug: delivery-commitments
+  index: 11
+- title: Thứ tự xử lý
+  slug: processing-order
+  index: 12
+- title: Lỗi và phục hồi
+  slug: failures-recovery
+  index: 13
+- title: Xử lý trùng lặp
+  slug: duplicate-handling
+  index: 14
+- title: Nhất quán dữ liệu
+  slug: data-consistency
+  index: 15
+- title: Hiệu năng và tải
+  slug: performance-load
+  index: 16
+- title: Kết nối và tài nguyên
+  slug: connections-resources
+  index: 17
+- title: Bảo mật
+  slug: security
+  index: 18
+- title: Quan sát hệ thống
+  slug: observability
+  index: 19
+- title: Kiểm thử
+  slug: testing
+  index: 20
+- title: Lựa chọn công nghệ
+  slug: technology-selection
+  index: 21
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 22

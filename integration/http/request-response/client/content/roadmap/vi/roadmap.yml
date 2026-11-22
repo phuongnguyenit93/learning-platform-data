@@ -1,0 +1,57 @@
+roadmap:
+- id: http-client-contract
+  title: HTTP Client Contract
+  purpose: Hiểu vai trò HTTP client và các ngữ nghĩa cần tuân thủ khi gọi dịch vụ.
+  objectives:
+  - Phân biệt request, response, method và status
+  - So sánh GET, POST, PUT và DELETE
+  - Đọc hợp đồng endpoint cùng dữ liệu mong đợi
+- id: uri-query-headers
+  title: URI, Query & Headers
+  purpose: Tạo yêu cầu đúng địa chỉ, tham số và kiểu dữ liệu mà API chấp nhận.
+  objectives:
+  - Xây URI với path/query được mã hóa
+  - Thiết lập Accept và Content-Type phù hợp
+  - Kiểm tra request trên một endpoint giả lập
+- id: java-httpclient
+  title: Java HttpClient
+  purpose: Gửi HTTP request bằng thư viện JDK và phân biệt thực thi đồng bộ với bất đồng bộ.
+  objectives:
+  - Tạo và tái sử dụng một HttpClient
+  - Gọi send và sendAsync với HttpRequest
+  - Đọc status, header và response body
+- id: restclient-webclient
+  title: RestClient & WebClient
+  purpose: Lựa chọn HTTP client của Spring theo nhu cầu đồng bộ hoặc non-blocking.
+  objectives:
+  - Gọi GET/POST bằng Spring RestClient
+  - Thử WebClient và xử lý kết quả Mono
+  - So sánh trường hợp dùng hai client
+- id: payload-security
+  title: Payload & Security
+  purpose: Chuyển đổi dữ liệu đúng hợp đồng và bảo vệ thông tin xác thực ở client.
+  objectives:
+  - Serialize và deserialize JSON thành DTO
+  - Gắn Bearer token nhưng không ghi log secrets
+  - Dùng HTTPS và kiểm soát URL đích tránh SSRF
+- id: response-errors
+  title: Response & Errors
+  purpose: Xử lý phản hồi bình thường và phản hồi lỗi thành kết quả rõ nghĩa cho caller.
+  objectives:
+  - Phân loại phản hồi 2xx, 4xx và 5xx
+  - Ánh xạ Problem Details thành lỗi ứng dụng
+  - Xử lý body trống hoặc JSON không hợp lệ
+- id: timeout-retry
+  title: Timeout & Retry
+  purpose: Hạn chế request bị treo và tránh tạo tác dụng phụ khi thử gửi lại.
+  objectives:
+  - Cấu hình connection và request timeout
+  - Thiết lập retry giới hạn với backoff
+  - Chỉ retry operation an toàn hoặc idempotent
+- id: tests-observability
+  title: Tests & Observability
+  purpose: Kiểm chứng HTTP client khi thành công, lỗi hoặc chậm và quan sát giao tiếp thực tế.
+  objectives:
+  - Stub HTTP API bằng WireMock
+  - Test 2xx, 4xx, 5xx và timeout
+  - Ghi latency, error rate và correlation ID

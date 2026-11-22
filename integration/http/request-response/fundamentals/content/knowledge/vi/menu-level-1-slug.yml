@@ -1,0 +1,88 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: http-overview
+  index: 0
+- title: Thành phần giao tiếp
+  slug: communication-components
+  index: 1
+- title: Địa chỉ và URL
+  slug: addresses-urls
+  index: 2
+- title: Hành trình yêu cầu
+  slug: request-lifecycle
+  index: 3
+- title: Thông điệp HTTP
+  slug: http-messages
+  index: 4
+- title: Yêu cầu HTTP
+  slug: http-requests
+  index: 5
+- title: Phương thức HTTP
+  slug: http-methods
+  index: 6
+- title: Phản hồi HTTP
+  slug: http-responses
+  index: 7
+- title: Mã trạng thái
+  slug: status-codes
+  index: 8
+- title: Trường HTTP
+  slug: http-headers
+  index: 9
+- title: Nội dung và định dạng
+  slug: content-formats
+  index: 10
+- title: Thương lượng nội dung
+  slug: content-negotiation
+  index: 11
+- title: Truyền nội dung
+  slug: content-transfer
+  index: 12
+- title: Kết nối và phiên bản
+  slug: connections-versions
+  index: 13
+- title: Chuyển hướng
+  slug: redirects
+  index: 14
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 15
+- title: Yêu cầu có điều kiện
+  slug: conditional-requests
+  index: 16
+- title: Tệp và phạm vi
+  slug: files-ranges
+  index: 17
+- title: Cookie và trạng thái
+  slug: cookies-state
+  index: 18
+- title: Xác thực và phân quyền
+  slug: authentication-authorization
+  index: 19
+- title: Nguồn gốc và CORS
+  slug: origins-cors
+  index: 20
+- title: Trung gian HTTP
+  slug: http-intermediaries
+  index: 21
+- title: Thời gian và lỗi
+  slug: timeouts-errors
+  index: 22
+- title: Thử lại và lũy đẳng
+  slug: retries-idempotency
+  index: 23
+- title: Bảo mật HTTP
+  slug: http-security
+  index: 24
+- title: Hiệu năng
+  slug: performance
+  index: 25
+- title: Quan sát và chẩn đoán
+  slug: observability-diagnostics
+  index: 26
+- title: Kiểm thử giao tiếp
+  slug: communication-testing
+  index: 27
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 28

@@ -1,0 +1,3 @@
+menuLevel1: Spring Cloud OpenFeign
+menuLevel2: '@EnableFeignClients, @FeignClient, name, contextId và URL đích'
+status: ''

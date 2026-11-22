@@ -1,0 +1,2146 @@
+menu:
+- slug: graphql-model
+  title: Mô hình GraphQL
+  childs:
+  - slug: graphql-model-001
+    title: 'GraphQL là gì: ngôn ngữ truy vấn và cơ chế thực thi cho API'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-model-002
+    title: Bài toán lấy thừa, lấy thiếu dữ liệu và nhiều lượt gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-model-003
+    title: Lược đồ (schema), kiểu, trường, thao tác (operation) và bộ phân giải (resolver)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-model-004
+    title: Hành trình từ yêu cầu của máy khách đến dữ liệu phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-model-005
+    title: Đồ thị dữ liệu của API và khác biệt với cơ sở dữ liệu đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-model-006
+    title: So sánh GraphQL với REST và RPC theo nhu cầu tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-model-007
+    title: Vai trò của máy khách, máy chủ GraphQL và các nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-model-008
+    title: Kiến thức nền và lộ trình xây dựng một API GraphQL hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-queries
+  title: Query cơ bản
+  childs:
+  - slug: basic-queries-001
+    title: Viết query với tập trường lựa chọn (selection set)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-queries-002
+    title: Truy vấn trường lồng nhau và danh sách đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-queries-003
+    title: Truyền đối số (argument) cho trường cần lấy dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-queries-004
+    title: Đặt tên operation và lựa chọn operationName khi có nhiều operation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-queries-005
+    title: Bí danh (alias) và cách truy vấn cùng một trường với đối số khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-queries-006
+    title: Khai báo biến (variable) và tách dữ liệu khỏi tài liệu truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-queries-007
+    title: Giá trị mặc định, biến bắt buộc và biến không được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-queries-008
+    title: Trường __typename và nhận diện kiểu đối tượng trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-queries-009
+    title: Đọc cấu trúc phản hồi theo tập trường và bí danh đã yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema-types
+  title: Schema và kiểu
+  childs:
+  - slug: schema-types-001
+    title: Ngôn ngữ định nghĩa schema (SDL) và cấu trúc tệp schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-types-002
+    title: Kiểu gốc Query, Mutation, Subscription và khai báo schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-types-003
+    title: Kiểu Object, trường và đối số của trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-types-004
+    title: Các scalar chuẩn Int, Float, String, Boolean và ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-types-005
+    title: Giới hạn giá trị Int, độ chính xác số và ý nghĩa của ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-types-006
+    title: Enum và tập giá trị được phép trong hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-types-007
+    title: List, Non-Null và các tổ hợp [T], [T!], [T]! và [T!]!
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-types-008
+    title: Interface và hợp đồng chung giữa nhiều kiểu đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-types-009
+    title: Union và kết quả có thể thuộc nhiều kiểu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-types-010
+    title: Scalar tùy chỉnh cho ngày giờ, tiền tệ và định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-types-011
+    title: Mô tả schema, mở rộng type và quy tắc tên dành riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-values
+  title: Dữ liệu đầu vào
+  childs:
+  - slug: input-values-001
+    title: Input Object và khác biệt với kiểu Object đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-values-002
+    title: Kết hợp scalar, enum, danh sách và input lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-values-003
+    title: Phân biệt bỏ qua trường, truyền null và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-values-004
+    title: Quy tắc chuyển đổi giá trị (coercion) cho literal và biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-values-005
+    title: Khả năng tương thích giữa kiểu biến với kiểu đối số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-values-006
+    title: Thiết kế input cho tạo mới, cập nhật và cập nhật một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-values-007
+    title: Kiểm tra cấu trúc GraphQL và kiểm tra ràng buộc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-values-008
+    title: OneOf Input Object, @oneOf và điều kiện hỗ trợ của phiên bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-values-009
+    title: Giới hạn độ sâu, số phần tử và kích thước dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fragments-directives
+  title: Fragment và directive
+  childs:
+  - slug: fragments-directives-001
+    title: Fragment có tên và tái sử dụng tập trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fragments-directives-002
+    title: Điều kiện kiểu của fragment trên Object, Interface và Union
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fragments-directives-003
+    title: Inline fragment để chọn trường theo kiểu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fragments-directives-004
+    title: Phạm vi sử dụng biến trong fragment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fragments-directives-005
+    title: Phát hiện fragment không dùng, tham chiếu sai và chu trình fragment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fragments-directives-006
+    title: Điều khiển tập trường bằng @skip và @include
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fragments-directives-007
+    title: Phân biệt directive trên operation với directive trong schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fragments-directives-008
+    title: Định nghĩa directive tùy chỉnh và trách nhiệm cài đặt hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-engine
+  title: Cơ chế thực thi
+  childs:
+  - slug: execution-engine-001
+    title: Các giai đoạn phân tích cú pháp, kiểm tra hợp lệ và thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-002
+    title: Kiểm tra trường tồn tại, đối số hợp lệ và tập trường bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-003
+    title: Kiểm tra xung đột trường và gộp các lựa chọn tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-004
+    title: Resolver nhận đối tượng cha, đối số, ngữ cảnh và thông tin trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-005
+    title: Resolver mặc định và cách lấy giá trị từ đối tượng nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-006
+    title: Hoàn tất kết quả cho scalar, đối tượng và danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-007
+    title: Chiến lược thực thi query và tuần tự các trường gốc của mutation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-008
+    title: Resolver bất đồng bộ và phối hợp nhiều nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-009
+    title: Ngữ cảnh theo yêu cầu và truyền thông tin đến resolver con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-010
+    title: Thời hạn xử lý, hủy tác vụ và giới hạn dừng lời gọi phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: responses-errors
+  title: Phản hồi và lỗi
+  childs:
+  - slug: responses-errors-001
+    title: Cấu trúc data, errors và extensions trong phản hồi GraphQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-errors-002
+    title: Lỗi cú pháp, kiểm tra tài liệu và chuyển đổi biến trước khi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-errors-003
+    title: Lỗi xảy ra tại resolver và dữ liệu trả về một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-errors-004
+    title: Đọc message, locations, path và extensions của lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-errors-005
+    title: Đường dẫn lỗi theo bí danh và chỉ số phần tử trong danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-errors-006
+    title: Lan truyền null khi trường Non-Null không hoàn tất được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-errors-007
+    title: Phân biệt lỗi truyền tải, lỗi GraphQL và kết quả lỗi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-errors-008
+    title: Quy ước mã lỗi ổn định và bảo vệ chi tiết nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responses-errors-009
+    title: Chính sách máy khách khi phản hồi đồng thời có dữ liệu và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mutations
+  title: Mutation
+  childs:
+  - slug: mutations-001
+    title: Thiết kế mutation theo hành động và mục tiêu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutations-002
+    title: Tách kiểu input với đối tượng kết quả của mutation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutations-003
+    title: Trả trạng thái sau cập nhật và dữ liệu máy khách cần đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutations-004
+    title: Biểu diễn lỗi nghiệp vụ bằng kiểu dữ liệu có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutations-005
+    title: Thực thi tuần tự ở gốc mutation và giới hạn bảo đảm giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutations-006
+    title: Xác định ranh giới giao dịch tại tầng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutations-007
+    title: Chống cập nhật mất dữ liệu bằng phiên bản và kiểm tra xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutations-008
+    title: Thử lại mutation, khóa lũy đẳng và ngăn tác động trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutations-009
+    title: Phát sự kiện sau khi giao dịch hoàn tất và đồng bộ với subscription
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema-design
+  title: Thiết kế schema
+  childs:
+  - slug: schema-design-001
+    title: Thiết kế từ nhu cầu nghiệp vụ và hành trình lấy dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-002
+    title: Đặt tên kiểu, trường, đối số và operation nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-003
+    title: Chọn điểm vào Query và mô hình quan hệ giữa các đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-004
+    title: Tách mô hình schema khỏi bảng dữ liệu và thực thể lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-005
+    title: Chọn nullability theo cam kết nghiệp vụ và khả năng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-006
+    title: Thiết kế Interface, Union và mô hình kết quả nhiều biến thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-007
+    title: Định danh đối tượng, ID toàn cục và mẫu Node của Relay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-008
+    title: Giữ query không có tác động làm thay đổi trạng thái nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-009
+    title: Cân bằng khả năng tái sử dụng với độ sâu và chi phí đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pagination-filtering
+  title: Phân trang và lọc
+  childs:
+  - slug: pagination-filtering-001
+    title: Thiết kế đối số lọc theo nhu cầu và quyền truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-filtering-002
+    title: Sắp xếp ổn định, khóa phụ và danh sách trường được phép sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-filtering-003
+    title: Phân trang offset–limit và hạn chế khi dữ liệu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-filtering-004
+    title: Phân trang theo cursor và lựa chọn khóa tiếp tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-filtering-005
+    title: Mô hình Relay Connection với edges, node, cursor và pageInfo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-filtering-006
+    title: Phân trang tiến, phân trang lùi và các đối số tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-filtering-007
+    title: Thiết kế totalCount và đánh đổi chi phí tính tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-filtering-008
+    title: Giới hạn kích thước trang và danh sách lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-filtering-009
+    title: Kiểm tra cursor, kết hợp bộ lọc và tránh bỏ sót hoặc lặp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graphql-over-http
+  title: GraphQL qua HTTP
+  childs:
+  - slug: graphql-over-http-001
+    title: Phân biệt đặc tả GraphQL với bản nháp GraphQL over HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-over-http-002
+    title: Cấu trúc yêu cầu với query, operationName, variables và extensions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-over-http-003
+    title: POST, GET và giới hạn thực thi mutation qua GET
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-over-http-004
+    title: Content-Type, Accept và application/graphql-response+json
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-over-http-005
+    title: Mã trạng thái HTTP theo loại lỗi, media type và cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-over-http-006
+    title: Phân biệt nhiều operation trong tài liệu với gửi nhiều yêu cầu theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-over-http-007
+    title: Header, cookie, CORS và ngữ cảnh xác thực của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-over-http-008
+    title: Timeout, giới hạn nội dung yêu cầu và proxy trước endpoint GraphQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-over-http-009
+    title: Tải tệp qua URL ký sẵn và phạm vi của các mở rộng multipart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graphql-java
+  title: GraphQL Java
+  childs:
+  - slug: graphql-java-001
+    title: Vai trò của GraphQL Java và quan hệ với Spring for GraphQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-java-002
+    title: Tạo schema từ SDL với SchemaParser và SchemaGenerator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-java-003
+    title: Liên kết schema với DataFetcher bằng RuntimeWiring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-java-004
+    title: Đọc đối số, đối tượng nguồn và ngữ cảnh từ DataFetchingEnvironment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-java-005
+    title: Chuẩn bị ExecutionInput và đọc ExecutionResult
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-java-006
+    title: Ánh xạ Interface, Union bằng TypeResolver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-java-007
+    title: Cài đặt scalar tùy chỉnh và kiểm tra giá trị hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-java-008
+    title: Kết quả bất đồng bộ với CompletionStage và quản lý Executor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-java-009
+    title: Instrumentation và các điểm mở rộng trong vòng đời thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-for-graphql
+  title: Spring for GraphQL
+  childs:
+  - slug: spring-for-graphql-001
+    title: Thiết lập Spring Boot và lựa chọn nền tảng web phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-for-graphql-002
+    title: Nạp tệp schema, cấu hình endpoint và kiểm tra schema lúc khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-for-graphql-003
+    title: Ánh xạ trường gốc bằng @QueryMapping và @MutationMapping
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-for-graphql-004
+    title: Ánh xạ trường con bằng @SchemaMapping với typeName và field
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-for-graphql-005
+    title: Nhận đối số bằng @Argument và liên kết input vào đối tượng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-for-graphql-006
+    title: Nhận biết đối số bị bỏ qua với ArgumentValue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-for-graphql-007
+    title: Kiểm tra đầu vào bằng Bean Validation và ràng buộc tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-for-graphql-008
+    title: Truy cập GraphQLContext và các giá trị được truyền theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-for-graphql-009
+    title: Sử dụng WebGraphQlInterceptor để bổ sung ngữ cảnh và xử lý yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-for-graphql-010
+    title: Đăng ký scalar, TypeResolver và cấu hình bằng RuntimeWiringConfigurer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-for-graphql-011
+    title: Ánh xạ ngoại lệ với DataFetcherExceptionResolver và @GraphQlExceptionHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-for-graphql-012
+    title: Sử dụng GraphiQL trong môi trường phát triển và quản lý quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-access
+  title: Truy cập dữ liệu
+  childs:
+  - slug: data-access-001
+    title: Tách resolver, dịch vụ nghiệp vụ và tầng truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-002
+    title: Kết hợp cơ sở dữ liệu, REST API và dịch vụ ngoài trong cùng đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-003
+    title: Thiết kế truy vấn dữ liệu theo bộ lọc, phân trang và tập trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-004
+    title: Tích hợp Spring Data và lựa chọn kiểu truy vấn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-005
+    title: Quan hệ tải lười, vòng đời phiên làm việc và giới hạn giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-006
+    title: Tránh ánh xạ trực tiếp thực thể lưu trữ thành hợp đồng công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-007
+    title: Lan truyền ngữ cảnh xác thực đến nguồn dữ liệu phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-008
+    title: Đặt timeout, cô lập tài nguyên và xử lý lỗi từng nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-access-009
+    title: Phối hợp lời gọi chặn và không chặn mà không làm nghẽn luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dataloader
+  title: DataLoader
+  childs:
+  - slug: dataloader-001
+    title: Nhận diện vấn đề N+1 trong resolver quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dataloader-002
+    title: Gom nhiều khóa tải dữ liệu và tái sử dụng kết quả trong cùng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dataloader-003
+    title: Vai trò của DataLoader, BatchLoader và DataLoaderRegistry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dataloader-004
+    title: Phạm vi theo yêu cầu và ngăn rò rỉ dữ liệu giữa người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dataloader-005
+    title: Thứ tự kết quả, khóa không tồn tại và lỗi của từng phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dataloader-006
+    title: Đăng ký tải theo lô bằng BatchLoaderRegistry trong Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dataloader-007
+    title: Sử dụng @BatchMapping và chọn trường hợp cần DataLoader trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dataloader-008
+    title: Thiết kế khóa theo đối số, quyền truy cập và ngữ cảnh dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dataloader-009
+    title: Điều phối lượt tải, lời gọi bất đồng bộ và khác biệt theo phiên bản thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dataloader-010
+    title: Xóa hoặc cập nhật dữ liệu đã lưu sau mutation và đo số lượt truy cập thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: subscriptions
+  title: Subscription
+  childs:
+  - slug: subscriptions-001
+    title: Mô hình đăng ký sự kiện và khác biệt với polling hoặc live query
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-002
+    title: Quy tắc một trường gốc cho mỗi subscription operation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-003
+    title: Tạo nguồn sự kiện và lựa chọn dữ liệu cho từng thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-004
+    title: Lựa chọn WebSocket, SSE hoặc RSocket theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-005
+    title: Giao thức graphql-transport-ws và quá trình thiết lập phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-006
+    title: Xây dựng @SubscriptionMapping với Publisher hoặc Flux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-007
+    title: Lọc sự kiện theo người dùng, đối số đăng ký và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-008
+    title: Hủy đăng ký, xử lý lỗi và dọn tài nguyên khi kết nối đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-009
+    title: Kết nối lại, đồng bộ trạng thái và giới hạn bảo đảm phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subscriptions-010
+    title: Máy khách chậm, bộ đệm giới hạn và phân phối sự kiện qua nhiều máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graphql-clients
+  title: Máy khách GraphQL
+  childs:
+  - slug: graphql-clients-001
+    title: Gửi query và biến bằng công cụ HTTP hoặc thư viện GraphQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-clients-002
+    title: Sử dụng HttpGraphQlClient và đọc dữ liệu theo đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-clients-003
+    title: Xử lý lỗi truyền tải, lỗi GraphQL và phản hồi thiếu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-clients-004
+    title: Sử dụng máy khách WebSocket hoặc RSocket cho subscription
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-clients-005
+    title: Tổ chức tệp operation và fragment theo tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-clients-006
+    title: Sinh kiểu và mã máy khách từ schema cùng tài liệu operation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-clients-007
+    title: Ánh xạ scalar tùy chỉnh giữa Java, JSON và phía giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-clients-008
+    title: Quản lý hủy yêu cầu, timeout và thử lại an toàn theo loại operation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-clients-009
+    title: Trạng thái giao diện khi đang tải, lỗi một phần và cập nhật lạc quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching
+  title: Bộ nhớ đệm
+  childs:
+  - slug: caching-001
+    title: Phân biệt lưu tài liệu đã phân tích, kết quả resolver và phản hồi operation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-002
+    title: Khóa bộ nhớ đệm theo operation, biến và phạm vi xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-003
+    title: Lưu thực thể chuẩn hóa phía máy khách bằng định danh và kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-004
+    title: Đồng bộ dữ liệu đã lưu sau mutation hoặc sự kiện subscription
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-005
+    title: Phạm vi bộ nhớ đệm DataLoader so với dữ liệu dùng chung giữa yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-006
+    title: Truy vấn lưu sẵn, Automatic Persisted Queries và chi phí truyền tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-007
+    title: Điều kiện sử dụng bộ nhớ đệm HTTP hoặc CDN cho query
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-008
+    title: Thời hạn lưu, hủy dữ liệu cũ và ngăn chia sẻ kết quả riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-authorization
+  title: Bảo mật và phân quyền
+  childs:
+  - slug: security-authorization-001
+    title: Xác thực yêu cầu trước khi thực thi GraphQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-002
+    title: Đặt phân quyền ở tầng nghiệp vụ và bảo vệ từng đối tượng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-003
+    title: Kiểm soát quyền đọc trường và quyền thực hiện mutation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-004
+    title: Cách ly dữ liệu theo người dùng và khách hàng thuê dịch vụ (tenant)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-005
+    title: Phân quyền nhất quán qua resolver, DataLoader và bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-006
+    title: Chống giả mạo yêu cầu với cookie và kiểm soát CORS, CSRF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-007
+    title: Kiểm tra đầu vào trước khi gọi cơ sở dữ liệu hoặc dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-008
+    title: Ẩn chi tiết lỗi, dữ liệu nhạy cảm và giá trị biến trong nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-009
+    title: Kiểm soát introspection, GraphiQL và mức công bố thông tin schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-010
+    title: Xác thực subscription, phiên hết hạn và thay đổi quyền khi kết nối đang mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-limits
+  title: Giới hạn truy vấn
+  childs:
+  - slug: query-limits-001
+    title: Ước lượng chi phí theo trường, độ sâu và số phần tử danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-limits-002
+    title: Giới hạn độ sâu, độ rộng, alias và fragment sau khi mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-limits-003
+    title: Giới hạn số operation hoặc yêu cầu trong một lô nếu có hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-limits-004
+    title: Áp dụng hạn ngạch theo người dùng và chi phí thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-limits-005
+    title: Giới hạn thời gian thực thi, số lượt truy cập và kích thước phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-limits-006
+    title: Giới hạn trang, bộ lọc tốn kém và tải dữ liệu lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-limits-007
+    title: Danh sách tài liệu tin cậy và khác biệt với chỉ lưu truy vấn bằng hash
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-limits-008
+    title: Kết hợp từ chối sớm, điều tiết tải và bảo vệ hệ thống phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema-management
+  title: Quản lý schema
+  childs:
+  - slug: schema-management-001
+    title: Introspection với __schema, __type và công cụ khám phá hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-management-002
+    title: Tài liệu mô tả kiểu, trường, đối số và ví dụ sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-management-003
+    title: Phân loại thay đổi tương thích và thay đổi phá vỡ máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-management-004
+    title: Thay đổi nullability, enum, kiểu đối số và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-management-005
+    title: Đánh dấu ngừng dùng bằng @deprecated và kế hoạch loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-management-006
+    title: Theo dõi operation đang sử dụng trước khi thay đổi schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-management-007
+    title: Kiểm tra schema cùng tài liệu operation trong quy trình tích hợp liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-management-008
+    title: Phân chia quyền sở hữu schema và tổ chức schema nhiều tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-management-009
+    title: Quản lý phiên bản đặc tả, thư viện và các tính năng như @oneOf
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: graphql-testing
+  title: Kiểm thử GraphQL
+  childs:
+  - slug: graphql-testing-001
+    title: Kiểm thử resolver, dịch vụ nghiệp vụ và bộ chuyển đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-testing-002
+    title: Kiểm thử operation với GraphQlTester và ExecutionGraphQlServiceTester
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-testing-003
+    title: Kiểm thử HTTP bằng HttpGraphQlTester và kiểm tra lớp truyền tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-testing-004
+    title: Kiểm thử context, xác thực và phân quyền theo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-testing-005
+    title: Kiểm thử input thiếu trường, null, enum và scalar không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-testing-006
+    title: Kiểm thử fragment, alias và tài liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-testing-007
+    title: Kiểm thử phản hồi một phần, đường dẫn lỗi và lan truyền null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-testing-008
+    title: Kiểm thử mutation, xung đột cập nhật và tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-testing-009
+    title: Kiểm thử DataLoader, số lượt truy vấn và giới hạn N+1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-testing-010
+    title: Kiểm thử subscription với dữ liệu hữu hạn, hủy và hết thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: graphql-testing-011
+    title: Kiểm thử tương thích schema, giới hạn chi phí và tải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-operations
+  title: Quan sát và vận hành
+  childs:
+  - slug: observability-operations-001
+    title: Đo độ trễ theo operation, resolver và nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-002
+    title: Phân biệt thành công HTTP với lỗi hoặc dữ liệu thiếu trong GraphQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-003
+    title: Theo dõi operationName, loại operation và mã tương quan yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-004
+    title: Liên kết dấu vết phân tán qua resolver và lời gọi phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-005
+    title: Đo hiệu quả tải theo lô, tỷ lệ dùng bộ nhớ đệm và truy vấn N+1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-006
+    title: Kiểm soát số lượng nhãn số đo và bảo vệ dữ liệu ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-007
+    title: Theo dõi subscription đang mở, tốc độ sự kiện và tài nguyên bị giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-008
+    title: Cấu hình giới hạn, dừng ứng dụng và triển khai thay đổi có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-operations-009
+    title: Chẩn đoán truy vấn treo, resolver trả null và thiếu ánh xạ schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-scaling
+  title: Mở rộng kiến trúc
+  childs:
+  - slug: architecture-scaling-001
+    title: Đặt GraphQL tại lớp phục vụ giao diện (BFF) hoặc lớp tổng hợp API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-scaling-002
+    title: Ghép nhiều nguồn dữ liệu và ranh giới sở hữu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-scaling-003
+    title: Phân biệt ghép schema (schema stitching) với federation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-scaling-004
+    title: Vai trò của subgraph, schema hợp nhất và bộ định tuyến federation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-scaling-005
+    title: Định danh thực thể, lập kế hoạch truy vấn và lỗi xuyên nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-scaling-006
+    title: Đánh đổi hiệu năng, phân quyền và khả năng vận hành khi hợp nhất schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-scaling-007
+    title: Trả kết quả tăng dần với @defer, @stream và tính thử nghiệm theo triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-scaling-008
+    title: Phân biệt subscription, live query và các mở rộng ngoài đặc tả cốt lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: API danh mục sách với tác giả, quan hệ lồng nhau và truy vấn có biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Thiết kế schema, input và hợp đồng lỗi cho quản lý đơn hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Phân trang Connection, bộ lọc và kiểm chứng thứ tự ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Tái hiện N+1 và so sánh số truy vấn trước, sau DataLoader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Mutation có giao dịch, kiểm tra phiên bản và đồng bộ dữ liệu máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Subscription thông báo trạng thái với phân quyền và hủy kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Tổng hợp dữ liệu từ dịch vụ ngoài và xử lý lỗi một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Hoàn thiện kiểm thử, giới hạn truy vấn và bảng theo dõi vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

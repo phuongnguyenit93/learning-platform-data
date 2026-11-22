@@ -1,0 +1,3211 @@
+menu:
+- slug: http-overview
+  title: Bức tranh tổng thể
+  childs:
+  - slug: http-overview-001
+    title: HTTP là gì và vai trò trong tích hợp giữa các hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-overview-002
+    title: Mô hình yêu cầu–phản hồi (request–response) giải quyết bài toán nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-overview-003
+    title: 'Ví dụ xuyên suốt: tra cứu sản phẩm và gửi yêu cầu đặt hàng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-overview-004
+    title: Bên gửi yêu cầu (client), bên phục vụ (server) và thông điệp HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-overview-005
+    title: Tài nguyên (resource), biểu diễn dữ liệu (representation) và địa chỉ truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-overview-006
+    title: Từ thao tác người dùng đến yêu cầu mạng và kết quả trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-overview-007
+    title: HTTP không lưu trạng thái (stateless) và ý nghĩa ở cấp giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-overview-008
+    title: Phân biệt HTTP, HTTPS, REST và API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-overview-009
+    title: HTTP đồng bộ ở cấp tương tác và bất đồng bộ ở cấp chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-overview-010
+    title: Khi phù hợp với yêu cầu–phản hồi và khi cần mô hình giao tiếp khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-overview-011
+    title: Các nhóm thuật ngữ và trình tự học nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communication-components
+  title: Thành phần giao tiếp
+  childs:
+  - slug: communication-components-001
+    title: Client có thể là trình duyệt, ứng dụng di động hoặc một dịch vụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-components-002
+    title: Máy chủ gốc (origin server) và nơi xử lý yêu cầu cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-components-003
+    title: Proxy, reverse proxy và các bước trung gian trên đường truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-components-004
+    title: 'Cổng vào API (API gateway) và bộ cân bằng tải: vị trí trong luồng HTTP'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-components-005
+    title: Bộ nhớ đệm (cache) ở trình duyệt, máy chủ trung gian và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-components-006
+    title: Phân biệt máy chủ HTTP với mã nghiệp vụ phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-components-007
+    title: Phân biệt kết nối mạng, yêu cầu HTTP và phiên người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-components-008
+    title: Ranh giới trách nhiệm giữa ứng dụng, thư viện và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-components-009
+    title: Vẽ sơ đồ đường đi của yêu cầu và đường về của phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: addresses-urls
+  title: Địa chỉ và URL
+  childs:
+  - slug: addresses-urls-001
+    title: 'URI và URL: khái niệm định danh và định vị tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-urls-002
+    title: 'Cấu trúc URL: scheme, host, port, path, query và fragment'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-urls-003
+    title: 'HTTP và HTTPS: cách chọn giao thức và cổng truy cập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-urls-004
+    title: Tên miền, địa chỉ IP và vai trò của DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-urls-005
+    title: Đường dẫn tuyệt đối, tương đối và URL cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-urls-006
+    title: Phân biệt thành phần path với tham số query
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-urls-007
+    title: Fragment và phần URL không được gửi trong yêu cầu HTTP thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-urls-008
+    title: Mã hóa phần trăm (percent-encoding) và ký tự dành riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-urls-009
+    title: Unicode trong URL và tránh mã hóa hai lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-urls-010
+    title: Tham số lặp, tham số rỗng và quy ước diễn giải của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-urls-011
+    title: Chuẩn hóa URL, dấu gạch chéo cuối và phân biệt chữ hoa chữ thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: addresses-urls-012
+    title: Phân biệt URL nhìn thấy bên ngoài với địa chỉ máy chủ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: request-lifecycle
+  title: Hành trình yêu cầu
+  childs:
+  - slug: request-lifecycle-001
+    title: Từ URL đến phân giải DNS và lựa chọn điểm kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-002
+    title: Thiết lập TCP cho HTTP/1.1 và HTTP/2 trong các trường hợp tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-003
+    title: Thiết lập TLS, kiểm tra chứng chỉ và thương lượng giao thức qua ALPN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-004
+    title: 'HTTP/3 và QUIC: nhận diện đường truyền không dựa trên TCP'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-005
+    title: Tạo thông điệp, gửi dữ liệu và chờ phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-006
+    title: Máy chủ đọc yêu cầu, định tuyến và gọi xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-007
+    title: Tạo phản hồi, truyền nội dung và hoàn tất việc đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-008
+    title: Tái sử dụng kết nối cho các yêu cầu tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-009
+    title: Yêu cầu đi qua nhiều trung gian và ranh giới từng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-010
+    title: Phân biệt thời gian kết nối, chờ byte đầu và tải hết nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-lifecycle-011
+    title: Phân biệt kết thúc yêu cầu HTTP với hoàn tất công việc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-messages
+  title: Thông điệp HTTP
+  childs:
+  - slug: http-messages-001
+    title: 'Cấu trúc khái niệm: thông tin điều khiển, trường HTTP và nội dung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-002
+    title: Yêu cầu và phản hồi khác nhau ở những thành phần nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-003
+    title: Dạng văn bản của thông điệp HTTP/1.1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-004
+    title: Dòng bắt đầu, các dòng trường và dòng trống phân cách nội dung trong HTTP/1.1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-005
+    title: Dòng kết thúc CRLF và vai trò của việc phân định thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-006
+    title: Tên trường, giá trị trường và các quy tắc đọc cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-007
+    title: Thông điệp không có nội dung và nội dung có độ dài bằng không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-008
+    title: 'Nội dung thông điệp và biểu diễn tài nguyên: hai phạm vi cần phân biệt'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-009
+    title: Trường cuối thông điệp (trailer) và vị trí sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-010
+    title: Ngữ nghĩa HTTP dùng chung và cách biểu diễn khác nhau giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-011
+    title: Đọc một cặp yêu cầu–phản hồi thô và xác định từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-requests
+  title: Yêu cầu HTTP
+  childs:
+  - slug: http-requests-001
+    title: Phương thức, đích yêu cầu và thông tin điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-requests-002
+    title: Request-target trong HTTP/1.1 và các dạng biểu diễn theo tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-requests-003
+    title: 'Host và authority: xác định máy chủ đích trong yêu cầu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-requests-004
+    title: Truyền dữ liệu bằng path, query, trường HTTP và nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-requests-005
+    title: Chọn vị trí dữ liệu theo ngữ nghĩa thay vì chỉ theo sự thuận tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-requests-006
+    title: Nội dung yêu cầu GET và giới hạn ngữ nghĩa dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-requests-007
+    title: Thông tin nguồn gọi, loại dữ liệu mong muốn và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-requests-008
+    title: Yêu cầu không hợp lệ về cú pháp và yêu cầu hợp lệ nhưng sai nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-requests-009
+    title: Giới hạn độ dài URL, số trường và kích thước nội dung theo hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-requests-010
+    title: 'Yêu cầu có nội dung lớn và ý tưởng gửi Expect: 100-continue'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-requests-011
+    title: Tách dữ liệu do người gọi cung cấp với thông tin trung gian bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-methods
+  title: Phương thức HTTP
+  childs:
+  - slug: http-methods-001
+    title: 'GET: lấy biểu diễn tài nguyên theo ngữ nghĩa đọc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-methods-002
+    title: 'HEAD: lấy thông tin phản hồi tương ứng mà không nhận nội dung phản hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-methods-003
+    title: 'POST: xử lý nội dung gửi đến theo ngữ nghĩa của tài nguyên đích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-methods-004
+    title: 'PUT: tạo hoặc thay thế trạng thái biểu diễn tại tài nguyên đích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-methods-005
+    title: 'PATCH: áp dụng thay đổi từng phần theo định dạng được thỏa thuận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-methods-006
+    title: 'DELETE: yêu cầu loại bỏ quan hệ với tài nguyên đích và giới hạn ý nghĩa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-methods-007
+    title: 'OPTIONS và Allow: tìm hiểu lựa chọn giao tiếp với tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-methods-008
+    title: 'CONNECT và TRACE: mục đích giao thức và phạm vi nhận diện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-methods-009
+    title: 'Phương thức an toàn (safe): ý nghĩa đối với thay đổi trạng thái dự kiến'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-methods-010
+    title: 'Phương thức có tính lũy đẳng (idempotent): hiệu ứng khi lặp lại yêu cầu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-methods-011
+    title: Khả năng lưu đệm (cacheable) và quan hệ với phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-methods-012
+    title: Phân biệt ngữ nghĩa chuẩn của phương thức với cách ứng dụng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-methods-013
+    title: 'Các lỗi thường gặp: thay đổi dữ liệu bằng GET và đồng nhất POST với tạo mới'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-responses
+  title: Phản hồi HTTP
+  childs:
+  - slug: http-responses-001
+    title: Mã trạng thái, trường phản hồi và nội dung trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-responses-002
+    title: Phản hồi tạm thời (informational) và phản hồi cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-responses-003
+    title: Dòng trạng thái HTTP/1.1 và vai trò giới hạn của cụm mô tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-responses-004
+    title: Kết quả thành công ở cấp HTTP và kết quả nghiệp vụ trong dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-responses-005
+    title: Phản hồi không có nội dung với HEAD, 204 và 304
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-responses-006
+    title: Content-Type, Content-Length và thông tin mô tả biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-responses-007
+    title: Location và địa chỉ liên quan đến tài nguyên hoặc bước tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-responses-008
+    title: Thông báo lỗi có cấu trúc và thông tin chẩn đoán cho người gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-responses-009
+    title: Giới thiệu application/problem+json để biểu diễn chi tiết lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-responses-010
+    title: Phản hồi do máy chủ gốc tạo và phản hồi do trung gian tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-responses-011
+    title: Đọc hết hoặc giải phóng nội dung phản hồi để hoàn tất vòng đời tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: status-codes
+  title: Mã trạng thái
+  childs:
+  - slug: status-codes-001
+    title: Ý nghĩa các nhóm 1xx, 2xx, 3xx, 4xx và 5xx
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-002
+    title: '100 Continue, 101 Switching Protocols và 103 Early Hints: nhận diện mục đích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-003
+    title: '200 OK, 201 Created và 204 No Content: các dạng hoàn tất thành công'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-004
+    title: '202 Accepted: được tiếp nhận nhưng chưa xác nhận hoàn tất công việc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-005
+    title: 206 Partial Content và phản hồi cho yêu cầu lấy một phần dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-006
+    title: '301, 302, 303, 307 và 308: các kiểu chuyển hướng cần phân biệt'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-007
+    title: 304 Not Modified và việc tái sử dụng biểu diễn đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-008
+    title: '400, 413, 414, 415 và 422: phân biệt lỗi đầu vào và nội dung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-009
+    title: '401 Unauthorized và 403 Forbidden: xác thực với quyền truy cập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-010
+    title: 404 Not Found, 405 Method Not Allowed và 410 Gone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-011
+    title: '406, 412, 416 và 428: điều kiện hoặc khả năng đáp ứng không phù hợp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-012
+    title: '408 Request Timeout và 429 Too Many Requests: thời gian chờ và giới hạn tải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-013
+    title: '500, 501, 502, 503 và 504: lỗi máy chủ, trung gian và dịch vụ phụ thuộc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: status-codes-014
+    title: Chọn hành vi xử lý theo mã trạng thái, phương thức và hợp đồng cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-headers
+  title: Trường HTTP
+  childs:
+  - slug: http-headers-001
+    title: 'Trường HTTP (header field): tên, giá trị và phạm vi sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-headers-002
+    title: Tên trường không phân biệt hoa thường và quy tắc của từng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-headers-003
+    title: Trường lặp, danh sách giá trị và giới hạn khi gộp trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-headers-004
+    title: Phân biệt trường của yêu cầu, phản hồi, biểu diễn và điều khiển truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-headers-005
+    title: 'Host, Date, Server và User-Agent: vai trò và giới hạn tin cậy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-headers-006
+    title: Content-Type, Content-Encoding và Content-Language
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-headers-007
+    title: Accept và các trường biểu thị khả năng tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-headers-008
+    title: 'Authorization, Cookie và Set-Cookie: các vai trò khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-headers-009
+    title: Location, Retry-After và thông tin hướng dẫn bước tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-headers-010
+    title: Connection và các trường chỉ có ý nghĩa trên một chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-headers-011
+    title: Phân biệt trường chuyển tiếp đầu cuối với trường theo từng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-headers-012
+    title: Quy ước trường mở rộng và cách tránh phụ thuộc không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: content-formats
+  title: Nội dung và định dạng
+  childs:
+  - slug: content-formats-001
+    title: Kiểu phương tiện (media type) và cách đọc type/subtype cùng tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-formats-002
+    title: Content-Type và bộ mã ký tự của dữ liệu văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-formats-003
+    title: Văn bản thuần, HTML, JSON và XML trong giao tiếp HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-formats-004
+    title: Dữ liệu nhị phân và lựa chọn application/octet-stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-formats-005
+    title: Mã hóa biểu mẫu application/x-www-form-urlencoded
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-formats-006
+    title: Biểu mẫu multipart/form-data và dữ liệu gồm nhiều phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-formats-007
+    title: Tuần tự hóa, giải tuần tự hóa và ranh giới với đối tượng trong chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-formats-008
+    title: Dữ liệu JSON, null, chuỗi rỗng và nội dung hoàn toàn vắng mặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-formats-009
+    title: Độ chính xác số, ngày giờ và múi giờ trong hợp đồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-formats-010
+    title: Kiểm tra kiểu nội dung, lược đồ và giới hạn kích thước trước xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-formats-011
+    title: Phân biệt mã hóa ký tự, mã hóa URL, nén dữ liệu và mã hóa bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: content-negotiation
+  title: Thương lượng nội dung
+  childs:
+  - slug: content-negotiation-001
+    title: Thương lượng nội dung (content negotiation) và nhu cầu nhiều biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-negotiation-002
+    title: Accept và lựa chọn kiểu dữ liệu phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-negotiation-003
+    title: Trọng số ưu tiên q và cách đọc các lựa chọn của người gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-negotiation-004
+    title: Accept-Language và Content-Language trong biểu diễn ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-negotiation-005
+    title: Accept-Encoding và lựa chọn cách nén nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-negotiation-006
+    title: Content-Type mô tả dữ liệu hiện có và Accept nêu dữ liệu mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-negotiation-007
+    title: Phản hồi 406 khi không có biểu diễn phù hợp theo chính sách máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-negotiation-008
+    title: Phản hồi 415 khi máy chủ không hỗ trợ kiểu nội dung gửi đến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-negotiation-009
+    title: Vary và quan hệ giữa thương lượng nội dung với khóa lưu đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-negotiation-010
+    title: Giới hạn thương lượng nội dung và quy ước trong hợp đồng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: content-transfer
+  title: Truyền nội dung
+  childs:
+  - slug: content-transfer-001
+    title: Phân định độ dài thông điệp (message framing) và vì sao bên nhận cần biết điểm kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-transfer-002
+    title: 'Content-Length: độ dài theo byte và giới hạn khi tính từ chuỗi ký tự'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-transfer-003
+    title: 'Transfer-Encoding: chunked trong HTTP/1.1'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-transfer-004
+    title: Phân biệt một chunk truyền tải với một bản ghi dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-transfer-005
+    title: Phản hồi HTTP/1.1 kết thúc theo việc đóng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-transfer-006
+    title: Quy tắc không có nội dung phản hồi và cách đọc metadata của HEAD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-transfer-007
+    title: Xung đột thông tin độ dài và nguy cơ phân tích thông điệp không thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-transfer-008
+    title: 'Content-Encoding và Transfer-Encoding: biểu diễn với truyền tải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-transfer-009
+    title: Nén bằng gzip hoặc br và ảnh hưởng đến kích thước truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-transfer-010
+    title: Đọc toàn bộ, đọc từng phần và truyền theo dòng (streaming)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-transfer-011
+    title: Đầu vào ngắn hơn dự kiến, kết nối bị ngắt và dữ liệu chưa hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-transfer-012
+    title: Trường trailer và giới hạn hỗ trợ của thư viện hoặc trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-transfer-013
+    title: 'Expect: 100-continue, chấp nhận gửi nội dung và phản hồi từ chối sớm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connections-versions
+  title: Kết nối và phiên bản
+  childs:
+  - slug: connections-versions-001
+    title: 'HTTP/1.0, HTTP/1.1, HTTP/2 và HTTP/3: ngữ nghĩa chung, cơ chế truyền khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-002
+    title: Kết nối duy trì (persistent connection) và tái sử dụng với HTTP/1.1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-003
+    title: 'Connection: close và vòng đời đóng kết nối HTTP/1.1'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-004
+    title: Nhiều yêu cầu nối tiếp, pipelining và giới hạn trong HTTP/1.1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-005
+    title: 'HTTP/2: khung nhị phân, luồng và ghép nhiều luồng trên kết nối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-006
+    title: Trường giả (pseudo-header) và biểu diễn thông tin yêu cầu trong HTTP/2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-007
+    title: 'HPACK và QPACK: vai trò nén trường trong HTTP/2 và HTTP/3'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-008
+    title: 'HTTP/3: QUIC, các luồng truyền và quan hệ với TLS'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-009
+    title: Nghẽn đầu hàng (head-of-line blocking) ở cấp HTTP và cấp truyền tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-010
+    title: Điều khiển luồng và giới hạn số luồng đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-011
+    title: ALPN, Alt-Svc và cách nhận biết phiên bản thực tế được dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-012
+    title: Nhóm kết nối (connection pool) và giới hạn song song của thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-013
+    title: Phân biệt HTTP keep-alive với TCP keepalive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-versions-014
+    title: Vì sao không áp dụng nguyên xi trường theo kết nối HTTP/1.1 cho HTTP/2 hoặc HTTP/3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: redirects
+  title: Chuyển hướng
+  childs:
+  - slug: redirects-001
+    title: Phản hồi chuyển hướng và cách diễn giải trường Location
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-002
+    title: URL tương đối trong Location và cách xác định URL đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-003
+    title: Chuyển hướng tạm thời và lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-004
+    title: '301 và 302: lưu ý về phương thức sau khi chuyển hướng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-005
+    title: 303 See Other và mô hình gửi biểu mẫu rồi đọc kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-006
+    title: '307 và 308: bảo toàn phương thức cùng nội dung khi chuyển hướng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-007
+    title: Giới hạn số lần chuyển hướng và phát hiện vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-008
+    title: Chuyển sang host khác, đổi giao thức và xử lý thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-009
+    title: Chuyển hướng do máy chủ, gateway và chính sách bắt buộc HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redirects-010
+    title: Chọn theo chuyển hướng tự động hay để ứng dụng quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching
+  title: Bộ nhớ đệm
+  childs:
+  - slug: caching-001
+    title: Lưu đệm HTTP (HTTP caching) và lợi ích giảm độ trễ, giảm tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-002
+    title: Bộ nhớ đệm riêng (private cache) và dùng chung (shared cache)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-003
+    title: Điều kiện lưu một phản hồi và điều kiện tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-004
+    title: 'Khóa lưu đệm: phương thức, địa chỉ đích và các chiều được lựa chọn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-005
+    title: 'Cache-Control: max-age, s-maxage và thời gian còn mới'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-006
+    title: 'Cache-Control: public, private và phạm vi được phép lưu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-007
+    title: Phân biệt no-cache với no-store
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-008
+    title: must-revalidate và điều kiện dùng lại dữ liệu đã cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-009
+    title: Date, Age và Expires trong tính toán độ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-010
+    title: Vary và nguy cơ trả nhầm biểu diễn giữa các yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-011
+    title: ETag, Last-Modified và ý tưởng kiểm tra lại dữ liệu đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-012
+    title: Lưu đệm cho phản hồi lỗi, chuyển hướng và yêu cầu có xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-013
+    title: Vô hiệu hóa bộ nhớ đệm sau thao tác thay đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-014
+    title: Tham số query, cookie và chính sách lưu đệm của hệ thống trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-015
+    title: Phân biệt cache HTTP với bộ nhớ đệm bên trong mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conditional-requests
+  title: Yêu cầu có điều kiện
+  childs:
+  - slug: conditional-requests-001
+    title: Bộ kiểm chứng (validator) và mục đích tránh truyền hoặc ghi dữ liệu không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-002
+    title: ETag mạnh, ETag yếu và phạm vi so sánh biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-003
+    title: Last-Modified và giới hạn độ chính xác thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-004
+    title: If-None-Match để kiểm tra lại biểu diễn đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-005
+    title: If-Modified-Since và quan hệ với phản hồi 304
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-006
+    title: Ghép metadata phản hồi 304 với nội dung đã có trong bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-007
+    title: If-Match và kiểm soát cập nhật đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-008
+    title: If-Unmodified-Since và điều kiện theo thời điểm thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-009
+    title: Ngăn mất cập nhật (lost update) bằng yêu cầu có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-010
+    title: 412 Precondition Failed và 428 Precondition Required
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditional-requests-011
+    title: Thứ tự đánh giá khi có nhiều điều kiện trong cùng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-ranges
+  title: Tệp và phạm vi
+  childs:
+  - slug: files-ranges-001
+    title: Tải lên tệp bằng nội dung nhị phân và bằng multipart/form-data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-ranges-002
+    title: Boundary, trường biểu mẫu và từng phần nội dung multipart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-ranges-003
+    title: Content-Disposition, tên trường và tên tệp được cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-ranges-004
+    title: Trả tệp tải xuống với Content-Type và Content-Disposition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-ranges-005
+    title: Tên tệp quốc tế, tên không an toàn và trách nhiệm kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-ranges-006
+    title: Yêu cầu phạm vi byte bằng Range
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-ranges-007
+    title: 206 Partial Content, Content-Range và Accept-Ranges
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-ranges-008
+    title: 416 Range Not Satisfiable và kiểm tra phạm vi hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-ranges-009
+    title: If-Range và tiếp tục tải khi biểu diễn vẫn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-ranges-010
+    title: Tải lại từng phần, phát hiện tệp thay đổi và kiểm tra toàn vẹn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-ranges-011
+    title: Giới hạn kích thước, truyền theo dòng và tránh giữ tệp lớn trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cookies-state
+  title: Cookie và trạng thái
+  childs:
+  - slug: cookies-state-001
+    title: HTTP stateless và nhu cầu ghi nhớ người dùng hoặc tiến trình nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-state-002
+    title: 'Cookie là gì: Set-Cookie ở phản hồi và Cookie ở yêu cầu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-state-003
+    title: Tên, giá trị và phạm vi áp dụng theo Domain hoặc Path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-state-004
+    title: Cookie giới hạn theo host và cookie chia sẻ cho miền phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-state-005
+    title: Cookie phiên, cookie tồn tại lâu dài, Max-Age và Expires
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-state-006
+    title: Secure và giới hạn gửi cookie trên kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-state-007
+    title: HttpOnly và phạm vi hạn chế truy cập từ mã trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-state-008
+    title: SameSite và quan hệ giữa site với origin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-state-009
+    title: Phiên phía máy chủ (server-side session) và mã định danh lưu trong cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-state-010
+    title: Tạo mới, hết hạn, đăng xuất và vô hiệu hóa phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-state-011
+    title: Phân biệt cookie, phiên và token xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cookies-state-012
+    title: Ảnh hưởng của cookie đến quyền riêng tư, bộ nhớ đệm và yêu cầu liên nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication-authorization
+  title: Xác thực và phân quyền
+  childs:
+  - slug: authentication-authorization-001
+    title: Xác thực danh tính (authentication) và kiểm tra quyền (authorization)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-002
+    title: Authorization và cấu trúc theo cơ chế xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-003
+    title: 'Basic authentication: cách biểu diễn và lý do cần bảo vệ đường truyền'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-004
+    title: 'Bearer token: ý nghĩa quyền truy cập theo token được cung cấp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-005
+    title: 401, WWW-Authenticate và thách thức xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-006
+    title: 403 và trường hợp đã xác định danh tính nhưng không đủ quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-007
+    title: 'API key, cookie phiên và bearer token: các cách truyền thông tin truy cập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-008
+    title: 'OAuth 2.0, OpenID Connect và JWT: nhận diện vai trò khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-009
+    title: Hết hạn thông tin truy cập và giới hạn việc gửi lại yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-010
+    title: Proxy authentication, 407 và phân biệt với xác thực tại máy chủ gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-011
+    title: Tránh đưa thông tin xác thực vào URL, log và phản hồi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-authorization-012
+    title: Ranh giới giữa cơ chế truyền thông tin xác thực và kiểm tra nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: origins-cors
+  title: Nguồn gốc và CORS
+  childs:
+  - slug: origins-cors-001
+    title: 'Origin là gì: scheme, host và port'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-002
+    title: Chính sách cùng nguồn (same-origin policy) của trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-003
+    title: CORS là gì và bài toán cho phép đọc phản hồi liên nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-004
+    title: Phân biệt cùng origin, cùng site và cùng tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-005
+    title: Trường Origin và vai trò của máy chủ khi quyết định cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-006
+    title: Yêu cầu được miễn preflight và các điều kiện cần xem xét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-007
+    title: Preflight bằng OPTIONS và thông tin phương thức, trường dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-008
+    title: Access-Control-Allow-Origin, Allow-Methods và Allow-Headers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-009
+    title: Expose-Headers và các trường phản hồi mà mã trình duyệt được đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-010
+    title: Yêu cầu có thông tin xác thực và Access-Control-Allow-Credentials
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-011
+    title: Giới hạn dấu * khi dùng thông tin xác thực và lựa chọn origin phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-012
+    title: 'Access-Control-Max-Age, Vary: Origin và ảnh hưởng của lưu đệm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-013
+    title: 'CORS, CSRF và xác thực: ba phạm vi bảo vệ khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: origins-cors-014
+    title: Vì sao yêu cầu từ Java hoặc curl có thể chạy khi trình duyệt báo lỗi CORS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-intermediaries
+  title: Trung gian HTTP
+  childs:
+  - slug: http-intermediaries-001
+    title: Forward proxy, reverse proxy và đường đi của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-intermediaries-002
+    title: API gateway, cân bằng tải và định tuyến theo host hoặc path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-intermediaries-003
+    title: TLS termination và giao thức trên từng chặng phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-intermediaries-004
+    title: Host, :authority và thông tin máy chủ đích qua trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-intermediaries-005
+    title: 'Forwarded và các trường X-Forwarded-*: nguồn gốc, giao thức và địa chỉ gọi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-intermediaries-006
+    title: Ranh giới tin cậy khi đọc thông tin do proxy chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-intermediaries-007
+    title: Via và dấu vết chuyển tiếp qua các trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-intermediaries-008
+    title: Bộ đệm yêu cầu, bộ đệm phản hồi và ảnh hưởng đến truyền theo dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-intermediaries-009
+    title: Giới hạn kích thước, thời gian chờ và số kết nối ở nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-intermediaries-010
+    title: Phản hồi 502, 503 và 504 phát sinh ở các vị trí khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-intermediaries-011
+    title: Chuyển đổi phiên bản HTTP giữa các chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-intermediaries-012
+    title: Sự khác biệt khi gọi trực tiếp máy chủ và gọi qua gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timeouts-errors
+  title: Thời gian và lỗi
+  childs:
+  - slug: timeouts-errors-001
+    title: Ngân sách thời gian của toàn bộ một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-errors-002
+    title: Thời gian chờ phân giải tên, kết nối, bắt tay TLS và phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-errors-003
+    title: Thời gian chờ đọc, thời gian không hoạt động và hạn hoàn tất toàn bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-errors-004
+    title: Giới hạn thời gian khác nhau tại client, proxy và máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-errors-005
+    title: Phân biệt lỗi DNS, lỗi kết nối, lỗi TLS và phản hồi lỗi HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-errors-006
+    title: Phân biệt timeout phía gọi với mã trạng thái 408 hoặc 504
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-errors-007
+    title: Kết nối bị đặt lại, dữ liệu bị cắt và phản hồi không hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-errors-008
+    title: Hết thời gian chờ nhưng máy chủ có thể đã thực hiện thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-errors-009
+    title: Hủy chờ ở client và trạng thái xử lý thực tế ở server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-errors-010
+    title: 202 Accepted và theo dõi một công việc mất nhiều thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-errors-011
+    title: Thăm dò định kỳ (polling), long polling và giới hạn yêu cầu chờ lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-errors-012
+    title: Truyền ngữ cảnh thời hạn giữa các dịch vụ theo hợp đồng hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retries-idempotency
+  title: Thử lại và lũy đẳng
+  childs:
+  - slug: retries-idempotency-001
+    title: Thử lại (retry) nhằm phục hồi lỗi nào trong giao tiếp HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-idempotency-002
+    title: Đánh giá khả năng thử lại theo phương thức, trạng thái và lỗi đường truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-idempotency-003
+    title: Tính lũy đẳng của phương thức và tính lũy đẳng của nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-idempotency-004
+    title: Lặp lại yêu cầu có thể trả trạng thái khác dù hiệu ứng không đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-idempotency-005
+    title: Yêu cầu POST, khóa chống trùng và hợp đồng do ứng dụng xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-idempotency-006
+    title: Lưu kết quả theo khóa và kiểm tra nội dung khi khóa được sử dụng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-idempotency-007
+    title: Thử lại sau timeout với kết quả xử lý chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-idempotency-008
+    title: Giới hạn số lần thử, tổng thời gian và điều kiện dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-idempotency-009
+    title: Tăng thời gian chờ (backoff), thêm độ lệch ngẫu nhiên (jitter)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-idempotency-010
+    title: Retry-After với phản hồi 429 hoặc 503
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-idempotency-011
+    title: Nội dung chỉ đọc được một lần và điều kiện gửi lại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-idempotency-012
+    title: Tránh khuếch đại tải khi nhiều tầng cùng tự động thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-security
+  title: Bảo mật HTTP
+  childs:
+  - slug: http-security-001
+    title: HTTPS bảo vệ đường truyền và ranh giới bảo vệ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-002
+    title: Chuỗi chứng chỉ, tên máy chủ và kiểm tra danh tính điểm kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-003
+    title: HSTS và nâng cấp truy cập sang HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-004
+    title: Dữ liệu nhạy cảm trong URL, trường HTTP, cookie và log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-005
+    title: Giới hạn kích thước đầu vào và kiểm tra cú pháp thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-006
+    title: Chèn dòng CRLF và nguy cơ làm sai cấu trúc trường HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-007
+    title: 'Request smuggling: nhận diện nguy cơ khi các tầng hiểu ranh giới khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-008
+    title: 'SSRF: ranh giới kiểm soát khi máy chủ gọi URL từ dữ liệu bên ngoài'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-009
+    title: Chuyển hướng không được kiểm soát và chuyển tiếp thông tin truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-010
+    title: CSRF và mối liên hệ với cookie được trình duyệt tự gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-011
+    title: XSS, HttpOnly và giới hạn bảo vệ của từng cơ chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-012
+    title: Kiểm tra loại nội dung và vai trò của X-Content-Type-Options
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-013
+    title: Referrer-Policy và giới hạn thông tin nguồn trang được tiết lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-security-014
+    title: Phân biệt bảo vệ giao thức, cấu hình hạ tầng và kiểm tra quyền nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Độ trễ, thông lượng và số yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Chi phí DNS, kết nối, TLS và tác dụng của tái sử dụng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Nhóm kết nối, thời gian chờ lấy kết nối và nguy cơ cạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Kích thước yêu cầu, phản hồi và ảnh hưởng của nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Bộ nhớ đệm, tái kiểm tra và giảm lượng nội dung truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Đọc theo dòng để giới hạn bộ nhớ và nhận dữ liệu sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Giới hạn song song theo khả năng của client, máy chủ và dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Tác động của khoảng cách mạng, mất gói và các chặng trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: So sánh tải nhỏ, tải lớn và nhiều yêu cầu ngắn giữa các phiên bản HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Giới hạn tốc độ, hàng đợi chờ và kiểm soát quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Đo trước khi tối ưu và phân biệt nút thắt mạng với nút thắt xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-diagnostics
+  title: Quan sát và chẩn đoán
+  childs:
+  - slug: observability-diagnostics-001
+    title: Ghi nhận phương thức, đường dẫn, trạng thái, dung lượng và thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-002
+    title: Mã yêu cầu (request ID), mã liên kết và truy vết phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-003
+    title: traceparent và truyền ngữ cảnh quan sát qua các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-004
+    title: Tách thời gian client, trung gian và máy chủ để tìm điểm chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-005
+    title: Đọc chuỗi chuyển hướng và xác định nơi phát sinh phản hồi cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-006
+    title: Đọc access log, log lỗi và thông tin do gateway bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-007
+    title: Quan sát HTTP bằng công cụ Network của trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-008
+    title: Dùng curl để xem trường, nội dung, mã trạng thái và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-009
+    title: Quan sát mã hóa, nén và phiên bản thực tế khi chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-010
+    title: Ẩn thông tin xác thực, cookie và dữ liệu cá nhân trong bằng chứng chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-011
+    title: Lập bảng triệu chứng → lớp gây lỗi → bằng chứng cần thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communication-testing
+  title: Kiểm thử giao tiếp
+  childs:
+  - slug: communication-testing-001
+    title: Kiểm thử hợp đồng của phương thức, URL, trường và nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-testing-002
+    title: Kiểm tra mã trạng thái cùng ý nghĩa dữ liệu phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-testing-003
+    title: Kiểm thử nội dung rỗng, HEAD, 204 và 304
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-testing-004
+    title: Kiểm thử kiểu nội dung, bộ mã ký tự và dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-testing-005
+    title: Kiểm thử chuyển hướng, thay đổi phương thức và giới hạn vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-testing-006
+    title: Kiểm thử lưu đệm, Vary và yêu cầu có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-testing-007
+    title: Kiểm thử cookie, xác thực và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-testing-008
+    title: Kiểm thử CORS bằng trình duyệt và phân biệt với lời gọi ngoài trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-testing-009
+    title: Mô phỏng phản hồi chậm, ngắt kết nối và dữ liệu truyền thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-testing-010
+    title: Kiểm thử thử lại và số lần tạo hiệu ứng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-testing-011
+    title: Kiểm thử qua trung gian thay vì chỉ gọi trực tiếp máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-testing-012
+    title: Tách kiểm thử giao thức, kiểm thử nghiệp vụ và kiểm thử tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Vẽ sơ đồ yêu cầu–phản hồi từ trình duyệt hoặc ứng dụng Java đến máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Phân tích URL và xác định phần được gửi trong yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Đọc một cặp HTTP/1.1 thô và đối chiếu từng trường với dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Thực nghiệm GET, HEAD, POST, PUT, PATCH, DELETE và OPTIONS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Gửi JSON, biểu mẫu và multipart rồi quan sát Content-Type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Thực nghiệm 200, 201, 202, 204 và các phản hồi lỗi đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Quan sát 301, 302, 303, 307 và 308 cùng phương thức sau chuyển hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Thực nghiệm ETag, 304 và cập nhật có điều kiện bằng If-Match
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Tải tệp theo Range, tiếp tục tải và phát hiện biểu diễn đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Quan sát cookie, phiên đăng nhập và yêu cầu liên nguồn có preflight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Gửi yêu cầu bằng Java và kiểm tra việc đọc, đóng nội dung phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Mô phỏng timeout, thử lại và xác nhận hiệu ứng không bị tạo trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-013
+    title: So sánh gọi trực tiếp với gọi qua reverse proxy hoặc gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-014
+    title: Đo thời gian, thu thập log đã che bí mật và lập báo cáo chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-015
+    title: Tổng kết nền tảng và định hướng học sâu HTTP client, REST, SSE hoặc WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,57 @@
+roadmap:
+- id: kafka-event-streaming
+  title: Kafka & Event Streaming
+  purpose: Hiểu mô hình event log phân tán và thành phần của Kafka để phân biệt event streaming với hàng đợi truyền thống.
+  objectives:
+  - Phân biệt event streaming với message queue
+  - Mô tả broker, cluster và KRaft controller
+  - Chạy Kafka local và tạo topic thử nghiệm
+- id: topic-partition-key
+  title: Topic, Partition & Key
+  purpose: Thiết kế luồng sự kiện theo topic và partition để cân bằng khả năng mở rộng với thứ tự dữ liệu.
+  objectives:
+  - Phân biệt topic, partition và offset
+  - Chọn key để giữ thứ tự theo một thực thể
+  - Giải thích thứ tự chỉ được bảo đảm trong partition
+- id: producer-serialization
+  title: Producer & Serialization
+  purpose: Gửi sự kiện đúng topic, key và định dạng với khả năng xử lý lỗi ghi phù hợp.
+  objectives:
+  - Dùng Producer API để gửi record
+  - Chọn key/value serializer và schema dữ liệu
+  - Kiểm tra callback, retry và lỗi gửi
+- id: consumer-group-offset
+  title: Consumer Group & Offset
+  purpose: Đọc và xử lý sự kiện theo nhóm consumer, quản lý tiến độ để hỗ trợ mở rộng và phát lại.
+  objectives:
+  - Đăng ký consumer vào group và poll records
+  - Giải thích phân bổ partition, rebalance và lag
+  - Thử commit, seek và đọc lại theo offset
+- id: replication-delivery
+  title: Replication & Delivery
+  purpose: Hiểu các bảo đảm về độ bền và cách cấu hình producer/consumer theo yêu cầu mất mát, trùng lặp dữ liệu.
+  objectives:
+  - Giải thích leader, replica và ISR
+  - Phân biệt acks, idempotence và transactions
+  - So sánh at-most-once, at-least-once và exactly-once
+- id: retention-replay-compaction
+  title: Retention, Replay & Compaction
+  purpose: Khai thác tính lưu trữ lâu dài của Kafka và quản lý vòng đời sự kiện một cách có kiểm soát.
+  objectives:
+  - Thiết lập chính sách retention theo thời gian hoặc dung lượng
+  - Đọc lại sự kiện từ offset cũ
+  - Phân biệt log compaction với xóa theo retention
+- id: kafka-connect-streams
+  title: Kafka Connect & Streams
+  purpose: Nhận biết các API tích hợp và xử lý luồng trước khi lựa chọn công cụ phù hợp.
+  objectives:
+  - Phân biệt source connector và sink connector
+  - Thiết kế phép biến đổi bằng Kafka Streams
+  - Giải thích xử lý stateful và cửa sổ thời gian
+- id: bao-mat-van-hanh-kiem-thu
+  title: Bảo mật, vận hành & kiểm thử
+  purpose: Vận hành luồng sự kiện an toàn và phát hiện sớm lỗi dữ liệu hoặc độ trễ xử lý.
+  objectives:
+  - Áp dụng TLS, authentication và ACL cơ bản
+  - Theo dõi consumer lag, throughput và lỗi broker
+  - Kiểm thử producer-consumer, retry và xử lý trùng lặp

@@ -1,0 +1,79 @@
+menu:
+  - title: "API như hợp đồng giao tiếp giữa các hệ thống"
+    slug: api-contracts
+    index: 0
+  - title: "Xác định nhu cầu tích hợp và phạm vi hợp đồng"
+    slug: integration-requirements-and-scope
+    index: 1
+  - title: "Các kiểu API và mô hình tương tác"
+    slug: api-styles-and-interaction-models
+    index: 2
+  - title: "Vòng đời request–response và ranh giới lỗi qua mạng"
+    slug: request-response-lifecycle
+    index: 3
+  - title: "Nền tảng HTTP và cấu trúc thông điệp"
+    slug: http-foundations
+    index: 4
+  - title: "Mô hình tài nguyên và thiết kế URI"
+    slug: resource-modeling-and-uri-design
+    index: 5
+  - title: "Ngữ nghĩa phương thức HTTP và thao tác tài nguyên"
+    slug: http-methods-and-resource-operations
+    index: 6
+  - title: "Mã trạng thái HTTP và metadata của phản hồi"
+    slug: http-status-codes-and-metadata
+    index: 7
+  - title: "Biểu diễn dữ liệu và hợp đồng schema"
+    slug: data-representations-and-schemas
+    index: 8
+  - title: "Ngữ nghĩa của trường dữ liệu và các trường hợp biên"
+    slug: data-field-semantics-and-edge-cases
+    index: 9
+  - title: "Tiếp nhận đầu vào, kiểm tra hợp lệ và cập nhật"
+    slug: input-validation-and-updates
+    index: 10
+  - title: "Thiết kế lỗi như một phần của hợp đồng"
+    slug: error-contracts
+    index: 11
+  - title: "Thiết kế truy vấn, tập hợp và phân trang"
+    slug: collection-queries-and-pagination
+    index: 12
+  - title: "Danh tính, xác thực và thông tin bí mật"
+    slug: identity-authentication-and-secrets
+    index: 13
+  - title: "Phân quyền, cô lập dữ liệu và quyền riêng tư"
+    slug: authorization-isolation-and-privacy
+    index: 14
+  - title: "Bảo vệ API trước đầu vào và lưu lượng không tin cậy"
+    slug: api-security-and-abuse-protection
+    index: 15
+  - title: "Tính lũy đẳng, đồng thời và tính nhất quán"
+    slug: idempotency-concurrency-and-consistency
+    index: 16
+  - title: "Độ tin cậy và hành vi khi có sự cố"
+    slug: reliability-and-failure-handling
+    index: 17
+  - title: "Tác vụ dài, bất đồng bộ và webhook"
+    slug: async-tasks-and-webhooks
+    index: 18
+  - title: "Hiệu năng, bộ nhớ đệm và sử dụng tài nguyên"
+    slug: api-performance-and-caching
+    index: 19
+  - title: "Tiến hóa hợp đồng, phiên bản và khả năng tương thích"
+    slug: contract-evolution-version-compatibility
+    index: 20
+  - title: "Đặc tả và tài liệu phục vụ tích hợp"
+    slug: api-specifications-and-documentation
+    index: 21
+  - title: "Kiểm thử hợp đồng và đánh giá chất lượng thiết kế"
+    slug: contract-testing-and-design-quality
+    index: 22
+  - title: "Khả năng quan sát và vận hành API"
+    slug: api-observability-and-operations
+    index: 23
+  - title: "Thiết kế API tại ranh giới nhiều hệ thống"
+    slug: cross-system-api-design
+    index: 24
+  - title: "Tình huống tổng hợp và rà soát hợp đồng API"
+    slug: api-design-case-studies-and-review
+    index: 25

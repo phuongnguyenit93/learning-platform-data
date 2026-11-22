@@ -1,0 +1,510 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - REST là gì và bài toán kiến trúc hệ thống phân tán
+  - Tài nguyên, biểu diễn, client và server liên hệ với nhau thế nào
+  - Phân biệt phong cách REST với giao thức HTTP và định dạng JSON
+  - RESTful API, HTTP API và API theo kiểu RPC
+  - Từ yêu cầu nghiệp vụ đến một lượt trao đổi tài nguyên
+  - Khi nào nên dùng REST và khi nào nên chọn cách tích hợp khác
+  - So sánh REST với SOAP, GraphQL, gRPC và tích hợp bằng sự kiện
+  - Ưu điểm, chi phí và giới hạn của REST
+  - Lộ trình thiết kế, triển khai và kiểm chứng một API hoàn chỉnh
+- level1: Ràng buộc REST
+  level2:
+  - Client-server và tách trách nhiệm giữa giao diện, dữ liệu
+  - Stateless và trạng thái cần có trong mỗi yêu cầu
+  - Phân biệt trạng thái ứng dụng với trạng thái tài nguyên
+  - Cacheable và khai báo khả năng lưu đệm
+  - Uniform interface và bốn ràng buộc thành phần
+  - Định danh tài nguyên và thao tác qua biểu diễn
+  - Thông điệp tự mô tả và vai trò của media type
+  - Hypermedia điều khiển chuyển trạng thái ứng dụng
+  - Layered system với proxy, gateway và cache trung gian
+  - Code-on-demand là ràng buộc tùy chọn
+  - Mô hình trưởng thành Richardson và giới hạn khi dùng để đánh giá REST
+- level1: Nền tảng HTTP
+  level2:
+  - Cấu trúc request, response, header và nội dung
+  - URI, origin, scheme, host, port, path và query
+  - Ngữ nghĩa HTTP độc lập với HTTP/1.1, HTTP/2, HTTP/3
+  - Request target, phương thức và tài nguyên đích
+  - Content-Type, Accept và biểu diễn được trao đổi
+  - Phân biệt metadata của biểu diễn với metadata của kết nối
+  - End-to-end header, hop-by-hop header và vai trò trung gian
+  - HTTPS, định danh máy chủ và bảo vệ dữ liệu trên đường truyền
+  - Đọc trao đổi HTTP thực tế bằng curl hoặc công cụ phát triển
+  - Phân biệt lỗi DNS, TLS, kết nối và phản hồi lỗi HTTP
+- level1: Mô hình tài nguyên
+  level2:
+  - Nhận diện tài nguyên từ khái niệm nghiệp vụ
+  - Phân biệt tài nguyên với bảng dữ liệu và đối tượng Java
+  - Tài nguyên đơn, tập hợp và tài nguyên con
+  - Định danh ổn định và vòng đời của tài nguyên
+  - Quan hệ sở hữu, tham chiếu và liên kết giữa tài nguyên
+  - Aggregate và ranh giới thao tác nhất quán
+  - Biểu diễn trạng thái nghiệp vụ bằng tài nguyên
+  - Mô hình hóa lệnh bằng tài nguyên yêu cầu hoặc lần thực hiện
+  - Tài nguyên tính toán, báo cáo và kết quả truy vấn
+  - Thiết kế tài nguyên cho nghiệp vụ vượt CRUD
+  - Đánh đổi độ hạt API, số lượt gọi và mức phụ thuộc client
+- level1: Thiết kế URI
+  level2:
+  - Quy ước đặt tên path, danh từ và tính nhất quán
+  - Tham số đường dẫn để định danh, tham số truy vấn để chọn dữ liệu
+  - Tài nguyên lồng nhau và giới hạn độ sâu
+  - Định danh số, UUID, khóa tự nhiên và khóa ghép
+  - URI chuẩn và nhiều đường dẫn cùng tham chiếu tài nguyên
+  - Percent-encoding, Unicode và ký tự đặc biệt
+  - Phân biệt dấu gạch chéo cuối, chữ hoa thường và quy tắc định tuyến
+  - Query lặp, danh sách tham số và quy ước tuần tự hóa
+  - URI template và xây dựng URI an toàn
+  - Liên kết tương đối, tuyệt đối và base URL sau proxy
+  - Tránh đưa secret hoặc dữ liệu nhạy cảm vào URI
+  - Đổi URI, redirect và giữ liên kết cũ hoạt động
+- level1: Biểu diễn dữ liệu
+  level2:
+  - Tách tài nguyên khỏi biểu diễn JSON, XML hoặc nhị phân
+  - Media type, structured syntax suffix và media type tùy chỉnh
+  - Content negotiation theo Accept và Content-Type
+  - Charset, UTF-8 và quy tắc xử lý JSON
+  - DTO cho yêu cầu, phản hồi và các trường chỉ đọc
+  - Phân biệt trường thiếu, null, giá trị rỗng và mặc định
+  - Kiểu số, độ chính xác và giới hạn giữa các ngôn ngữ
+  - Thời gian, múi giờ, định dạng chuẩn và đơn vị đo
+  - Enum, giá trị chưa biết và khả năng mở rộng
+  - Quy ước tên trường, cấu trúc lồng và biểu diễn quan hệ
+  - Envelope phản hồi và đánh đổi khi bọc mọi kết quả
+  - Đa ngôn ngữ, Accept-Language và Content-Language
+  - Vary khi một URI có nhiều biểu diễn
+- level1: Phương thức HTTP
+  level2:
+  - Safe, idempotent và cacheable là ba thuộc tính khác nhau
+  - GET để đọc và rủi ro tạo tác dụng phụ từ thao tác đọc
+  - HEAD và quan hệ metadata với GET
+  - POST để xử lý biểu diễn hoặc tạo tài nguyên trong tập hợp
+  - PUT và ngữ nghĩa thay thế trạng thái tại URI do client biết
+  - PUT tạo mới, cập nhật và xử lý trường bị thiếu
+  - PATCH và điều kiện dùng định dạng bản vá
+  - 'JSON Patch: add, remove, replace, move, copy và test'
+  - 'JSON Merge Patch: ý nghĩa null và thay thế mảng'
+  - PATCH không mặc định có tính lũy đẳng
+  - DELETE và ngữ nghĩa loại bỏ liên kết của tài nguyên đích
+  - OPTIONS, Allow và mô tả phương thức được hỗ trợ
+  - Nội dung trong GET, HEAD, DELETE và giới hạn liên thông
+  - Chọn phương thức theo ý nghĩa thay vì tên hàm xử lý
+- level1: Mã trạng thái
+  level2:
+  - Nhóm 1xx, 2xx, 3xx, 4xx, 5xx và trách nhiệm diễn giải
+  - 200, 201, 202, 204 cho các kết quả thành công khác nhau
+  - Location khi tạo tài nguyên và theo dõi xử lý bất đồng bộ
+  - 301, 302, 303, 307, 308 và bảo toàn phương thức khi chuyển hướng
+  - 304 cho xác thực bộ nhớ đệm và nội dung không thay đổi
+  - 400, 415, 422 cho cú pháp, media type và nội dung không xử lý được
+  - 401, WWW-Authenticate và khác biệt với 403
+  - 404, 410 và chính sách tiết lộ sự tồn tại của tài nguyên
+  - 405, Allow và phương thức không được hỗ trợ
+  - 409, 412, 428 cho xung đột và yêu cầu có điều kiện
+  - 413, 414, 416 cho giới hạn kích thước và phạm vi dữ liệu
+  - 429, Retry-After và phản hồi khi quá hạn mức
+  - 500, 502, 503, 504 theo tầng phát sinh sự cố
+  - Chọn status đúng và tránh biến mọi kết quả thành HTTP 200
+- level1: Thao tác tài nguyên
+  level2:
+  - Tạo mới với ID do server hoặc client cấp
+  - Phản hồi dữ liệu tạo mới và URI tài nguyên
+  - Đọc tài nguyên không tồn tại, đã xóa hoặc không được phép thấy
+  - Thay thế toàn bộ và cập nhật một phần
+  - Kiểm tra tính nguyên tử khi áp dụng bản vá
+  - Xóa mềm, xóa cứng và ý nghĩa hợp đồng API
+  - Thao tác trên quan hệ như thành viên, quyền hoặc mặt hàng
+  - Yêu cầu hủy, duyệt hoặc chuyển trạng thái nghiệp vụ
+  - Thao tác hàng loạt và kết quả từng phần
+  - Quy tắc phản hồi khi cùng thao tác được gọi lại
+  - Ngăn mô hình dữ liệu nội bộ quyết định toàn bộ thiết kế API
+- level1: Lỗi API
+  level2:
+  - Phân loại lỗi giao thức, dữ liệu đầu vào và nghiệp vụ
+  - Problem Details theo RFC 9457
+  - type, title, status, detail và instance
+  - application/problem+json và thương lượng biểu diễn lỗi
+  - Mã lỗi nghiệp vụ ổn định và trường mở rộng
+  - Lỗi theo trường, theo phần tử và đường dẫn dữ liệu
+  - Phân biệt thông báo cho con người với mã để client xử lý
+  - Quốc tế hóa thông báo mà không đổi danh tính lỗi
+  - Lỗi nhiều nguyên nhân và kiểm soát lượng thông tin trả về
+  - Correlation ID và liên kết lỗi với dữ liệu chẩn đoán
+  - Che stack trace, câu SQL, token và thông tin nội bộ
+  - Thống nhất lỗi từ ứng dụng, security filter và gateway
+- level1: Truy vấn tập hợp
+  level2:
+  - Lọc chính xác, lọc khoảng và kết hợp điều kiện
+  - Thiết kế cú pháp lọc có giới hạn và kiểm soát trường được phép
+  - Sắp xếp nhiều trường và thứ tự ổn định
+  - Phân trang offset, page number và đánh đổi hiệu năng
+  - Phân trang cursor, keyset và khóa sắp xếp duy nhất
+  - Cursor mờ, phạm vi hiệu lực và bảo vệ khỏi sửa đổi
+  - Dữ liệu thêm, xóa giữa các trang và tính nhất quán khi duyệt
+  - Giới hạn page size và chi phí đếm tổng số phần tử
+  - Metadata, liên kết trang kế tiếp và điều kiện kết thúc
+  - Tập hợp rỗng và tài nguyên tập hợp không tồn tại
+  - Chọn trường trả về và mở rộng quan hệ có kiểm soát
+  - Truy vấn phức tạp, tài nguyên tìm kiếm và lựa chọn GET hoặc POST
+  - Ngăn truy vấn không giới hạn và rò rỉ dữ liệu qua bộ lọc
+- level1: Hypermedia
+  level2:
+  - HATEOAS và vai trò của liên kết trong luồng sử dụng API
+  - Link relation, target URI và ngữ cảnh liên kết
+  - Link header theo chuẩn Web Linking
+  - Biểu diễn self, collection, next và các quan hệ nghiệp vụ
+  - Affordance và cách mô tả thao tác có thể thực hiện
+  - Liên kết phụ thuộc trạng thái hoặc quyền người sử dụng
+  - Media type, profile và quy ước diễn giải biểu diễn
+  - HAL và Spring HATEOAS như một lựa chọn triển khai
+  - Khám phá API từ điểm vào thay vì ghép URI trong client
+  - Kiểm thử điều hướng và giới hạn của hypermedia trong công cụ phổ biến
+- level1: Bộ nhớ đệm
+  level2:
+  - Bộ nhớ đệm riêng, dùng chung và nơi có thể lưu phản hồi
+  - Khả năng cache theo phương thức, status và header
+  - 'Cache-Control: max-age, s-maxage, public và private'
+  - Phân biệt no-cache với no-store
+  - Freshness, Age, Date, Expires và thời điểm cần xác thực lại
+  - ETag, Last-Modified và yêu cầu đọc có điều kiện
+  - If-None-Match, If-Modified-Since và phản hồi 304
+  - Vary và khóa cache cho nhiều biểu diễn
+  - Authorization, cookie và nguy cơ cache chéo người dùng
+  - Must-revalidate và các chính sách phục vụ dữ liệu cũ
+  - Vô hiệu hóa cache sau thao tác ghi và giới hạn nhất quán
+  - CDN, reverse proxy và kiểm chứng header thực tế
+- level1: Điều kiện và đồng thời
+  level2:
+  - Bài toán mất cập nhật (lost update) khi nhiều client cùng sửa tài nguyên
+  - ETag mạnh, ETag yếu và ngữ nghĩa so sánh
+  - If-Match để ngăn ghi đè trạng thái đã thay đổi
+  - 'If-None-Match: * khi tạo chỉ nếu tài nguyên chưa tồn tại'
+  - If-Unmodified-Since và giới hạn độ chính xác thời gian
+  - 412 Precondition Failed và luồng đọc lại, hòa giải thay đổi
+  - 428 Precondition Required và chính sách bắt buộc điều kiện
+  - Phân biệt xung đột phiên bản với xung đột nghiệp vụ 409
+  - Ánh xạ optimistic locking của dữ liệu sang HTTP precondition
+  - Điều kiện cho PUT, PATCH, DELETE và tính nguyên tử phía server
+  - Kiểm thử cạnh tranh bằng nhiều yêu cầu đồng thời
+- level1: Lũy đẳng và thử lại
+  level2:
+  - Tính lũy đẳng đo tác động dự kiến, không đòi phản hồi giống hệt
+  - GET, PUT, DELETE và phạm vi bảo đảm theo ngữ nghĩa phương thức
+  - Timeout sau khi server đã xử lý và kết quả không xác định
+  - Phân loại lỗi được thử lại theo phương thức và hợp đồng
+  - Backoff, jitter, giới hạn số lần và ngân sách thời gian
+  - Retry-After và cách client tôn trọng tín hiệu server
+  - Thiết kế khóa chống trùng cho POST có tác dụng phụ
+  - Phạm vi khóa, fingerprint yêu cầu và phát hiện tái sử dụng sai
+  - Lưu bền kết quả, trạng thái đang xử lý và thời hạn giữ khóa
+  - Xử lý hai yêu cầu cùng khóa đến đồng thời
+  - Chống trùng tác dụng phụ ngoài cơ sở dữ liệu
+  - Đối soát kết quả và giới hạn của lời hứa xử lý đúng một lần
+- level1: Xử lý bất đồng bộ
+  level2:
+  - Khi nào cần tách tiếp nhận yêu cầu khỏi hoàn tất công việc
+  - 202 Accepted và thông tin theo dõi công việc
+  - Tài nguyên job, trạng thái, tiến độ và kết quả
+  - Polling, khoảng chờ và giới hạn tần suất kiểm tra
+  - 303 See Other để điều hướng tới kết quả khi phù hợp
+  - Hủy công việc và trường hợp đã bắt đầu tạo tác dụng phụ
+  - Hết hạn job, lưu kết quả và phản hồi với tài nguyên đã dọn
+  - Phân biệt lỗi tiếp nhận với lỗi phát sinh trong lúc chạy
+  - Chống trùng yêu cầu tạo job và khôi phục sau khởi động lại
+  - Thông báo hoàn tất bằng webhook hoặc SSE theo hợp đồng riêng
+  - Ủy quyền truy cập trạng thái và kết quả công việc
+- level1: Tệp và dữ liệu lớn
+  level2:
+  - Chọn dữ liệu nhị phân, multipart/form-data hoặc tài nguyên tệp
+  - Upload trực tiếp và upload qua URL có chữ ký giới hạn thời gian
+  - Metadata, trạng thái xử lý và vòng đời của tệp
+  - Giới hạn kích thước, loại tệp và kiểm tra nội dung
+  - Đọc, ghi theo luồng và kiểm soát bộ nhớ
+  - Content-Disposition, tên tệp và Content-Type khi tải xuống
+  - Range, Accept-Ranges, Content-Range và phản hồi 206
+  - If-Range và tránh nối các phần từ nhiều phiên bản
+  - Upload chia phần, tiếp tục tải và lựa chọn giao thức bổ sung
+  - Checksum, tác vụ quét và công bố tệp sau xử lý
+  - Phân quyền, thời hạn liên kết và dọn tệp không hoàn tất
+- level1: Hợp đồng OpenAPI
+  level2:
+  - Vai trò OpenAPI và khác biệt với bản thân phong cách REST
+  - API-first, code-first và đồng bộ hợp đồng với triển khai
+  - Chọn phiên bản OpenAPI theo công cụ và khả năng JSON Schema
+  - paths, operations, parameters và requestBody
+  - responses, response headers và nhiều media type
+  - Schema cho object, array, enum, null và trường bắt buộc
+  - $ref, components và tổ chức tài liệu có thể tái sử dụng
+  - allOf, oneOf, anyOf, discriminator và giới hạn công cụ sinh mã
+  - Security scheme, requirement và mô tả scope
+  - Ví dụ thành công, lỗi, phân trang và yêu cầu có điều kiện
+  - Links, callbacks và webhooks trong phạm vi phiên bản hỗ trợ
+  - Sinh tài liệu, mock server và SDK từ cùng hợp đồng
+  - Lint, phát hiện thay đổi phá vỡ tương thích và kiểm tra trong CI
+  - springdoc-openapi và chọn phiên bản phù hợp Spring Boot
+- level1: Tiến hóa API
+  level2:
+  - Thay đổi tương thích về cấu trúc, ngữ nghĩa và hành vi
+  - Thêm trường, thêm enum và client không chấp nhận dữ liệu lạ
+  - Đổi tên, đổi kiểu, siết validation và bỏ trường
+  - Version trong path, header hoặc media type và các đánh đổi
+  - Quản lý đồng thời nhiều phiên bản bằng hợp đồng riêng
+  - Deprecation header và liên kết tài liệu chuyển đổi
+  - Sunset header và lịch ngừng phục vụ phiên bản
+  - Đổi URI, giữ alias và di chuyển client có kiểm soát
+  - Phát hiện bên sử dụng còn phụ thuộc hợp đồng cũ
+  - Phát hiện thay đổi phá vỡ tương thích bằng công cụ và kiểm thử hành vi
+  - Lộ trình chuyển đổi, hỗ trợ và xác nhận kết thúc phiên bản
+- level1: Spring MVC
+  level2:
+  - Luồng xử lý qua Servlet filter, DispatcherServlet và controller
+  - Chọn Java, Spring Boot và thư viện tương thích
+  - '@RestController, @RequestMapping và ánh xạ theo phương thức'
+  - '@PathVariable, @RequestParam, @RequestHeader và @CookieValue'
+  - '@RequestBody và HttpMessageConverter'
+  - Jackson, ObjectMapper và quy tắc tuần tự hóa DTO
+  - consumes, produces và lỗi thương lượng nội dung
+  - ResponseEntity để kiểm soát status, header và nội dung
+  - Tạo Location, liên kết và URI qua bộ dựng URI
+  - Thiết kế controller mỏng với service, repository và DTO
+  - Ánh xạ phân trang, sắp xếp và giới hạn truy vấn
+  - Triển khai ETag, Cache-Control và yêu cầu có điều kiện
+  - MultipartFile, Resource và phản hồi tải tệp
+  - Callable, DeferredResult và xử lý bất đồng bộ trong MVC
+  - Filter, HandlerInterceptor và ranh giới trách nhiệm
+- level1: Dữ liệu và lỗi Spring
+  level2:
+  - Jakarta Bean Validation và ràng buộc trên DTO
+  - '@Valid, @Validated và kiểm tra phương thức'
+  - Kiểm tra đối tượng lồng, collection và validation group
+  - Phân biệt lỗi binding, conversion, validation và nghiệp vụ
+  - Ràng buộc tùy chỉnh và kiểm tra nhiều trường
+  - Tách kiểm tra cấu trúc khỏi kiểm tra có truy cập dữ liệu
+  - '@ExceptionHandler và @RestControllerAdvice'
+  - ResponseEntityExceptionHandler và xử lý lỗi framework
+  - ProblemDetail, ErrorResponse và trường mở rộng
+  - Chuẩn hóa lỗi parse JSON, thiếu tham số, sai media type
+  - Ánh xạ lỗi tranh chấp dữ liệu sang 409 hoặc 412 theo ngữ cảnh
+  - Kiểm soát trường Jackson được đọc, ghi và tránh mass assignment
+  - Quốc tế hóa thông báo cùng mã lỗi ổn định
+- level1: Spring WebFlux
+  level2:
+  - Chọn WebFlux theo mô hình I/O và hệ sinh thái phụ thuộc
+  - Reactive Streams, Mono, Flux và vòng đời subscription
+  - Annotated controller và functional endpoint
+  - ServerRequest, ServerResponse và định tuyến hàm
+  - Body codec, giới hạn bộ đệm và xử lý nội dung lớn
+  - Xử lý lỗi và Problem Details trong reactive stack
+  - Tránh chặn event loop khi gọi thư viện blocking
+  - Backpressure và giới hạn của nó qua HTTP
+  - Hủy yêu cầu, timeout và giải phóng tài nguyên
+  - WebTestClient để kiểm thử API phản ứng
+  - Phân biệt lựa chọn reactive với lựa chọn phong cách REST
+- level1: Jakarta REST
+  level2:
+  - Jakarta RESTful Web Services và tên gọi JAX-RS
+  - Phân biệt API đặc tả với Jersey, RESTEasy hoặc runtime khác
+  - '@Path, @GET, @POST, @PUT, @PATCH và @DELETE'
+  - '@PathParam, @QueryParam, @HeaderParam và @BeanParam'
+  - '@Consumes, @Produces và ánh xạ media type'
+  - Response, UriInfo và xây dựng phản hồi có metadata
+  - MessageBodyReader, MessageBodyWriter và chuyển đổi dữ liệu
+  - ExceptionMapper và định dạng lỗi thống nhất
+  - ContainerRequestFilter, ContainerResponseFilter và interceptor
+  - Cấu hình triển khai, dependency và namespace jakarta
+  - Đối chiếu cùng hợp đồng HTTP trên Spring MVC và Jakarta REST
+- level1: Client Java
+  level2:
+  - Chọn Java HttpClient, RestClient hoặc WebClient theo nhu cầu
+  - Khởi tạo client dùng chung và quản lý vòng đời tài nguyên
+  - Xây dựng URI, mã hóa path và query đúng ngữ cảnh
+  - Thiết lập Accept, Content-Type, Authorization và metadata
+  - Serialize yêu cầu và deserialize kiểu generic của phản hồi
+  - Đọc status, header, nội dung rỗng và Problem Details
+  - RestClient đồng bộ và các thao tác trao đổi mức thấp
+  - WebClient bất đồng bộ, hủy lời gọi và xử lý lỗi
+  - HTTP Service Interface với @HttpExchange
+  - RestTemplate trong hệ thống hiện có và lộ trình nâng cấp phù hợp phiên bản
+  - Connect timeout, response timeout và connection pool
+  - Retry, redirect và giữ an toàn thông tin xác thực
+  - Truyền trace context và khóa chống trùng khi được hợp đồng hỗ trợ
+  - Kiểm thử client bằng mock server và thông điệp HTTP thực tế
+- level1: Xác thực
+  level2:
+  - Phân biệt xác thực, phân quyền và bảo mật đường truyền
+  - API key, HTTP Basic, Bearer token và phạm vi áp dụng
+  - OAuth 2.0, OpenID Connect và vai trò resource server
+  - Access token khác ID token và refresh token như thế nào
+  - 'JWT và opaque token: mô hình kiểm tra, thu hồi và đánh đổi'
+  - Kiểm tra chữ ký, thuật toán, issuer, audience và thời hạn JWT
+  - JWKS, xoay khóa và xử lý lỗi lấy khóa
+  - Session cookie, stateless và lựa chọn quản lý phiên
+  - mTLS và định danh giữa các dịch vụ
+  - Spring Security filter chain và cấu hình resource server
+  - 401, WWW-Authenticate và lỗi token
+  - Quản lý secret, tránh log token và xoay thông tin xác thực
+- level1: Phân quyền và an toàn
+  level2:
+  - Quyền theo thao tác, vai trò, scope và thuộc tính
+  - Kiểm tra quyền theo từng đối tượng để ngăn BOLA, IDOR
+  - Kiểm tra quyền theo trường dữ liệu và chống mass assignment
+  - Ngăn truy cập chức năng quản trị qua endpoint thiếu kiểm soát
+  - Cách ly tenant và xác minh chủ sở hữu tài nguyên
+  - Phân quyền cho tìm kiếm, batch, job và tệp đính kèm
+  - Validation, parameterized query và phòng chống injection
+  - SSRF khi server tải URL do người dùng cung cấp
+  - Giới hạn độ sâu JSON, kích thước yêu cầu và chi phí xử lý
+  - Bảo vệ luồng nghiệp vụ nhạy cảm khỏi tự động hóa lạm dụng
+  - Kiểm soát dữ liệu trả về và thông báo lỗi để giảm rò rỉ
+  - Kiểm tra phản hồi từ API bên ngoài như dữ liệu không tin cậy
+  - Security header, TLS và cấu hình môi trường
+  - Audit log cho thay đổi quan trọng và bảo vệ dữ liệu nhạy cảm
+  - Rà soát rủi ro theo OWASP API Security Top 10
+- level1: API trên trình duyệt
+  level2:
+  - Same-origin policy và các thành phần tạo nên origin
+  - CORS simple request và preflight request
+  - Access-Control-Allow-Origin, Methods và Headers
+  - Credentialed request và giới hạn dùng wildcard
+  - Expose-Headers để client đọc ETag, Location và metadata
+  - 'Vary: Origin và tránh cache nhầm chính sách CORS'
+  - CORS là chính sách trình duyệt và phạm vi bảo vệ thực tế
+  - CSRF khi trình duyệt tự gửi cookie hoặc thông tin xác thực
+  - SameSite cookie, CSRF token và kiểm tra Origin theo mô hình ứng dụng
+  - XSS, lưu token và đánh đổi giữa bộ nhớ, cookie, localStorage
+  - Thứ tự xử lý CORS, security filter và gateway
+  - Chẩn đoán trường hợp curl thành công nhưng trình duyệt thất bại
+- level1: Giới hạn và chống lỗi
+  level2:
+  - Rate limiting, quota và giới hạn số yêu cầu đồng thời
+  - Chọn phạm vi hạn mức theo người dùng, tenant, IP hoặc thao tác
+  - Token bucket, leaky bucket và cửa sổ đếm
+  - Đếm phân tán và xử lý burst giữa nhiều nút
+  - 429, Retry-After và metadata hạn mức theo hợp đồng
+  - Phân biệt quá hạn mức client với server không sẵn sàng
+  - Timeout budget và truyền thời hạn qua chuỗi phụ thuộc
+  - Circuit breaker, bulkhead và tránh lỗi lan truyền
+  - Backpressure, hàng chờ hữu hạn và từ chối sớm
+  - Retry storm và nhân số lần thử lại giữa các tầng
+  - Giảm chức năng có kiểm soát và điều kiện trả dữ liệu rút gọn
+  - Giới hạn tài nguyên cho truy vấn, batch, upload và job dài
+- level1: Nhất quán nghiệp vụ
+  level2:
+  - Ranh giới giao dịch trong một yêu cầu API
+  - Đồng bộ hợp đồng phản hồi với thời điểm commit dữ liệu
+  - Tính nguyên tử cho một tài nguyên hoặc một thao tác batch
+  - Read-after-write và độ trễ khi đọc từ replica
+  - Eventual consistency và biểu diễn trạng thái đang xử lý
+  - Đồng bộ dữ liệu với cache, tìm kiếm và hệ thống ngoài
+  - Transactional Outbox khi vừa cập nhật dữ liệu vừa phát sự kiện
+  - Saga, xử lý bù và tài nguyên theo dõi tiến trình
+  - Thiết kế đối soát và sửa sai sau tác dụng phụ từng phần
+  - Tránh giữ giao dịch cơ sở dữ liệu trong lúc chờ API ngoài
+  - Kiểm chứng bất biến nghiệp vụ khi có cạnh tranh và retry
+- level1: Kiểm thử
+  level2:
+  - Phân chia unit test, controller test, integration test và end-to-end test
+  - MockMvc cho Spring MVC và WebTestClient cho reactive API
+  - REST Assured để kiểm thử giao diện HTTP
+  - Contract test giữa provider, consumer và OpenAPI
+  - Kiểm tra phương thức, status, header và media type
+  - Kiểm tra schema, validation và Problem Details
+  - Kiểm thử phân trang ổn định với dữ liệu thay đổi
+  - Kiểm thử ETag, 304, If-Match và xung đột đồng thời
+  - Kiểm thử chống trùng khi retry sau timeout
+  - Kiểm thử quyền theo đối tượng, tenant, trường và chức năng
+  - Kiểm thử CORS, CSRF và token không hợp lệ
+  - Mock server cho lỗi phụ thuộc, độ trễ và phản hồi bất thường
+  - Testcontainers cho phụ thuộc tích hợp có dữ liệu thực
+  - Load test, fault injection và kiểm thử phục hồi
+  - Quản lý dữ liệu kiểm thử độc lập, tái lập và dọn sạch trong CI
+- level1: Quan sát hệ thống
+  level2:
+  - Định nghĩa SLI, SLO theo độ sẵn sàng, độ trễ và kết quả nghiệp vụ
+  - Log có cấu trúc cho request, response và lỗi
+  - Correlation ID, trace ID và truyền ngữ cảnh qua HTTP
+  - Distributed tracing và xác định phụ thuộc gây chậm
+  - Metrics theo route template thay vì URI chứa ID
+  - Đo throughput, error rate, saturation và latency p95, p99
+  - Phân biệt lỗi 4xx dự kiến với lỗi ảnh hưởng chất lượng dịch vụ
+  - Quan sát thread pool, connection pool và hàng chờ
+  - Che Authorization, cookie, dữ liệu cá nhân và payload nhạy cảm
+  - Audit log khác access log và log chẩn đoán như thế nào
+  - Dashboard, cảnh báo và liên kết tới runbook
+  - Lấy mẫu truy vết, giới hạn số lượng nhãn và chi phí lưu trữ
+- level1: Hiệu năng
+  level2:
+  - Đặt ngân sách độ trễ và xác định đường xử lý quan trọng
+  - Tối ưu số lượt truy vấn, N+1 và lựa chọn dữ liệu cần trả
+  - Index, keyset pagination và giới hạn truy vấn tập hợp
+  - Kích thước payload, chọn trường và nén phản hồi
+  - Tối ưu serialization, cấp phát đối tượng và bộ đệm
+  - Caching nhiều tầng và kiểm tra hiệu lực sau thay đổi
+  - Connection pooling và tái sử dụng kết nối tới hệ thống đích
+  - Thread pool, virtual thread và giới hạn tài nguyên thực tế
+  - Streaming, hủy yêu cầu và giải phóng tài nguyên sớm
+  - HTTP/2, multiplexing và các nút thắt không được giao thức tự giải quyết
+  - Benchmark có tải đại diện, warmup và phân bố kích thước dữ liệu
+  - Kiểm chứng tối ưu không làm sai ngữ nghĩa, bảo mật hoặc tính nhất quán
+- level1: Triển khai và vận hành
+  level2:
+  - Cấu hình theo môi trường và quản lý secret
+  - Reverse proxy, load balancer và API gateway trong chuỗi xử lý
+  - Forwarded header, địa chỉ công khai và ranh giới proxy tin cậy
+  - TLS termination, giới hạn nội dung và timeout giữa các tầng
+  - Health check, readiness và phân biệt với API nghiệp vụ
+  - Graceful shutdown và hoàn tất yêu cầu đang xử lý
+  - Trạng thái cần lưu bền khi mở rộng nhiều tiến trình phục vụ
+  - Rolling deployment, canary và tương thích dữ liệu khi chạy nhiều phiên bản
+  - Migration dữ liệu theo thứ tự mở rộng rồi thu hẹp
+  - Cô lập endpoint quản trị, metrics và tài liệu nội bộ
+  - Khôi phục sau sự cố và xác minh hợp đồng, dữ liệu, phụ thuộc
+  - Runbook cho quá tải, chứng chỉ hết hạn và hệ thống đích gián đoạn
+- level1: Tài liệu và trải nghiệm
+  level2:
+  - Tài liệu theo hành trình sử dụng thay vì chỉ liệt kê endpoint
+  - Hướng dẫn bắt đầu với yêu cầu và phản hồi có thể chạy lại
+  - Mô tả xác thực, phân quyền và môi trường thử nghiệm
+  - Ví dụ lỗi, retry, cache và yêu cầu có điều kiện
+  - Mô tả quy ước phân trang, thời gian, số và giá trị null
+  - SDK, mã client sinh tự động và trách nhiệm bảo trì
+  - Changelog, thông báo thay đổi và hướng dẫn chuyển phiên bản
+  - API catalog, chủ sở hữu và vòng đời endpoint
+  - Quy tắc thiết kế, kiểm tra tự động và rà soát hợp đồng
+  - Đảm bảo tài liệu, ví dụ và triển khai khớp nhau qua CI
+- level1: Chẩn đoán sự cố
+  level2:
+  - 404 do sai route, context path hoặc đường dẫn sau proxy
+  - 405 do phương thức không khớp và kiểm tra Allow
+  - 400 do binding, JSON không hợp lệ hoặc tham số sai kiểu
+  - 406 và 415 do Accept, Content-Type hoặc converter
+  - 401, 403 do token, scope, quyền đối tượng hoặc CSRF
+  - Preflight bị chặn và header bị trình duyệt ẩn
+  - 409, 412 do xung đột nghiệp vụ hoặc ETag đã cũ
+  - Dữ liệu cũ do cache, Vary hoặc đọc replica
+  - Lặp tác dụng phụ do retry, timeout và chống trùng sai phạm vi
+  - Bỏ sót hoặc lặp phần tử do phân trang không ổn định
+  - 429, pool cạn và giới hạn cấu hình không đồng nhất
+  - 502, 503, 504 và lỗi ở gateway, ứng dụng hoặc phụ thuộc
+  - Redirect sai scheme, host hoặc chuyển tiếp thông tin xác thực
+  - Thu thập chứng cứ đã che dữ liệu và xác nhận nguyên nhân qua kiểm thử
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế mô hình tài nguyên cho API đơn hàng
+  - Soạn OpenAPI và rà soát luồng client trước khi triển khai
+  - Xây dựng API Spring MVC với DTO, validation và Problem Details
+  - Triển khai POST, PUT, PATCH, DELETE đúng ngữ nghĩa đã chọn
+  - Phân trang keyset với bộ lọc, sắp xếp và dữ liệu thay đổi
+  - Thêm ETag, 304 và If-Match để ngăn mất cập nhật
+  - Chống trùng khi tạo đơn hàng và mô phỏng timeout sau commit
+  - Mô hình hóa quy trình duyệt, hủy bằng tài nguyên nghiệp vụ
+  - Tạo job bất đồng bộ, theo dõi trạng thái và tải kết quả
+  - Upload, download theo luồng với kiểm soát quyền và kích thước
+  - Bảo vệ API bằng resource server, quyền đối tượng và cách ly tenant
+  - Gọi API từ client Java và trình duyệt để kiểm tra CORS, lỗi
+  - Kiểm thử tải, lỗi phụ thuộc và khả năng phục hồi
+  - Hoàn thiện tài liệu, dashboard, runbook và kế hoạch tiến hóa

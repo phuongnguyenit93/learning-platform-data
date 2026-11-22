@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-data-integration
+  title: Tổng quan Data Integration
+  purpose: Hiểu dòng chảy dữ liệu từ hệ thống nguồn đến đích và mục tiêu tích hợp.
+  objectives:
+  - Phân biệt source, sink và data pipeline.
+  - Nêu tình huống đồng bộ dữ liệu giữa hai hệ thống.
+  - Phân biệt ETL, ELT và replication.
+- id: connectors-ingestion
+  title: Connectors & Ingestion
+  purpose: Thu thập dữ liệu từ nhiều loại nguồn bằng kết nối và cơ chế nạp phù hợp.
+  objectives:
+  - Thử đọc dữ liệu từ JDBC, file hoặc API.
+  - Xác định khóa truy cập, phân trang và giới hạn nguồn.
+  - Nạp dữ liệu mẫu vào một đích thử nghiệm.
+- id: schema-data-contract
+  title: Schema & Data Contract
+  purpose: Giữ cấu trúc dữ liệu rõ ràng và tương thích khi nguồn hoặc đích thay đổi.
+  objectives:
+  - Mô tả field, kiểu dữ liệu, nullability và key.
+  - So sánh JSON, CSV và Avro ở mức cơ bản.
+  - Nhận diện thay đổi schema gây lỗi cho consumer.
+- id: mapping-etl-elt
+  title: Mapping & ETL/ELT
+  purpose: Chuyển dữ liệu đầu vào sang mô hình và định dạng mà hệ thống đích cần.
+  objectives:
+  - Viết bảng ánh xạ field nguồn–đích.
+  - Chuẩn hóa kiểu, thời gian và giá trị rỗng.
+  - Thực hiện một bước transform và kiểm tra đầu ra.
+- id: batch-streaming
+  title: Batch & Streaming
+  purpose: Chọn hình thức xử lý theo độ trễ, quy mô và nhu cầu nghiệp vụ.
+  objectives:
+  - Phân biệt batch định kỳ với streaming liên tục.
+  - So sánh latency, chi phí và độ phức tạp.
+  - Phác họa pipeline batch và pipeline near real-time.
+- id: cdc-incremental-sync
+  title: CDC & Incremental Sync
+  purpose: Đồng bộ chỉ các thay đổi để giảm tải so với sao chép toàn bộ dữ liệu.
+  objectives:
+  - Phân biệt full load, watermark và CDC.
+  - Mô tả cách đọc INSERT/UPDATE/DELETE từ change log.
+  - Xác định checkpoint/offset và phương án đồng bộ lại.
+- id: data-quality-reliability
+  title: Data Quality & Reliability
+  purpose: Phát hiện dữ liệu sai và xử lý lỗi nạp dữ liệu mà không tạo bản ghi trùng.
+  objectives:
+  - Kiểm tra completeness, uniqueness và số bản ghi.
+  - Thiết kế retry cùng ghi dữ liệu idempotent.
+  - Phân luồng bản ghi lỗi để điều tra và chạy lại.
+- id: orchestration-monitoring
+  title: Orchestration & Monitoring
+  purpose: Vận hành pipeline lặp lại, có thể giám sát, truy vết và bảo vệ dữ liệu.
+  objectives:
+  - Sắp xếp task và lịch chạy bằng một DAG đơn giản.
+  - Theo dõi log, trạng thái, độ trễ và cảnh báo.
+  - Giới hạn quyền truy cập và tài liệu hóa luồng dữ liệu.

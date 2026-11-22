@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan RSocket
+  slug: overview
+  index: 0
+- title: Nền tảng phản ứng
+  slug: reactive-foundations
+  index: 1
+- title: Kết nối và truyền tải
+  slug: connections-and-transports
+  index: 2
+- title: Giao thức và frame
+  slug: protocol-and-frames
+  index: 3
+- title: Payload và metadata
+  slug: payloads-and-metadata
+  index: 4
+- title: Thiết lập phiên
+  slug: session-setup
+  index: 5
+- title: Yêu cầu và phản hồi
+  slug: request-response
+  index: 6
+- title: Gửi một chiều
+  slug: fire-and-forget
+  index: 7
+- title: Luồng phản hồi
+  slug: request-stream
+  index: 8
+- title: Kênh hai chiều
+  slug: request-channel
+  index: 9
+- title: Điều tiết luồng
+  slug: flow-control
+  index: 10
+- title: Hạn ngạch yêu cầu
+  slug: request-quotas
+  index: 11
+- title: Vòng đời và lỗi
+  slug: lifecycle-and-errors
+  index: 12
+- title: Phục hồi kết nối
+  slug: connection-resumption
+  index: 13
+- title: Phân mảnh dữ liệu
+  slug: payload-fragmentation
+  index: 14
+- title: RSocket Java
+  slug: rsocket-java
+  index: 15
+- title: Bộ nhớ và tài nguyên
+  slug: memory-and-resources
+  index: 16
+- title: Khởi động Spring Boot
+  slug: spring-boot-setup
+  index: 17
+- title: Bộ xử lý Spring
+  slug: spring-message-handlers
+  index: 18
+- title: RSocketRequester
+  slug: rsocket-requester
+  index: 19
+- title: Metadata trong Spring
+  slug: spring-metadata
+  index: 20
+- title: Bảo mật RSocket
+  slug: rsocket-security
+  index: 21
+- title: Thiết kế luồng dữ liệu
+  slug: data-flow-design
+  index: 22
+- title: Độ tin cậy nghiệp vụ
+  slug: business-reliability
+  index: 23
+- title: Trình duyệt và tương thích
+  slug: browser-compatibility
+  index: 24
+- title: Tích hợp hệ thống
+  slug: system-integration
+  index: 25
+- title: Cân bằng tải
+  slug: load-balancing
+  index: 26
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 27
+- title: Hiệu năng
+  slug: performance
+  index: 28
+- title: Kiểm thử
+  slug: testing
+  index: 29
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 30
+- title: Triển khai vận hành
+  slug: deployment-and-operations
+  index: 31
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 32

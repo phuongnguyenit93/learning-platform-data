@@ -1,0 +1,57 @@
+roadmap:
+- id: http-luong-trao-doi
+  title: HTTP & luồng trao đổi
+  purpose: Nắm mô hình client gửi request và server trả response trong giao tiếp đồng bộ.
+  objectives:
+  - Vẽ luồng client → server → response.
+  - Giải thích tính stateless của HTTP.
+  - Phân biệt HTTP với kết nối truyền tải và các phiên bản HTTP.
+- id: uri-tai-nguyen
+  title: URI & tài nguyên
+  purpose: Xác định đúng đích của yêu cầu và cách biểu diễn tài nguyên qua URL.
+  objectives:
+  - Phân tích scheme, host, port, path và query string.
+  - Phân biệt path parameter với query parameter.
+  - Giải thích vai trò của URI trong định tuyến tài nguyên.
+- id: method-ngu-nghia
+  title: Method & ngữ nghĩa
+  purpose: Lựa chọn phương thức HTTP theo mục đích và hiểu ảnh hưởng khi gọi lặp lại.
+  objectives:
+  - So sánh GET, POST, PUT, PATCH và DELETE.
+  - Phân biệt safe với idempotent.
+  - Nhận diện nguy cơ thao tác ghi bị lặp khi retry.
+- id: cau-truc-http-request
+  title: Cấu trúc HTTP Request
+  purpose: Đọc và tạo yêu cầu gồm phương thức, đích, headers và nội dung phù hợp.
+  objectives:
+  - Nhận diện request line, headers và body theo HTTP/1.1.
+  - Dùng Content-Type, Accept và Authorization đúng vai trò.
+  - So sánh dữ liệu JSON, form và query parameters.
+- id: http-response-ma-trang-thai
+  title: HTTP Response & mã trạng thái
+  purpose: Diễn giải kết quả yêu cầu bằng status code, response headers và body.
+  objectives:
+  - Phân nhóm mã 1xx, 2xx, 3xx, 4xx và 5xx.
+  - Phân biệt 200, 201, 204, 301, 400, 401, 403, 404, 409 và 500.
+  - Đọc Content-Type và nội dung lỗi trả về.
+- id: bieu-dien-trang-thai-cache
+  title: Biểu diễn, trạng thái & cache
+  purpose: Hiểu việc chọn định dạng dữ liệu và tối ưu request lặp lại mà vẫn giữ đúng trạng thái.
+  objectives:
+  - Phân biệt Accept với Content-Type khi thương lượng nội dung.
+  - Giải thích Cookie/Session như cơ chế duy trì ngữ cảnh.
+  - Dùng Cache-Control, ETag và 304 ở mức cơ bản.
+- id: https-kiem-soat-truy-cap
+  title: HTTPS & kiểm soát truy cập
+  purpose: Bảo vệ trao đổi dữ liệu và phân biệt xác thực với quy tắc chia sẻ tài nguyên trên trình duyệt.
+  objectives:
+  - Giải thích HTTPS/TLS bảo vệ đường truyền.
+  - Phân biệt authentication và authorization, 401 với 403.
+  - Nhận diện Origin, CORS và preflight của trình duyệt.
+- id: kiem-tra-xu-ly-loi
+  title: Kiểm tra & xử lý lỗi
+  purpose: Phân tích yêu cầu thực tế và thiết lập nguyên tắc xử lý timeout, lỗi mạng và retry.
+  objectives:
+  - Dùng curl hoặc browser DevTools xem request/response.
+  - Phân biệt lỗi mạng, timeout và HTTP error status.
+  - Chỉ retry có kiểm soát theo idempotency và mã lỗi.

@@ -1,0 +1,3 @@
+menuLevel1: Spring MVC với SSE
+menuLevel2: Khai báo controller trả về SseEmitter với text/event-stream
+status: ""
