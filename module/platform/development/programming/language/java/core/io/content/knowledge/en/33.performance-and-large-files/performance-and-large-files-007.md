@@ -1,61 +1,61 @@
 # Measuring Throughput, Latency, and Memory Usage When Processing I/O and Large Files in Java
 
-## 1. Why Must We Measure All Three Metric Groups?
+## 1. Why Must You Measure All Three Metric Groups?
 
-Optimizing large-file processing cannot rely on a single “runs fast” number. The same program can achieve high throughput while making individual requests wait too long, or read very quickly by consuming too much RAM. Three groups of metrics must be tracked together:
+Optimizing large-file processing cannot rely on a single "runs fast" number. The same program can achieve high throughput while making individual requests wait too long, or read very fast because it consumes excessive RAM. Three metric groups should be tracked together:
 
-- **Throughput:** amount of data or number of operations completed per unit time; for example `MiB/s`, `MB/s`, or `operations/s`.
-- **Latency:** time to complete **one well-defined operation**; for example each `InputStream.read(...)`, each full file read, or each upload request. You must inspect the latency distribution, especially `p95`/`p99`, not just the average.
-- **Memory usage:** memory occupied by the program while working, including Java heap, direct buffers, mapped memory, native memory, and process-level memory; distinguish measurement scopes to avoid wrong conclusions.
+- **Throughput:** amount of data or completed operations per unit time; for example, `MiB/s`, `MB/s`, or `operations/s`.
+- **Latency:** time to complete **a clearly defined operation**; for example, a single `InputStream.read(...)`, reading an entire file, or an upload request. You must examine the latency distribution, especially `p95`/`p99`, not just the mean.
+- **Memory usage:** memory occupied by the program while working, including Java heap, direct buffers, mapped memory, native memory, and process-level memory; distinguish measurement scopes to avoid drawing wrong conclusions.
 
-In Java I/O, results are also influenced by buffer size, OS page cache state, SSD/HDD/network filesystem characteristics, concurrent thread count, GC, and library behavior. This lesson focuses on **how to measure properly**, how to interpret results, and how to choose appropriate solutions in Java 17+.
+In Java I/O, results are also affected by buffer size, OS page cache state, SSD/HDD/network filesystem characteristics, concurrent thread count, GC, and library behavior. This article focuses on **how to measure accurately**, how to interpret results, and how to choose appropriate solutions in Java 17+.
 
 ## 2. Define Metrics Before Starting the Clock
 
-### 2.1. Throughput: Bytes Over Real Time
+### 2.1. Throughput: Bytes Over Real Elapsed Time
 
-If `B` bytes are read/written successfully during a measurement window of `T` seconds:
+If `B` bytes are read/written successfully over measurement interval `T` seconds:
 
 \[
 \text{Throughput (MiB/s)}=\frac{B}{1024^2 \times T}
 \]
 
-For example, reading `512 MiB` in `4 s` gives an average throughput of `128 MiB/s`. If decimal MB is needed, `1 MB = 1\,000\,000 bytes`; `1 MiB = 1\,048\,576 bytes`. **State units clearly** when comparing against measurement tools or device specs.
+For example, reading `512 MiB` in `4 s` yields an average throughput of `128 MiB/s`. If decimal MB is needed, `1 MB = 1\,000\,000 bytes`; `1 MiB = 1\,048\,576 bytes`. **State units explicitly** when comparing against measurement tools or hardware specifications.
 
 Two forms of throughput can answer different questions:
 
-- **Data throughput:** `MiB/s` is meaningful for copying, reading/writing files, or large data transfers.
-- **Operation throughput:** `ops/s` is meaningful for many small operations. A system doing `10\,000 ops/s` of 100 bytes each moves less data than one doing `500 ops/s` of 1 MiB each.
+- **Data throughput:** `MiB/s` is meaningful for copying, reading/writing files, or bulk transfers.
+- **Operation throughput:** `ops/s` is meaningful for many small operations. A system at `10\,000 ops/s` with 100 bytes per operation moves far less data than one at `500 ops/s` with 1 MiB per operation.
 
-When measuring file reads, count the **actual bytes returned** by `read`, not buffer size multiplied by call count; a `read(byte[])` call can return fewer bytes than the buffer. For parallel reads, total throughput is **total completed bytes across all workers divided by the same elapsed wall time**; do not sum throughput values measured over different intervals.
+When measuring file reads, count **actual bytes returned** by `read`, not buffer size multiplied by call count; a `read(byte[])` call can return fewer bytes than the buffer size. For parallel reads, total throughput is **the sum of completed bytes across all workers divided by the same wall-clock interval**; never sum throughput values measured over different intervals.
 
-### 2.2. Latency: Define the Boundaries of One Operation
+### 2.2. Latency: Define the Boundaries of an Operation
 
-Latency = end timestamp − start timestamp of an operation. In I/O there are at least three valid scopes:
+Latency = end time − start time of an operation. In I/O there are at least three valid scopes:
 
-| Scope | How to measure | Interpretation |
+| Scope | How to Measure | Interpretation |
 | --- | --- | --- |
-| One `read(...)` call | `nanoTime()` before and after the call | API call latency, which may receive bytes from a buffer |
-| One file processing pass | From opening the file to closing/finishing reading | End-to-end latency of that job |
-| One system request | From request arrival to response delivery | Includes queuing, parsing, business logic, I/O, and scheduling |
+| A single `read(...)` call | `nanoTime()` before and after the call | API call latency; may receive bytes from a buffer |
+| One file processing pass | Start at file open until close/read completion | End-to-end latency for that job |
+| One system request | From request arrival to response return | Includes queuing, parsing, business logic, I/O, and scheduling |
 
-Do not take the p95 of individual `read` calls and call it “file processing p95”; hundreds of `read` operations can make up **one** file processing pass.
+Never take the p95 of individual `read` calls and label it "p95 file processing"; hundreds of `read` calls may compose **one** file processing pass.
 
-Commonly used percentiles:
+Common percentiles:
 
-- `p50` (median): at least roughly 50% of samples have latency no greater than this value.
+- `p50` (median): roughly at least 50% of samples have latency no greater than this value.
 - `p95`: roughly 95% of samples have latency no greater than this value.
 - `p99`: roughly 99% of samples have latency no greater than this value.
 
-For reliable percentiles, you need enough samples with identical operation definitions. With only a few samples, `p99` practically reflects just the maximum. Also report sample size, iteration count, mean/median, min/max when useful, and run-to-run variance.
+For percentiles to be reliable, sample count must be sufficiently large and all samples must share the same operation definition. With only a few samples, `p99` virtually just reflects the maximum. Also report sample size, iteration count, mean/median, min/max when helpful, and variance across runs.
 
-### 2.3. Using `System.nanoTime()` to Measure Elapsed Time
+### 2.3. Using `System.nanoTime()` for Elapsed Time
 
-`System.nanoTime()` is designed for measuring elapsed time differences within the same JVM process, not wall-clock calendar timestamps. Example:
+`System.nanoTime()` is designed to compute elapsed time intervals within the same JVM run, not a wall-clock calendar timestamp. Example:
 
 ~~~java
 long start = System.nanoTime();
-long transferred = doRead(); // Illustrative snippet: doRead() is an application-supplied method.
+long transferred = doRead(); // Illustrative snippet: doRead() is application-provided.
 long elapsedNanos = System.nanoTime() - start;
 
 double elapsedSeconds = elapsedNanos / 1_000_000_000.0;
@@ -63,18 +63,18 @@ double mibPerSecond = (transferred / (1024.0 * 1024.0))
         / elapsedSeconds;
 ~~~
 
-This is an **illustrative snippet** inside a method, not a complete program: `doRead()` must be implemented and return actual bytes read. In real code, guard against tiny measured durations, measure multiple passes, and do not optimize based on a single noisy reading. Never use `System.currentTimeMillis()` to benchmark short code: wall clocks can jump and resolution is often unsuitable.
+This is an **illustrative snippet** inside a method, not a complete program: `doRead()` must be implemented and return actual bytes read. In real code, guard against near-zero intervals, run multiple iterations, and never optimize based on one noisy measurement. Never use `System.currentTimeMillis()` to benchmark short code: the wall clock can be adjusted and its resolution is often unsuitable.
 
 ## 3. Java 17+ Experiment: Measuring Throughput, p50/p95/p99, and Heap Snapshots
 
-The example below:
+The following example:
 
-1. Creates a **32 MiB test file** before measurement begins.
-2. Reads the file with `BufferedInputStream` and a 64 KiB application buffer.
+1. Creates a **32 MiB test file** before timing starts.
+2. Reads the file using `BufferedInputStream` and a 64 KiB application buffer.
 3. Runs 2 warm-up passes, **excluding warm-up results from statistics**.
-4. Runs 5 measured passes, summing bytes and elapsed time to compute data throughput.
-5. Records latency of each `read(byte[])`, sorts, and computes `p50/p95/p99`.
-6. Takes two Java heap snapshots before and after the measured phase, explicitly noting they are **not peak heap**.
+4. Runs 5 measured passes, summing bytes and time to compute data throughput.
+5. Records the latency of each `read(byte[])`, sorts samples, and computes `p50/p95/p99`.
+6. Takes two Java heap snapshots before/after the measured phase, explicitly noting they are **not peak heap**.
 
 Create `IoMetricsDemo.java`:
 
@@ -209,7 +209,7 @@ javac IoMetricsDemo.java
 java IoMetricsDemo
 ~~~
 
-**The first three lines are deterministic** upon completion (sizes chosen in code):
+**The first three lines are deterministic** upon successful completion (using the sizes chosen in code):
 
 ~~~text
 File bytes: 33554432
@@ -217,27 +217,27 @@ Measured passes: 5
 Total read bytes: 167772160
 ~~~
 
-`Read calls`, `Throughput`, `read() p50/p95/p99`, and `Heap before/after` all **depend on machine, JVM, OS, cache state, and system load**; there is no fixed numeric stdout for them. These lines always use the exact labels and units in the code, while values come from an actual run.
+The lines `Read calls`, `Throughput`, `read() p50/p95/p99`, and `Heap before/after` all **depend on machine, JVM, OS, cache state, and system load**; there is no fixed numeric stdout for them. These lines always use the exact labels and units shown in the code, while values come from an actual run.
 
 ### 3.1. Why Does the Code Measure This Way?
 
-- **Prepare data beforehand:** test file write time is excluded from read throughput.
-- **Warm-up:** reduces effects of class loading, JIT compilation, and unsettled state. Two passes suffice for a learning demo, not for claiming a representative benchmark.
-- **Count actual bytes:** `bytes` increments by the `n` returned by `read`, without assuming every call yields 64 KiB.
-- **Compute throughput from total bytes / total elapsed:** sums durations across measured passes, avoiding naive arithmetic averages of per-pass throughputs with differing durations.
-- **Per-call latency:** `callLatencies` times successful `read` calls, excluding the final `read` returning `-1`. Percentiles use the *nearest-rank* rule with 0-based indexing.
-- **Two clock windows:** latency covers only executing the `read` call; throughput includes opening/closing the stream, looping, and storing samples on each read. Since the two metrics have different scopes, do not expect the sum of call latencies to equal total elapsed time.
-- **Memory snapshots:** `MemoryMXBean` returns `heap.used` at two instants; values can rise or fall due to GC and other allocations. The `after - before` difference is **not** total allocated bytes and **not** peak heap.
+- **Create data before measuring:** excludes test-file write time from read throughput.
+- **Warm-up:** reduces noise from class loading, JIT compilation, and partially unstable state. Two passes suffice for an educational example, not for claiming a representative benchmark.
+- **Count actual bytes:** `bytes` increments by `n` returned from `read`, never assuming 64 KiB is received every time.
+- **Compute throughput from total bytes / total elapsed:** sums durations across measured runs, avoiding taking a simple arithmetic mean of throughputs over unequal durations.
+- **Per-call latency:** `callLatencies` measures successful `read` calls, excluding the final `read` returning `-1`. Percentiles use the *nearest-rank* rule with 0-based indexing.
+- **Two clock windows:** latency covers only executing the `read` call; throughput includes opening/closing the stream, looping, and recording samples per read. Because the two metrics cover different scopes, do not expect summing call latencies to match total elapsed time.
+- **Memory snapshots:** `MemoryMXBean` returns `heap.used` at two points; values can rise or fall due to GC and other allocations. The difference `after - before` is **neither** total bytes allocated **nor** peak heap.
 
-### 3.2. Important Limitations of the Demo Itself
+### 3.2. Important Limitations of This Example Itself
 
-The demo measures latency while appending every sample to `ArrayList<Long>`, incurring **observer overhead**: `Long` boxing, `nanoTime()` calls, sample storage, and GC can lower throughput. For serious measurements, run **one throughput pass with minimal instrumentation** and **one latency pass with sampling**, then compare results. You can replace the boxed list with a pre-allocated `long[]`, though clock overhead still remains.
+The demo measures latency and inserts each sample into an `ArrayList<Long>`, incurring **observer overhead**: boxing `Long`, calling `nanoTime()`, storing samples, and GC can slow throughput. For serious measurements, run **one low-instrumentation throughput pass** and **one sampled latency pass**, then compare. You can replace the boxed list with a pre-allocated `long[]`, though clock overhead still remains.
 
-Furthermore, 5 reads of the same 32 MiB file likely run mainly from the **OS page cache**, not cold physical SSD/HDD throughput. Thus results reflect **the specific configuration and workload of the demo**, not advertised drive specifications.
+Furthermore, reading the same 32 MiB file 5 times likely runs primarily from the **OS page cache**, not cold physical SSD/HDD throughput. Thus results reflect **this example's specific configuration and workload**, not drive datasheet specs.
 
-## 4. Measuring End-to-End Latency and File Write Scenarios
+## 4. Measuring End-to-End Latency and File Writing Scenarios
 
-For a requirement like “read an entire file and return data,” measure a window enclosing the full corresponding path:
+For a requirement like "read a full file and return data", measure a window spanning the entire corresponding path:
 
 ~~~java
 long startedAt = System.nanoTime();
@@ -253,15 +253,15 @@ try (InputStream in = Files.newInputStream(path)) {
 long elapsed = System.nanoTime() - startedAt;
 ~~~
 
-This is a **snippet placed inside a method** with `Path path` and `IOException` handling; not a standalone class. `elapsed` covers opening, reading to EOF, closing the file, and loop processing.
+This is a **snippet inside a method** with a `Path path` variable and `IOException` handling; not a standalone class. `elapsed` covers opening, reading to EOF, closing the file, and in-loop processing.
 
-Measuring **writes** involves distinct completion layers:
+Measuring **writes** has multiple distinct completion layers:
 
-1. `OutputStream.write(...)` returns: bytes were handed to the corresponding buffer/provider layers; not yet guaranteed durable on the device.
-2. Buffered stream `flush()`: pushes data out of the application buffer to the next layer; not equivalent to durable storage on disk.
-3. `FileChannel.force(true)` or `FileDescriptor.sync()`: requests pushing appropriate changes down to the storage device per the API/OS contract, with device and filesystem caveats.
+1. `OutputStream.write(...)` returns: bytes were handed to the corresponding buffer/provider layers; does not yet mean data resides durably on the device.
+2. `flush()` on a buffered stream: pushes data out of the application buffer to the layer below; not equivalent to a durable commit on disk.
+3. `FileChannel.force(true)` or `FileDescriptor.sync()`: requests pushing appropriate changes down to the storage device per API/OS contract, subject to device and filesystem caveats.
 
-If a benchmark claims to measure **durable write latency**, it must include `force`/`sync` inside the latency boundary. Comparing buffered `write` throughput against another solution calling `fsync` per transaction leads to an unfair conclusion.
+If a benchmark claims to measure **durable write latency**, it must include `force`/`sync` inside the latency boundary. Measuring only buffered `write` throughput and comparing it against another solution running `fsync` per transaction yields an unfair conclusion.
 
 Example **illustrating boundary placement** when using `FileChannel`:
 
@@ -280,24 +280,24 @@ try (FileChannel channel = FileChannel.open(path,
 long durableWriteNanos = System.nanoTime() - start;
 ~~~
 
-Variables `path` (`Path`) and `payload` (`byte[]`) are passed by the caller. Requires importing `java.nio.ByteBuffer`, `java.nio.channels.FileChannel`, and `java.nio.file.StandardOpenOption`. This is an illustrative snippet inside a method handling `IOException`. `channel.write` can write fewer bytes than `ByteBuffer.remaining()`, hence `while (data.hasRemaining())`.
+Variables `path` (`Path`) and `payload` (`byte[]`) are passed from calling code. Requires importing `java.nio.ByteBuffer`, `java.nio.channels.FileChannel`, and `java.nio.file.StandardOpenOption`. This is an illustrative snippet in a method handling `IOException`. `channel.write` can write fewer bytes than `ByteBuffer.remaining()`, hence the `while (data.hasRemaining())` loop.
 
 ## 5. Measuring Memory: Java Heap Does Not Represent All RAM
 
 ### 5.1. Memory Scopes That Must Be Distinguished
 
-| Metric | Meaning | Typical observation tool |
+| Metric | Meaning | Typical Observation Method |
 | --- | --- | --- |
-| `heap.used` | Bytes currently used in the Java heap per JVM accounting | `MemoryMXBean`, JFR, GC logs |
-| `heap.committed` | Memory committed by the JVM for the heap | `MemoryUsage.getCommitted()` |
-| `heap.max` | Heap limit, which may be “undefined” depending on pool/JVM | `MemoryUsage.getMax()`, depending on config |
-| Direct buffer pool | Memory tied to `ByteBuffer.allocateDirect` managed by the pool | `BufferPoolMXBean` named `direct` |
-| Mapped buffer pool | Count/size of tracked mapped buffers | `BufferPoolMXBean` named `mapped` / available pools |
-| Other native memory | Thread stacks, metadata, code cache, JVM/library native regions | Native Memory Tracking/JFR/OS depending on source |
+| `heap.used` | Bytes currently used in Java heap per JVM reporting | `MemoryMXBean`, JFR, GC logs |
+| `heap.committed` | Memory committed by the JVM for heap | `MemoryUsage.getCommitted()` |
+| `heap.max` | Heap limit, may be "undefined" depending on pool/JVM | `MemoryUsage.getMax()`, configuration-dependent |
+| Direct buffer pool | Memory tied to `ByteBuffer.allocateDirect` managed by pool | `BufferPoolMXBean` named `direct` |
+| Mapped buffer pool | Count/size of tracked mapped buffers | `BufferPoolMXBean` named `mapped` / active pool |
+| Other native memory | Thread stacks, metadata, code cache, JVM/library native regions | Native Memory Tracking/JFR/OS by source |
 | RSS / working set | Physical memory pages currently resident for the process per OS | OS process monitoring tools |
-| OS page cache | File cache pages held by the OS, able to serve I/O without disk reads | OS statistics, not Java heap |
+| OS page cache | File cache pages retained by OS, able to serve I/O without disk reads | OS statistics, not Java heap |
 
-**Never blindly sum** `heap.used + direct pool + RSS`: RSS already includes resident portions of heap/native memory, so summing double-counts. `heap.committed` differs from actual resident physical pages. File-backed mappings also have their own relationship with the page cache.
+**Never blindly add** `heap.used + direct pool + RSS`: RSS already includes resident portions of heap/native memory, so summing double-counts. `heap.committed` also differs from actual resident physical pages. File-backed mappings also interact uniquely with the page cache.
 
 ### 5.2. Two Large-File Processing Strategies with Different Memory Footprints
 
@@ -308,21 +308,21 @@ byte[] all = Files.readAllBytes(path);
 process(all); // process is an application method; this snippet is not standalone.
 ~~~
 
-`readAllBytes` requires an array holding the file contents on the heap, potentially incurring extra temporary arrays/JVM overhead depending on implementation. For very large files, it can trigger `OutOfMemoryError` or hit Java array size limits. Suitable when files are small, within memory limits, and genuinely need full in-memory materialization.
+`readAllBytes` requires an array holding the file contents on the heap and may incur extra temporary arrays/JVM overhead depending on implementation. For very large files, it can hit `OutOfMemoryError` or Java array size limits. Suitable when files are small, within memory limits, and genuinely need full in-memory retention.
 
-**Chunked streaming read:**
+**Streaming chunk by chunk:**
 
 ~~~java
 try (InputStream in = Files.newInputStream(path)) {
     byte[] chunk = new byte[64 * 1024];
     int n;
     while ((n = in.read(chunk)) != -1) {
-        process(chunk, n); // Application immediately processes n valid bytes.
+        process(chunk, n); // Application processes the n valid bytes immediately.
     }
 }
 ~~~
 
-Both snippets are **illustrative code** inside a method with `Path path` and an appropriate `process` method, not standalone programs. Streaming can keep the heap working set close to the buffer size if `process` does not accumulate data. If `process` appends every chunk into a `List` or builds a huge `String`, **streaming no longer guarantees a low footprint**.
+Both snippets above are **illustrative code** inside methods with `Path path` and an appropriate `process` function, not standalone programs. Streaming can keep heap working set close to the buffer size if `process` does not accumulate data. If `process` appends every chunk to a `List` or builds a huge `String`, **streaming no longer guarantees a low footprint**.
 
 ### 5.3. Tracking Direct/Mapped Buffers with `BufferPoolMXBean`
 
@@ -359,124 +359,124 @@ javac BufferPoolDemo.java
 java BufferPoolDemo
 ~~~
 
-First line is deterministic:
+Deterministic first line:
 
-~~~text
+```text
 Direct: true
-~~~
+```
 
-Remaining lines print buffer count, estimated pool-managed memory bytes, and total capacity. **Exact numbers vary across JDKs/environments and timing**; do not treat them as all native memory. `BufferPoolMXBean` can also return undefined values for some attributes/cases; available pool names depend on the JVM. Releasing direct buffers usually depends on lifecycle management and GC; do not assume a local object leaving scope immediately frees native memory.
+Remaining lines print buffer count, estimated pool-managed memory bytes, and total capacity. **Exact numbers vary across JDKs/environments and timing**; do not treat them as total native memory. `BufferPoolMXBean` may also return undefined values for some properties/scenarios; available pool names depend on the JVM. Direct buffer deallocation normally relies on lifecycle management and GC; never assume a local variable leaving scope immediately frees native memory.
 
 ### 5.4. How to Measure Peak Memory More Accurately
 
-Two before/after snapshots like in `IoMetricsDemo` can **miss memory spikes in between**. For long-running applications or heavy allocation pressure:
+Two before/after snapshots like in `IoMetricsDemo` can **miss memory peaks in between**. For long-running applications or heavy allocation loads:
 
-- Sample `heap.used` repeatedly throughout the run with timestamps and load levels; the max across samples is only a **sampled peak**, not absolute if spikes occur between samples.
-- Use **JDK Flight Recorder (JFR)** or profiling tools to observe allocations, heap, GC pauses, and execution behavior. Allocation rate (bytes allocated per second) differs from retained heap.
+- Sample `heap.used` repeatedly throughout the run along with timestamps and load levels; the maximum in that series is a **sampled peak**, not an absolute peak if spikes occurred between samples.
+- Use **JDK Flight Recorder (JFR)** or profiling tools to observe allocations, heap, GC pauses, and execution. Allocation rate (bytes allocated per second) differs from retained live heap.
 - Use `jcmd <pid> GC.heap_info` or JVM/JMX metrics depending on runtime to inspect heap state at invocation time.
-- To understand JVM-internal native usage, enable **Native Memory Tracking** at startup (`-XX:NativeMemoryTracking=summary`) and run `jcmd <pid> VM.native_memory summary`; NMT has overhead and does not cover all external memory managed arbitrarily by native libraries.
-- Use OS tools for **RSS/working set**, page cache, I/O bytes, and page faults; do not infer total process RAM from `-Xmx` alone.
+- To understand JVM-internal native usage, enable **Native Memory Tracking** at startup (`-XX:NativeMemoryTracking=summary`) and run `jcmd <pid> VM.native_memory summary`; NMT carries overhead and does not cover all external memory allocated arbitrarily by native libraries.
+- Use OS tools for **RSS/working set**, page cache, I/O bytes, and page faults; never infer total process RAM from `-Xmx` alone.
 
-`jcmd` commands must run against a matching process/JDK with appropriate permissions. If NMT was not enabled at startup, the summary command will not provide the same detailed information as an NMT-enabled session.
+`jcmd` commands require matching process/JDK and appropriate process permissions. Without enabling NMT at startup, the summary command will not provide the same detailed breakdown.
 
-## 6. Avoiding Biased Benchmarks from Cache, Warm-Up, and Measurement Setup
+## 6. Avoiding Skewed Benchmarks from Cache, Warm-Up, and Test Configuration
 
-### 6.1. Cold Cache and Warm Cache
+### 6.1. Cold Cache vs. Warm Cache
 
-Reading the same file multiple times can transition from disk-backed I/O to reading from the **OS page cache**. Warm-cache results remain useful if real production workloads perform repeated reads, yet must not represent reading fresh files from the device. “Closing a stream” or `FileChannel.force(...)` does not evict the page cache.
+Reading the same file multiple times can shift from disk-backed I/O to reading from the **OS page cache**. Warm-cache results remain useful if production workloads truly perform repeated reads, yet do not use them to represent cold device read speeds. "Closing the stream" or `FileChannel.force(...)` does not clear the page cache.
 
-Good practice is to report clearly:
+Good practice is to explicitly report:
 
-- Fresh vs. repeated files, file size relative to RAM, and whether identical offsets are re-read.
-- Local/network device and filesystem, cgroup/container limits, and background load.
-- First-run results vs. subsequent passes; if cold-cache testing is needed, use an **OS/test-appropriate cache control method**, only when authorized and without disrupting shared systems.
-- Sequential vs. random reads; access patterns can shift throughput dramatically via read-ahead and seeks.
+- Fresh files versus repeated files, file size relative to RAM, and whether the same offsets are re-read.
+- Storage device and local/network filesystem, cgroup/container limits, and background load.
+- First-run results versus subsequent runs; if measuring cold cache is necessary, use **cache-control methods appropriate to the OS/test setup**, only with authorization and without disrupting shared systems.
+- Sequential versus random reads; access patterns can drastically change throughput due to read-ahead and seeks.
 
 ### 6.2. Warm-Up and JIT/GC
 
-The JVM needs time for class loading and optimizing compilation; GC and the scheduler can introduce spikes. Run dedicated warm-ups, multiple independent measured passes, report medians/tails across runs, and keep JVM settings consistent. Never call `System.gc()` repeatedly to “stabilize” a benchmark: it is not guaranteed to behave as desired and distorts real conditions.
+The JVM needs time for class loading and optimizing compilation; GC and schedulers can introduce spikes. Run a dedicated warm-up, multiple independent measurement runs, report median/tail across runs, and keep JVM settings consistent. Never call `System.gc()` repeatedly to "stabilize" benchmarks: it is not guaranteed to act as desired and distorts real execution conditions.
 
-For CPU microbenchmarks or ultra-short APIs, use **JMH** with explicit fork/warm-up/measurement settings. For real I/O, JMH still cannot control disks, filesystem caches, networks, durable writes, or request distributions on its own; design the workload and infrastructure tier accordingly. Avoid letting the measurement harness allocate so much that you measure GC instead of I/O.
+For CPU microbenchmarks or very short API calls, use **JMH** with explicitly configured forks/warm-up/measurement iterations. For real I/O, JMH still cannot control disks, filesystem caches, networks, durable writes, or request distributions on its own; design the workload and infrastructure harness accordingly. Do not let the measurement harness allocate so heavily that you benchmark GC instead of I/O.
 
 ### 6.3. Keep Workloads Fair
 
 When comparing `Files.readAllBytes`, `BufferedInputStream`, `FileChannel`, or `MappedByteBuffer`:
 
 1. Ensure identical data, total size, cache conditions, and measurement harness.
-2. Distinguish read-only, write-only, read+parse, copy, checksum, and durable write.
-3. Verify **data correctness** or byte count to avoid benchmarking incomplete/skipped work.
-4. Control buffer size, thread count, concurrency, and open/close policies.
-5. Run multiple passes in an alternating order; always testing A before B can hand cache/JIT advantages to B.
-6. Monitor CPU, GC, I/O wait, page faults, heap, direct memory, and RSS in parallel to explain throughput/latency.
+2. Separate read-only, write-only, read+parse, copy, checksum, and durable write.
+3. Verify **data correctness** or byte counts to avoid benchmarking an implementation that drops work.
+4. Control buffer sizes, thread counts, concurrent operations, and open/close policies.
+5. Alternate run order appropriately; if A always runs before B, cache/JIT advantages may skew toward B.
+6. Monitor CPU, GC, I/O wait, page faults, heap, direct memory, and RSS alongside to explain throughput/latency.
 
-No API is “fastest” across all workloads. `Files.readAllBytes` can be fast and convenient for small files while raising peak heap; `FileChannel` and streaming generally suit large files; memory mapping helps in some random-access patterns yet requires accounting for page faults, mapping lifetime, and virtual address space.
+No API is "fastest" across every workload. `Files.readAllBytes` can be fast and convenient for small files while raising peak heap; `FileChannel` and streaming generally suit large files; memory mapping helps certain random-access patterns yet requires accounting for page faults, mapping lifetimes, and virtual address space.
 
 ## 7. Combining Throughput, Latency, and Memory for Diagnosis
 
-| Observation | Testable hypothesis | Next measurement |
+| Observation | Testable Hypothesis | Next Measurement |
 | --- | --- | --- |
 | High throughput, sharp `p99` spike | Queuing, GC, thread/lock contention, I/O jitter | Request-level p99, queue wait, GC pauses, I/O latency |
-| Throughput stalls as concurrency increases | Device saturated, contention, scheduling overhead | Disk utilization, CPU, context switches, queue depth |
-| Throughput rises while RSS climbs fast | Direct/mapped buffers, page cache, native allocations | Buffer pools, NMT, RSS, heap snapshots |
+| Throughput stalls as concurrency grows | Device saturated, contention, scheduling overhead | Disk utilization, CPU, context switches, queue depth |
+| Throughput rises yet RSS climbs fast | Direct/mapped buffers, page cache, native allocations | Buffer pools, NMT, RSS, heap snapshots |
 | Heap grows linearly with file size | `readAllBytes`, accumulating records/byte arrays, retained refs | Heap allocations and retained objects |
-| Heap stable yet process uses lots of RAM | Direct memory/native/threads/mappings | `BufferPoolMXBean`, NMT, RSS |
-| First pass slow, later passes fast | Page cache or warm-up | Compare cold/warm, observe disk read bytes |
+| Heap flat yet process uses huge RAM | Direct/native memory/threads/mappings | BufferPoolMXBean, NMT, RSS |
+| First pass slow, subsequent passes fast | Page cache or warm-up | Compare cold/warm, observe disk read bytes |
 | `write` fast yet data not durable | Measuring before `flush/force/sync` | Measure completion time after force/sync |
-| `p50` steady yet `p99` terrible | Tail skewed by a few slow requests | Larger-sample histogram, trace slowest samples, stage timing |
+| `p50` healthy yet `p99` awful | Tail skewed by a few slow requests | Sufficiently large histogram, trace slowest samples, stage-by-stage timing |
 
-Each row is only a **hypothesis to verify**; one symptom can have multiple causes. For instance, slowness on a network filesystem can reduce throughput while heap stays flat. Aligning metrics on the same timeline usually beats reading isolated snapshots.
+Rows represent **hypotheses to verify**; one symptom can have multiple causes. For instance, slowness from a network filesystem can drop throughput while heap stays flat. Plotting metrics on a shared timeline is usually far more effective than reading isolated snapshots.
 
 ## 8. Writing a Reproducible Benchmark Report
 
-Example report structure (this is a **template for recording results**, not real benchmark numbers):
+Example report structure (this is a **template for recording results**, not actual benchmark numbers):
 
-| Item | Information to record |
+| Item | Information to Record |
 | --- | --- |
-| Goal | Sequential large-file read, or handling an upload request |
-| Latency scope | One `read` / one file / one request |
+| Goal | Sequential large-file read, or processing an upload request |
+| Latency scope | Single `read` / single file / single request |
 | Data size and pattern | File size, chunk size, sequential/random, compressed or not |
 | Runtime | JDK version, heap flags, GC, worker count |
 | Machine and I/O | CPU, RAM, disk/network filesystem, OS, page cache |
-| Methodology | Warm-up passes, measured passes, sample count, percentile method |
-| Throughput | MiB/s and total bytes/elapsed time |
-| Latency | p50/p95/p99, ms or µs units, explicit measurement scope |
-| Memory | Heap used/committed/sampled peak, direct pool, RSS, allocation rate |
+| Methodology | Warm-up runs, measured runs, sample count, percentile method |
+| Throughput | MiB/s and total bytes/duration |
+| Latency | p50/p95/p99, ms or µs units, explicit measurement level |
+| Memory | heap used/committed/sampled peak, direct pool, RSS, allocation rate |
 | Reliability | Variance, cache conditions, limitations, and observer overhead |
 
-When optimizing, preserve the **pre-change baseline**, then run the exact same workload on the new version. Record trade-off impacts as well: raising buffers from 8 KiB to 256 KiB may boost throughput on one host yet consume more RAM per concurrent connection, or slow down due to GC/cache pressure at another scale.
+When optimizing, preserve the **pre-change baseline**, then run the exact same workload on the new version. Document trade-offs too: raising buffer size from 8 KiB to 256 KiB may boost throughput on one machine yet consume more RAM per concurrent connection or hurt performance via GC/cache pressure at another scale.
 
 ## 9. Self-Check Questions
 
-**Question 1.** A program reads 200 MiB in 2.5 seconds. What is its throughput?
+**Q1.** A program reads 200 MiB in 2.5 seconds. What is the throughput?
 
-**Answer:** `200 / 2.5 = 80 MiB/s`. The unit is MiB/s if the input is in MiB; converting to MB/s requires unit conversion first.
+**Answer:** `200 / 2.5 = 80 MiB/s`. The unit is MiB/s when input is in MiB; converting to MB/s requires unit conversion before dividing.
 
-**Question 2.** Can you take the p95 of individual `read` calls and call it the p95 “upload request duration”?
+**Q2.** Can you take the p95 of individual `read` calls and call it the p95 "upload request time"?
 
-**Answer:** No. Request latency can include queuing, multiple reads/writes, processing, and response sending. Measure from start to end of the request if that is the SLA being evaluated.
+**Answer:** No. Request latency can include queuing, multiple reads/writes, processing, and response sending. Measure end-to-end across the request if that is the SLA being evaluated.
 
-**Question 3.** Both before and after heap snapshots show 70 MiB. Can you conclude peak heap was only 70 MiB?
+**Q3.** Both before and after heap snapshots show 70 MiB. Can you conclude peak heap was only 70 MiB?
 
-**Answer:** No. Heavy allocation and GC collection could have occurred between snapshots, or spikes may happen between samples; continuous sampling/JFR/profiling is needed. Direct memory and RSS also lie outside `heap.used`.
+**Answer:** No. Heavy allocations and GC collections may have occurred between snapshots, or spikes occurred between samples; use continuous sampling/JFR/profiler. Direct memory and RSS also sit outside `heap.used`.
 
-**Question 4.** Why can 5 passes over a 32 MiB file achieve higher throughput than the very first read of a fresh file?
+**Q4.** Why can reading a 32 MiB file 5 times yield higher throughput than the first read of a brand-new file?
 
-**Answer:** OS page cache, readahead, JVM warm-up, and other factors. Once file buffers are resident in RAM, results no longer measure raw cold disk speed.
+**Answer:** OS page cache, readahead, JVM warm-up, and other factors. Once file pages are resident in RAM, measurements no longer reflect pure cold disk speed.
 
-**Question 5.** Why is `flush()` on a buffered stream insufficient to claim “data written durably”?
+**Q5.** Why is `flush()` on a buffered stream insufficient to declare "data written durably"?
 
-**Answer:** `flush` primarily pushes data from the stream layer's buffer down to the underlying layer. Durability may require `FileChannel.force` or `FileDescriptor.sync`, factoring in device/OS limits and business requirements.
+**Answer:** `flush` primarily pushes data out of the stream layer's buffer to the layer below. Durability may require `FileChannel.force` or `FileDescriptor.sync`, subject to device/OS limits and business requirements.
 
-**Question 6.** If throughput increases by 20% while request p99 triples and RSS exceeds container limits, is the solution better?
+**Q6.** If throughput increases by 20% while request p99 triples and RSS exceeds the container limit, is the solution better?
 
-**Answer:** Cannot conclude so. Evaluate latency SLAs, memory budget, target load, and operational cost together. Violating latency/RAM requirements means higher throughput does not equate to successful optimization.
+**Answer:** Not conclusively. You must evaluate latency SLAs, memory budgets, target load, and operational cost together. If latency/RAM requirements are violated, higher throughput does not equal a successful optimization.
 
 ## 10. Practical Summary
 
-1. **State clearly what operation is measured and in what unit.** `MiB/s`, `ops/s`, `p95 read()`, and `p95 request` mean different things.
-2. **Count only completed work and actually transferred data.** Use `System.nanoTime()` for elapsed time, and sum bytes from `read`/`write` return values properly.
-3. **Measure concurrently while understanding metric sources:** Java heap, direct/mapped, native, and RSS are distinct slices; snapshots are not peaks.
-4. **Separate workload from noise:** test-file setup, caching, warm-up, JIT, GC, instrumentation, and durability all influence readings.
-5. **Compare controlled runs, multiple passes, tail percentiles, and environment conditions.** Credible results are ones others can reproduce and explain.
+1. **State clearly what operation is measured and in which units.** `MiB/s`, `ops/s`, `p95 read()`, and `p95 request` mean different things.
+2. **Count only completed work and bytes actually transferred.** Use `System.nanoTime()` for elapsed intervals, and count bytes from actual `read`/`write` return values.
+3. **Measure simultaneously while understanding metric sources:** Java heap, direct/mapped, native, and RSS are distinct slices; snapshots are not peaks.
+4. **Isolate workload from noise:** file preparation, cache, warm-up, JIT, GC, instrumentation, and durability all influence measurements.
+5. **Compare under controlled conditions, multiple runs, tail percentiles, and recorded environment settings.** Reliable results are ones others can reproduce and explain.
 
-For large files, the most reliable optimization path usually starts by benchmarking realistic workloads, identifying the bottleneck, and changing buffers/APIs/concurrency only when measurements prove the change satisfies speed, latency, and memory goals simultaneously.
+With large files, the most trustworthy optimization process starts by benchmarking the real workload, pinpointing the bottleneck, and only changing buffers/APIs/concurrency when measurements prove the change satisfies speed, latency, and memory goals simultaneously.

@@ -1,10 +1,10 @@
-# Java Serialization: Shared References, Circular References, and Object Handles
+# Java Serialization: Shared References, Cyclic References, and Object Handles
 
-## 1. The Problem: How to Correctly Restore an **Object Graph**?
+## 1. The Problem: How to Restore an **Object Graph** Accurately?
 
-When using `ObjectOutputStream` and `ObjectInputStream`, what matters is not only saving each field's value. A Java object can **point to the same object from multiple different fields**, or objects can **reference each other in a cycle**.
+When using `ObjectOutputStream` and `ObjectInputStream`, it is not enough to merely save each field's value. A Java object can **point to the same object from multiple fields**, or objects can **reference each other in cycles**.
 
-Example:
+For example:
 
 ~~~text
                +-------------------+
@@ -19,11 +19,11 @@ Example:
                       |  Hà Nội  |
                       +----------+
 
-home and office are **the same Address**, not two Addresses
-that merely happen to have identical content.
+home and office are the **same Address**, not two Address
+objects that merely happen to have identical contents.
 ~~~
 
-And a circular reference:
+And a cyclic reference:
 
 ~~~text
        +--------+   next    +--------+
@@ -34,17 +34,17 @@ And a circular reference:
                       next
 ~~~
 
-If field contents were merely copied as independent duplicates, after deserialization:
+If you merely copied field contents into independent duplicates, after deserialization:
 
-- The relationship `person.home == person.office` could be lost.
-- The cycle `A -> B -> A` could turn into an infinite copy chain or an incorrect structure.
-- Program semantics could change, because **identity** (reference identity) differs from equality (content equality).
+- You could lose the `person.home == person.office` relationship.
+- You could turn the `A -> B -> A` cycle into an infinite copy chain or an incorrect structure.
+- You could alter program semantics, because **identity** (reference sameness) differs from equality (content equivalence).
 
-**Default Java Object Serialization preserves sharing structure and circular references** by assigning an **object handle** to objects that have already appeared within *the same serialization stream*. Subsequent encounters are typically written as a **back-reference** instead of serializing the entire object again.
+**Default Java Object Serialization preserves sharing structure and cyclic references** by assigning an **object handle** to objects that have already appeared within *the same serialization stream*. Subsequent encounters are typically written as a **back-reference** rather than serializing the entire object again.
 
 ## 2. Basic Requirements to Serialize a Graph
 
-A class serialized with the default mechanism typically implements `java.io.Serializable`:
+A class serialized by default normally implements `java.io.Serializable`:
 
 ~~~java
 import java.io.Serializable;
@@ -63,11 +63,11 @@ final class Node implements Serializable {
 
 `Serializable` is a **marker interface**: no methods are required. `ObjectOutputStream.writeObject(root)` traverses objects reachable through serializable reference fields:
 
-- Regular instance fields that are **neither `transient` nor `static`** participate in the default serialization mechanism (subject to class/type rules).
+- Normal instance fields, **neither `transient` nor `static`**, participate in default serialization (subject to class/type rules).
 - Primitive fields are stored by value.
-- Fields referencing other objects can pull along the entire **graph of objects they point to**.
+- A field referencing another object can pull in the entire **graph of objects it points to**.
 - `null` is written as a null value without creating a new object.
-- Every object to be written in the graph must be eligible for the serialization mechanism; a field referencing a non-serializable object normally causes `NotSerializableException`, unless excluded or handled via custom serialization.
+- Every object written in the graph must be compatible with serialization; a field referencing a non-serializable object typically throws `NotSerializableException`, unless excluded or handled via custom logic.
 
 Do not confuse:
 
@@ -77,7 +77,7 @@ Node second = new Node("X");
 boolean same = first == second;  // false
 ~~~
 
-Even though `first.name.equals(second.name)` is true, they are **two distinct instances** and under the default mechanism will be saved with two different handles.
+Even though `first.name.equals(second.name)` is true, these are **two distinct instances** and under default serialization will be saved under two separate handles.
 
 Conversely:
 
@@ -88,18 +88,18 @@ Node second = shared;
 boolean same = first == second;  // true
 ~~~
 
-This is only **one object** with two references. Serialization preserves that `==` relationship when reconstructing the graph in the stream, provided custom object replacement does not alter it.
+This is just **one object** with two references. Serialization preserves that `==` relationship when restoring the graph within the stream, provided custom object-replacement hooks do not alter it.
 
 ## 3. What Is an Object Handle?
 
-`ObjectOutputStream` manages the stream's state, including a table tracking objects already serialized. When encountering an object for the first time:
+`ObjectOutputStream` manages stream state, including a table remembering which objects have already been serialized. When encountering an object for the first time:
 
-1. The stream writes object type information (including a class descriptor when needed).
+1. The stream writes type metadata (including a class descriptor when needed).
 2. The object receives a **handle** — an internal identifier within the **stream**, not a Java reference, RAM address, or `hashCode()`.
-3. The stream writes the fields to be persisted; if a field references another object, it continues processing that object.
-4. If an already-written object is encountered again, the stream can write a **reference to the handle** instead of repeating the whole object.
+3. The stream writes persisted fields; if a field references another object, it recursively processes that object.
+4. If an already-written object is encountered again, the stream can emit a **reference to its handle** instead of repeating the whole object.
 
-On the reading side, `ObjectInputStream` maintains a corresponding handle table to return references to the **same restored instance**.
+On the reading side, `ObjectInputStream` maintains a corresponding handle table to return references pointing to **the same restored instance**.
 
 Conceptual diagram:
 
@@ -115,24 +115,24 @@ Call 2: writeObject(address) with the SAME instance
 ObjectInputStream
 
 Call 1: readObject() -> Address#1
-Call 2: readObject() -> the same Address#1
+Call 2: readObject() -> the exact same Address#1
 
 Therefore: firstRead == secondRead  ==> true
 ~~~
 
-This is only a **logical diagram**. An actual stream also contains a header, class descriptors, element type codes, and handles for class descriptors, strings/arrays, and other objects. Do not treat `H1` as a fixed handle byte or an ID that can be stored independently.
+This is only a **logical diagram**. Real streams also include headers, class descriptors, element type codes, and handles for class descriptors, strings/arrays, and other objects. Do not treat `H1` as a fixed byte handle or an identifier you can store standalone.
 
 ### Handles Differ from `hashCode()`, `equals()`, and Business Object IDs
 
 | Concept | What is it used for? | Scope/limitations |
 |---|---|---|
-| `==` on two references | Checks whether they are the same instance | Within one JVM |
+| `==` on two references | Checks whether they point to the same instance | Within one JVM |
 | `equals()` | Checks equality defined by the class | Not necessarily the same instance |
-| `hashCode()` | Supports hashing; not a unique ID | Can collide; can vary by implementation |
-| **Serialization handle** | Identifies objects already seen in the stream | Internal per stream; affected by `reset()` |
+| `hashCode()` | Supports hashing; not a unique ID | Can collide and vary by implementation |
+| **Serialization handle** | Identifies objects already seen in the stream | Internal to each stream; affected by `reset()` |
 | Business ID (UUID, database ID) | Identifies entities at the application level | Defined by the application, not auto-generated by serialization |
 
-**Never use a handle read from a stream as a database primary key.** It is strictly a reference-representation mechanism inside the serialization format.
+**Never use a handle read from a stream as a database primary key.** It is strictly an internal reference-encoding mechanism within the serialization format.
 
 ## 4. Why Are Shared References Preserved?
 
@@ -147,29 +147,29 @@ person.office = address;
 out.writeObject(person);
 ~~~
 
-When the serializer traverses field `home`, it saves `address` and assigns a handle. Reaching field `office`, it sees the **same `address` object** and writes a back-reference. The reading side reconstructs:
+When the serializer traverses the `home` field, it writes `address` and assigns it a handle. Upon reaching `office`, it sees **the same `address` object** and emits a back-reference. The reading side reconstructs:
 
 ~~~java
 Person restored = (Person) in.readObject();
 System.out.println(restored.home == restored.office); // true
 ~~~
 
-If two fields point to **two different `Address` instances that happen to have equal values**, the default serializer does not "merge" them:
+If two fields point to **two different `Address` objects that happen to have identical values**, the default serializer does not automatically "merge" them:
 
 ~~~text
-Before write: home -> Address#1("HN")
-              work -> Address#2("HN")
-After read:   home -> Address#3("HN")
-              work -> Address#4("HN")
+Before write:  home -> Address#1("HN")
+               work -> Address#2("HN")
+After read:    home -> Address#3("HN")
+               work -> Address#4("HN")
 
-home != work, even though their attributes may be identical.
+home != work, even though their attributes may match.
 ~~~
 
-This is why you must decide whether the problem requires preserving **identity** or only preserving **values**.
+This is why you must determine whether a problem requires preserving **identity** or only preserving **values**.
 
 ### Sharing Across Multiple Nested Levels
 
-It is not only two fields of the same object that are preserved. If a list contains `sameNode` twice, or multiple different objects point to one child object, a back-reference can still be used within a graph written to the same stream.
+It is not just two fields of the same object that are preserved. If a list contains `sameNode` twice, or multiple distinct objects point to a shared child object, back-references are still used throughout a graph written to the same stream.
 
 ~~~java
 Node sameNode = new Node("shared");
@@ -177,12 +177,12 @@ List<Node> nodes = new ArrayList<>();
 nodes.add(sameNode);
 nodes.add(sameNode);
 // After serializing/deserializing nodes, elements at index 0 and 1
-// are still the same Node: nodes.get(0) == nodes.get(1).
+// remain the same Node: nodes.get(0) == nodes.get(1).
 ~~~
 
-This snippet is illustrative code, requiring `java.util.*` imports and a serializable `Node` class; it is not a standalone program.
+This snippet is illustrative code requiring `java.util.*` imports and a serializable `Node` class; it is not a standalone program.
 
-## 5. Circular References: Why Doesn't the Serializer Recurse Infinitely?
+## 5. Cyclic References: Why Doesn't the Serializer Recurse Infinitely?
 
 If two objects point to each other:
 
@@ -193,7 +193,7 @@ a.next = b;
 b.next = a;
 ~~~
 
-The saving process can be pictured as:
+The saving process can be visualized as:
 
 ~~~text
 writeObject(a)
@@ -202,19 +202,19 @@ writeObject(a)
      3) first encounter with B -> assign handle HB
      4) write B.next = A
         5) A already has HA -> write REFERENCE(HA), stop recursing
-  6) return to finish B, then A
+  6) unwind and finish B, then A
 ~~~
 
-The key point: **an object's handle is assigned before all of its reference fields have finished being written**. Thus, when reaching a link back to an object currently being serialized, the serializer already has a handle to reference.
+Crucial point: **an object's handle is assigned before all of its reference fields finish being written**. Therefore, when traversal follows a link back to an object currently in the middle of being serialized, the serializer already has a handle to reference.
 
-The reading side also allocates/registers the object before completing all of its fields under the default mechanism, enabling cycle reconstruction:
+The reading side also creates and registers the object before populating all of its fields under the default mechanism, enabling cycle reconstruction:
 
 ~~~java
 Node restored = (Node) in.readObject();
 boolean cycle = restored.next.next == restored; // true
 ~~~
 
-Circular references **do not** need to be broken by setting fields to `null`. However, the serialization mechanism has resource limits (depth, size) and can fail on excessively large/complex graphs; do not assume arbitrary unbounded graphs or corrupted data can always be read.
+Cyclic references **do not** need to be broken by setting fields to `null`. However, serialization has resource limits (depth, size) and can fail on overly huge or complex graphs; do not assume arbitrary unbounded graphs or corrupted data can always be read.
 
 ### Self-Reference
 
@@ -225,25 +225,25 @@ Node self = new Node("SELF");
 self.next = self;
 ~~~
 
-After default serialization/deserialization:
+After default serialize/deserialize:
 
 ~~~java
 Node restored = (Node) in.readObject();
 System.out.println(restored.next == restored); // true
 ~~~
 
-This is a cycle of length 1. With many JSON libraries, handling cycles may require a special strategy; **do not assume JSON behavior applies to Java Object Serialization**.
+This is a cycle of length 1. With many JSON libraries, handling cycles requires a separate strategy; **do not project JSON behavior onto Java Object Serialization**.
 
 ## 6. Complete Java 17+ Program
 
-This example demonstrates **four phenomena** by running actual code:
+This example proves **four behaviors** by running actual code:
 
-1. Two consecutive `writeObject(root)` calls in the same `ObjectOutputStream` reference the **same previously serialized object**.
-2. Modifying the `name` field and calling `writeObject(root)` again **does not automatically save the new field value** if the object still has an existing handle in the stream.
-3. `ObjectOutputStream.reset()` makes the next write a **new serialization**: the reading side receives a new graph, and the updated field content is written.
-4. Shared references and the `A -> B -> A` cycle are still reconstructed **within each graph**.
+1. Two consecutive `writeObject(root)` calls on the same `ObjectOutputStream` refer to **the same previously serialized object**.
+2. Mutating the `name` field and calling `writeObject(root)` again **does not automatically save the new field value** while the object still has an old handle in the stream.
+3. `ObjectOutputStream.reset()` makes the next write **a fresh serialization**; the reader receives a new graph, and the updated field content is written.
+4. Shared references and the `A -> B -> A` cycle are still re-established **within each graph**.
 
-Save the file **`ObjectHandleDemo.java`**:
+Save the file as **`ObjectHandleDemo.java`**:
 
 ~~~java
 import java.io.ByteArrayInputStream;
@@ -277,14 +277,14 @@ public class ObjectHandleDemo {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         try (ObjectOutputStream out =
                      new ObjectOutputStream(bytes)) {
-            out.writeObject(a); // First graph, creates handles for A/B.
-            out.writeObject(a); // Back-reference to the original A.
+            out.writeObject(a); // First graph, containing handles for A/B.
+            out.writeObject(a); // Back-reference to the previous A.
 
             a.name = "A-updated";
-            out.writeObject(a); // Still a back-reference, does not write the new name.
+            out.writeObject(a); // Still a back-reference, does not write new name.
 
             out.reset();        // Discard the stream's handle table.
-            out.writeObject(a); // Write a new graph with the updated name.
+            out.writeObject(a); // Write a fresh graph with the updated name.
         }
 
         try (ObjectInputStream in = new ObjectInputStream(
@@ -339,18 +339,18 @@ original-vs-restored=false
 **Line-by-line explanation:**
 
 - `first == second == third` are all true because the first three reads restore **one object handle** from one new object followed by two back-references.
-- `old-name=A` because A's value was recorded when it **first appeared in the stream**; mutating A in memory **does not retroactively update already-serialized bytes**.
+- `old-name=A` because A's value was written when it **first appeared in the stream**; mutating A in memory **does not retroactively update already-serialized bytes**.
 - `afterReset.name` is `"A-updated"` because the write after `reset()` serializes A's current state.
-- `first != afterReset` because after reset, the reader creates a new graph for subsequent data.
-- `first.next == first.also` shows that the shared B is preserved.
-- `first.next.next == first` and `afterReset.next.next == afterReset` show that both the old graph and the new graph have intact cycles.
-- `a == first` is false because `a` is the original object in memory before writing, whereas `first` is an object reconstructed by deserialization within the same JVM.
+- `first != afterReset` because after reset, the reader builds a fresh graph for the subsequent data.
+- `first.next == first.also` shows that the shared `B` is preserved.
+- `first.next.next == first` and `afterReset.next.next == afterReset` show that both the old and new graphs have proper cycles.
+- `a == first` is false because `a` is the original object in memory prior to writing, whereas `first` is an object reconstructed by deserialization in the same JVM.
 
-**Note:** `ByteArrayOutputStream` only holds bytes in memory, so the demo does not depend on the filesystem. It verifies identity and content, **not disk persistence/durability**.
+**Note:** `ByteArrayOutputStream` only holds bytes in memory, so the demo has no filesystem dependency. It verifies identity and contents, **not on-disk persistence or durability**.
 
-## 7. What Is the Scope of an Object Handle?
+## 7. What Scope Does an Object Handle Exist In?
 
-The handle table belongs to **each `ObjectOutputStream`** and is tracked by the corresponding `ObjectInputStream`. It is **not a JVM-wide global cache**.
+The handle table belongs to **each individual `ObjectOutputStream`** and is tracked by its matching `ObjectInputStream`. It is **not a JVM-wide global cache**.
 
 ### Same Stream, Same Object
 
@@ -359,19 +359,19 @@ out.writeObject(shared);
 out.writeObject(shared);
 ~~~
 
-The second operation can simply write a back-reference, since `shared` already has a handle in that stream. When reading the two corresponding entries, both variables receive references to the same object.
+The second operation may emit only a back-reference because `shared` already has a handle in that stream. Reading the two items returns references to the same object.
 
 ### Two Independent Streams
 
 ~~~java
-// Illustration, two different ObjectOutputStreams:
+// Illustration, two different ObjectOutputStream instances:
 outA.writeObject(shared);
 outB.writeObject(shared);
 ~~~
 
-The two streams have separate handle states. Reading independent streams normally creates a new object per stream, even if the writer passed in the exact same original object.
+Two streams have separate handle states. Reading independent streams normally creates distinct objects per stream, even if the writer passed the exact same original object into both.
 
-### Within One Write of an Entire Graph
+### Within One Full-Graph Write
 
 ~~~java
 // Illustration: root holds the same subObject across multiple fields.
@@ -380,20 +380,20 @@ root.right = subObject;
 out.writeObject(root);
 ~~~
 
-Fields `left/right` point to the same `subObject` in the restored graph (by default). This works regardless of whether `writeObject(root)` is called a second time.
+The `left` and `right` fields both point to `subObject` in the restored graph (by default). This works regardless of whether `writeObject(root)` is called a second time.
 
-### Two Objects with Equal Content
+### Two Objects with Equal Contents
 
 ~~~java
 out.writeObject(new Node("same"));
 out.writeObject(new Node("same"));
 ~~~
 
-These are **two distinct instances**, not a single shared reference. Reading normally creates two separate `Node` instances.
+These are **two distinct instances**, not a shared reference. Reading normally creates two separate `Node` instances.
 
-**Do not rely on `equals()` or `System.identityHashCode()` values to guess serialization handles.** Those are completely different mechanisms.
+**Do not rely on `equals()` or `System.identityHashCode()` to guess serialization handles.** Those are completely separate mechanisms.
 
-## 8. Why Can Mutating an Object and Calling `writeObject()` Again Receive the Old State?
+## 8. Why Can Mutating an Object and Calling `writeObject()` Again Still Yield Old State?
 
 A very common mistake:
 
@@ -403,52 +403,52 @@ User user = new User("first");
 out.writeObject(user);
 
 user.name = "second";
-out.writeObject(user); // Does not automatically resend the full new state.
+out.writeObject(user); // Does not automatically re-emit the entire new state.
 ~~~
 
-The stream already knows `user`'s handle, so the second call can emit a back-reference. The reader returns the object with data restored from the **first write**.
+The stream already knows `user`'s handle, so the second call may emit a back-reference. The reader returns an object with data restored from **the first write**.
 
-### Solutions Depending on Your Goal
+### Approaches Based on Your Goal
 
-- **Want to preserve identity and do not want a new snapshot:** call `writeObject` as usual; back-referencing is the required behavior.
-- **Want to write the new state of the entire graph:** call `ObjectOutputStream.reset()` at a valid boundary **before the next write**; the stream forgets old handles and re-serializes next time.
-- **Want to explicitly resend the same object's state while keeping already-known child objects:** examine `writeUnshared(...)` or `writeObject` on a separate snapshot, understanding its sharing-scope limitations.
-- **Want to update persisted state transactionally:** an object stream is not a database; use a versioned record format or an appropriate storage engine.
+- **Want to preserve identity and don't need a new snapshot:** call `writeObject` as usual; back-referencing is the intended behavior.
+- **Want to write fresh state for the entire graph:** call `ObjectOutputStream.reset()` at a valid boundary **before the next write**; the stream forgets old handles and serializes anew.
+- **Want to explicitly resend the same object's state while retaining known auxiliary objects:** examine `writeUnshared(...)` or call `writeObject` on a separate snapshot copy, understanding sharing-scope limits.
+- **Want transactional updates to persisted state:** an object stream is not a database; use a record/version format or an appropriate storage engine.
 
-Do not manually tamper with handle tables or rely on `flush()` to refresh an object cached in the stream. **`flush()` pushes buffered bytes; it does not clear object handles.**
+Never manually tamper with handle tables or rely on `flush()` to refresh an object cached in the stream. **`flush()` pushes buffered bytes; it does not clear object handles.**
 
 ## 9. `ObjectOutputStream.reset()`: Clearing Handle State for Subsequent Writes
 
-`reset()` on `ObjectOutputStream`:
+Calling `reset()` on `ObjectOutputStream`:
 
-1. Discards remembered state of objects already seen in the stream.
-2. Writes a reset marker into the stream so the corresponding `ObjectInputStream` **also clears its handle table at that point**.
-3. Previously written objects **are not modified or removed from existing bytes**.
-4. If an object with the same Java reference is passed to `writeObject` after reset, it is serialized as a new occurrence.
-5. Can increase stream size because objects and class descriptors may be written again.
+1. Discards remembered state of objects that previously appeared in the stream.
+2. Writes a reset marker in the stream so the corresponding `ObjectInputStream` **also clears its handle table at that point**.
+3. Previously written objects **are neither modified nor erased from existing bytes**.
+4. An object with the same Java reference passed to `writeObject` after reset will be serialized as a brand-new appearance.
+5. May increase stream size because objects and class descriptors may be written again.
 
 Example:
 
 ~~~java
 out.writeObject(root); // Root is assigned a handle for the first time.
 out.writeObject(root); // Back-reference.
-out.reset();            // Forget handle table.
-out.writeObject(root); // Root's data is written again.
+out.reset();            // Forget the handle table.
+out.writeObject(root); // Root's data is written anew.
 ~~~
 
-**Do not call `reset()` while the serializer is actively writing an object**, such as calling it arbitrarily inside `private writeObject(ObjectOutputStream out)` to force a fresh child. The specification forbids resetting mid-object serialization and it can throw `IOException`.
+**Never call `reset()` while the serializer is actively writing an object**, such as arbitrarily calling it inside `private writeObject(ObjectOutputStream out)` to force a fresh child. The specification forbids resetting mid-object serialization and can throw `IOException`.
 
-Reset is a **milestone for subsequent objects**, not a command to erase preceding bytes. Do not confuse it with `ByteArrayOutputStream.reset()`: `ByteArrayOutputStream`'s method clears the **byte buffer contents** in RAM, whereas `ObjectOutputStream.reset()` resets **serialization state** and writes the corresponding marker.
+Reset is a **milestone for subsequent objects**, not a command that erases bytes before it. Do not confuse it with `ByteArrayOutputStream.reset()`: `ByteArrayOutputStream`'s method clears **buffered byte contents** in RAM, whereas `ObjectOutputStream.reset()` resets **serialization state** and emits the corresponding marker.
 
 ### Does Reset Perform a "Deep Copy"?
 
-If after reset we serialize the whole root graph again, the reading side gets a new graph in which internal references remain properly shared/cyclic. However:
+If after reset you re-serialize the entire root graph, the reader receives a new graph in which internal references remain properly shared/cyclic. However:
 
-- Mutable data only reflects the state at the moment of re-serialization.
-- If a field is `transient`/`static` or custom hooks alter logic, the resulting graph may differ.
-- Defining a new graph does not automatically ensure thread-safety if another thread mutates the original object during serialization.
+- Mutable data reflects only the state at the moment of re-serialization.
+- If a field is `transient`/`static` or custom hooks alter logic, the resulting graph can differ.
+- Defining a new graph does not automatically guarantee thread safety if the original object is modified concurrently by another thread during serialization.
 
-## 10. `writeUnshared()`: Rewriting the Root-Level Object Without Using an Old Back-Reference
+## 10. `writeUnshared()`: Writing a Top-Level Object Without Using Prior Back-References
 
 Besides `writeObject`, Java provides:
 
@@ -456,12 +456,12 @@ Besides `writeObject`, Java provides:
 out.writeUnshared(obj);
 ~~~
 
-According to `ObjectOutputStream` documentation:
+According to the `ObjectOutputStream` documentation:
 
-- For the **root-level object passed directly**, `writeUnshared(obj)` always writes the object as a newly appearing object, rather than writing a back-reference to a previous write.
-- Subsequent `writeObject(obj)` calls **do not back-reference a `writeUnshared` write** as if it were a regular shared write.
-- This rule **applies only directly to the root object of the call**. Transitively referenced child objects can still share handles with other already-written objects.
-- Therefore, **`writeUnshared()` is not a full-graph deep copy** and does not mean disabling object caching at every level.
+- For **the top-level object passed directly**, `writeUnshared(obj)` always writes the object as a newly appearing object rather than emitting a back-reference to a previous write.
+- Subsequent `writeObject(obj)` calls **do not back-reference the object written via `writeUnshared`** as though it were a normal shared write.
+- This rule **applies directly only to the root object of the call**. Transitively referenced child objects can still share handles with other already-written objects.
+- Therefore, **`writeUnshared()` is not a full-graph deep copy** and does not disable object handle sharing at every level.
 
 ### Direct Example with Two Unshared Writes
 
@@ -527,7 +527,7 @@ In this example `Box` is simple, with no `readResolve()` or child objects, so th
 
 ### `readUnshared()` Differs from `readObject()`
 
-`ObjectInputStream.readUnshared()` receives a new object **and prevents subsequent reads from back-referencing that handle**. If `readUnshared()` encounters an actual back-reference already in the stream, Java throws an **`ObjectStreamException`** (commonly `InvalidObjectException` by implementation; do not tie logic to a specific subtype if relying solely on the API contract).
+`ObjectInputStream.readUnshared()` reads a new object **and prevents subsequent reads from back-referencing that handle**. If `readUnshared()` encounters an existing back-reference in the stream, Java throws an **`ObjectStreamException`** (commonly `InvalidObjectException` in implementations; do not tie logic to a specific subtype when relying only on the API contract).
 
 Incorrect example:
 
@@ -541,40 +541,40 @@ Box first = (Box) in.readObject();
 Box second = (Box) in.readUnshared(); // Invalid on a back-reference.
 ~~~
 
-This is an **illustrative snippet across writer/reader sides**, not a standalone program. Do not arbitrarily substitute `readUnshared` for all `readObject` calls.
+This is an **illustrative snippet spanning write and read sides**, not a standalone program. Never use `readUnshared` indiscriminately in place of every `readObject`.
 
-**Subtle exception:** `readResolve()` can replace an object with a singleton or an instance existing elsewhere, and `enum`/`Class` have special semantics. Thus combining `writeUnshared`/`readUnshared` is not an absolute guarantee of a brand-new instance for *every kind of object*. When `readResolve` returns an array, `readUnshared` uses a shallow clone per the specification. Child objects inside the graph can themselves still be shared.
+**Subtle exception:** `readResolve()` can replace an object with a singleton or an instance existing elsewhere, and `enum`/`Class` have special semantics. Thus combining `writeUnshared`/`readUnshared` is not an absolute guarantee of a fresh instance for *every object kind*. If `readResolve` returns an array, `readUnshared` uses a shallow clone per specification. Child objects within the graph can also remain shared.
 
 ## 11. Byte Stream: `TC_OBJECT`, `TC_REFERENCE`, and `TC_RESET`
 
 In the Java Object Serialization protocol, stream elements are tagged with type codes:
 
-| Token | General meaning |
+| Token | High-level meaning |
 |---|---|
 | `TC_OBJECT` | Data for a new ordinary object |
 | `TC_ARRAY` | A new array |
-| `TC_STRING` / `TC_LONGSTRING` | A new String |
+| `TC_STRING` / `TC_LONGSTRING` | A new `String` |
 | `TC_CLASSDESC` | Corresponding class descriptor |
-| `TC_REFERENCE` | Reference to an object/descriptor/string that already has a handle |
+| `TC_REFERENCE` | Reference to an existing object/descriptor/string handle |
 | `TC_NULL` | Null reference |
 | `TC_RESET` | Resets the stream's handle state at this point |
 
-This is a **conceptual view of the protocol**, not a list of every token. An actual stream also has a header like magic/version, descriptors, and other elements. Not every `writeObject` call emits `TC_OBJECT`; subsequent encounters may emit only `TC_REFERENCE`.
+This is a **conceptual view of the protocol**, not a complete list of every token. An actual stream also contains headers such as magic/version, descriptors, and other elements. Not every `writeObject` call emits `TC_OBJECT`; subsequent encounters can emit just `TC_REFERENCE`.
 
 ~~~text
 writeObject(root)  -> NEW root (handle Hroot), children, fields ...
 writeObject(root)  -> TC_REFERENCE(Hroot)
 reset()            -> TC_RESET
-writeObject(root)  -> NEW root/children, fresh handle table
+writeObject(root)  -> NEW root/children, new handle table
 ~~~
 
-A handle is not a memory pointer. It serves to represent object identity **inside the stream format**.
+A handle is not a memory pointer. It represents object identity **within the stream format**.
 
-To learn the binary format, read the Java Object Serialization Stream Protocol instead of relying on a single example's hexdump; handles for class descriptors, strings, and auxiliary elements shift offsets depending on the graph.
+To learn the binary format, read the Java Object Serialization Stream Protocol rather than relying on a single example's hexdump; handles for class descriptors, strings, and auxiliary items shift offsets depending on the graph.
 
-## 12. When Can Sharing or Cyclic Relationships Be Altered?
+## 12. When Can Sharing Relationships or Cycles Be Altered?
 
-The default mechanism preserves the graph, but special configurations/hooks can change the outcome:
+The default mechanism preserves graphs, but special configurations/hooks can alter the outcome:
 
 ### `transient` and `static`
 
@@ -583,134 +583,134 @@ class Data implements Serializable {
     private static final long serialVersionUID = 1L;
 
     Node child;                // Serialized by default.
-    transient Node cache;      // Not persisted by default serialization.
+    transient Node cache;      // Not saved by default serialization.
     static Node registry;      // Not part of persisted instance state.
 }
 ~~~
 
-If a cycle passes only through a `transient` field, that reference edge **is not saved** by the default mechanism. On deserialization, the object's transient field receives its default value unless custom logic restores it.
+If a cycle passes only through a `transient` field, that reference edge **is not saved** under default mechanics. Upon deserialization, the transient field receives its default value unless custom logic restores it.
 
 ### `writeReplace()` and `readResolve()`
 
-A class can define an **object substitution** mechanism on write/read. When `readResolve()` returns a singleton (e.g., a canonical instance), `==` results may no longer match what you would expect from regular new objects.
+A class can define **object-replacement** hooks during writing/reading. When `readResolve()` returns a singleton (for instance, a canonical instance), `==` comparisons may no longer behave like ordinary newly instantiated objects.
 
-This is useful for singletons/canonicalization, yet must be carefully designed and tested because it easily causes identity confusion, especially when combined with `readUnshared`. Do not attach these hooks to default graph examples unnecessarily.
+This is useful for singletons/canonicalization, though it must be designed and tested carefully because it easily causes identity surprises, especially alongside `readUnshared`. Do not add these hooks to basic graph examples unnecessarily.
 
-### Custom `writeObject/readObject`
+### Custom `writeObject`/`readObject`
 
-A class can customize the field data stored in the stream. If a custom implementation skips an important field, manually writes unusual child objects, or restores according to bespoke rules, the resulting graph can differ.
+A class can customize which field data is stored in the stream. If a custom implementation skips a critical field, writes unusual child objects, or reconstructs state via custom rules, the resulting graph can differ.
 
-**Rule of thumb:** if your goal is to preserve the graph as in default serialization, keep `defaultWriteObject()` / `defaultReadObject()` faithful to the contract inside hooks, and only add verified logic.
+**Rule:** if the goal is preserving the graph like default serialization, keep `defaultWriteObject()` / `defaultReadObject()` compliant with the contract inside hooks, and add only thoroughly verified logic.
 
 ### `Externalizable`
 
-`Externalizable` grants the class greater control to manually write/read its state. Do not blindly expect every custom format to restore the graph accurately if the author omits fields or fails to re-establish reference relationships. Distinguish the stream's handle capability from the data a class chooses to write.
+`Externalizable` gives the class full responsibility for writing/reading its state. Do not assume every custom format restores graphs accurately if the author omits fields or fails to re-establish reference links. Distinguish the stream's handle capability from the data a class chooses to write.
 
 ## 13. Common Mistakes: Confusing Identity, Snapshots, and Reset
 
-| Symptom | Cause | Solution |
+| Symptom | Cause | How to fix |
 |---|---|---|
-| After reading, two fields are `==` when copies were expected | They originally pointed to the same object; stream preserves sharing | Clarify whether sharing or copying is needed; create new objects if required |
-| After reading, two objects are `equals()` but `!=` | Before writing, they were two distinct instances | Do not confuse value equality with identity |
-| Worrying circular references will cause infinite serialization | Mistakenly thinking serializer always recurses without memoization | Object handles break cycles under the default mechanism |
-| Modifying a field then calling `writeObject` again, yet reader still sees old value | Stream uses a back-reference to the already-written object | Write a new snapshot or call `out.reset()` at a valid boundary |
-| Still seeing old values after `flush()` | Flushing bytes does not clear the handle table | Use reset or another strategy; do not rely on flush |
-| Calling `writeUnshared()` thinking all child objects are distinct too | Only the root object is guaranteed to be written as new | Understand transitively referenced children can still share handles |
-| `readUnshared()` hits a back-reference and fails | API forbids reading a back-reference with `readUnshared` | Match write/read semantics properly |
-| Calling `reset()` inside custom serialization throws an error | Reset cannot be called mid-object write | Only reset outside graph serialization turns |
-| Serialization throws `NotSerializableException` on write | A reachable object is not serializable | Make it serializable, `transient`, or use a custom representation |
-| `InvalidClassException` on read | Class metadata/`serialVersionUID` incompatible | Manage versions/schemas; do not just change UID arbitrarily |
-| Data mutated concurrently during serialization | Object graph is not snapshotted atomically | Synchronize or create an immutable snapshot before writing |
-| Stream grows continuously due to frequent resets | Each reset causes objects/class descriptors to be written again | Balance freshness, identity, and size |
-| Reading original object from stream and comparing `==` against source object | Normal deserialization creates new objects | Compare identity within the restored graph, not across two worlds |
+| After reading, two fields are `==` when copies were expected | They pointed to the same object; the stream preserved sharing | Clarify whether sharing or copying is needed; create new objects if required |
+| After reading, two objects are `equals()` yet `!=` | Two distinct instances existed before writing | Do not confuse value equality with identity |
+| Worrying a cycle will cause infinite serialization | Mistakenly thinking the serializer recurses without memoization | Object handles break cycles under default mechanics |
+| Mutating a field then calling `writeObject` again, yet reader sees old value | Stream emitted a back-reference to the already-written object | Write a new snapshot or call `out.reset()` at a valid boundary |
+| Still seeing old value after `flush()` | Flushing bytes does not clear the handle table | Use `reset()` or another strategy; do not rely on `flush()` |
+| Calling `writeUnshared()` and thinking all child objects are independent | Only the root object is guaranteed to be written as new | Understand that transitively referenced children can still be shared |
+| `readUnshared()` encounters a back-reference and fails | The API forbids reading a back-reference with `readUnshared` | Match write and read semantics properly |
+| Calling `reset()` inside custom serialization throws an error | Reset cannot be called mid-object write | Call `reset()` only outside graph serialization turns |
+| Serialization throws `NotSerializableException` while writing | A reachable object is not serializable | Make it serializable, `transient`, or use a custom representation |
+| `InvalidClassException` when reading | Incompatible class metadata/`serialVersionUID` | Manage versions/schemas rather than changing UIDs arbitrarily |
+| Data mutated concurrently during serialization | Object graph was not snapshotted atomically | Synchronize or build an immutable snapshot before writing |
+| Stream grows continuously due to frequent resets | Every reset causes objects/class descriptors to be rewritten | Balance freshness, identity, and size |
+| Reading back an object and comparing `==` against the original source object | Normal deserialization creates new objects | Compare identity within the restored graph, not across two worlds |
 
-## 14. Relation to `serialVersionUID` and Exceptions
+## 14. Connection to `serialVersionUID` and Exceptions
 
-Serialization includes class information and field state. If a class changes incompatibly between write and read, `InvalidClassException` can occur. Declare `private static final long serialVersionUID` explicitly for serializable classes that need a stable format, though **declaring a UID does not guarantee every class change is compatible**.
+Serialization stores class metadata and field state. If a class changes incompatibly between writing and reading, `InvalidClassException` can occur. You should declare `private static final long serialVersionUID` on serializable classes needing format stability, though **declaring a UID does not guarantee every class change is compatible**.
 
-Exceptions to know:
+Errors to know:
 
-- `NotSerializableException`: an object in the graph does not support serialization and is not validly replaced/excluded.
+- `NotSerializableException`: a non-serializable object exists in the graph and was not validly replaced or excluded.
 - `InvalidClassException`: class descriptor/schema is incompatible with the current class version.
-- `StreamCorruptedException`: stream data is malformed or corrupted.
+- `StreamCorruptedException`: stream data violates format or is corrupted.
 - `EOFException`: reading past available stream data.
-- `ClassNotFoundException`: the class to reconstruct cannot be found.
+- `ClassNotFoundException`: required class for reconstruction cannot be found.
 - `ObjectStreamException` when `readUnshared` encounters an illegal back-reference.
-- `IOException`: underlying I/O failure or protocol error.
+- `IOException`: underlying I/O or protocol error.
 
-**Do not continue using an `ObjectOutputStream` or `ObjectInputStream` assuming its state is still safe after a serious error mid-graph write/read**. Read the Java serialization exception protocol documentation and create a new stream when recovering at a reliable boundary.
+**Never continue using an `ObjectOutputStream` or `ObjectInputStream` assuming its state remains valid after a serious mid-graph read/write error.** Consult the Java serialization exception protocol documentation and open fresh streams when recovering at a trusted boundary.
 
-## 15. Security: Only Deserialize Trusted or Controlled Data
+## 15. Security: Deserialize Only Trusted or Controlled Data
 
-Java Object Serialization **is not a safe default communication format for untrusted data**. `ObjectInputStream.readObject()` can instantiate a rich class graph and trigger special mechanisms during restoration; a tampered stream can cause memory/resource abuse or other deserialization hazards.
+Java Object Serialization **is not a safe communication format by default for untrusted data**. `ObjectInputStream.readObject()` can instantiate a rich class graph and trigger special mechanisms during reconstruction; tampered streams can cause memory/resource abuse or other deserialization hazards.
 
-For untrusted input:
+For untrusted inputs:
 
-1. Consider using a simpler, explicit-schema data format instead of Java native serialization.
-2. If `ObjectInputStream` is unavoidable, configure **`ObjectInputFilter`** in Java 17 to restrict classes, graph depth, reference counts, array sizes, and total bytes within allowed bounds.
+1. Consider using a simpler data format with an explicit schema instead of Java native serialization.
+2. If `ObjectInputStream` is unavoidable, configure **`ObjectInputFilter`** in Java 17 to restrict allowed classes, graph depth, reference counts, array sizes, and total bytes.
 3. Bound input size before deserializing, authenticate the source, and check business invariants after reading.
-4. Do not treat `serialVersionUID` or object handles as authentication or encryption measures.
-5. Do not directly log the entire object graph in sensitive environments; it can introduce cycles or leak data.
+4. Never treat `serialVersionUID` or object handles as authentication or encryption measures.
+5. Never log entire object graphs directly in sensitive environments; they may contain cycles or leak data.
 
-Simple filter illustration:
+Illustrative simple filter example:
 
 ~~~java
-// Illustration; input is an already-created ObjectInputStream.
+// Illustrative snippet, input is an already-created ObjectInputStream.
 // Adjust the pattern to actual classes; do not copy
-// a demo allowlist to production without reviewing it.
+// a demo allowlist to production without auditing.
 ObjectInputFilter filter = ObjectInputFilter.Config.createFilter(
         "maxdepth=20;maxrefs=10000;maxbytes=1048576;maxarray=100000;!*");
 input.setObjectInputFilter(filter);
 ~~~
 
-The pattern above **blocks every class** not explicitly permitted, so it cannot read the `Node` example as-is; it only illustrates **resource limits + deny-by-default**. Real applications must add context-appropriate allowed classes. The snippet requires `import java.io.ObjectInputFilter;`.
+The pattern above **blocks every class** not explicitly permitted, so it cannot read the `Node` example as written; it illustrates **resource limits + deny-by-default**. In a real application, add the context-specific list of permitted classes. This illustrative snippet requires `import java.io.ObjectInputFilter;`.
 
 ## 16. Sound Design for Application Data
 
-### When to Keep Sharing as Default
+### When to Keep Default Sharing
 
-If multiple entities share **the same meaningful object** (for instance, a shared address/cache/config in the graph), default serialization restores the topology accurately. Use standard `writeObject` and ensure every object to be persisted in the graph has an appropriate representation.
+If multiple entities share **the same meaningful object** (such as a shared address, cache, or config in the graph), default serialization restores the exact topology. Use regular `writeObject` and ensure every object needing persistence in the graph has an appropriate representation.
 
-### When You Need a Fresh Snapshot Version
+### When Fresh Versioned Snapshots Are Needed
 
-If writing multiple consecutive snapshots of the same mutable object to **one `ObjectOutputStream`**, you need a refresh policy:
+If writing multiple consecutive snapshots of the same mutable object to **one `ObjectOutputStream`**, establish a refresh policy:
 
-- Call `reset()` between snapshots if it is acceptable that the new object does not share identity with previous snapshots.
-- Or build a new DTO/immutable snapshot for each write.
-- Do not use `flush()` or `close()` as a way to ask the serializer to rewrite an object that already has a handle.
+- Call `reset()` between snapshots if it is acceptable that new objects do not share identity with earlier snapshots.
+- Or construct a fresh DTO/immutable snapshot for each write.
+- Never rely on `flush()` or `close()` to force the serializer to re-write an object that already has a handle.
 
-### When Avoiding Repeating the Entire Graph
+### When Avoiding Graph Repetition
 
-If a graph is very large with many shared references, keeping handles can significantly reduce stream size. However, the handle table also retains state long-term in the stream; a very long-lived stream can consume more memory. You can reset at clear boundaries, accepting that data is re-serialized after reset.
+If a graph is very large with many shared references, keeping handles reduces stream size significantly. However, the handle table also retains state in the stream; a very long-lived stream can consume more memory. You can reset at clear boundaries, accepting that data will be re-serialized after reset.
 
 ### When Long-Term Persistence Is Required
 
-Java native serialization depends on class format, serial UIDs, and compatibility rules. For multi-year persistence, cross-technology transfer, or strict schema control, consider a versioned, schema-independent format (such as JSON/CBOR/Protocol Buffers fitting the context), and explicitly model object IDs/references if sharing and cycles are needed.
+Java native serialization is coupled to class layout, serial UIDs, and compatibility rules. If persisting for years, transferring across different tech stacks, or needing strict schema governance, consider versioned, schema-independent formats (such as JSON/CBOR/Protocol Buffers suited to the context), and explicitly represent object IDs/references if sharing and cycles are needed.
 
 ## 17. Self-Check
 
-1. Two fields point to the same object before writing. After default deserialization, is `field1 == field2`? **True.**
+1. Two fields before writing point to the same object. After default deserialization, is `field1 == field2`? **True.**
 2. Two distinct objects have `equals() == true`. Does the serializer merge them automatically? **No.**
-3. `A.next=B` and `B.next=A`. Why is there no infinite recursion? **The serializer assigns a handle before finishing writing fields and emits a back-reference when encountering A again.**
-4. Is an object handle a Java memory address or a database ID? **No; it is a stream-scoped identifier.**
-5. Call `writeObject(obj)` twice in the same stream without reset. What do two reads usually return? **The same deserialized instance via back-reference.**
-6. Modify a field after the first write, then call `writeObject` again. Does it automatically send the new field? **No, if the second write is a back-reference.**
+3. `A.next=B` and `B.next=A`. Why doesn't serialization recurse infinitely? **The serializer assigns a handle before finishing fields and emits a back-reference when encountering A again.**
+4. Is an object handle a Java memory address or database ID? **No; it is a stream-scoped identifier.**
+5. Calling `writeObject(obj)` twice on the same stream without reset: what do the two reads normally return? **The same deserialized instance via back-reference.**
+6. Mutating a field after the first write and calling `writeObject` again: does it automatically send the new field? **No, if the second write emits a back-reference.**
 7. Does `ObjectOutputStream.reset()` erase already-written bytes? **No. It resets handle state and writes a reset marker.**
-8. Is `ByteArrayOutputStream.reset()` the same as `ObjectOutputStream.reset()`? **No. One clears bytes in memory; the other resets serialization state.**
-9. Does `writeUnshared(root)` guarantee all child objects are also unshared with the previous graph? **No; only the root at the call level.**
-10. Is calling `readUnshared()` to read a back-reference valid? **No, it throws `ObjectStreamException`.**
+8. Is `ByteArrayOutputStream.reset()` the same as `ObjectOutputStream.reset()`? **No. One clears in-memory bytes; the other resets serialization state.**
+9. Does `writeUnshared(root)` guarantee all child objects are unshared with earlier graphs? **No; only the top-level root of the call.**
+10. Is it valid for `readUnshared()` to read a back-reference? **No; it throws `ObjectStreamException`.**
 11. Are `static` or `transient` fields saved by default serialization? **No.**
-12. Should `ObjectInputStream` read arbitrary streams from the Internet? **No; source control, filters, and resource limits are required.**
+12. Should `ObjectInputStream` read arbitrary streams from the Internet? **No; source verification, filters, and resource limits are required.**
 13. Does `serialVersionUID` replace versioning/schema migration? **No.**
-14. Using the same class across two different `ObjectOutputStream` instances—do they share a handle table? **No.**
-15. Why is `original == restored` usually false even though the graph preserves identity? **Deserialization creates objects in a new graph; identity is only re-established among references within the read graph/stream.**
+14. Using the same class across two separate `ObjectOutputStream` instances: do they share a handle table? **No.**
+15. Why is `original == restored` usually false even when the graph preserves identity? **Deserialization constructs objects in a new graph; identity is restored only among references within the read graph/stream.**
 
 ## 18. Official References
 
 - [Java SE 17 — ObjectOutputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectOutputStream.html): `writeObject`, `writeUnshared`, `reset`, and shared references.
 - [Java SE 17 — ObjectInputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputStream.html): `readObject`, `readUnshared`, graph restoration, serial filtering.
 - [Java SE 17 — Java Object Serialization Specification: System Architecture](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/serial-arch.html): handles, shared references, and cyclic references.
-- [Java SE 17 — Object Output Classes](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/output.html): handle assignment algorithm, reset, writeUnshared.
-- [Java SE 17 — Object Input Classes](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/input.html): handle restoration, reset token, and readUnshared.
+- [Java SE 17 — Object Output Classes](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/output.html): handle assignment algorithm, reset, `writeUnshared`.
+- [Java SE 17 — Object Input Classes](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/input.html): handle restoration, reset tokens, and `readUnshared`.
 - [Java SE 17 — Stream Protocol](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/protocol.html): element format, `TC_REFERENCE`, `TC_RESET`, and class descriptors.
 - [Java SE 17 — ObjectInputFilter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.html): limiting and filtering data during deserialization.

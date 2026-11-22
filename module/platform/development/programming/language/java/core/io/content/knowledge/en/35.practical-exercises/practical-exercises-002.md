@@ -117,7 +117,7 @@ High-level methods have their own error-handling contracts (for instance, `readS
 Suppose UTF-8 input contains `C3 28`:
 
 - `REPORT`: the decoder throws `MalformedInputException`; it does not produce a "best-guess fixed" result.
-- `REPLACE`: the codec substitutes a replacement character, usually `U+FFFD` (the `` symbol), and continues processing remaining valid bytes. The content has **changed**.
+- `REPLACE`: the codec substitutes a replacement character, usually `U+FFFD` (the `�` symbol), and continues processing remaining valid bytes. The content has **changed**.
 - `IGNORE`: the codec drops erroneous parts; content may **lose bytes/characters**.
 
 Which policy is permitted is a business decision. For backups, financial data, identifiers, source files used in builds, or migrations needing verification, `REPORT` is usually the sensible default; if REPLACE/IGNORE is required, the data loss should be recorded.

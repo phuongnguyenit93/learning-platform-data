@@ -1,51 +1,51 @@
 # Simulating Partial Reads, Partial Writes, and Mid-Stream Failures in Java I/O
 
-## 1. Why Test Partial I/O?
+## 1. Why Must You Test Partial I/O?
 
-In Java NIO, `ReadableByteChannel.read(ByteBuffer)` and `WritableByteChannel.write(ByteBuffer)` return **the number of bytes actually transferred in the current call**, without promising to process all of `ByteBuffer.remaining()`. For small files on a local drive, a single read/write may happen to finish everything. However, non-blocking sockets, bandwidth-throttled streams, nearly full buffers, device I/O, or a test double can cause a call to transfer only a **partial** chunk, transfer zero bytes, or throw an `IOException` mid-sequence.
+In Java NIO, `ReadableByteChannel.read(ByteBuffer)` and `WritableByteChannel.write(ByteBuffer)` return **the number of bytes actually transferred in the current call**, without promising to consume or fill all of `ByteBuffer.remaining()`. With small files on a local disk, a single read or write may happen to transfer everything. However, non-blocking sockets, bandwidth-throttled streams, nearly full buffers, device I/O, or a test double can cause a call to transfer only **part of the data**, transfer zero bytes, or throw an `IOException` partway through a sequence of operations.
 
-If you only test the "read all at once, write all at once" case, code easily hides bugs such as:
+If you only test the "read all in one call, write all in one call" scenario, the code easily hides bugs:
 
-- Dropping the unwritten tail of a `ByteBuffer`, causing **data loss**.
+- Leaving unwritten bytes behind in `ByteBuffer`, causing **data loss**.
 - Treating `read() == 0` as EOF, stopping prematurely.
-- Treating `write() == 0` as success and discarding untransferred bytes.
-- Forgetting `flip()`/`clear()` or `compact()`, writing the wrong buffer region.
-- Retrying the entire request/file after an error and **duplicating** already written parts.
-- Assuming `IOException` can only occur before any byte has been transferred.
-- Using `Thread.sleep` in tests instead of controlling a deterministic failure schedule.
+- Treating `write() == 0` as success and dropping untransferred bytes.
+- Forgetting to call `flip()`/`clear()` or `compact()`, writing the wrong buffer slice.
+- Retrying the entire request or file after an error and **duplicating** the already-completed portion.
+- Assuming `IOException` can only happen before any bytes are transferred.
+- Using `Thread.sleep` in tests instead of controlling the failure schedule deterministically.
 
-The goal of this lesson is to **produce failure scenarios deliberately and reproducibly** using simulated channels, rather than waiting for slow networks or corrupting real files. You will learn how to test read-fully/write-fully loops, distinguish `0`/EOF/exceptions, observe buffer state, and design recoverable retries.
+The goal of this lesson is to **trigger failure conditions proactively and reproducibly** using simulated channels rather than waiting for slow networks or corrupting real files. You will learn how to test read-fully/write-fully loops, distinguish `0`/EOF/exceptions, inspect buffer state, and design recoverable retry strategies.
 
 ## 2. Read and Write Contracts to Memorize
 
-For `ReadableByteChannel.read(dst)`, check `dst.remaining()` before reading to know the maximum bytes the buffer can accept.
+For `ReadableByteChannel.read(dst)`, inspect `dst.remaining()` before reading to know the maximum bytes the buffer can accept.
 
 | Result | Meaning | How to Handle |
 | --- | --- | --- |
-| `n > 0` | Placed `n` bytes into `dst`, advancing `position` accordingly. | Update byte count; continue if reading a fixed frame. |
-| `n == 0` | No bytes read on this call; I/O may not be ready or buffer has no space left. | Do **not** assume EOF; check blocking mode, readiness, and deadline. |
-| `n == -1` | End-of-stream (EOF) reached. | If `N` exact bytes were required and not met, report a truncated frame. |
-| `IOException` | Read failed. | Do not treat as EOF or "certainly zero bytes read"; apply error/recovery policy. |
+| `n > 0` | Placed `n` bytes into `dst` and advanced `position` accordingly. | Update byte count; continue if reading a fixed-size frame. |
+| `n == 0` | No bytes read on this call; I/O may not be ready or the buffer has no space. | **Do not** treat as EOF; respect blocking mode, readiness, and deadlines. |
+| `n == -1` | Reached end-of-stream (EOF). | If exact `N` bytes were needed and haven't arrived, report a truncated frame. |
+| `IOException` | Read failed. | Do not treat as EOF or assume "no bytes were read"; apply error/recovery policy. |
 
 For `WritableByteChannel.write(src)`:
 
 | Result | Meaning | How to Handle |
 | --- | --- | --- |
-| `n > 0` | Consumed `n` bytes from `src`, advancing `position` accordingly. | Continue writing while `src.hasRemaining()`. |
-| `n == 0` | No bytes transferred on this call. | Keep buffer, wait for writability / enforce deadline; avoid busy-looping. |
-| `IOException` | Call failed. | Do not ACK success and do not blindly retry if partial writes may have occurred. |
+| `n > 0` | Consumed `n` bytes from `src` and advanced `position` accordingly. | Continue writing while `src.hasRemaining()`. |
+| `n == 0` | No bytes transferred on this call. | Retain buffer, wait for writability / enforce deadline; avoid busy loops. |
+| `IOException` | Call failed. | Never ACK success and never retry blindly if a partial write may have occurred. |
 
-`write` **does not use `-1` to signal EOF** like `read` does. Some channels behave in blocking mode and wait until progress is made, whereas channels like `SocketChannel` in non-blocking mode may routinely return `0`. The `ReadableByteChannel` interface permits returning fewer bytes than available space in the buffer; one read does not equate to one TCP message.
+`write` **does not use `-1` as an EOF signal** the way `read` does. Blocking channels may wait until progress occurs, whereas non-blocking channels like a non-blocking `SocketChannel` may frequently return `0`. The `ReadableByteChannel` interface permits returning fewer bytes than available buffer space; a single read is not equivalent to a single TCP message.
 
 ### `ByteBuffer.position`, `limit`, and `remaining`
 
-Suppose `ByteBuffer.allocate(8)`: initially, `position=0`, `limit=8`, `remaining=8`.
+Suppose `ByteBuffer.allocate(8)`: initially `position=0`, `limit=8`, `remaining=8`.
 
 ```text
 After reading 3 bytes:
   position=3, limit=8
   [A B C _ _ _ _ _]
-   ^ received data   ^ free space
+   ^ received data    ^ remaining space
 
 After flip():
   position=0, limit=3
@@ -53,30 +53,30 @@ After flip():
 
 After writing 2 bytes:
   position=2, limit=3
-  [A B | C] -> byte C still pending send
+  [A B | C] -> byte C still unsent
 
 After writing remaining byte C:
   position=3, limit=3; remaining=0
 ```
 
-`flip()` switches a buffer from filling mode to consuming mode. `clear()` resets `position` to 0 and `limit` to `capacity`, but **does not physically erase bytes**. `compact()` retains unconsumed bytes and shifts them to the front so more data can be read; useful for TCP parsers receiving incomplete frames.
+`flip()` switches a buffer from filling mode to draining mode. `clear()` resets `position` to 0 and `limit` to `capacity` without **physically erasing bytes**. `compact()` keeps unconsumed bytes and shifts them to the front so more can be read; this is useful for TCP parsers receiving partial frames.
 
-Calling `clear()` immediately after a short `write` marks unwritten bytes as gone from the buffer and risks data loss. Always calling `flip()` after every `read` without checking state can resend a segment or corrupt parser state.
+Calling `clear()` immediately after a short `write` marks the unwritten bytes as gone from the buffer and risks data loss. Always calling `flip()` after every `read` without checking state can re-send a slice or corrupt parser state.
 
 ## 3. Designing Test Doubles for Partial I/O
 
-A good unit test does not need Internet sockets or real disk writes. You can implement two Java NIO interfaces:
+A good unit test does not need an Internet socket or real disk writes. You can implement two Java NIO interfaces:
 
-- `ReadableByteChannel` reading from a byte array and copying at most 2 bytes into the buffer per call.
-- `WritableByteChannel` writing into a `ByteArrayOutputStream` and taking at most 3 bytes from the buffer per call.
-- On the very first call, each channel returns `0` to verify code does not confuse "not ready" with EOF or success.
-- Counting calls to verify code genuinely exercised the partial-I/O paths.
+- `ReadableByteChannel` reading from a byte array and copying at most 2 bytes per call into the buffer.
+- `WritableByteChannel` writing into a `ByteArrayOutputStream` and draining at most 3 bytes per call from the buffer.
+- On the first call, each channel returns `0` to verify the code does not confuse "not ready yet" with EOF or completion.
+- Tracking call counts to confirm the code actually exercised the partial I/O paths.
 
-With test doubles, the numbers 2 and 3 are **deliberate test constraints**, not predictions about the filesystem or OS byte counts. The biggest benefit is complete determinism: running a hundred times follows the exact same event schedule.
+With test doubles, the numbers 2 and 3 are **deliberate test constraints**, not predictions of filesystem behavior or OS chunk sizes. The biggest advantage is completely deterministic testing: running a hundred times exercises the exact same event schedule.
 
 ### Runnable Java 17 Example: `ShortIoDemo`
 
-Create file `ShortIoDemo.java`:
+Create `ShortIoDemo.java`:
 
 ```java
 import java.io.*;
@@ -148,7 +148,7 @@ public class ShortIoDemo {
 }
 ```
 
-Compile/run with Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac --release 17 ShortIoDemo.java
@@ -166,42 +166,42 @@ read-calls=6
 write-calls=5
 ```
 
-**Interpreting the I/O schedule:**
+**I/O trace explanation:**
 
-1. The first `read` returns `0`; the loop transfers no bytes and continues only because the fixture guarantees forward progress.
-2. The next four `read` calls return `2, 2, 2, 1` bytes. Each uses `dst.remaining()` and advances `position` by that exact count.
-3. The final `read` returns `-1` to signal EOF. Total of **6** calls.
-4. The first `write` returns `0`. Four subsequent progressive writes consume `2, 2, 2, 1` bytes. Total of **5** write calls.
-5. `flip()` switches the 2 or 1 newly read bytes to read mode for the writer; `while (buffer.hasRemaining())` ensures no byte is lost before `clear()`.
-6. `copied=7` and `content=ABCDEFG` prove all bytes passed through the fixture in exact order.
+1. The first `read` returns `0`; the loop transfers nothing and continues only because the fixture is guaranteed to make progress next.
+2. The next four `read` calls return `2, 2, 2, 1` bytes. Each consumes `dst.remaining()` and advances `position` by that exact count.
+3. The final `read` returns `-1` to signal EOF. Total: **6** read calls.
+4. The first `write` returns `0`. Four progressing writes then consume `2, 2, 2, 1` bytes. Total: **5** write calls.
+5. `flip()` switches the 2 or 1 newly read bytes to read mode for the writer to consume; `while (buffer.hasRemaining())` guarantees no bytes are lost before `clear()`.
+6. `copied=7` and `content=ABCDEFG` prove all bytes passed through the fixture in the exact order.
 
-**Important warning:** Both `if (n == 0) continue` branches here are safe solely because the fixture deliberately returns `0` **only once**. Never copy this loop verbatim onto a production non-blocking channel: a channel can return `0` repeatedly, causing CPU spin. Use `Selector`/readiness, bounded waits, and timeouts suited to the architecture.
+**Important warning:** the two `if (n == 0) continue` branches here are safe only because the fixture deliberately returns `0` **once**. Never copy this loop directly onto a production non-blocking channel: a channel may return `0` repeatedly, causing CPU spin. Use `Selector`/readiness, bounded queues/waits, and proper timeouts architecturally.
 
-### An easily missed test bug
+### An Easily Missed Test Bug
 
-If a fixture always fulfills "every byte requested", this buggy code still passes:
+If the fixture always returns "all requested bytes," the following buggy code still passes:
 
 ```java
-// Anti-pattern: broken because short writes are unhandled.
+// Anti-pattern: buggy because short writes are unhandled.
 ByteBuffer src = ByteBuffer.wrap(payload);
-channel.write(src);               // May write only part of it.
-System.out.println("finished");   // Prematurely reports success.
+channel.write(src);               // May write only part of the buffer.
+System.out.println("finished");   // Reports success prematurely.
 ```
 
-This is an illustrative snippet with assumed `payload` and `channel`. A test using `ShortWriter` immediately exposes this bug: `src.hasRemaining()` remains true after the first progressive call, or the very first call returns `0` with no bytes written at all.
+This is an illustrative snippet with assumed `payload` and `channel`. A test using `ShortWriter` exposes this bug immediately: `src.hasRemaining()` remains true after the first progressing call, or the first call even returns `0` with zero bytes written.
 
-## 4. Simulating Mid-Stream Errors: Partial Transfer Followed by `IOException`
+## 4. Simulating Mid-Stream Failures: Partial Transfer Followed by `IOException`
 
 The next goal is testing not just short I/O, but **errors arriving after several successful calls**:
 
-- The reader provides exactly 2 bytes `HE`, then throws `IOException` while the application still needs 3 bytes.
+- The reader supplies exactly 2 bytes `HE`, then throws `IOException` while the application still needs 3 bytes.
 - The writer accepts exactly 2 bytes `HE`, then throws `IOException` on the next write; 3 bytes `LLO` remain in the example's buffer.
-- The application must record the data as **incomplete**, never reporting success.
+- The application must record the data as **incomplete**, never returning success.
 - You cannot infer from the error that the receiver or storage **never received any bytes**.
 
 ### Java 17 Example: `MidStreamFailureDemo`
 
-Create file `MidStreamFailureDemo.java`:
+Create `MidStreamFailureDemo.java`:
 
 ```java
 import java.io.*;
@@ -275,7 +275,7 @@ public class MidStreamFailureDemo {
 }
 ```
 
-Compile/run:
+Compile and run:
 
 ```bash
 javac --release 17 MidStreamFailureDemo.java
@@ -292,20 +292,20 @@ written-prefix=HE
 remaining=3
 ```
 
-The output is completely controlled by the fixture: the first read raises `received.position()` to `2`; the first write raises `pending.position()` to `2`. Then the error fires on the **next call** before the fixture modifies the buffer again, so the sink received the exact prefix `HE` while `3` bytes remain unwritten.
+The output is completely controlled by the fixture: the first read advances `received.position()` to `2`; the first write advances `pending.position()` to `2`. The error then occurs on the **next call** before the fixture modifies the buffer again, so the sink received the prefix `HE` with `3` bytes left unwritten.
 
-**Do not extrapolate to every real channel:** if an I/O call **itself** throws `IOException` while accessing the OS/device, the amount of progress durably saved or processed by a peer may be **indeterminate** at the application layer. The fixture's `ByteBuffer` position is measurable because we wrote it ourselves; the API provides no guaranteed "bytes safely committed to peer/database" count after arbitrary exceptions. Never assume a retry is safe based solely on `position()` after an error.
+**Do not extrapolate this to every real channel:** if an I/O call **itself** throws `IOException` midway through accessing the OS or device, how much progress was durably stored or processed by the peer can be **indeterminate** at the application layer. The fixture's `ByteBuffer` position is measurable only because we wrote the fixture; the API provides no "guaranteed committed bytes to peer/database" after arbitrary exceptions. Avoid declaring a retry safe based solely on `position()` after an error.
 
-## 5. Mid-Frame EOF vs Mid-Frame `IOException`
+## 5. Mid-Frame EOF vs. Mid-Frame `IOException`
 
 When a protocol specifies a frame of **N bytes**, the reader must distinguish:
 
-- Exactly `N` bytes read: complete frame.
-- `-1` received with fewer than `N` bytes: **truncated frame**, even though EOF itself is normal stream termination.
-- `IOException` thrown: read failure, never interpret as EOF.
-- `0` returned: no progress yet; cannot conclude the frame is broken or complete.
+- Reading exact `N` bytes: complete frame.
+- Receiving `-1` when fewer than `N` bytes arrived: **truncated frame**, even though EOF itself is normal stream termination.
+- Receiving `IOException`: read error, never to be interpreted as EOF.
+- Receiving `0`: no progress yet; cannot conclude whether the frame is broken or complete.
 
-A read-fully helper in a **blocking context** (illustrative code, not standalone):
+A read-fully helper in a **blocking context** (illustrative code, not a standalone program):
 
 ```java
 static void readFully(ReadableByteChannel input, ByteBuffer dst)
@@ -323,22 +323,22 @@ static void readFully(ReadableByteChannel input, ByteBuffer dst)
 }
 ```
 
-This helper intentionally **fails fast on `0`** when used in controlled tests to prevent infinite loops. On a non-blocking `SocketChannel`, `0` is valid; production handlers keep `dst` and register `OP_READ` rather than failing immediately. On normal blocking channels with buffer space remaining, `read` typically blocks until progress or EOF; still handle channel state and timeouts as appropriate.
+This helper intentionally **fails fast on `0`** when used in controlled tests to avoid infinite loops. With a non-blocking `SocketChannel`, `0` is valid; a production handler should retain `dst` and register `OP_READ` rather than treating it as an immediate error. With ordinary blocking channels, when the buffer has space, `read` typically waits for progress or EOF; still handle channel state and timeouts as appropriate.
 
-When a frame has a **length prefix**, bound the length before allocating buffers to prevent security/resource exhaustion:
+When a frame has a **length prefix**, bound the length before allocating a buffer to prevent security and resource exhaustion bugs:
 
 ```text
 [4-byte length][payload length bytes][optional checksum]
 ```
 
-Test sequentially: "header short 1 byte", "payload short 1 byte", "negative/oversized length", "multiple frames delivered in one read", "one frame spanning multiple reads", and "repeated zero reads". These test the parser/protocol, complementing Channel API tests.
+Test in turn "header short by 1 byte," "payload short by 1 byte," "negative/oversized length," "multiple frames in one read," "one frame spanning multiple reads," and "multiple zero reads." These are parser/protocol tests complementing Channel API tests.
 
-## 6. Writing Everything Does Not Mean an Atomic Transaction
+## 6. Writing Everything Does Not Equal an Atomic Transaction
 
-A progressive write loop is commonly written as:
+A progressing write loop is commonly written as:
 
 ```java
-// Illustrative snippet for channels guaranteeing progress per policy.
+// Illustrative snippet for a channel guaranteed by policy to make progress.
 static void writeAll(WritableByteChannel output, ByteBuffer src)
         throws IOException {
     while (src.hasRemaining()) {
@@ -350,83 +350,83 @@ static void writeAll(WritableByteChannel output, ByteBuffer src)
 }
 ```
 
-This works well for **fixtures or blocking paths** expected to make progress. For non-blocking sockets, wait for `OP_WRITE` instead of throwing right away; do not leave `OP_WRITE` enabled continuously when no bytes are pending, because writable sockets will wake the event loop nonstop.
+This works for **fixtures or blocking paths** expected to make progress. For non-blocking sockets, wait for `OP_WRITE` instead of throwing immediately; do not keep `OP_WRITE` enabled when no bytes are pending, because sockets are usually writable and will keep the event loop spinning constantly.
 
-Even after `writeAll` finishes:
+Even when `writeAll` finishes:
 
-- For sockets, it **does not prove the remote application parsed/committed the data**; protocol-level acknowledgements are required.
-- For files, it **does not prove bytes are durable across power loss**; check `FileChannel.force` and filesystem contracts.
-- For large records, an operation may involve multiple small writes; crashing mid-way leaves an incomplete prefix on disk. You need checksums/versioning/journaling/atomic replacement or a storage engine.
-- For non-idempotent network requests, a connection failure after a partial write creates **uncertainty about how far the receiver progressed**. Blind retries risk duplicate execution or double charges.
+- Over a socket, it **does not prove the remote application parsed or committed the data**; protocol-level acknowledgments are required.
+- On a file, it **does not prove bytes survive power loss**; check `FileChannel.force` and the filesystem contract.
+- For large records, an operation may involve multiple small writes; if a crash occurs mid-way, the file can contain a partial prefix. You need checksums, versioning, journaling, atomic replacement, or a storage engine.
+- For non-idempotent network requests, a connection error after a partial write can leave **uncertainty about how far the receiver processed the request**. Blindly retrying can cause duplicates or double charges.
 
 ## 7. Safe Retry Strategies After Failure
 
-A useful separation is distinguishing three levels:
+A common confusion is conflating three levels:
 
-| Level | What Can Be Known After a Successful Call? | What Cannot Be Concluded? |
+| Level | What Is Known After a Successful Call? | What Cannot Be Concluded? |
 | --- | --- | --- |
-| `ByteBuffer` | `position` advanced by bytes the channel reported transferring. | That the peer processed them or disk committed them. |
-| TCP connection | `write` accepted part of the byte stream into the local stack. | That the remote app received the full logical message. |
-| Business application | Only an application-protocol response/ACK confirms completion. | If an ACK is lost, you cannot assume the server did no work. |
+| `ByteBuffer` | `position` advanced by the bytes the channel reported transferring. | Whether the peer processed them or disk committed them. |
+| TCP connection | `write` handed part of the byte stream to the local stack. | Whether the remote app received the full logical message. |
+| Business application | Only an application-protocol response/ACK. | If the ACK is lost, whether the server did or didn't act. |
 
 When an `IOException` occurs:
 
-1. Log the **operation, offset/frame ID, expected size, bytes reported as transferred by prior successful calls**, exception type, and channel state.
-2. Mark the request/file as **incomplete or uncertain**; never report success.
-3. Check data semantics: temporary files can be deleted and rebuilt; append logs need record framing/checksums; network requests need idempotency keys or transaction status queries.
-4. Enforce a retry budget, backoff, and deadline; avoid infinite retries when the device or network is down.
-5. When the committed offset cannot be proven, **never** arbitrarily send just the remainder or resend from the beginning if the protocol lacks resume/deduplication support.
+1. Log **the operation, offset/frame ID, expected size, bytes reported as transferred by prior successful calls**, exception type, and channel state.
+2. Mark the request or file as **incomplete or uncertain**; never report success.
+3. Check the data kind: a new temporary file can be deleted and rebuilt; an append log needs record framing/checksums; a network request needs an idempotency key or transaction-status query.
+4. Define retry budgets, backoff, and deadlines; avoid infinite retries when the device or network is broken.
+5. When the committed offset cannot be proven, **never** arbitrarily send only the remaining bytes or resend from the start unless the protocol supports resume or deduplication.
 
-For example, an import file can be written to `incoming.tmp` and published via `ATOMIC_MOVE` after checksum verification; consumers never read temporary files. For logs preserving every record, use length/checksum/commit markers and discard any incomplete trailing record during recovery. This is a durability/transaction problem, **not solved merely by a write loop**.
+For example, a file import can write to `incoming.tmp` and publish via `ATOMIC_MOVE` after verifying a checksum; consumers never read the temp file. For a log needing every record, use lengths, checksums, and commit markers, trimming an incomplete trailing record during recovery. This is a durability/transaction concern, **not solved by a write loop alone**.
 
 ## 8. Minimum Test Matrix to Run
 
 | Test Case | Simulated Schedule | Result to Verify |
 | --- | --- | --- |
-| Immediate full read | `read -> N` | Correct byte contents and count. |
-| Partial read | `read -> 2, 2, 1` | Accumulates all `N`, no drops or reordering. |
-| Temporary 0 read | `read -> 0, N` | Does not treat `0` as EOF; no CPU spin in production. |
-| EOF before `N` | `read -> 2, -1` | Reports truncated frame, does not parse partial data. |
-| Read error after prefix | `read -> 2, IOException` | Reports error, preserves byte context, no ACK. |
-| Immediate full write | `write -> N` | `hasRemaining == false`, exact bytes. |
-| Partial write | `write -> 1, 2, ...` | Loops until buffer empties, no early `clear`. |
-| Temporary 0 write | `write -> 0, N` | Retains pending bytes, waits for readiness/deadline. |
-| Mid-stream write error | `write -> 2, IOException` | Prefix may have transferred; handles uncertain state. |
-| Error on first call | `read/write -> IOException` | Does not misclassify as EOF, no infinite retry. |
+| Full immediate read | `read -> N` | Exact byte contents and count. |
+| Partial read | `read -> 2, 2, 1` | Accumulates all `N` bytes without dropping or reordering. |
+| Temporary zero read | `read -> 0, N` | Does not treat `0` as EOF; no CPU spin in production. |
+| EOF before `N` bytes | `read -> 2, -1` | Reports truncated frame; does not parse incomplete data. |
+| Read error after prefix | `read -> 2, IOException` | Reports error, preserves byte context, does not ACK. |
+| Full immediate write | `write -> N` | `hasRemaining == false`, exact bytes. |
+| Partial write | `write -> 1, 2, ...` | Loops until buffer is drained; does not call `clear` early. |
+| Temporary zero write | `write -> 0, N` | Retains pending bytes, waits for readiness/deadline. |
+| Mid-stream write error | `write -> 2, IOException` | Prefix may have been sent; handles uncertain state. |
+| Error on first call | `read/write -> IOException` | Does not interpret as EOF; does not retry infinitely. |
 | Tiny buffers | Capacity 1, 2, 3 | Preserves `flip`/`clear` state and byte order. |
-| Empty / boundary payloads | 0, 1, N-1, N, N+1 | Never accesses past buffer limit. |
-| Multiple messages | Frames split or coalesced | Parser retains state, never assumes 1 read = 1 message. |
-| Client cancel / timeout | Deadline expires mid-I/O | Cleanup, close, no double-completion. |
-| Retry after error | Retry with same ID | Idempotency/recoverability, no duplicate side effects. |
+| Empty / boundary payloads | 0, 1, N-1, N, N+1 | Never accesses buffer past `limit`. |
+| Multiple messages | Split or coalesced frames | Parser keeps state; does not assume one read = one message. |
+| Client cancel / timeout | Deadline expires mid-I/O | Cleans up, closes, no double-completion. |
+| Retry after error | Retry same ID | Idempotency/recoverability without duplicate side effects. |
 
-Use a test double with a **scripted return schedule** (`0, 2, 1, -1, exception`) rather than relying on `Thread.sleep` or live traffic to hit code paths. Integration tests should then run against local files, loopback TCP, and target volumes/OSes with realistic network delays and restart simulations.
+Use a test double with a **pre-scripted return schedule** (`0, 2, 1, -1, exception`), rather than relying on `Thread.sleep` or live network traffic to hit logic branches. Integration tests should then run against local files, loopback TCP, and target volumes/OSes with realistic network delays and restart simulations.
 
-### How to write assertions
+### Writing Assertions
 
-Never assert only "no exception thrown". A strong suite verifies:
+Do not merely assert "no exception thrown." A solid test suite verifies:
 
 - **Exact content**: compare byte arrays (`Arrays.equals`), not just byte counts.
-- **No dropped or duplicated bytes**: total bytes written equals payload length upon completion.
-- **No infinite loops**: bound call counts or deadlines; tests must fail explicitly if a channel keeps returning `0`.
-- **Buffer state**: `position, limit, remaining` match expected semantics at each step.
-- **Error paths**: capture exceptions and ensure no commit/ACK executes after failure.
-- **Resources**: both channels close inside `try-with-resources` on success and on exception.
-- **Re-execution**: under retries, business state is not duplicated and uncommitted vs committed states remain distinguishable.
+- **No lost or duplicated bytes**: total bytes written equals payload length upon completion.
+- **No hanging loops**: bounded call counts or deadlines; tests must fail explicitly if a channel keeps returning `0`.
+- **Buffer state**: `position`, `limit`, and `remaining` match expectations at each step.
+- **Error paths**: capture exceptions; never commit or ACK after failure.
+- **Resources**: both channels are closed via `try-with-resources` on both success and failure.
+- **Re-execution**: on retry, business state is not duplicated and uncommitted vs. committed states are distinguishable.
 
-## 9. Observability and Diagnostics in Production
+## 9. Observing and Diagnosing in Production
 
 When issues occur only under load, logs should separate **normal short I/O** from **I/O failures**:
 
-- Operation ID, channel type, local/remote endpoint, or sanitized path.
-- Offset and total expected bytes of the file/record/frame.
-- Bytes returned per call; count of `0` returns and short reads/writes.
-- `ByteBuffer.position`/`limit`/`remaining` **before and after successful calls**, keeping in mind that buffer state may not reliably indicate commit status after an exception depending on the API.
-- Readiness wait time, deadline, pending byte count, queue length, and retry count.
-- Exception class, cause, and socket/file lifecycle; do not swallow stack traces needed for diagnosis.
+- Operation ID, channel type, and local/remote endpoints or redacted paths.
+- Offset and total expected bytes of the file, record, or frame.
+- Bytes returned per call; counts of `0` returns and short reads/writes.
+- `ByteBuffer.position`/`limit`/`remaining` **before and after successful calls**, noting that buffer state may not safely indicate commit status after an exception depending on the API.
+- Readiness wait times, deadlines, pending byte counts, queue depth, and retry counts.
+- Exception class, cause, and socket/file lifecycle; never swallow stack traces needed for diagnosis.
 
 Avoid logging full payloads containing tokens, PII, or huge binaries. Log samples or metadata sufficient to reproduce the issue; use record-level checksums when integrity verification is needed.
 
-A brief example of structured logging:
+A brief example of structured diagnostic logging:
 
 ```text
 op=send-order-142 expected=1024 written=512 remaining=512 result=SHORT_WRITE
@@ -434,65 +434,65 @@ op=send-order-142 expected=1024 written=768 remaining=256 result=SHORT_WRITE
 op=send-order-142 result=IO_ERROR error=IOException commit=UNKNOWN
 ```
 
-This is a **hypothetical illustrative log**, not stdout from the program above. The `commit=UNKNOWN` field highlights that local byte counts cannot prove the peer did no business work.
+This is **illustrative synthetic logging**, not stdout from the program above. The `commit=UNKNOWN` field reminds operators that local byte counts cannot prove the peer's business logic took no action.
 
 ## 10. Common Mistakes and Fixes
 
-| Mistake | Why It Is Wrong | Proper Approach |
+| Mistake | Why It Is Wrong | Correct Approach |
 | --- | --- | --- |
-| One `read` equals a full message | TCP and channels can short-read | Accumulating parser, length framing. |
-| One `write` sends the whole buffer | Channels can short-write or return 0 | Check `hasRemaining` and continue on readiness. |
+| One `read` equals a full message | TCP and channels can return short reads | Stateful accumulating parser, length framing. |
+| One `write` sends the whole buffer | Channels can write partially or return `0` | Check `hasRemaining` and write when ready. |
 | Treating `read == 0` as EOF | EOF is `-1` | Handle `0` as no progress yet. |
-| Busy-loop `while(write==0)` | 100% CPU when output buffer isn't ready | `Selector`/backpressure/deadline. |
-| Calling `clear` with unwritten bytes left | Loses unsent bytes | `clear` only after full consumption; use `compact` if needed. |
-| Treating `IOException` like EOF | Failures and normal completion have different semantics | Distinguish exception, EOF, and timeout. |
-| Retrying payload from start after failure | Can duplicate side effects | Idempotency/resume/protocol ACK. |
-| Assuming `position()` bytes were committed remotely after failure | Local buffer doesn't measure peer commit | Track state at the protocol level. |
-| Tests based on sleeps/flaky networks | Flaky, hard to reproduce | Scripted fake channels/fault injection. |
-| Testing only the happy path | Misses partial I/O and truncation | Matrix of `0`/short/EOF/error/boundaries. |
-| Sharing a buffer object across concurrent ops | Data races and corrupted buffer state | Single owner per buffer until completion. |
-| Calling `force` and assuming atomic file transactions | Durability is not atomicity | WAL/checksum/atomic publication/recovery. |
+| Busy-loop `while(write==0)` | Burns 100% CPU when output buffer is full | `Selector`/backpressure/deadlines. |
+| Calling `clear` while unwritten bytes remain | Drops unsent bytes | `clear` only after fully consumed; use `compact` if needed. |
+| Treating `IOException` as EOF | Errors and normal termination have different semantics | Distinguish exceptions, EOF, and timeouts. |
+| Retrying payload from byte 0 after error | Can cause duplicate side effects | Idempotency, resume, or protocol ACKs. |
+| Assuming `position()` bytes were committed remotely after error | Local buffer does not measure peer commits | Track state at the protocol level. |
+| Tests relying on sleep or flaky networks | Non-deterministic, hard to reproduce | Scripted fake channels and fault injection. |
+| Testing only the happy path | Misses partial reads/writes and truncation | Matrix of `0`/short/EOF/error/boundaries. |
+| Sharing a buffer object across concurrent operations | Data races and corrupted buffer state | Single owner per buffer until completion. |
+| Calling `force` and assuming atomic file transactions | Durability differs from atomicity | WAL, checksums, atomic publication, recovery. |
 
 ## 11. Practice Checklist
 
-1. Have you identified whether the channel is **blocking or non-blocking**?
-2. Have you clearly defined stop conditions: `N` bytes, `EOF`, deadline, or protocol marker?
-3. Did you distinguish `0` from `-1` and `IOException`?
+1. Do you know whether the channel is **blocking or non-blocking**?
+2. Have you specified all stop conditions: `N bytes`, `EOF`, deadline, or protocol marker?
+3. Have you distinguished `0` from `-1` and `IOException`?
 4. Do you preserve `ByteBuffer.remaining()` after a short write?
-5. Do you call `flip` after `read` and `clear`/`compact` after write at the right times?
-6. Are byte/frame limits enforced to guard against invalid input and OOM?
-7. Are retry loops bounded by deadlines/readiness with no busy-looping?
-8. Can fixtures deterministically replay schedules of partial transfers + `0` + EOF + `IOException`?
-9. Do tests assert **byte content** and progress counts rather than just console output?
-10. After failure, does the app enter uncertain/recovery/idempotency handling instead of falsely ACKing?
-11. Are offsets/bytes/exceptions logged safely and resources closed properly throughout their lifecycle?
-12. If real files or networks are used, are there integration tests on the target provider/OS?
+5. Do you `flip` at the right time after `read` and `clear`/`compact` at the right time after write?
+6. Do you cap byte and frame sizes to prevent invalid inputs and OOM?
+7. Do retry loops use bounded deadlines/readiness instead of busy-looping?
+8. Can your test fixtures deterministically schedule partial I/O + `0` + EOF + `IOException`?
+9. Do tests assert **byte contents** and progress counts rather than just console output?
+10. After an error, does the application enter an uncertain/recovery/idempotency path instead of sending a false ACK?
+11. Are offsets, bytes, and exceptions logged safely, and are resources closed properly across their lifecycle?
+12. When using real files or networks, do you have integration tests on target providers and OSes?
 
 ## 12. Self-Check Questions
 
-**1. Is `read(dst)` returning `2` when the buffer has room for 8 bytes an error?** No; short reads are valid behavior.
+**1. `read(dst)` returns `2` when the buffer has space for 8 bytes—is that an error?** No; short reads are valid behavior.
 
 **2. Does `read(dst)` returning `0` mean EOF?** No. EOF on a readable channel is signaled by `-1`.
 
-**3. If `write(src)` returns `0`, can you call `src.clear()`?** No, because bytes are still pending in the buffer.
+**3. If `write(src)` returns `0`, may you call `src.clear()`?** No, because bytes are still pending in the buffer.
 
-**4. Reading a 5-byte frame, getting 2 bytes then `-1`: what is the result?** A truncated frame, typically throwing `EOFException`.
+**4. Reading a 5-byte frame, 2 bytes arrive followed by `-1`: what is the outcome?** Truncated frame, usually throwing `EOFException`.
 
-**5. After an `IOException` from a network write, can you be sure the server hasn't processed the request?** No; application-level acknowledgements/idempotency are required.
+**5. After an `IOException` from a network write, can you be sure the server never processed the request?** No; you need application-level acknowledgments or idempotency.
 
-**6. Why are fake-channel tests more useful than just throttling real network bandwidth?** Because fake channels deterministically control `0` returns, partial counts, EOF, and exceptions, making error branches repeatable.
+**6. Why are fake channels more useful in unit tests than throttling real network bandwidth?** Because fake channels deterministically control `0` returns, partial counts, EOF, and exceptions, making error branches easy to reproduce.
 
-**7. Should you run a tight `while (channel.write(buf) == 0)` loop on a non-blocking socket?** No; wait for readiness with a timeout to prevent CPU spin.
+**7. Should you spin in `while (channel.write(buf) == 0)` on a non-blocking socket?** No; wait for readiness with timeouts to avoid CPU spin.
 
-**8. When a `write` call throws `IOException`, is `ByteBuffer.position` guaranteed to equal the bytes that reached disk/peer?** No. Buffer state is not evidence of application commit.
+**8. When a `write` throws `IOException`, is `ByteBuffer.position` guaranteed to equal the bytes committed to disk or peer?** No. Buffer state is not proof of application commit.
 
 ## Official Documentation
 
 - [Java SE 21 — ReadableByteChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/ReadableByteChannel.html): `read` may return fewer bytes than requested, `0`, or `-1`.
-- [Java SE 21 — WritableByteChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/WritableByteChannel.html): `write` may write partially or `0`.
-- [Java SE 21 — ByteBuffer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/ByteBuffer.html): `flip`, `clear`, `compact`, position/limit.
-- [Java SE 21 — SocketChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/SocketChannel.html): non-blocking network read/write.
-- [Java SE 21 — FileChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html): positional file I/O, IOException, `force`.
+- [Java SE 21 — WritableByteChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/WritableByteChannel.html): `write` may transfer fewer bytes or `0`.
+- [Java SE 21 — ByteBuffer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/ByteBuffer.html): `flip`, `clear`, `compact`, `position`/`limit`.
+- [Java SE 21 — SocketChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/SocketChannel.html): non-blocking network reads and writes.
+- [Java SE 21 — FileChannel](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/FileChannel.html): positional file I/O, `IOException`, `force`.
 - [Java SE 21 — Selector](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/channels/Selector.html): readiness-based non-blocking I/O.
 
-**Summary:** Do not test I/O assuming every read and write completes in full. Actively simulate **short reads**, **short writes**, `0`, EOF, and mid-stream failures; track `ByteBuffer` boundaries carefully and design recovery/idempotency when partial data has been transferred.
+**Summary:** Never test I/O assuming every read or write transfers everything at once. Proactively simulate **short reads**, **short writes**, `0`, EOF, and mid-stream failures; track `ByteBuffer` boundaries carefully, and design recovery/idempotency when partial data has already been transferred.

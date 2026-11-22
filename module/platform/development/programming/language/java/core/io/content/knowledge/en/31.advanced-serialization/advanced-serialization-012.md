@@ -1,13 +1,13 @@
 # Never Directly Deserialize Untrusted Object Data in Java
 
-## 1. Nature of the Problem: Unknown Bytes Are Not Safe Objects
+## 1. Nature of the Problem: Foreign Bytes Are Not Safe Objects
 
-Java Object Serialization allows writing an object graph using `ObjectOutputStream.writeObject(...)` and reading it back using `ObjectInputStream.readObject()`. Yet **reading an object stream is not merely decoding data**: the JVM must resolve classes from stream descriptors, construct an object graph, restore fields, maintain reference handles, and potentially invoke special class mechanisms.
+Java Object Serialization lets you write an object graph via `ObjectOutputStream.writeObject(...)` and read it back via `ObjectInputStream.readObject()`. Yet **reading back an object stream is not merely decoding data**: the JVM must resolve classes from stream descriptors, construct an object graph, restore fields, maintain reference handles, and potentially invoke special class hooks.
 
-A very dangerous anti-pattern is:
+A very dangerous antipattern is:
 
 ```java
-// DO NOT DO THIS with bytes from an untrusted source.
+// DO NOT DO THIS with bytes from untrusted sources.
 try (ObjectInputStream in = new ObjectInputStream(networkInput)) {
     Object value = in.readObject();
     if (value instanceof ExpectedMessage) {
@@ -16,58 +16,58 @@ try (ObjectInputStream in = new ObjectInputStream(networkInput)) {
 }
 ```
 
-This is **unsafe illustrative code**, not a standalone program; `networkInput`, `ExpectedMessage`, and `process` are assumed to exist. The `instanceof` check executes **after `readObject()` has already performed deserialization**, so it does not prevent unwanted classes from being processed during reading.
+This is **unsafe illustrative code**, not a standalone program; `networkInput`, `ExpectedMessage`, and `process` are assumed to exist. The `instanceof` check happens **after `readObject()` has already performed deserialization**, so it cannot stop unexpected classes from being processed during reading.
 
-**Core principle of this lesson:** *Never directly deserialize Java objects from untrusted data.* Prefer a clearly structured/schema-defined data format with a reader bounding size, types, and resources; convert to DTOs or domain objects **after** validating input. If forced to maintain compatibility with trusted legacy serialized data, apply class/depth/size filters, source authentication, resource caps, and contextual validation — and never call that "absolute safety."
+**Core principle of this lesson:** *Never directly reconstruct Java objects from untrusted data.* Prefer a data format with an explicit structure/schema and a reader bounding size, types, and resources; convert into DTOs or domain objects **after** validating the input. If compatibility with trusted legacy serialized data is unavoidable, apply class/depth/size filters, source authentication, resource bounds, and context-aware validation—yet never label that "completely safe."
 
-### 1.1. What Sources Count as "Untrusted"?
+### 1.1. What Counts as "Untrusted" Sources?
 
 Not only HTTP requests arriving from the Internet:
 
 - Bytes read from sockets, message queues, or services whose sender could be compromised.
-- Uploaded files, URL downloads, email attachments, or user-selected content.
-- Caches/object blobs stored in buckets, databases, queues, or filesystems where writers are not strictly inside the reading process's trust boundary.
-- Legacy data written by another program version without integrity protection, signatures, source control, or a clear compatibility plan.
-- Content in multi-tenant environments where one tenant can influence another tenant's files/caches.
-- Any byte stream that an adversary could substitute, truncate, partially modify, or replay.
+- Uploaded files, files downloaded from URLs, email attachments, or user-selected content.
+- Caches or object blobs stored in buckets, databases, queues, or filesystems where writers are not strictly inside the reader process's trust boundary.
+- Legacy data written by another program version lacking integrity protection, signatures, source verification, or a clear compatibility plan.
+- Content in multi-tenant environments where one tenant can influence another tenant's files or caches.
+- Any byte stream that an adversary could substitute, truncate, partially tamper with, or replay.
 
-A file with a `.ser` extension or starting with `AC ED 00 05` only tells you it **looks like a Java serialization stream**. It does not prove the writer is trusted, the object graph is valid, or the classes loaded will be safe.
+A file ending in `.ser` or starting with `AC ED 00 05` only tells you it **looks like a Java serialization stream**. It does not prove the writer is trusted, the object graph is valid, or the classes to be loaded are safe.
 
 ## 2. Why Does `readObject()` Have Such a Large Attack Surface?
 
 When `readObject()` processes a stream, it can:
 
 1. Read class names and **class descriptors** embedded in the stream.
-2. Ask the JVM to locate/load matching classes on the classpath/module path.
-3. Instantiate objects and reference structures according to Java serialization mechanics.
-4. Restore non-transient fields, including nested objects across the graph.
-5. Execute special serialization logic, such as private `readObject`, `readResolve`, or corresponding validation callbacks.
-6. Allocate arrays, object graphs, and structures far larger than the caller expects.
-7. Encounter type mismatches, missing classes, exceeded limits, or invalid stream states **while** restoration is already underway.
+2. Ask the JVM to locate/restore the corresponding classes on the classpath/module path.
+3. Instantiate objects and reference structures per Java serialization mechanics.
+4. Restore non-transient fields, including deeply nested objects in the graph.
+5. Run special serialization logic such as private `readObject`, `readResolve`, or corresponding validation callbacks.
+6. Allocate arrays, object graphs, and structures far larger than the caller anticipated.
+7. Trigger type mismatches, missing classes, exceeded limits, or malformed stream errors **while** restoration is already underway.
 
-A **gadget chain** is a sequence of behaviors across classes already present in the application/libraries that deserialized data can trigger in ways the developer never intended. The risk does not require compiling new attacker classes at runtime; classes sitting on the classpath can carry dangerous side effects when driven through serialization.
+A **gadget chain** is a sequence of behaviors across classes already present in the application/libraries that deserialized data can trigger in ways unintended by developers. The risk does not require compiling new attack classes at runtime; ordinary classes already sitting on the classpath can carry dangerous side effects when driven through serialization.
 
-This lesson **does not present exploit payloads or how to weaponize gadget chains**. What you must grasp is: checking an object's type after `readObject` cannot block behavior that happens *before the method returns*.
+This lesson **does not present exploit payloads or gadget-chain exploitation steps**. The key takeaway is: checking an object's type after `readObject` cannot block behavior that already occurred *before the method returned*.
 
 ### 2.1. Three Impact Categories to Defend Against
 
-| Category | Example Risk | Defense Direction |
+| Category | Example Risk | Defense Approach |
 |---|---|---|
-| Unintended logic execution | Hooks/class graphs with side effects or unforeseen behavior | Avoid native deserialization; restrict allowed classes; minimize classpath |
-| Resource exhaustion | Deep graphs, excessive references, huge arrays, drawn-out payloads | Cap bytes at transport layer; bound depth/references/arrays; CPU/time/memory quotas |
-| Business invariant corruption | Null/out-of-range fields, objects in states uncreatable via constructors, unexpected references | Parse by schema; validate every field; enforce invariants in constructors/factories; distrust post-deserialization fields |
+| Unintended code execution | Hooks/class graphs with side effects or unforeseen behavior | Avoid native deserialization; restrict allowed classes; minimize classpath |
+| Resource exhaustion | Deep graphs, excessive references, huge arrays, drawn-out payloads | Cap bytes at transport layer; depth/references/arrays; CPU/time/memory quotas |
+| Domain invariant violations | Null/out-of-range fields, objects in states impossible via constructors, unexpected references | Parse against a schema; validate every field; enforce invariants in constructors/factories; never trust raw post-deserialization fields |
 
-Schema-based formats like JSON/CBOR/Protocol Buffers **avoid automatically instantiating arbitrary Java graphs from stream class names** when configured properly, yet **are not immune** to deeply nested payloads, oversized inputs, misconfigured polymorphic typing, or parser library bugs. Switching formats is part of the solution, not an excuse to skip validation.
+Schema-based formats like JSON, CBOR, or Protocol Buffers **avoid automatically instantiating arbitrary Java graphs from stream class names** when implemented properly, yet they **are not automatically immune** to deep payloads, oversized inputs, misconfigured polymorphic typing, or parser library bugs. Switching formats is part of the solution, not an excuse to skip validation.
 
 ## 3. Distinguishing Deserialize, Parse, and Validate
 
 A well-defended data pipeline separates these stages:
 
 ```text
-[Untrusted Input]
+[Untrusted input]
         │
         ▼
-Limit size/timeout/format at receiving layer
+Cap size/timeout/format at ingress layer
         │
         ▼
 Parse with fixed schema/format; do not instantiate arbitrary classes
@@ -76,18 +76,18 @@ Parse with fixed schema/format; do not instantiate arbitrary classes
 Validate version, field types, length, range, UTF-8, invariants
         │
         ▼
-Validated pure data DTO
+Validated pure-data DTO
         │
         ▼
 Domain object constructor/factory (least privilege)
         │
         ▼
-Business operation
+Business logic
 ```
 
-**Parsing** only converts bytes into a representation of predetermined types. **Validation** ensures that representation satisfies business rules. **Java object stream deserialization** additionally builds arbitrary object graphs and triggers custom object logic; that is why it is not a general-purpose input parser for adversarial sources.
+**Parsing** only turns bytes into a statically typed representation. **Validation** ensures that representation satisfies business rules. **Java object stream deserialization** goes further by building arbitrary object graphs and triggering custom object logic; that is why it is not a general-purpose input parser for adversarial sources.
 
-A safer contract looks like:
+A safer contract can look like:
 
 ```java
 record IncomingMessage(String text, int sequence) {}
@@ -103,11 +103,11 @@ static IncomingMessage validate(String text, int sequence) {
 }
 ```
 
-This is an **illustrative snippet** placed inside a Java 17+ class; it does not read bytes itself and has no `main`. Even after a parser extracts `String` and `int`, you must still check ranges, required fields, and invariants.
+This is an **illustrative snippet** placed inside a Java 17+ class; it does not read bytes on its own and has no `main`. Even after a parser extracts `String` and `int`, you must still verify ranges, required fields, and invariants.
 
-## 4. Preferred Solution: Compact Data Format, Explicit Bounds, No `readObject`
+## 4. Preferred Solution: Compact Data Format, Explicit Limits, No `readObject`
 
-When your application controls the protocol, it is usually better to transmit a fixed data record rather than a Java object graph. Example frame:
+When the application controls the protocol, prefer transferring a fixed data record instead of a Java object graph. Example frame:
 
 ```text
 Offset   Size         Content
@@ -121,16 +121,16 @@ Offset   Size         Content
 Benefits:
 
 - Fixed types: only `sequence` and `text`, with no input-chosen class names.
-- Maximum byte sizes for strings and frames are explicitly bounded.
-- UTF-8 decoders can be configured to reject malformed byte sequences.
+- Both maximum string bytes and maximum frame size are bounded.
+- UTF-8 decoder can be configured to reject malformed byte sequences.
 - Protocol versioning is managed by the application, independent of `serialVersionUID`/Object Serialization Stream Protocol.
-- Validators can check data before constructing domain objects.
+- Validators inspect raw fields before constructing domain objects.
 
-**Important limitation:** when input arrives from a network stream, **cap/bound bytes as they are received**, before creating large arrays. Checking `byte[].length` only after accidentally reading an entire 20 GB file into RAM is far too late against memory exhaustion.
+**Critical caveat:** if input arrives over a network stream, **cap/truncate bytes as they arrive**, before allocating large arrays. Checking `byte[].length` only after accidentally buffering a 20 GB stream into RAM is already too late against memory exhaustion.
 
-## 5. Runnable Java 17+ Example: Parsing an Explicitly Structured Frame
+## 5. Runnable Java 17+ Example: Parsing a Well-Structured Frame
 
-This example does not use `ObjectInputStream`. It encodes and decodes a frame with length bounds, magic header, version, and strict UTF-8. Inputs with invalid lengths are rejected **before allocating the payload array**.
+This example does not use `ObjectInputStream`. It writes and reads a frame with bounded length, magic header, version, and strict UTF-8 decoding. Invalid-length inputs are rejected **before allocating the payload array**.
 
 **File:** `SafeFrameDemo.java`
 
@@ -168,7 +168,7 @@ public class SafeFrameDemo {
     }
 
     public static Message decode(byte[] frame) throws Exception {
-        // Limit total bytes before parsing.
+        // Cap total bytes before parsing.
         if (frame.length < 11 || frame.length > 512) {
             throw new IOException("invalid frame size");
         }
@@ -191,7 +191,7 @@ public class SafeFrameDemo {
             }
 
             byte[] body = new byte[length];
-            in.readFully(body); // Fails if frame is missing bytes.
+            in.readFully(body); // Fail if frame is missing bytes.
 
             // available() is only used to detect trailing bytes here
             // because the source is a ByteArrayInputStream holding the full frame.
@@ -223,7 +223,7 @@ public class SafeFrameDemo {
 
         byte[] invalid = encode(new Message("A", 7));
 
-        // The two length bytes at offsets 9..10 become 0x03E7 = 999.
+        // Two length bytes at offsets 9..10 become 0x03E7 = 999.
         invalid[9] = 3;
         invalid[10] = (byte) 0xE7;
 
@@ -236,7 +236,7 @@ public class SafeFrameDemo {
 }
 ```
 
-Compile/run on JDK 17+:
+Compile and run on JDK 17+:
 
 ```bash
 javac SafeFrameDemo.java
@@ -252,65 +252,65 @@ invalid length: rejected
 
 ### 5.1. Why Does This Design Reduce Risk?
 
-1. The parser knows upfront a frame contains only magic, version, sequence, length, and UTF-8 bytes; there is no way for input to ask the JVM to instantiate arbitrary Java classes.
-2. `readUnsignedShort` makes clear that length is an unsigned 16-bit integer, yet **still checks ≤256** before allocating `byte[]`, never trusting data-supplied lengths.
-3. `readFully` rejects truncated frames rather than silently consuming partial text.
-4. `ByteArrayInputStream` already holds the complete frame, so checking `available()!=0` works in **this specific case** to catch trailing bytes. Never use `available()` as an exact measure of total network stream length.
-5. `CharsetDecoder` with `CodingErrorAction.REPORT` rejects invalid UTF-8 instead of silently replacing it with `�`.
-6. After decoding, minimal business rules (non-blank `text`, character count cap, non-negative `sequence`) are validated **before** constructing the record.
-7. Malformed data produces only a clean `IOException`/decode failure, rather than driving arbitrary class loading via Object Serialization.
+1. The parser expects strictly magic, version, sequence, length, and UTF-8 bytes; there is no mechanism for input to tell the JVM to instantiate arbitrary Java classes.
+2. `readUnsignedShort` explicitly treats length as an unsigned 16-bit integer, yet **still checks `<= 256`** before allocating `byte[]` instead of trusting the data-supplied length.
+3. `readFully` rejects truncated frames rather than silently accepting partial text.
+4. `ByteArrayInputStream` already holds the complete frame, so checking `available() != 0` works in **this specific case** to catch trailing bytes. Never use `available()` as an exact total-length check on a network stream.
+5. `CharsetDecoder` with `CodingErrorAction.REPORT` rejects invalid UTF-8 instead of silently substituting replacement character `�`.
+6. After decoding, baseline business rules (`text` non-blank, character count bound, non-negative `sequence`) are verified **before** constructing the record.
+7. Malformed inputs raise clean `IOException`/decode errors without driving arbitrary class loading through Object Serialization.
 
-**Scope of the example:** the method's input is an existing `byte[]`; with real sockets you need a framing layer and **caps on total received bytes**, timeouts, and connection handling before calling `decode`. The example includes no authentication, replay protection, or integrity checksums; those requirements must be built separately per threat model.
+**Scope of the example:** the method receives an already-buffered `byte[]`; real sockets need a framing layer plus **total incoming byte caps**, timeouts, and connection handling before calling `decode`. The example includes no authentication, replay protection, or integrity checksums; those must be built separately according to your threat model.
 
 ### 5.2. UTF-8 Byte Limits Differ from String Length Limits
 
-`body.length` is the number of **bytes** after UTF-8 encoding. `text.length()` is the number of UTF-16 code units; the two counts can differ, especially with Vietnamese and emoji. A protocol specification should state clearly whether limits apply to bytes or code points and enforce the matching unit.
+`body.length` counts **bytes** after UTF-8 encoding. `text.length()` counts UTF-16 code units; the two numbers can differ significantly, especially for Vietnamese text and emojis. A protocol specification should clearly define whether limits apply in bytes or code points and check the corresponding unit.
 
-If text carries sensitive values or must be digitally signed, specify canonicalization/normalization and encoding explicitly instead of expecting parsers to normalize Unicode automatically.
+When text carries security-sensitive values or must be digitally signed, specify canonicalization/normalization and encoding explicitly instead of expecting parsers to normalize Unicode automatically.
 
-### 5.3. If Choosing JSON, Still Bind the Schema Strictly
+### 5.3. Even When Choosing JSON, You Must Still Constrain the Schema
 
-Another route is sending JSON such as:
+Another option is sending JSON such as:
 
 ```json
 {"version":1,"sequence":7,"text":"HELLO"}
 ```
 
-A JSON parser should read only into known data structures, cap depth/bytes/string lengths/number ranges, and **never enable default polymorphic class resolution** for user-supplied data. After parsing, use constructors/factories to validate DTOs. If a library lets payloads embed class names to auto-instantiate subclasses, carelessly enabling such features recreates the "input-chosen type" vulnerability in a different format.
+The JSON parser should deserialize strictly into known data structures while bounding depth, bytes, string lengths, and numeric ranges, and **never enabling default polymorphic class resolution** on user-supplied data. After parsing, use DTO-validating constructors or factories. If a library offers payload-embedded class-name features to instantiate subclasses dynamically, enabling them carelessly recreates the exact same "input-chosen type" vulnerability in a different format.
 
 ## 6. When Is Using ObjectInputStream Still Considered?
 
-For example, an application must read legacy files written via `ObjectOutputStream` by **the same controlled system** and needs compatibility during a transition period. Before deciding to proceed, answer:
+For example, when an application must read legacy files written via `ObjectOutputStream` by **the controlled system itself** and maintain compatibility during a transition period. Before deciding to proceed, answer:
 
-- Does the path from writer to reader protect **integrity and source authentication**?
-- Could any less-trusted actor replace files/blobs on the filesystem, database, queue, or backups?
-- Which exact classes genuinely need to be instantiated when reading a record?
+- Does the path from writer to reader protect **integrity and source authenticity**?
+- Could any less-trusted actor swap files or blobs on the filesystem, database, queue, or backups?
+- Which exact classes truly need to be constructed when reading a record?
 - Do any of those classes have `readObject`/`readResolve`/`readExternal` hooks or side effects?
 - Are upper bounds enforced on bytes, graph depth, reference counts, array sizes, and processing time?
-- Do you really need an arbitrary graph, or only 2–5 fields convertible to a DTO?
-- If the filter rejects a valid legacy file, is there a clear error reporting/migration path?
+- Do you actually need to read an arbitrary graph, or just extract 2–5 fields into a DTO?
+- If a filter rejects a valid legacy file, is there a clear error-reporting and migration workflow?
 
-Even for internal data, exposed files or altered write permissions can turn a "trusted local file" into an attack surface. Trust is a property of **the entire data pipeline**, not a filename.
+Even for internal data, file exposure or loose write permissions can turn a "trusted local file" into an attack surface. Trust is a property of **the entire data pipeline**, not a filename.
 
-## 7. `ObjectInputFilter`: Bounding Classes and Resources, Not Making Unknown Data Safe
+## 7. `ObjectInputFilter`: Limiting Classes and Resources, Not Making Foreign Data Safe
 
-In JDK 17/21, `ObjectInputFilter` helps control Java object restoration. It can evaluate:
+In JDK 17/21, `ObjectInputFilter` helps constrain Java object reconstruction. It can evaluate:
 
 - The class requested for instantiation when the filter is invoked.
 - Graph depth.
-- Number of references processed.
+- Number of references processed so far.
 - Array length.
-- Bytes consumed per filter info.
+- Stream bytes consumed per filter metrics.
 
 Three return statuses:
 
 | `ObjectInputFilter.Status` | Meaning |
 |---|---|
-| `ALLOWED` | Condition is permitted by this filter; does not replace validation |
-| `REJECTED` | Denied; active `readObject`/`readUnshared` typically ends with `InvalidClassException` |
-| `UNDECIDED` | This filter does not decide; **not equivalent to REJECTED** |
+| `ALLOWED` | Condition allowed by this filter; does not replace validation |
+| `REJECTED` | Rejected; active `readObject`/`readUnshared` typically aborts with `InvalidClassException` |
+| `UNDECIDED` | Filter makes no decision; **does not mean REJECTED** |
 
-A major risk is writing a filter that returns `UNDECIDED` for dangerous classes and assuming they are denied. If an allowlist is required, there must be an **explicit reject policy** for unlisted classes. Simultaneously account for all classes/references/arrays/strings the stream legitimately contains.
+A major pitfall is writing a filter that rejects dangerous classes and returns `UNDECIDED` for others thinking it denied them. When an allowlist is required, establish an **explicit reject policy** for unlisted classes, while accounting for all classes, references, arrays, and strings actually present in valid streams.
 
 ### 7.1. `setObjectInputFilter` Must Be Set Before Reading Objects
 
@@ -321,9 +321,9 @@ try (ObjectInputStream in = new ObjectInputStream(source)) {
 }
 ```
 
-This is an illustrative snippet; `source` is an `InputStream`, `filter` is already created, with imports and `IOException`/`ClassNotFoundException` handling. The filter must be installed **before reading objects**, not after `readObject`. In Java 17/21, `setObjectInputFilter` follows a once-before-reading rule, and the final effective filter is also governed by the JVM's **filter factory** mechanism.
+This is an illustrative snippet; `source` is an `InputStream`, `filter` is pre-built, and imports plus `IOException`/`ClassNotFoundException` handling are required. The filter must be configured **before the first object read**, not after `readObject`. In Java 17/21, `setObjectInputFilter` follows a one-time pre-read setting rule, and the final effective filter also depends on the JVM's **filter factory**.
 
-**Very important note:** filters are not called for every primitive value and are not a mechanism to validate **String/field contents**. `ObjectInputStream` documentation notes that Strings are handled specially like primitives and do not trigger class filtering in the same way regular objects do. Thus even when allowlisting only DTO classes, you must validate text field lengths and contents **after restoration** and **before use**.
+**Crucial note:** the filter is not invoked for all primitive values and does not inspect String or field **contents**. `ObjectInputStream` documentation notes that Strings are handled specially and do not trigger class filtering like regular objects. Therefore, even when allowlisting only a DTO class, still check string lengths and contents **after restoration** and **before use**.
 
 ### 7.2. Pattern-Based Filters
 
@@ -336,13 +336,13 @@ ObjectInputFilter filter =
           + "com.example.legacy.dto.*;!*");
 ```
 
-This is a policy configuration example, **not a standalone program**. `com.example.legacy.dto.*` is merely an illustrative namespace; real deployments must inventory the exact classes needed for the serialized graph, arrays, and library/framework types. The `!*` pattern denies classes not matched by the allowlist. Never broadly pick `java.base/*` or `java.*` just because "it is the Java standard library" unless truly required; an allowlist means permitting only types genuinely needed.
+This is a policy configuration example, **not a standalone program**. `com.example.legacy.dto.*` is purely an illustrative namespace; real deployments must inventory the exact classes needed by the serialized graph, arrays, and library/framework types. The `!*` pattern denies classes not matched by the allowlist. Never broadly allow `java.base/*` or `java.*` just because "it's the Java standard library" if unneeded; an allowlist means permitting strictly required types only.
 
-An overly strict policy can reject valid data; an overly broad policy can leave a gadget surface open. Test against real serialized fixtures rather than trusting that a filter string "looks safe."
+An overly strict policy rejects valid legacy data; an overly permissive policy leaves gadget surfaces exposed. Test against real serialized fixtures rather than assuming a filter string looks "safe enough."
 
 ### 7.3. Class-Specific Programmatic Filters
 
-You can write an `ObjectInputFilter` targeting exact classes and bounds instead of broad patterns:
+You can write an `ObjectInputFilter` targeting exact classes and limits instead of broad patterns:
 
 ```java
 ObjectInputFilter filter = info -> {
@@ -355,7 +355,7 @@ ObjectInputFilter filter = info -> {
 
     Class<?> type = info.serialClass();
 
-    // Callbacks related to references/metrics have a null type.
+    // Callbacks related to references/metrics have null type.
     if (type == null) {
         return ObjectInputFilter.Status.UNDECIDED;
     }
@@ -368,11 +368,11 @@ ObjectInputFilter filter = info -> {
 };
 ```
 
-This is a snippet with a serializable `TrustedRecord` managed by a trusted system. If the full graph includes other classes, design a matching allowlist; do not copy this verbatim expecting it to read arbitrary `List`, `Map`, arrays, and nested DTOs. Filter-supplied metrics also do not replace input size caps at the receiving layer.
+This snippet assumes a serializable `TrustedRecord` managed by a trusted system. If the full graph includes other classes, adjust the allowlist appropriately; never copy the snippet verbatim expecting arbitrary `List`, `Map`, array, and nested DTOs to work. Filter metrics also do not replace input size limits at the receive layer.
 
 ## 8. Runnable Java 17+ Example: Reading Trusted Legacy Data with a Filter
 
-This example **does not accept adversary-controlled data**. It generates two payloads in memory: a valid `Allowed` and an unlisted `Unexpected`. The reader bounds byte length before constructing `ObjectInputStream`, installs the filter **before `readObject()`**, permits strictly the `Allowed` class, enforces graph metrics, and validates fields after reading.
+This example **accepts no adversary-controlled data**. It self-generates two in-memory payloads: a valid `Allowed` and an unlisted `Unexpected`. The reader caps total bytes before constructing `ObjectInputStream`, sets the filter **before `readObject()`**, permits strictly `Allowed.class`, bounds graph metrics, and validates fields after reading.
 
 **File:** `FilteredLegacyDemo.java`
 
@@ -415,7 +415,7 @@ public class FilteredLegacyDemo {
     static Allowed readTrusted(byte[] wire)
             throws IOException, ClassNotFoundException {
 
-        // This is a demo guard; production must also limit at the reading layer.
+        // Demo guard; production must also enforce limits at the read layer.
         if (wire.length > 4096) {
             throw new IOException("frame too large");
         }
@@ -488,44 +488,44 @@ name: trusted
 unexpected class: rejected
 ```
 
-### 8.1. What the Example Actually Tests
+### 8.1. What This Example Actually Verifies
 
 - `Allowed` and `Unexpected` are **two test classes defined by the example itself**; there are no exploit payloads or external inputs.
-- `readTrusted` checks total byte array length **before** constructing ObjectInputStream.
-- The filter enforces resource limits and **rejects any class other than Allowed**.
-- `in.setObjectInputFilter(filter)` happens **before** `in.readObject()`.
-- After reading, the code verifies the **exact** class and bounds on `name`.
-- The `String name` field still requires validation because filters do not validate individual string values.
-- `Unexpected` is rejected by the filter, producing `InvalidClassException` which is caught intentionally.
+- `readTrusted` checks the total length of the byte array **before** constructing `ObjectInputStream`.
+- The filter enforces resource limits and **rejects any class other than `Allowed`**.
+- `in.setObjectInputFilter(filter)` runs **before** `in.readObject()`.
+- After reading, the code verifies the **exact** class and bounds `name`.
+- The `String name` field still needs explicit validation because the filter does not validate individual string contents.
+- `Unexpected` is rejected by the filter, raising `InvalidClassException` which is caught intentionally.
 
-### 8.2. What the Example Does Not Prove
+### 8.2. What This Example Does Not Prove
 
-**Do not** use this example as proof that any Java object stream from the Internet is safe if fitted with the same filter. Filters have narrow scope; allowed classes must still be audited for hooks/side effects, complex graphs may need different policies, and input sources/authentication/timeouts are outside this example.
+**Never** cite this example as proof that arbitrary Java object streams from the Internet become safe simply by attaching the same filter. Filters have limited scope: allowed classes still require auditing for hooks and side effects, complex graphs require different policies, and input origins, authentication, and timeouts lie outside this example.
 
-Future edits to `Allowed` could add new fields or a custom `readObject`. Keeping the same allowlisted class name **is not** proof that the code is safe against adversary-crafted data. Thorough code review and testing are required for all allowlisted classes.
+A future change to `Allowed` might introduce new fields or a custom `readObject`. Matching the allowlist class name **does not** prove that class's code is safe against adversarial data. Thoroughly code-review and test every class on your allowlist.
 
-### 8.3. Why Is the Self-Test Output Deterministic?
+### 8.3. Why Is This Self-Test Result Deterministic?
 
-Both payloads are generated by `ObjectOutputStream` in the same process, so class descriptors match local classes; there is no file or network dependency. The output reflects only the class policy for two tiny objects. If the JVM already configures a stricter system-wide filter factory, additional rejections under that policy may occur; test that in the target deployment environment.
+Both payloads are generated by `ObjectOutputStream` in the same process, so class descriptors match local classes without file or network dependencies. The output demonstrates only the class policy for two tiny objects. If the JVM configures a stricter global filter factory, additional rejections may occur per that policy—something you must test in your deployment environment.
 
-## 9. Filters Do Not "Sanitize" Arbitrary Streams
+## 9. Filters Do Not "Sanitize" Every Stream
 
-Several boundaries must be understood accurately:
+Several limitations must be clearly understood:
 
 | False Claim | Reality |
 |---|---|
-| "Filters inspect all field values." | Filters see class/graph metrics at callbacks; they are not schema/content validators |
-| "Just check `instanceof` after `readObject`." | Restoration has already executed beforehand |
-| "Classes in the allowlist are always safe." | Those classes or related actions can still have side effects and bugs |
-| "Returning `UNDECIDED` rejects the class." | UNDECIDED means undecided; you must configure a reject policy |
-| "Setting `maxbytes` guarantees requests cannot consume RAM outside the filter." | Filters run during deserialization; early byte caps and system quotas are still required |
-| "One global filter suffices for every use case." | Each endpoint/context has distinct classes/graphs and needs tailored policies |
-| "Strings always pass through the filter for length checking." | Strings/primitives are handled differently; explicit payload validation is needed |
-| "JSON/CBOR can never cause DoS." | Other parsers also need resource bounds and schema checks |
+| "Filters inspect all field values." | Filters see class/graph metrics at callback points; not a schema/content validator |
+| "Just check `instanceof` after `readObject`." | Object restoration already executed beforehand |
+| "Any class in the allowlist is automatically safe." | That class or related operations may still contain side effects and bugs |
+| "Returning `UNDECIDED` rejects the class." | `UNDECIDED` means no decision yet; configure an explicit reject policy |
+| "`maxbytes` ensures requests cannot consume RAM outside the filter." | Filters run during deserialization; cap bytes early and enforce system quotas |
+| "One global filter fits all use cases." | Each endpoint/context has distinct class/graph shapes requiring tailored policies |
+| "Strings always pass through the filter for length checks." | Strings/primitives are handled differently; validate payloads explicitly |
+| "JSON/CBOR can never cause DoS." | Other parsers also need resource limits and schema validation |
 
 ### 9.1. Global Filters and Context-Specific Filter Factories
 
-Java supports JVM-wide serialization filters via system/security properties like `jdk.serialFilter`, or configuration APIs. On Java 17+, filter factories allow building policies tailored to each `ObjectInputStream`'s context.
+Java supports JVM-wide serialization filters via system/security properties like `jdk.serialFilter` or configuration APIs. On Java 17+, the filter factory mechanism lets you tailor policies to each `ObjectInputStream`'s usage context.
 
 **Illustrative** process configuration example:
 
@@ -533,21 +533,21 @@ Java supports JVM-wide serialization filters via system/security properties like
 java -Djdk.serialFilter="maxdepth=10;maxrefs=100;maxarray=1000;maxbytes=65536;com.example.dto.*;!*" MyApp
 ```
 
-`MyApp` and `com.example.dto.*` are deployment placeholders, **not a command to run verbatim**. A JVM-wide filter can affect libraries using serialization internally; inventory use cases and test thoroughly before setting a policy. Never enable `java.base/*` globally just to avoid allowlist failures if doing so widens scope unnecessarily.
+`MyApp` and `com.example.dto.*` are deployment placeholders, **not a command to run as-is**. A JVM-wide filter can affect libraries using serialization internally; inventory use cases and test thoroughly before enforcing a global policy. Never allow `java.base/*` globally just to avoid allowlist errors if doing so opens unnecessary surface area.
 
 ### 9.2. Filter Selection Order Matters
 
-`ObjectInputStream` can receive an initial filter from the **filter factory** when its constructor runs; calling `setObjectInputFilter` can invoke the factory again to choose/combine filters. If an application replaces the filter factory carelessly or produces a weaker policy, it risks stripping protections another library relies on.
+`ObjectInputStream` receives an initial filter from the **filter factory** during construction; calling `setObjectInputFilter` invokes the factory again to select or merge filters. If an application overrides the filter factory carelessly or produces a weaker policy, it risks stripping protections expected by other libraries.
 
 Therefore:
 
-- Designate clear ownership for managing the filter factory at the application level.
-- Never let modules arbitrarily mutate the global filter factory at runtime.
-- For each data stream, apply a **context**-appropriate filter and audit the effective policy.
-- Test both global filters and per-stream filters together.
-- Log rejected streams without logging sensitive data.
+- Assign clear application-level ownership for managing the filter factory.
+- Do not let individual modules mutate the global filter factory at runtime.
+- For each data stream, apply a filter matching its **context** and audit the effective policy.
+- Test scenarios with both global filters and per-stream filters active.
+- Log stream rejections without dumping sensitive payload contents.
 
-### 9.3. Filters Can Have Policy Design Flaws
+### 9.3. Policy Design Flaws Inside Filters
 
 For example, checking only the root class:
 
@@ -558,23 +558,23 @@ if (root.getClass() != Allowed.class) {
 }
 ```
 
-This snippet is **unsafe on its own**, because nested graphs may have already been processed before checking the root. A proper filter must restrict **all classes allowed anywhere in the graph** and bound resources, not merely the top-level type. And right afterward, validate invariants of both the root and nested data.
+This snippet is **unsafe in isolation** because nested graphs have already been processed before inspecting the root. A proper filter must constrain **all classes allowed anywhere in the graph** along with resource limits, not just the top-level type. Even afterward, still validate invariants on both root and nested data.
 
-## 10. Source Authentication and Integrity: Necessary but Insufficient
+## 10. Source Authentication and Integrity: Necessary, Not Sufficient
 
-A system may protect data with mTLS, HMAC, digital signatures, or storage ACLs. These mechanisms verify bytes came from a legitimate source or were not tampered with undetected. Yet:
+A system may protect data using mTLS, HMACs, digital signatures, or storage ACLs. These confirm bytes came from a valid source and were not silently altered in transit. Still:
 
-- Even an authenticated source can be compromised or have bugs writing invalid data.
-- A valid blob can contain too many objects/bytes exceeding the reader's quota.
-- An older signed file can still be incompatible with current classes.
-- Integrity does not make a class's custom `readObject` safe.
-- Authentication policies must also account for replay, key rotation, expiration, and version identification if business rules require.
+- An authenticated source can be compromised or suffer bugs emitting malformed data.
+- A legitimately signed blob can still exceed the reader's object/byte quotas.
+- An older signed file may be incompatible with current class definitions.
+- Integrity checks do not make a class's custom `readObject` safe.
+- Authentication policies must also consider replay, key rotation, expiration, and version identifiers where domain rules require.
 
-Hence authentication/integrity is only **one layer**. It does not replace input validation, allowlists, resource bounds, and minimal data design.
+Thus, authentication/integrity is only **one layer**. It does not replace input validation, allowlists, resource bounds, or lean data design.
 
 ## 11. Serialization Hooks and Constructor Bypass
 
-When a Serializable class is restored, it does not run the constructor of **the serializable class itself** as in a normal `new` call. Field restoration can happen before business validation. Mechanisms such as:
+When a regular `Serializable` class is restored, **the serializable class's own constructor** does not run as in normal `new` calls. Field restoration occurs prior to business validation. Mechanisms such as:
 
 - private `readObject(ObjectInputStream)`;
 - `readResolve()`;
@@ -582,11 +582,11 @@ When a Serializable class is restored, it does not run the constructor of **the 
 - `ObjectInputValidation` callbacks;
 - `Externalizable.readExternal(...)`;
 
-can participate in object construction logic per their respective contracts.
+may participate in object construction under their respective contracts.
 
-### 11.1. Invariants Must Be Checked on Restoration
+### 11.1. Invariants Must Be Checked During Restoration
 
-Example of a class allowing only non-negative quantities:
+Example class allowing only non-negative quantities:
 
 ```java
 import java.io.IOException;
@@ -616,209 +616,209 @@ public final class Quantity implements Serializable {
 }
 ```
 
-This is a **standalone compilable class** `Quantity.java`, without `main`. This validation hook is valuable for data **already permitted** to deserialize, yet **does not** make deserializing untrusted streams safe. Nor does it replace controlling side effects across the whole object graph.
+This is a **standalone compilable class** `Quantity.java` without a `main`. This validation hook is meaningful for data **already authorized** for deserialization, yet it **does not** make deserializing untrusted streams safe. Nor does it replace controlling side effects across the rest of the object graph.
 
-### 11.2. Immutability Is Not Automatically Protected by Serialization
+### 11.2. Immutability Is Not Automatically Protected Across Serialization
 
-`final` fields, private constructors, and factory methods are object design tools, yet Java serialization has special restoration rules; never infer that merely lacking public setters guarantees every deserialized object satisfies invariants. For sensitive classes, reduce or eliminate direct deserializability and build objects only via factories taking validated DTOs.
+`final` fields, private constructors, and factory methods are object-design tools, yet Java serialization follows specialized restoration rules; never assume that lacking public setters guarantees every deserialized object obeys invariants. For sensitive classes, minimize or eliminate direct deserialization and construct instances solely through factories consuming validated DTOs.
 
-## 12. Handling Network Inputs
+## 12. Handling Inputs from the Network
 
-**Never** wrap a socket directly in `ObjectInputStream` simply because the sender claims "this is a valid object":
+**Never** wrap a raw socket in `ObjectInputStream` merely because the sender claims "it's a valid object":
 
 ```java
-// ANTI-PATTERN: do not use with a socket receiving untrusted data.
+// ANTI-PATTERN: do not use on sockets receiving untrusted data.
 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 Object request = in.readObject();
 ```
 
-Beyond the attack surface, `ObjectInputStream`'s constructor can **block waiting for a stream header**, and `readObject` can block waiting for incomplete data. A remote peer can trickle data slowly, never terminate a frame, or blow through quotas.
+Beyond the attack surface, `ObjectInputStream`'s constructor **blocks waiting for the stream header**, and `readObject` can hang indefinitely on incomplete data. A remote peer can trickle bytes slowly, never complete a frame, or exceed quotas.
 
-Replace with a protocol that enforces:
+Replace with a protocol providing:
 
-1. Read timeouts, connection caps, and maximum total bytes.
-2. Frame headers (magic/version/length) parsed safely upfront.
-3. Valid length checks **before allocation**.
+1. Read timeouts, connection limits, and total maximum bytes.
+2. Frame headers (magic/version/length) parsed safely first.
+3. Length validation **before allocating**.
 4. Fixed types/schemas; never resolve classes by input-supplied names.
 5. Charset decoding with explicit error handling, verifying required fields and ranges.
 6. Authentication/authorization where needed, plus per-sender message rate limits.
 7. Backpressure, error telemetry, and closing connections on protocol violations.
 
-### 12.1. Bound InputStreams Before calling readAllBytes
+### 12.1. Bounding InputStream Before readAllBytes
 
-`InputStream.readAllBytes()` is convenient, but if the source is untrusted and unbounded, it can keep allocating until out of memory. The same applies to `ByteArrayOutputStream` when copying blindly until EOF.
+`InputStream.readAllBytes()` is convenient, yet on an untrusted, unbounded source it keeps reallocating until memory is exhausted. The same applies to `ByteArrayOutputStream` copying until EOF.
 
-In length-prefixed protocols, allocate at most the valid maximum size. When the length prefix itself is untrusted, validate it first. When reading unframed streams, use a counted/limited wrapper with a hard cap and fail closed; do not wait until RAM is exhausted to check size.
+In length-prefixed protocols, allocate at most the allowed maximum size—and validate the prefix before trusting it. When reading unframed streams, wrap them in a counting/bounding wrapper enforcing hard caps with fail-closed semantics rather than checking RAM after exhaustion.
 
 ### 12.2. Compression and Nested Content
 
-Even if an uploaded compressed file is only 10 KB, decompressing it can expand into hundreds of MB or GB. You must cap **post-decompression size**, recursion/nesting, entry counts, and processing time. Never limit only compressed byte size and conclude the deserializer/parser cannot face gigantic inputs.
+Even a 10 KB compressed payload can decompress into hundreds of MB or GB. Cap **decompressed size**, recursion/nesting depth, entry counts, and processing time. Never cap only compressed bytes and assume downstream parsers/deserializers cannot receive massive inputs.
 
 ## 13. Error Handling: Fail Closed Instead of "Trying Another Way"
 
 Exceptions associated with Java deserialization:
 
-| Exception | Possible Meaning |
+| Exception | Possible Cause |
 |---|---|
-| `StreamCorruptedException` | Invalid header or control data |
+| `StreamCorruptedException` | Invalid stream header or control data |
 | `InvalidClassException` | Incompatible class, or rejected by filter |
-| `NotSerializableException` | Graph being written contains a non-serializable object |
-| `ClassNotFoundException` | Class named in stream is absent in reading environment |
-| `OptionalDataException` | Mismatched object/primitive read or special data |
-| `EOFException` | Stream ran out of bytes/hit end during read |
-| `InvalidObjectException` | Invariant/validation hook explicitly rejected |
-| `IOException` | I/O error or data reading error |
-| `ClassCastException` | Root object read differs from expected application type |
+| `NotSerializableException` | Written graph includes a non-serializable object |
+| `ClassNotFoundException` | Stream references a class absent from the reader environment |
+| `OptionalDataException` | Mismatched object/primitive read or unexpected optional data |
+| `EOFException` | Stream lacked sufficient bytes / ended prematurely during read |
+| `InvalidObjectException` | Invariant or validation hook actively rejected the object |
+| `IOException` | I/O failure or data reading error |
+| `ClassCastException` | Root object differs from the type expected by the application |
 
-These errors must not be swallowed into an "empty valid payload." For `ObjectInputStream.readObject()`, documentation states exceptions leave the stream in an **indeterminate** state; close the stream and reject the message instead of skipping bytes and continuing as if nothing happened.
+Never turn these errors into "an empty valid payload." For `ObjectInputStream.readObject()`, documentation notes that exceptions leave the stream in an **indeterminate state**; close the stream and reject the message rather than skipping a few bytes and continuing as if nothing happened.
 
-**Never implement automatic fallbacks** such as "if deserialization fails, disable the filter and retry." When a filter rejects a payload, that is a security/policy signal. Log non-sensitive diagnostics and investigate per process—never weaken validation just to "keep the program running."
+**Never automatically fall back** to "if deserialization fails, disable the filter and retry." A filter rejection is a security/policy signal. Log non-sensitive diagnostic metadata and investigate per incident procedures—never weaken validation just "to keep the program running."
 
-## 14. Migrations: Moving Safely Away from Java Serialization
+## 14. Migrations: Safely Moving Off Java Serialization
 
-A legacy system may hold many `.ser` files. Migrating formats is more than finding `readObject` and replacing it with `parseJson`; you need a roadmap:
+A legacy system may already store many `.ser` files. Migrating formats is more than finding `readObject` and swapping in `parseJson`; it requires a structured plan:
 
-### 14.1. Inventory Read Points and Classify Sources
+### 14.1. Inventory Read Sites and Classify Sources
 
-Locate every place accepting serialized objects:
+Locate every place receiving serialized objects:
 
 - `ObjectInputStream.readObject` and `readUnshared`.
-- Libraries/frameworks doing hidden deserialization internally, caches, RPC, or messaging.
-- State files, sessions, job data, serialized blobs in databases.
-- Backups and data lacking retention/deletion policies.
-- Consumers running different versions within the same system.
+- Libraries/frameworks doing implicit deserialization, caching, RPC, or messaging.
+- State files, sessions, job payloads, and serialized blobs in databases.
+- Backups and historical data lacking retention/deletion policies.
+- Consumers running different versions concurrently within the same system.
 
-For each point, record source, write permissions, expected class graph, volume, lifetime, and trust level. Never rely on file extensions or database table names.
+For each site, document origin, write permissions, expected class graphs, sizes, lifetimes, and trust levels. Never rely solely on file extensions or database table names.
 
 ### 14.2. Design the Replacement Format
 
-Choose JSON/CBOR/Protocol Buffers/explicit binary framing as appropriate; agree on:
+Choose JSON, CBOR, Protocol Buffers, or a clearly specified binary format as appropriate; standardize:
 
 - Message/schema versioning.
 - Fixed field lists and types.
-- Maximum size of messages and individual fields.
-- Rules for optional/default/unknown fields.
-- Charset, timezone, date/time, numeric ranges, and Unicode normalization.
-- Integrity/authentication per threat model.
-- Backward/forward compatibility rules and sunset plans for old versions.
+- Maximum sizes for the message and individual fields.
+- Rules for optional, default, and unknown fields.
+- Charsets, timezones, date/time formats, numeric bounds, and Unicode normalization.
+- Integrity/authentication per your threat model.
+- Backward/forward compatibility rules and deprecation plans for legacy versions.
 
-### 14.3. Conversion Tool in a Controlled Environment
+### 14.3. Conversion Tooling in Controlled Environments
 
-If legacy files must still be opened:
+When legacy files still must be opened:
 
-1. Run only on copies from authenticated, integrity-checked sources, never directly on untrusted uploads.
-2. Use an audited JDK and classpath, applying strict class/graph/resource filters.
-3. Run the tool with least OS privileges, restricted network, filesystem, CPU/memory/time limits, and proper logging; isolation reduces blast radius without guaranteeing absolute safety.
-4. Validate data after deserialization, then write to the new format.
-5. Test valid/corrupted samples and support rollback if conversion goes wrong.
-6. After cutover, remove obsolete `ObjectInputStream` entry points rather than leaving legacy endpoints open forever.
+1. Run only on copies from authenticated, integrity-verified sources—never directly on untrusted uploads.
+2. Use an audited JDK and minimal classpath with strict class/graph/resource filters.
+3. Run the converter with least OS privileges, restricting network, filesystem, CPU/memory/time, and ensuring safe logging; isolation reduces blast radius without guaranteeing absolute safety.
+4. Validate data after deserialization before writing the new format.
+5. Test both valid and corrupted samples and support rollback if conversion fails.
+6. After cutover, decommission obsolete `ObjectInputStream` entry points instead of leaving legacy endpoints open indefinitely.
 
-If legacy input cannot be proven trusted and adequate controls cannot be applied, **refusing automated conversion** is safer than bringing it into critical production processes.
+If legacy inputs cannot be proven trustworthy and proper controls cannot be enforced, **refusing automated conversion** is safer than feeding them into critical production processes.
 
 ## 15. Common Design Mistakes
 
-1. **Reading untrusted object streams just because the class implements `Serializable`.** This is not a safety guarantee.
-2. **Checking `instanceof` after `readObject` thinking it blocks exploits.** Deserialization has already run beforehand.
-3. **Trusting `.ser` file extensions or the `AC ED 00 05` magic header.** Those indicate format, not authenticity.
+1. **Reading untrusted object streams merely because the class implements `Serializable`.** That is not a safety certification.
+2. **Checking `instanceof` after `readObject` assuming exploitation was blocked.** Deserialization already ran beforehand.
+3. **Trusting `.ser` file extensions or the `AC ED 00 05` magic header.** They identify format, not authenticity.
 4. **Filtering only the root class.** Nested graphs can contain other classes already processed.
-5. **Returning `UNDECIDED` for unlisted classes assuming it denies.** An explicit reject policy is needed.
-6. **Allowing entire packages/Java modules needlessly.** Enlarges the class surface beyond actual needs.
-7. **Omitting bounds on arrays, depth, references, or bytes.** Exposes resource exhaustion.
-8. **Checking byte limits only after `readAllBytes`.** Unbounded allocation already happened before the check.
-9. **Assuming filters validate String contents.** Field lengths and values still need validation.
-10. **Assuming allowlisted classes never have side effects.** Audit hooks and class changes.
-11. **Authenticating the source without bounding format/resources.** A compromised source can still send malformed inputs.
-12. **Switching to JSON while enabling generic polymorphic deserialization for input-chosen classes.** Schema/type allowlisting is still needed.
-13. **Not checking for malformed UTF-8.** Data can silently get replacement characters.
-14. **Trusting input length prefixes and allocating arrays immediately.** Attacker-controlled lengths must be bounded.
-15. **Not checking for trailing bytes or missing data.** Invalid frames could be partially accepted.
-16. **Letting parsers/converters read indefinitely on slow sockets.** Timeouts and quotas are essential.
-17. **Silently converting class versions without invariant checks.** Legacy data does not automatically fit new models.
-18. **Catching filter errors and automatically disabling filters/retrying.** Downgrades security policy.
-19. **Using `readObject` as a tool to probe unknown files.** Never deserialize just to "peek at what a file contains."
-20. **Logging entire serialized bytes or secrets on failure.** Leaks data; log sanitized error details.
-21. **Assuming a sandbox/process alone is enough protection.** Least privilege, patching, runtime observability, and defense-in-depth are required.
-22. **Failing to check filter policies of libraries using `ObjectInputStream` under the hood.** Entry points may sit outside endpoint source code.
-23. **Sharing one overly broad filter across all use cases.** Different contexts need distinct classes/limits.
-24. **Not testing truncated files, deep graphs, and invalid fields.** Happy-path testing alone misses robustness bugs.
-25. **Assuming parsing into a Java record is enough.** Records enforce field types, yet business validation is still required.
-26. **Treating any read `IOException` as recoverable and continuing on a broken stream.** ObjectInputStream can be in an indeterminate state.
-27. **Confusing integrity checks with confidentiality.** Authenticated data can still be read without encryption/access controls.
-28. **Assuming data stored "internally" is immutable.** Audit who has write access across apps, backups, file shares, and queues.
-29. **Failing to cap output size during decoding/decompression.** Small inputs can expand enormously.
-30. **Having no plan to retire legacy endpoints.** Systems keep dangerous deserialization endpoints long after migrating most traffic.
+5. **Returning `UNDECIDED` for unlisted classes thinking it denies them.** An explicit reject policy is required.
+6. **Allowing entire packages or Java modules unnecessarily.** Expands the class attack surface beyond actual needs.
+7. **Omitting caps on arrays, depth, references, or bytes.** Exposes the system to resource exhaustion.
+8. **Bounding bytes only after `readAllBytes`.** Unbounded allocation already happened before the check.
+9. **Assuming filters validate String contents.** Field lengths and values still need explicit validation.
+10. **Assuming allowlisted classes never have side effects.** Audit hooks and future class modifications.
+11. **Authenticating the source without bounding format/resources.** Even an authenticated source can be compromised or buggy.
+12. **Switching to JSON while enabling generic polymorphic deserialization for input-chosen classes.** Schema/type allowlists are still mandatory.
+13. **Skipping malformed UTF-8 checks.** Corrupted bytes may silently turn into replacement characters.
+14. **Trusting an input length prefix and allocating arrays immediately.** Attacker-controlled lengths must be bounded first.
+15. **Ignoring trailing bytes or truncated data.** Invalid frames can be partially accepted.
+16. **Letting parsers/converters block indefinitely on slow sockets.** Enforce timeouts and quotas.
+17. **Silently evolving class versions without invariant checks.** Legacy data does not automatically fit new models.
+18. **Catching filter errors and automatically disabling the filter/retrying.** Downgrades protective controls.
+19. **Using `readObject` as a tool to probe unknown files.** Never deserialize just "to see what's inside."
+20. **Logging raw serialized bytes or secrets on failure.** Leaks sensitive data; log sanitized error details only.
+21. **Assuming a sandbox/process boundary alone suffices.** Combine least privilege, patching, runtime observability, and defense in depth.
+22. **Ignoring filter policies of libraries using `ObjectInputStream` implicitly.** Entry points may hide outside endpoint code.
+23. **Reusing one overly broad filter across all use cases.** Distinct contexts need distinct class sets and limits.
+24. **Skipping tests for truncated files, deep graphs, and invalid fields.** Happy-path tests do not measure robustness.
+25. **Assuming parsing into a Java record is sufficient.** Records enforce field types, yet business validation is still required.
+26. **Treating every `IOException` while reading as recoverable on a broken stream.** `ObjectInputStream` may be in an indeterminate state.
+27. **Confusing integrity checks with confidentiality.** Authenticated data can still be read unless encrypted and access-controlled.
+28. **Trusting "internally stored" data as immutable.** Audit who can write to apps, backups, file shares, and queues.
+29. **Failing to cap output size when decoding/decompressing.** Tiny inputs can expand massively.
+30. **Having no plan to remove legacy endpoints.** Leaves dangerous deserialization paths exposed long after migrating most traffic.
 
-## 16. Self-Check Knowledge Questions
+## 16. Self-Check Questions
 
-**Question 1.** Why is `(Expected) in.readObject()` dangerous when bytes are untrusted?  
-**Answer:** Before the cast, the JVM can already build graphs, run deserialization logic, and allocate resources per the stream.
+**Question 1.** Why is `(Expected) in.readObject()` dangerous on untrusted bytes?  
+**Answer:** Before the cast executes, the JVM may already construct graphs, run deserialization logic, and allocate resources driven by the stream.
 
-**Question 2.** Does checking the file header `AC ED 00 05` prove the stream is safe?  
-**No.** It is the protocol magic/version, not proof of source authenticity or safe class graphs.
+**Question 2.** Does verifying the file header `AC ED 00 05` prove a stream is safe?  
+**No.** That is the protocol magic/version header, verifying neither source trust nor class graph safety.
 
-**Question 3.** What approach should be prioritized for user-generated API requests?  
-**Answer:** A data protocol with fixed schema/types, a parser bounding bytes/depth, and per-field validation.
+**Question 3.** What approach should be prioritized for user-supplied API requests?  
+**Answer:** A data protocol with fixed schemas/types, parsers bounding bytes and depth, and per-field validation.
 
-**Question 4.** What can `ObjectInputFilter` limit?  
-**Answer:** Classes, array lengths, graph depth, reference counts, and consumed bytes per contract.
+**Question 4.** What can `ObjectInputFilter` constrain?  
+**Answer:** Classes, array lengths, graph depth, reference counts, and consumed stream bytes per contract.
 
-**Question 5.** Does a filter returning `UNDECIDED` mean the class was blocked?  
-**Not yet.** It is an undecided status; explicit denial requires returning `REJECTED` per policy.
+**Question 5.** If a filter returns `UNDECIDED`, is the class blocked yet?  
+**Not yet.** That means undecided; to deny explicitly, return `REJECTED` per policy.
 
-**Question 6.** Is placing `setObjectInputFilter` after `readObject` valid?  
-**No.** The filter must be set before reading objects, per API usage rules.
+**Question 6.** Is calling `setObjectInputFilter` after `readObject` valid?  
+**No.** The filter must be configured before reading objects per API rules.
 
 **Question 7.** If only one DTO class is allowlisted, do you still need to validate `String name`?  
-**Yes.** Filters do not inspect all primitive/String values; content, bounds, and invariants must still be validated.
+**Yes.** Filters do not check all primitive/String values; content, bounds, and invariants still require validation.
 
-**Question 8.** Do `Future`/async transports automatically limit object stream length?  
-**No.** Transport APIs and input framing need explicit quotas before deserialization.
+**Question 8.** Do `Future`/async transports automatically bound object stream length?  
+**No.** Transport APIs and input framing need explicit quotas prior to deserialization.
 
-**Question 9.** If `InvalidClassException` reports a filter rejection, should you keep reading the same stream?  
+**Question 9.** If `InvalidClassException` signals a filter rejection, should you keep reading from the same stream?  
 **No.** Treat the stream as corrupted/untrusted, close it, and report an error; never auto-downgrade filters.
 
-**Question 10.** Does `SafeFrameDemo`'s use of `available()` work to measure total bytes of a network stream?  
-**No.** There the source is a `ByteArrayInputStream` holding the entire frame; network streams require length prefixes and bounded reads.
+**Question 10.** Can the `available()` check in `SafeFrameDemo` measure total bytes on a network stream?  
+**No.** There the source is a `ByteArrayInputStream` already holding the full frame; network streams require length-prefixing and bounded reads.
 
-**Question 11.** Are digital signatures enough to replace filters/schemas?  
-**No.** Signatures verify integrity and origin per threat model; graph/byte limits and validation are still required.
+**Question 11.** Can digital signatures alone replace filters or schemas?  
+**No.** Signatures establish integrity and origin per your threat model; graph/byte limits and validation are still needed.
 
-**Question 12.** When forced to convert legacy serialized files, where should conversion run?  
-**Answer:** A controlled environment with authenticated data, restricted classpath, tight filters, and bounded permissions/resources; write to the new format and retire the old reader.
+**Question 12.** Where should mandatory conversion of legacy serialized files run?  
+**Answer:** In a controlled environment on authenticated data, with a minimal classpath, strict filters, and bounded privileges/resources; write the new format and retire old read paths.
 
 **Question 13.** Is `InputStream.readAllBytes()` safe for unbounded file uploads?  
-**No.** It can allocate up to the entire input size; a hard cap is needed at the receiving layer.
+**No.** It can allocate memory for the entire input; enforce hard caps at the ingress layer.
 
-**Question 14.** Does a strict class filter guarantee avoiding all side effects of allowed classes?  
-**No.** Code inside allowed classes/hooks still needs auditing; filters do not validate behavior.
+**Question 14.** Does a strict class filter guarantee allowed classes have no side effects?  
+**No.** Code in allowed classes and hooks still requires auditing; filters do not validate behavioral safety.
 
-**Question 15.** What is the right purpose of Java Object Serialization when it must still be used?  
-**Answer:** Compatibility with system-controlled Java data/object graphs alongside proper boundaries and controls—**not** a default input format from untrusted parties.
+**Question 15.** What is the legitimate role of Java Object Serialization when it must still be used?  
+**Answer:** Compatibility with Java data/object graphs controlled by your own system, paired with strict boundaries and controls—**never** as the default input format from untrusted parties.
 
-## 17. Conclusion and Official References
+## 17. Conclusion and Official Documentation
 
-**Key takeaway:** "Do not deserialize in order to check whether an object is the right type; deserialize only when trust foundations, class/graph policies, and resource boundaries are in place — and whenever you have a choice, use a data format with a schema-driven parser."
+**Takeaway:** "Do not deserialize just to check whether an object has the right type; deserialize only with an established trust basis, class/graph policy, and appropriate resource boundaries—and whenever you have a choice, use a data format with a schema-driven parser."
 
 Decision flow:
 
 ```text
-Could the source be controlled by an adversary?
-    ├── Yes, or source trust is unproven
+Can the source be controlled by an adversary?
+    ├── Yes, or source trustworthiness is unproven
     │       └── DO NOT use ObjectInputStream.readObject directly
     │               └── Bounded framing → schema parser → validation → DTO
-    └── Trusted legacy data, compatibility required
-            └── Inventory classes + verify source
+    └── Trusted legacy data requiring compatibility
+            └── Inventory classes + authenticate source
                     └── Quota/input bounds + ObjectInputFilter
                             └── Validate output and audit allowed hooks
                                     └── Migrate to a stable data format
 ```
 
-Official sources (Java SE 21; presented APIs apply to Java 17+):
+Official sources (Java SE 21, with the presented APIs applicable to Java 17+):
 
-- `ObjectInputStream` — untrusted deserialization warnings, `readObject` contract, and `setObjectInputFilter`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputStream.html
+- `ObjectInputStream` — warnings on untrusted deserialization, `readObject` contract, and `setObjectInputFilter`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputStream.html
 - `ObjectInputFilter` — class/resource filtering, policy composition, and filter factories: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputFilter.html
 - `ObjectInputFilter.Config` — pattern filters and JVM-wide filters: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputFilter.Config.html
 - `Serializable` — default serialization and class hooks: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html
-- `DataInputStream` — bounded primitive/data reading per application-designed formats: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/DataInputStream.html
-- `CharsetDecoder` — UTF-8 error policies: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/CharsetDecoder.html
-- Oracle Secure Coding Guidelines for Java SE, Serialization/Deserialization section: https://www.oracle.com/java/technologies/javase/seccodeguide.html
+- `DataInputStream` — bounded primitive/data reading for application-designed formats: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/DataInputStream.html
+- `CharsetDecoder` — UTF-8 error handling policies: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/CharsetDecoder.html
+- Oracle Secure Coding Guidelines for Java SE, Serialization and Deserialization section: https://www.oracle.com/java/technologies/javase/seccodeguide.html

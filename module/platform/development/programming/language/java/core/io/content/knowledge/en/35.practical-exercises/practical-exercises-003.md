@@ -1,28 +1,28 @@
-# Reading Large Files Line by Line and Aggregating Data Statistics in Java
+# Reading Large Files Line by Line and Aggregating Statistics in Java
 
-When processing logs, transaction data, measurement results, or a CSV file ranging from hundreds of MB to many GB, calling `Files.readAllLines(path)` and then iterating over the list can create massive heap pressure: each line is a string, plus there is the list of references, intermediate objects, and decoding overhead. Most statistical problems **do not need to keep all lines in memory**. They only need to read one line at a time, validate the record, and update a few counters, sums, min/max values, or per-group statistics.
+When processing logs, transaction records, telemetry, or a CSV file ranging from hundreds of MBs to multiple GBs, calling `Files.readAllLines(path)` and iterating over the resulting list can create massive heap pressure: each line is a string, plus the list of references, intermediate objects, and decoding overhead. Most aggregation tasks **do not need to keep all lines in memory**. They only need to read one line at a time, validate the record, and update a few counters, sums, minimums/maximums, or per-group statistics.
 
-This exercise walks through reading a large file line by line with `BufferedReader` and `Files.lines()`, designing **streaming / one-pass** aggregation, and handling malformed lines, encoding, numeric overflow, resources, and performance. A complete Java 17 program will read data in the `level,durationMs` format, count valid/invalid records, per-log-level counts, total, min, max, and average without creating a list of all lines.
+This exercise walks through reading a large file line by line with `BufferedReader` and `Files.lines()`, designing **streaming / one-pass** statistics, and handling malformed lines, encoding, numeric overflow, resources, and performance. A complete Java 17 program reads `level,durationMs` data and counts valid/invalid records, per-log-level counts, total, min, max, and average without building a list of all lines.
 
-**Goal:** Memory cost mainly depends on the size of the **largest line** and the amount of statistical state retained, rather than scaling linearly with total line count when only fixed counters and groups are stored.
+**Goal:** Memory cost depends primarily on the size of the **longest line** and the amount of statistical state retained, rather than scaling linearly with the total number of lines when only fixed counters and groups are kept.
 
-## 1. Distinguishing Whole-File Reading from Line-by-Line Reading
+## 1. Whole-File Reading vs. Line-by-Line Reading
 
-| Reading Approach | Behavior | Best For |
+| Reading Approach | Behavior | Best Suited For |
 | --- | --- | --- |
-| `Files.readString(path)` | Reads file content into a single `String` | Small files where the entire content is needed in RAM |
-| `Files.readAllLines(path, charset)` | Reads all lines and builds a `List<String>` | Small/medium files when every line must be revisited |
+| `Files.readString(path)` | Reads file content into a single `String` | Small files needing full content in RAM |
+| `Files.readAllLines(path, charset)` | Reads all lines and builds a `List<String>` | Small/medium files needing random re-access to every line |
 | `Files.newBufferedReader(path, charset)` | Reads sequentially via `BufferedReader.readLine()` | Large files, line-by-line processing, flow and error control |
-| `Files.lines(path, charset)` | Returns a lazy `Stream<String>`, read when a terminal operation runs | Filter/map pipelines; the stream must still be closed |
-| `FileChannel.read(ByteBuffer)` | Reads byte blocks, **does not split lines or decode charsets automatically** | Binary protocols, custom parsers, or when byte-buffer control is needed |
+| `Files.lines(path, charset)` | Returns a lazy `Stream<String>`, reading when a terminal operation runs | Filter/map pipelines; the stream must still be closed |
+| `FileChannel.read(ByteBuffer)` | Reads byte blocks, **does not split lines or decode charsets** | Binary protocols, custom parsers, or explicit byte-buffer control |
 
-For large text files, `BufferedReader` is a solid starting point: easy to manage lines, handle checked `IOException`, and control lifecycle. `Files.lines()` is appropriate when the pipeline is clear and you do not accidentally collect every line into memory with `collect(toList())`.
+For large text files, `BufferedReader` is a solid starting point: easy line management, explicit checked `IOException` handling, and clear lifecycle control. `Files.lines()` is appropriate when the pipeline is straightforward and you do not accidentally collect every line into memory with `collect(toList())`.
 
-Large file size **does not automatically mean** you must use `MappedByteBuffer` or write a custom byte decoder: streaming text through `BufferedReader` is usually sufficient, maintainable, and easy to benchmark.
+Large file size **does not mean** you have to use `MappedByteBuffer` or write your own byte decoder: streaming text via `BufferedReader` is usually sufficiently accurate, maintainable, and easy to benchmark.
 
-## 2. Input Dataset and Statistical Requirements
+## 2. Input Dataset and Statistics Requirements
 
-Suppose each data line is a record with two comma-separated columns:
+Suppose each data line is a two-column record separated by a comma:
 
 ```text
 level,durationMs
@@ -38,17 +38,17 @@ ERROR,150
 
 Business rules for this exercise:
 
-1. The first line **must be exactly** `level,durationMs`, which is the header and is not included in statistics.
+1. The first line **must strictly be** `level,durationMs`, serving as the header and excluded from statistics.
 2. Each subsequent line must have exactly one comma and two non-empty fields.
-3. `level` must be one of `INFO`, `WARN`, or `ERROR`; matched case-sensitively after trimming leading/trailing whitespace on each field.
+3. `level` must be one of `INFO`, `WARN`, `ERROR`; matched case-sensitively after trimming leading/trailing whitespace on each field.
 4. `durationMs` must be a **non-negative** `long` integer.
-5. Invalid lines are **counted in `invalid`** and skipped when computing sum/min/max/average. Do not reject the entire file because of one dirty line.
-6. Metrics to print: total data lines, valid, invalid, line count per level, total duration, min, max, average.
-7. The file can be very large; the program does not store a `List<String>`, does not retain all valid records, and does not need to create intermediate files.
+5. Invalid lines are **counted in `invalid`** and skipped when computing sum/min/max/average. Do not discard the entire file because of one dirty line.
+6. Metrics to print: total data rows, valid, invalid, count per level, total duration, min, max, average.
+7. The file can be very large; the program does not store a `List<String>`, does not retain all valid records, and creates no intermediate files.
 
-With the sample data: there are **8 data lines**, 6 valid lines, and 2 invalid lines (`broken` and `INFO,-1`). Each level has 2 valid lines; total duration is **1300 ms**, min **80 ms**, max **450 ms**, and average **1300 / 6 = 216.67 ms**.
+For the sample data: there are **8 data rows**, 6 valid rows, and 2 invalid rows (`broken` and `INFO,-1`). Each level has 2 valid rows; total duration is **1300 ms**, min **80 ms**, max **450 ms**, and average **1300 / 6 = 216.67 ms**.
 
-This is a **simple CSV format defined by this exercise**, **not a general RFC 4180 CSV parser**: it does not support commas inside quoted fields, newlines inside fields, or escaping rules. When processing real-world CSVs with quoted fields, use a dedicated CSV parser or implement a resource-bounded state machine instead of blindly calling `split(",")`.
+This is a **simple CSV format defined by the exercise**, **not a general RFC 4180 CSV parser**: it does not support commas inside quoted fields, newlines inside fields, or escape rules. When processing real-world CSV with quoted fields, use a dedicated CSV parser or implement a resource-bounded state machine instead of blindly calling `split(",")`.
 
 ## 3. `BufferedReader.readLine()`: Reading Lines Without Loading the Whole File
 
@@ -66,20 +66,20 @@ try (BufferedReader reader =
         Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
     String line;
     while ((line = reader.readLine()) != null) {
-        // Process each line immediately, updating the accumulators.
+        // Process each line immediately and update accumulators.
     }
 }
 ```
 
-This is an **illustrative snippet**: the input file must exist and the application must handle `IOException`; the code does not include a `main` method. Key points:
+This is an **illustrative snippet**: the input file must exist and the application must handle `IOException`; the code does not yet include a `main` method. Key points:
 
 - `readLine()` returns a string containing the line content, **excluding line-termination characters**; or `null` at end of file.
 - Common line endings such as LF (`\n`), CRLF (`\r\n`), and CR are recognized as line terminators per the `BufferedReader` contract.
-- **An empty line is `""`, not `null`.** If the data contains empty lines, decide whether to skip them, count them as errors, or treat them as blank records.
-- `readLine()` can throw `IOException`, for example on device errors or invalid input decoding.
-- `try-with-resources` closes the reader even if the processing loop stops due to an error. It also closes the underlying stream created by `Files.newBufferedReader()`.
+- **An empty line is `""`, not `null`.** If the data contains blank lines, decide whether to skip them, count them as errors, or treat them as empty records.
+- `readLine()` can throw `IOException`, such as a device error or invalid input decoding.
+- `try-with-resources` closes the reader even if the loop stops due to an error. It also closes the underlying stream created by `Files.newBufferedReader()`.
 
-**Distinguish "not loading the whole file" from "an absolute RAM cap".** `readLine()` must construct a string for **an entire line**. If a file contains **a single GB-long line** with no newline, the program still risks running out of memory. Line-by-line reading is memory-safe **when individual line length is bounded**; for untrusted input, use a parser that limits character/byte count before building an overly long string.
+**Distinguish "not loading the whole file" from "strictly bounded RAM".** `readLine()` must construct a string for **one entire line**. If a file contains **a single gigabyte-long line** with no newline, the program still risks running out of memory. Line-by-line reading is memory-safe **when individual line length is bounded**; for untrusted inputs, use a parser that limits character/byte counts before materializing overly long strings.
 
 ### Character Encoding and Charset
 
@@ -89,7 +89,7 @@ Specify the charset explicitly:
 Files.newBufferedReader(path, StandardCharsets.UTF_8);
 ```
 
-Do not rely on the default charset when files are shared across machines. A real file may use UTF-8, UTF-16, or another encoding; **specify the source's exact encoding**. A `UTF-8 BOM` at the start of a file may appear in the read content as the `\uFEFF` character, causing a header check with `equals()` to fail. If your convention accepts BOMs, handle it explicitly right at the **start of the file**, rather than stripping the first character from every line.
+Do not rely on the default charset when files are shared across machines. A real file might use UTF-8, UTF-16, or another encoding; **specify the source's true encoding**. A `UTF-8 BOM` at the start of a file can appear in read content as `\uFEFF`, causing header checks using `equals()` to fail. If the convention allows a BOM, handle it explicitly right at the **start of the file**, rather than stripping the first character of every line.
 
 ## 4. One-Pass Aggregation: Keeping Small State and Updating Incrementally
 
@@ -103,12 +103,12 @@ long valid = lines.stream().filter(...).count();
 (this snippet only illustrates an anti-pattern; `...` is not runnable Java code), maintain accumulators:
 
 ```text
-rows           = 0      // Total lines after the header
-valid          = 0      // Number of accepted lines
-invalid        = 0      // Number of rejected lines
-sumDurationMs  = 0      // Total valid duration
-minDurationMs  = +∞     // Min of valid lines
-maxDurationMs  = -∞     // Max of valid lines
+rows           = 0      // Total rows after header
+valid          = 0      // Number of accepted rows
+invalid        = 0      // Number of rejected rows
+sumDurationMs  = 0      // Sum of valid durations
+minDurationMs  = +∞     // Min of valid rows
+maxDurationMs  = -∞     // Max of valid rows
 count[INFO]    = 0
 count[WARN]    = 0
 count[ERROR]   = 0
@@ -118,15 +118,15 @@ For each line:
 
 1. Increment `rows`.
 2. Validate column count, level, and duration.
-3. If invalid: increment `invalid`, move to the next line.
-4. If valid: increment `valid`, increment the level counter, add duration to the sum, update min/max.
-5. At EOF: compute the average if `valid > 0`; if there are no valid lines, use `n/a` to avoid division by zero.
+3. If invalid: increment `invalid` and move to the next line.
+4. If valid: increment `valid`, increment the level counter, add duration to the sum, and update min/max.
+5. At EOF: compute average if `valid > 0`; if there are no valid rows, print `n/a` to avoid division by zero.
 
-**There is no need to know the total line count or file size in advance** to compute these statistics. With three fixed levels, the number of counters is also fixed. Time cost roughly corresponds to the total characters/bytes read plus parsing overhead, while memory is not a `List` growing with file size.
+**You do not need to know the total line count or file size in advance** to compute these statistics. With three fixed levels, the number of counters is also fixed. Time cost scales roughly with total characters/bytes read plus parsing overhead, while memory is not a `List` ballooning alongside file size.
 
 ### Overflow and Precision
 
-Do not use `int` for total duration when a file may contain millions of records. Use `long`, and if the sum could exceed `Long.MAX_VALUE`, check with `Math.addExact()` (throws `ArithmeticException` on overflow) or use `BigInteger` if business logic truly requires a larger range.
+Do not use `int` for total duration when files can hold millions of records. Use `long`, and if the sum could exceed `Long.MAX_VALUE`, check with `Math.addExact()` (throwing `ArithmeticException` on overflow) or use `BigInteger` if business logic genuinely requires a wider range.
 
 For the average:
 
@@ -135,11 +135,11 @@ double average = valid == 0 ? Double.NaN
         : (double) sumDurationMs / valid;
 ```
 
-This is an illustrative formula; variables must be declared in the application context. `double` is suitable for reporting averages; for monetary values or business requirements needing exact decimal precision, use `BigDecimal` with an explicit rounding policy. Do not accumulate `long` values into an `int` and expect the final division to fix an overflow that already occurred.
+This is an illustrative formula; variables must be declared in the application context. `double` is suitable for reporting averages; for currency or domains needing exact decimal precision, use `BigDecimal` with an explicit rounding policy. Do not sum `long` values into an `int` and expect the final division to undo an overflow that already happened.
 
 ## 5. Complete Java 17 Program: One-Pass Large File Statistics
 
-Create the file **`LargeFileStatsDemo.java`**. If run **with no arguments**, the program generates sample data in a temporary file, analyzes it, and deletes the sample file. If passed **one path**, the program reads that file and **does not modify or delete the user-specified file**.
+Create the file **`LargeFileStatsDemo.java`**. If run **with no arguments**, the program generates sample data in a temporary file, analyzes it, and deletes the sample file. If passed **one path**, the program reads that file and **never modifies or deletes the user-specified file**.
 
 ```java
 import java.io.BufferedReader;
@@ -224,7 +224,7 @@ public final class LargeFileStatsDemo {
                     "INFO,-1",
                     "ERROR,150") + "\n";
 
-            // Only overwrite the temporary file just created by this program.
+            // Only overwrite the temporary file just created by this program itself.
             Files.writeString(example, sample, StandardCharsets.UTF_8);
             analyze(example).print();
         } finally {
@@ -310,27 +310,27 @@ To read your own file:
 java LargeFileStatsDemo /path/to/events.csv
 ```
 
-This is only a Unix-style path syntax example; replace it with a real path appropriate for your operating system. The file must follow the `level,durationMs` format described above; output will reflect the data of the passed-in file.
+This is only an example of Unix path syntax; replace it with the actual path appropriate for your operating system. The file must follow the `level,durationMs` format described above; output will reflect the data of the passed file.
 
 ### Analyzing How the Example Works
 
-- `Files.newBufferedReader()` only holds a read buffer and the string of the current line, instead of a list of all lines.
-- The header is checked upfront to avoid mistaking columns or aggregating a completely malformed file.
-- `line.indexOf(',')` locates the single comma and verifies there is no second comma; suited for a **simple two-column format**, without quoted CSV.
-- `Level.valueOf()` validates the level; `Long.parseLong()` validates the duration; both can throw `IllegalArgumentException` (including `NumberFormatException` as a subclass) and are recorded as invalid lines.
-- `stats.accept()` only runs for valid records; `Math.addExact()` prevents the sum from silently overflowing `long`.
-- `minMs/maxMs` are initialized with sentinels, but **sentinels are not printed if valid=0**.
-- `Locale.ROOT` keeps the `.` decimal separator in the sample output, avoiding dependence on the machine's regional locale settings.
-- The argument branch only **reads** the user's file, while the no-argument branch only creates and deletes a **temporary file owned by the program**.
+- `Files.newBufferedReader()` holds only a read buffer and the string for the current line, rather than a list of all lines.
+- The header is validated upfront to avoid mismatched columns or summarizing a completely wrong file format.
+- `line.indexOf(',')` locates the single comma and ensures there is no second comma; this fits the **simple two-column format** without quoted CSV.
+- `Level.valueOf()` validates the level; `Long.parseLong()` validates the duration; both can throw `IllegalArgumentException` (including its subclass `NumberFormatException`) and are recorded as invalid lines.
+- `stats.accept()` runs only for valid records; `Math.addExact()` prevents silent `long` overflow on totals.
+- `minMs/maxMs` are initialized with sentinel values, yet **sentinels are never printed when valid=0**.
+- `Locale.ROOT` keeps the `.` decimal separator in sample output, avoiding dependence on local machine regional settings.
+- The argument branch only **reads** the user's file, while the no-argument branch only creates and deletes **a temporary file owned by the program**.
 
-The exercise intentionally counts bad lines without printing the full line content, because large files can bloat error logs or leak data. In a real service, you can emit **a bounded number of diagnostics**, such as at most the first 10 errors, with line number and reason, without exposing sensitive fields.
+The exercise intentionally counts invalid lines without printing their full line contents, because large files can bloat error logs or expose sensitive data. In a real service, you can output a **capped number of diagnostics**, such as the first 10 errors with line number and reason, without leaking sensitive fields.
 
 ## 6. `Files.lines()`: Same Goal Using the Stream API
 
-`Files.lines(path, StandardCharsets.UTF_8)` returns a lazily read `Stream<String>`. A simple example counting lines containing a keyword:
+`Files.lines(path, StandardCharsets.UTF_8)` returns a lazy `Stream<String>`. A simple example counting lines containing a keyword:
 
 ```java
-// Illustrative snippet inside a method that allows throwing IOException.
+// Illustrated inside a method allowed to throw IOException.
 try (java.util.stream.Stream<String> lines =
         Files.lines(file, StandardCharsets.UTF_8)) {
     long errors = lines.filter(s -> s.startsWith("ERROR,")).count();
@@ -338,11 +338,11 @@ try (java.util.stream.Stream<String> lines =
 }
 ```
 
-This is an **illustrative snippet**, not a standalone program: `file` must be a valid `Path`, with `Files` imported and exceptions handled. `Files.lines()` does not need to build a list before `count()`. It reads and checks lines as the terminal operation executes.
+This is an **illustrative snippet**, not a standalone program: `file` must be a valid `Path`, with `Files` imported and exceptions handled. `Files.lines()` does not need to build a list before `count()`. It reads and inspects lines as the terminal operation executes.
 
-**Closing the stream is mandatory.** The stream returned by `Files.lines()` is tied to an open file resource; do not return it out of a `try-with-resources` block and let the caller consume it after the file has been closed.
+**Closing the stream is mandatory.** The stream returned by `Files.lines()` is backed by an open file resource; do not return it out of a `try-with-resources` block for a caller to consume after the file has been closed.
 
-During stream execution, an I/O error arising after the stream is created can be wrapped into an `UncheckedIOException` by the pipeline. This differs from `BufferedReader.readLine()`, which declares checked `IOException`. Choose an appropriate error-handling strategy and do not swallow exceptions in terminal operations.
+During stream execution, I/O errors arising after stream creation may be wrapped in `UncheckedIOException` by the pipeline. This differs from `BufferedReader.readLine()` declaring a checked `IOException`. Choose appropriate error handling and never swallow exceptions in terminal operations.
 
 ### Do Not Turn Streaming into Eager Collection
 
@@ -355,12 +355,12 @@ try (var lines = Files.lines(path)) {
 }
 ```
 
-This snippet is **illustrative**, requiring a `Path` variable `path` and `IOException` handling. `Files.lines()` is only lazy **until** you use a terminal operation. `toList()`, `collect(toList())`, or `groupingBy(..., toList())` can accumulate massive amounts of data, forfeiting the memory advantage.
+This snippet is **illustrative**, requiring a `Path` variable `path` and `IOException` handling. `Files.lines()` is only lazy **until** you invoke a terminal operation. `toList()`, `collect(toList())`, or `groupingBy(..., toList())` can accumulate huge amounts of data, forfeiting memory benefits.
 
-You can use a collector to count groups:
+A collector can be used to count groups:
 
 ```java
-// Illustrative snippet: only suitable after validating line data.
+// Illustrative snippet: appropriate only after row data is validated.
 try (var lines = Files.lines(path, StandardCharsets.UTF_8)) {
     var counts = lines
             .filter(s -> !s.isBlank())
@@ -370,29 +370,29 @@ try (var lines = Files.lines(path, StandardCharsets.UTF_8)) {
 }
 ```
 
-However, **this code is unsafe for input missing a comma**, and the header will be counted unless skipped. It only illustrates collectors and **does not replace complete, validated code**. Moreover, the memory of `groupingBy()` grows with the number of distinct groups. If every line has a unique key, the map can grow close to the total line count; in that case, you need cardinality limits or external aggregation.
+However, **this code is unsafe for inputs missing a comma**, and the header will be counted if not skipped. It only illustrates a collector and **does not replace complete, validated code**. Moreover, memory used by `groupingBy()` grows with the number of distinct groups. If every line has a unique key, the map can grow nearly as large as the total line count; in that case, bound cardinality or use external aggregation.
 
-## 7. Designing Per-Group Statistics for Large Files
+## 7. Designing Group-by Statistics for Large Files
 
-This exercise's fixed three-level counters keep memory O(1) relative to line count. Real data often requires grouping by date, region, or status code:
+The exercise's fixed three-level counters keep memory O(1) relative to line count. Real datasets often need statistics by date, region, or status code:
 
 | Problem | Minimum State | Memory |
 | --- | --- | --- |
-| Count total lines and invalid lines | A few `long` counters | Near O(1) |
-| Sum, min, max, average | `sum, count, min, max` | Near O(1) |
-| Count by level with 3 values | Three-element array / `EnumMap` | Near O(1) |
-| Count by HTTP status code with finite domain | Array or map bounded by code count | Proportional to codes that may appear |
-| Count by unbounded user ID | `Map<userId, count>` | Proportional to distinct user IDs, potentially very large |
-| Compute exact distinct value count | `HashSet` | Proportional to distinct values |
-| Top-K with fixed size K | Min-heap and appropriate counters | Usually O(K) for top-K selection once frequencies exist, though exact per-key frequency counting still needs other state |
-| Exact median/p95 | Usually requires data or suitable index/algorithm structure | Not always O(1) |
-| Approximate median/p95 | Suitable sketch/histogram | Can bound memory at the cost of error margin |
+| Count total rows and invalid rows | A few `long` counters | Nearly O(1) |
+| Sum, min, max, average | `sum, count, min, max` | Nearly O(1) |
+| Count by 3-value level | Three-element array / `EnumMap` | Nearly O(1) |
+| Count by HTTP status code (finite domain) | Array or map bounded by code count | Proportional to codes that appear |
+| Count by unbounded user ID | `Map<userId, count>` | Proportional to distinct user IDs, potentially huge |
+| Exact distinct value count | `HashSet` | Proportional to distinct values |
+| Top-K with fixed K | Min-heap and suitable counters | Often O(K) for top-K selection once frequencies exist, though exact frequencies for all keys still require additional state |
+| Exact median/p95 | Typically requires storing data or suitable indexing/algorithms | Not always O(1) |
+| Approximate median/p95 | Appropriate sketch/histogram | Can bound memory at the cost of approximation error |
 
-Do not claim "line-by-line reading ⇒ every statistic is O(1) memory". What is true is that **the reading mechanism itself does not store the entire file**; aggregation can still retain lots of data depending on requirements. If cardinality is high, consider bucketing by key, external sort, a database, or chunked data processing tools.
+Do not claim "reading line by line ⇒ all statistics are O(1) memory". What is true is that **the reading mechanism itself does not store the whole file**; aggregation can still hold significant data depending on requirements. For high cardinality, consider bucketing by key, external sorting, a database, or chunked data-processing tools.
 
-### Retaining Enough Information to Compute Averages Correctly
+### Retaining Enough State for Accurate Averages
 
-To aggregate averages across multiple files, do not directly store and average each file's average, because files have different valid line counts. Store **`sum` and `count`**, then combine:
+To combine averages across multiple files, do not store and directly average each file's average, because files have different valid row counts. Store **`sum` and `count`**, then combine:
 
 ```text
 File A: sum=100, count=1      --> avg=100
@@ -409,14 +409,14 @@ Incorrect: (100+0)/2          --> 50
 Correct:   (100+0)/(1+9)      --> 10
 ```
 
-When merging across machines, define overflow handling, combination order, and invalid-line policies before aggregating.
+When merging across machines, define overflow handling, associativity/order, and invalid-line policies before aggregating.
 
-## 8. I/O Optimization: Buffer, Allocations, and Charset Decoder
+## 8. Optimizing I/O: Buffers, Allocations, and Charset Decoders
 
 `Files.newBufferedReader()` uses a buffered character reader suitable for many cases. If a specific buffer size is needed, you can combine:
 
 ```java
-// Illustrative snippet, file is a valid Path; IOException is handled by the caller.
+// Illustrative, file is a valid Path; IOException is handled by the caller.
 try (BufferedReader reader = new BufferedReader(
         new java.io.InputStreamReader(
                 Files.newInputStream(file), StandardCharsets.UTF_8),
@@ -430,117 +430,117 @@ try (BufferedReader reader = new BufferedReader(
 
 Do not assume increasing the buffer from 8 KiB to 64 KiB is always faster. Results depend on line length, disk, page cache, charset decoding, file count, and parsing cost.
 
-Several optimization choices require controlled benchmarking:
+Several optimization choices that require controlled benchmarking:
 
-1. **Minimize unnecessary object creation.** `String.split(regex)` allocates an array and multiple strings; if the format has only one delimiter, `indexOf()` and `substring()` can be simpler. However, never trade away correctness on complex CSVs for speed.
+1. **Minimize unnecessary object allocation.** `String.split(regex)` allocates an array and multiple strings; if the format has only one delimiter, `indexOf()` and `substring()` can be simpler. However, never trade away correctness on complex CSV for speed.
 2. **Count with `long` instead of `int`** for very large files.
-3. **Separate I/O from parsing in benchmarks.** Measuring raw reads differs from measuring read + validation logic + record allocation + aggregation.
-4. **Warm up JVM/JIT and file cache fairly.** A second run may be faster due to the OS page cache even with the same API; do not compare a cold run against a warm run and conclude one algorithm is better.
-5. **Do not build a giant `StringBuilder` for all lines** just to compute a few metrics.
+3. **Separate I/O from parsing in benchmarks.** Measuring raw reading differs from measuring read + validation logic + record creation + aggregation.
+4. **Warm up the JVM/JIT and file cache fairly.** A second run can be faster due to the OS page cache even with the same API; never compare a cold run to a warm run and conclude one algorithm is better.
+5. **Do not build a massive `StringBuilder` for all lines** just to compute a few metrics.
 6. **Do not blindly parallelize `Files.lines()`**: line splitting, ordering, shared resources, and mutable accumulators can complicate code without speeding it up.
-7. **Avoid logging on every line** when processing hundreds of millions of lines; stdout/logging itself can be slower than read I/O.
-8. **Pick the right charset** and handle encoding errors; speed does not matter if data is parsed wrongly.
+7. **Avoid logging on every line** when processing hundreds of millions of rows; stdout/logging itself can be slower than read I/O.
+8. **Choose the right charset** and handle encoding errors; speed does not matter if data is parsed incorrectly.
 
-You can benchmark pure CPU/parsing steps with JMH, but **JMH does not automatically control the operating system cache**. To evaluate end-to-end throughput, also measure file open, read, decode, parse, GC, and resource close times across your application's real scope.
+You can use JMH to benchmark pure CPU/parsing steps, though **JMH does not automatically control the OS cache**. To evaluate end-to-end throughput, also measure file opening, reading, decoding, parsing, GC, and resource closing under realistic application scope.
 
 ## 9. Handling Dirty Data and Safety Limits
 
-Large files are rarely completely clean. A **skip, fail-fast, or quarantine** policy should be agreed upon before running:
+Large files are rarely completely clean. Policies for **skip, fail-fast, quarantine** must be agreed upon before running:
 
-| Situation | Suggested Handling |
+| Scenario | Suggested Handling |
 | --- | --- |
-| Invalid header or empty file | Fail-fast, as you may be reading the wrong kind of data |
-| Line with wrong column count | Count invalid, log a bounded number of diagnostics |
-| Unknown level | Count invalid or map to OTHER if business logic allows |
-| Non-integer duration | Count invalid or fail-fast depending on requirements |
-| Negative duration | Reject if the valid domain requires non-negative values |
+| Wrong header or empty file | Fail-fast, as you may be reading the wrong data type |
+| Row with wrong column count | Increment invalid, log a bounded number of diagnostics |
+| Unknown level | Increment invalid or map to OTHER if business rules allow |
+| Non-integer duration | Increment invalid or fail-fast per requirements |
+| Negative duration | Reject if valid domain requires non-negative |
 | Duration value causing sum overflow | Stop with a clear error or use `BigInteger` |
-| File with wrong charset | Report decode error; do not auto-switch encoding and continue without rules |
-| Extremely long line | Enforce character/byte limit inside the parser before allocating too much memory |
+| File with wrong charset | Report decode error; do not silently switch encoding and proceed without rules |
+| Extremely long single line | Enforce character/byte limits in the parser before allocating excessive memory |
 | File modified while reading | Results may not reflect a consistent snapshot |
-| Disk/network filesystem error | `IOException`; do not report completion with partial stats without a checkpoint |
+| Disk/network filesystem error | `IOException`; do not report completion with partial statistics without checkpoints |
 
-If statistics serve sensitive domains (finance, auditing), also store the parse policy, schema version, input file checksum, and error-handling behavior so results remain traceable. Do not automatically discard bad lines and publish statistics as if all data had been processed.
+If statistics serve sensitive domains (finance, auditing), record the parsing policy, schema version, input file checksum, and error-handling behavior so results are traceable. Do not silently drop bad rows and publish statistics as if all data were processed.
 
-### Do Not Accept Unbounded Lines Just Because You Stream
+### Do Not Accept an Unbounded Line Just Because You Are Streaming
 
-`BufferedReader.readLine()` does not provide a "maximum line length" parameter. If input comes from an untrusted third party, the limiter must run **while consuming characters/bytes**, not just:
+`BufferedReader.readLine()` offers no "maximum line length" parameter. If inputs come from untrusted third parties, the limit must run **while consuming characters/bytes**, not merely:
 
 ```java
 String line = reader.readLine();
 if (line.length() > 10000) { ... }
 ```
 
-because by the time the check runs, `readLine()` **has already constructed a very long string**. A safer bounded parser can read in chunks/characters, stop/flag when the threshold is exceeded, and continue discarding the remainder up to the newline without accumulating it. If proper standard CSV is needed, choose a parser library capable of bounding record/field lengths.
+because by the time of the check, `readLine()` **has already constructed the huge string**. A safer bounded parser can read chunk/character by chunk, stop/flag when the threshold is exceeded, and skip the rest up to the newline without accumulating. If standard CSV data is required, choose a parser library capable of limiting record/field lengths.
 
-## 10. Handling Multi-GB, Multi-Day, or Multi-Source Files
+## 10. Processing Multi-GB, Multi-Day, or Multi-Source Files
 
-For **one large file**, one-pass streaming is usually enough. For **multiple files**, you can loop over each file, close `BufferedReader` after each one, and merge statistics into a total accumulator using overflow-checked addition. There is no need to open thousands of file descriptors concurrently.
+For **a single large file**, one-pass streaming is usually sufficient. For **multiple files**, loop over each file, close `BufferedReader` after each one, and merge statistics into a global accumulator using overflow-checked addition. There is no need to hold thousands of file descriptors open simultaneously.
 
-For continuously updated files like a live log, a single pass may hit EOF before the log writer writes more. **Reading a file to EOF is different from tailing a file (`tail -f`).** If the application needs to receive new data in real time, use a designed polling, rotation handling, or watcher mechanism rather than spinning `readLine()` in an infinite busy-wait loop.
+For continuously appended files like live logs, one pass can hit EOF before the log writer appends more data. **Reading a file to EOF is different from tailing a file (`tail -f`).** If the application needs new data in real time, design proper polling, rotation handling, or file watching instead of spinning `readLine()` in an infinite busy-wait loop.
 
-When a file is being written concurrently, you do not automatically get a consistent snapshot. Options include:
+When a file is written concurrently, a consistent snapshot is not guaranteed by default. Options include:
 
-- Process only files that the producer has **fully closed** and published via an appropriate rename.
-- Create a snapshot/immutable input with an explicit checksum or version.
-- If a live file must be read, define when an incomplete line without a trailing newline is considered complete, and handle log rotation and retries.
-- To read different parts of the same file in parallel, find **actual line boundaries** at split points; splitting purely by byte offset and letting workers read arbitrarily risks undercounting or duplicating lines.
+- Processing only files **completely closed** by the producer and published via an appropriate rename.
+- Creating a snapshot/immutable input with an explicit checksum or version.
+- If live reading is unavoidable, defining when an incomplete line lacking a trailing newline is considered complete, and handling log rotation and retries.
+- To read parts of the same file in parallel, locate **true line boundaries** at split points; splitting purely by byte offset and letting workers read arbitrarily risks double-counting or dropping lines.
 
-**Note:** Java's `BufferedReader.readLine()` can return the last line even if the file does not end with a newline. For an immutable file, this is a valid line under text-reading rules; for a file actively being written, it may be an **incomplete record**. Define a publish/snapshot protocol instead of guessing.
+**Note:** Java's `BufferedReader.readLine()` can return the final line even when the file does not end with a newline. For immutable files, this is a valid line per text-reading rules; for an active log, it may be a **partial record**. Define a publish/snapshot protocol instead of guessing.
 
-## 11. Testing Statistics Before Using on Real Data
+## 11. Testing Statistics Before Running on Real Data
 
-Cases to include:
+Cases to cover:
 
 1. **Header-only file:** `rows=0`, `valid=0`, `invalid=0`, min/max/average are `n/a`.
-2. **Empty file:** Reports header error, not accepted as a valid dataset.
+2. **Empty file:** Fails on header check; not accepted as a valid dataset.
 3. **Malformed lines:** Missing comma, extra comma, single column only, unknown level, non-numeric duration.
 4. **Blank lines:** Under the example policy, blank lines are `invalid`.
-5. **Negative duration:** Rejected, does not affect `sum` or average.
-6. **Zero duration:** Valid, affects `count` and can affect `minMs`.
+5. **Negative duration:** Rejected; does not affect `sum` or average.
+6. **Zero duration:** Valid; affects `count` and can affect `minMs`.
 7. **Large durations:** Test `long` parsing and handling sums exceeding `Long.MAX_VALUE`.
-8. **UTF-8/BOM:** Check encoding and BOM policy on real files.
-9. **CRLF/LF:** Ensure line counting does not depend on newline style.
-10. **No trailing newline at EOF:** The last line is still read.
-11. **Very large file:** Monitor heap/GC, avoiding memory growth with line count.
-12. **File modified mid-pass:** Ensure there is a snapshot/retry policy or clearly note results are not a snapshot.
-13. **Mid-read error:** Do not output a "success" report when `IOException` occurs.
-14. **User-specified file:** Program does not delete or modify the input content.
+8. **UTF-8/BOM:** Verify encoding and BOM policy on real files.
+9. **CRLF/LF:** Ensure line counting is independent of newline style.
+10. **No trailing newline at EOF:** Final line is still read.
+11. **Very large file:** Monitor heap/GC; avoid memory growth with row count.
+12. **File modified mid-run:** Ensure a snapshot/retry policy exists or explicitly document results are not a snapshot.
+13. **Mid-read error:** Do not emit a "success" report when `IOException` occurs.
+14. **User-specified file:** Program never deletes or modifies input content.
 
-In the sample from section 5, the six valid records have durations `120, 300, 450, 80, 200, 150`. Manual check: sum is `1300`, min `80`, max `450`, average `216.666...` so it prints `216.67`. Each level appears exactly twice, and total lines after the header is eight.
+In the sample from section 5, the six valid records have durations `120, 300, 450, 80, 200, 150`. Manual check: sum is `1300`, min `80`, max `450`, average `216.666...` so it prints `216.67`. Each level appears exactly twice, and total rows after the header is eight.
 
 ## 12. Extension Exercises
 
-After getting the program running, you can extend it in the following directions:
+Once the program runs, you can extend it in the following directions:
 
-**Exercise 1 — Per-day statistics.** Add an ISO `yyyy-MM-dd` `date` column, counting by date and level. Use `LocalDate.parse()` to validate dates, then consider `Map<LocalDate, Stats>`. Analyze memory if the file has millions of distinct date/key values.
+**Exercise 1 — Daily statistics.** Add an ISO `yyyy-MM-dd` `date` column and count by date and level. Use `LocalDate.parse()` to validate dates, then consider `Map<LocalDate, Stats>`. Analyze memory if the file has millions of distinct dates/keys.
 
-**Exercise 2 — Reading multiple files.** Pass a list of paths from the CLI, process each file through the same `analyze()` method, then merge. Define a policy when one file fails: halt all or report per-file status; do not silently skip failed files.
+**Exercise 2 — Reading multiple files.** Pass a list of paths from the CLI, process each file through the same `analyze()` method, and aggregate. Define a policy when one file fails: abort all or report per-file status; never silently skip failed files.
 
-**Exercise 3 — Reporting error rate.** Compute `invalid / rows × 100%` if `rows > 0`, printed with `Locale.ROOT`. Set a threshold (for example error rate above 1%) to warn or fail the job.
+**Exercise 3 — Reporting error rate.** Compute `invalid / rows × 100%` when `rows > 0`, printed with `Locale.ROOT`. Set a threshold (e.g., error rate above 1%) to warn or fail the job.
 
-**Exercise 4 — Distinguishing exact and approximate statistics.** With billions of durations, try designing a fixed histogram with buckets `0–99`, `100–499`, `500+`. Bucket counters use near-O(1) memory, but percentiles derived from buckets are **estimates**, not exact values.
+**Exercise 4 — Exact vs. approximate statistics.** For billions of durations, design a fixed-bucket histogram `0–99`, `100–499`, `500+`. Bucket counters take nearly O(1) memory, though percentiles derived from buckets are **estimates**, not exact values.
 
-**Exercise 5 — Comparing two approaches.** Write another version using `Files.lines()`, ensure the stream is closed, parse identically, and compare byte/line totals, checksums, and invalid line counts; benchmark multiple runs with fair page cache states. Do not measure once and conclude which API is faster.
+**Exercise 5 — Comparing two approaches.** Write an additional version using `Files.lines()`, ensure the stream is closed, parse identically, and compare total bytes/lines, checksums, and invalid row counts; benchmark across multiple runs with fair page-cache state. Never measure just once and declare one API faster.
 
 ## 13. Common Mistakes and How to Avoid Them
 
 | Mistake | Consequence | Fix |
 | --- | --- | --- |
 | `Files.readAllLines()` on multi-GB files | Heap spikes, GC/OutOfMemoryError | Use `BufferedReader.readLine()` |
-| `Files.lines().toList()` | Collects all lines into RAM | Use terminal operations that do not materialize every line |
-| Forgetting to close `Stream` from `Files.lines()` | File descriptor/resource leak | `try-with-resources` |
-| Comparing `line == null` for blank lines | Confuses EOF and blank records | `null` only occurs at EOF |
-| Assuming a large file only has short lines | A single extremely long line still spikes RAM | Parser with record length limit |
-| Not specifying charset | Misreads Vietnamese/header columns | Use appropriate charset, usually UTF-8 |
-| `split(",")` for CSV with quoted commas | Splits records incorrectly | Use a compliant CSV parser |
-| Summing durations in `int` | Silent overflow | `long` + overflow check |
-| Computing average when `count=0` | Division by zero or wrong output | Convention `n/a` |
-| Using `groupingBy()` with a unique key per line | Map grows near line count | Bound cardinality or use external aggregation |
+| `Files.lines().toList()` | Pulls all lines into RAM | Use terminal operations that do not materialize every line |
+| Forgetting to close `Stream` from `Files.lines()` | File descriptor/resource leaks | `try-with-resources` |
+| Comparing `line == null` for blank lines | Confuses EOF and empty records | `null` occurs only at EOF |
+| Assuming large files always have short lines | One huge line still exhausts RAM | Use a parser with record-length limits |
+| Not specifying a charset | Misreads accented text/header columns | Specify the right charset, usually UTF-8 |
+| `split(",")` on CSV with quoted commas | Splits records incorrectly | Use a standards-compliant CSV parser |
+| Summing durations in an `int` | Silent integer overflow | `long` + overflow checks |
+| Computing average when `count=0` | Division by 0 or wrong output | Use `n/a` convention |
+| Using `groupingBy()` with a unique key per line | Map grows nearly to row count | Bound cardinality or use external aggregation |
 | Logging every record | Logging I/O overwhelms aggregation work | Aggregate errors and cap diagnostics |
-| Using `parallel()` with unsynchronized shared accumulators | Race conditions, wrong totals | Thread-safe aggregator or partition/merge design |
-| Skipping header and column count checks | Reads wrong schema yet still yields "results" | Validate input structure |
-| Reading a changing file as an immutable snapshot | Incomplete/inconsistent metrics | Publish immutable files or snapshots |
-| Assuming one `readLine()` always reads a full business record | Multiline quoted CSV can span multiple physical lines | Compliant stateful CSV parser |
+| Using `parallel()` with an unsynchronized shared accumulator | Race conditions, wrong totals | Thread-safe aggregator or partition/merge design |
+| Not checking header and column count | Misreads schema yet produces "results" | Validate input structure |
+| Reading a changing file while treating it as an immutable snapshot | Incomplete/inconsistent metrics | Publish immutable files or snapshots |
+| Assuming one `readLine()` always reads a complete business record | Quoted multiline CSV can span physical lines | Stateful standards-compliant CSV parser |
 
-**Remember:** For large text files, **read line by line with `BufferedReader` or `Files.lines()`**, validate schema and data immediately, and update accumulators instead of accumulating all records. Memory can stay nearly constant when only computing count/sum/min/max and when group count is bounded, but you must still control **line length, group cardinality, charset, I/O errors, overflow, and stream lifecycle**. That is the foundation of a Java statistics job that is both scalable and verifiable.
+**Remember:** For large text files, **read line by line with `BufferedReader` or `Files.lines()`**, validate schema and data immediately, and update accumulators instead of accumulating all records. Memory can stay nearly constant when computing count/sum/min/max with bounded groups, but you still must control **line length, group cardinality, charset, I/O errors, overflow, and stream lifecycles**. That is the foundation of a Java statistics job that is both scalable and verifiable.

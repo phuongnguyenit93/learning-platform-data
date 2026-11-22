@@ -1,46 +1,46 @@
 # Verifying Resources Are Closed on Failure in Java I/O
 
-## 1. Why Can a Program With Correct Output Still Leak Resources?
+## 1. Why Can a Program That Produces Correct Results Still Leak Resources?
 
-Java I/O programs commonly open **file streams, readers/writers, channels, sockets, ZIP archives, directory streams**, or resources holding OS file descriptors/handles. If an exception occurs mid-operation and a resource is not released, the consequences can include:
+Java I/O programs commonly open **file streams, readers/writers, channels, sockets, ZIP archives, directory streams**, or other resources holding OS file descriptors/handles. If an exception occurs mid-operation and a resource is not released, the consequences can include:
 
-- File descriptors/socket handles are never returned; the system fails with errors like "Too many open files".
-- Files remain locked open, preventing renaming or deletion on some operating systems.
-- Output buffers are not flushed/finalized; ZIP/GZIP data lacks trailers or metadata.
+- File descriptors or socket handles are never returned; the system fails with errors like "Too many open files."
+- Files remain open, preventing renaming or deletion on certain operating systems.
+- Output buffers are not flushed or finalized; ZIP/GZIP data lacks trailers or metadata.
 - Network connections stay open, tying up client and server resources.
-- Directory streams or file-reading streams keep holding handles even after business logic stops using them.
-- In high-throughput systems, rare errors accumulate into severe leaks.
+- Directory streams or file input streams continue holding handles even after business logic stops using them.
+- In high-throughput request systems, rare errors accumulate into severe leaks.
 
-**Verifying resources are closed on failure** means writing tests that force the program down error branches and then observing **who is responsible for closing, how many times `close` is called, in what order, and which exception is preserved**.
+**Verifying resources are closed on failure** means writing tests that force code down error paths, then observing **who is responsible for closing, how many times `close` is called, in what order, and which exceptions are preserved**.
 
-This is not merely "adding `finally`". Modern Java favors **`try-with-resources`** for `AutoCloseable` objects, yet we still must test ownership contracts and handle subtle edge cases.
+This is not just "add a `finally` block." Modern Java favors **`try-with-resources`** for `AutoCloseable` objects, yet we still must test ownership contracts and handle subtle edge cases.
 
-Lesson objectives:
+Goals after this lesson:
 
-1. Understand `try-with-resources` semantics on normal exit, exceptions, `return`, `break`, and acquisition failures.
+1. Master `try-with-resources` semantics on normal exit, exceptions, `return`, `break`, and acquisition failures.
 2. Verify resources are closed even when `read`/`write` throws `IOException`.
 3. Understand primary exceptions and **suppressed exceptions** raised by `close()`.
-4. Build test doubles/fault injection to measure close calls and order without relying on random I/O errors.
-5. Recognize the limits of test doubles: calling `close()` does not by itself prove an OS handle was genuinely released.
-6. Apply these techniques to stream wrappers, `FileChannel`, `ZipFile`, `DirectoryStream`, and `Files.lines()`/`walk()`/`list()`.
+4. Build test doubles and fault injection to measure close calls and ordering without relying on random I/O failures.
+5. Recognize the limits of test doubles: calling `close()` does not by itself prove an OS handle was actually released.
+6. Apply these checks to stream wrappers, `FileChannel`, `ZipFile`, `DirectoryStream`, and `Files.lines()`/`walk()`/`list()`.
 
-## 2. Distinguishing `close`, `flush`, and Actual Release
+## 2. Distinguishing `close`, `flush`, and Actual Resource Release
 
 Three concepts are often conflated:
 
-| Concept | Core Contract | How to Observe/Test |
+| Concept | Core Contract | How to Observe / Test |
 |---|---|---|
 | `flush()` | Pushes buffered data to the next layer per the stream/writer contract | Fake output records `flush`; verify data reached the underlying stream |
-| `close()` | Ends the resource's lifecycle; depending on the API, may flush/finalize before releasing | Spy/tracker records `close`; integration test checks resource state |
-| Durability | Bytes are guaranteed stably stored per application contract | Use appropriate APIs like `FileChannel.force(...)`, filesystem policy, and dedicated tests |
+| `close()` | Ends the resource lifecycle; depending on API, may flush/finalize before releasing | Spy/tracker records `close`; integration test checks resource state |
+| Data durability | Bytes are guaranteed persisted per the application contract | Use appropriate APIs like `FileChannel.force(...)`, filesystem policy, and dedicated tests |
 
-`OutputStream.close()`/`Writer.close()` typically finishes processing that layer's buffer before closing the underlying stream. However, **closing does not mean all data is guaranteed durable on the device**, nor does it mean a network peer confirmed processing.
+`OutputStream.close()`/`Writer.close()` usually finishes flushing that layer's buffer before closing the underlying stream. However, **closing does not guarantee all data is durable on the storage device**, nor does it mean a network peer confirmed processing.
 
 For close testing, define the exact invariant:
 
-> If a method **owns** a successfully opened resource, then on every exit path of that method — including when an error occurs — that resource must be requested to close per contract.
+> If a method **owns** a successfully opened resource, then on every exit path from that method—including when an error is thrown—that resource must be closed per contract.
 
-"Requested to close" is the unit-test level with a spy. "Handle no longer held open" may require an OS/API-specific integration test. "Data stored durably" is yet another requirement.
+"Requested to close" is the unit-test level using a spy. "Handle no longer held open" may require OS/API-level integration tests. "Durably persisted data" is a separate requirement altogether.
 
 ## 3. \`AutoCloseable\`, \`Closeable\`, and Resource Ownership
 
@@ -52,27 +52,27 @@ public interface AutoCloseable {
 }
 ~~~
 
-`java.io.Closeable` extends `AutoCloseable`, declares `close() throws IOException`, and by `Closeable`'s contract, calling `close` on an already closed object has no further effect. By contrast, **plain `AutoCloseable` does not require `close` to be idempotent**; its Javadoc encourages implementers to make it so if possible.
+`java.io.Closeable` extends `AutoCloseable`, declares `close() throws IOException`, and by the `Closeable` contract, calling `close` on an already-closed object has no further effect. However, **plain `AutoCloseable` does not mandate idempotent `close()`**; Javadoc recommends implementers make it idempotent if possible.
 
 Common resources:
 
 | API | Resource | Who Should Close? |
 |---|---|---|
-| `FileInputStream`, `FileOutputStream` | File stream | Code that creates/borrows it per ownership contract |
-| `BufferedInputStream`, `BufferedReader` | Wrapper and underlying source | Typically close the outer wrapper, which closes the underlying source |
-| `InputStreamReader`, `OutputStreamWriter` | Byte ↔ char bridge and underlying stream | Typically the owner of the outer bridge |
+| `FileInputStream`, `FileOutputStream` | File stream | The code that created or took ownership per contract |
+| `BufferedInputStream`, `BufferedReader` | Wrapper and underlying source | Usually close the outer wrapper, which closes the underlying source |
+| `InputStreamReader`, `OutputStreamWriter` | Byte ↔ char bridge and underlying stream | Usually the owner of the outer bridge |
 | `FileChannel`, `SocketChannel`, `ServerSocketChannel` | File/socket channel | The component owning the channel |
 | `ZipFile`, `ZipInputStream` | ZIP container/stream | The component opening the ZIP |
 | `DirectoryStream<Path>` | Directory handle | The component calling `Files.newDirectoryStream` |
-| `Stream<String>` from `Files.lines` | Open file stream | Code calling `Files.lines` |
-| `Stream<Path>` from `Files.list`/`Files.walk` | Directory handles | Code creating the file-backed stream |
+| `Stream<String>` from `Files.lines` | Open file stream | The code calling `Files.lines` |
+| `Stream<Path>` from `Files.list`/`Files.walk` | Directory handles | The code creating the file-backed stream |
 
-**Ownership must be explicit.** If a method accepts an `InputStream` passed by a caller, there are two valid but non-equivalent designs:
+**Ownership must be explicit.** When a method receives an `InputStream` from a caller, there are two valid but non-equivalent designs:
 
-- **Callee owns:** the method takes responsibility for closing the stream even on error; this must be stated in the API contract.
+- **Callee owns:** the method assumes responsibility for closing the stream even on failure; this must be stated in the API contract.
 - **Caller owns:** the method only reads/writes and does not close the stream; the caller closes it in an outer scope.
 
-There is no universal rule of "whenever you see an `InputStream`, close it". For instance, many APIs should never close `System.in` or a shared stream.
+There is no universal rule that "if you have an `InputStream`, just close it." For example, many APIs must never close `System.in` or a shared stream.
 
 ## 4. \`try-with-resources\`: The Foundation for Exception-Safe Cleanup
 
@@ -85,17 +85,17 @@ try (InputStream in = Files.newInputStream(source);
 }
 ~~~
 
-This is illustrative code requiring `java.io.*`, `java.nio.file.*`, and defined `Path source, target`. For any resource successfully initialized in the header, Java automatically calls `close()` upon exiting the `try`, whether:
+This is illustrative code requiring `java.io.*`, `java.nio.file.*`, and defined `Path source, target`. For any resource successfully initialized in the header, Java automatically calls `close()` upon exiting the `try` block, whether:
 
-- The block completes normally to the end.
+- The block completes normally.
 - A `return` executes inside the block.
-- A `break`/`continue` exits the scope.
-- The block throws an `IOException`, `RuntimeException`, or `Error`.
-- Trailing `catch`/`finally` blocks handle the outcome.
+- A `break` or `continue` leaves the scope.
+- The block throws `IOException`, `RuntimeException`, or `Error`.
+- Trailing `catch`/`finally` blocks execute afterward.
 
 ### 4.1. Creation and Closing Order
 
-Resources in the header are **initialized left-to-right** and **closed right-to-left**.
+Resources in the header are **initialized left to right** and **closed right to left**.
 
 ~~~java
 try (Tracked first = open("first");
@@ -104,7 +104,7 @@ try (Tracked first = open("first");
 }
 ~~~
 
-This is model code with custom `Tracked` and factory methods. Execution flow:
+This is illustrative structural code with custom `Tracked` and factory methods. Execution flow:
 
 ~~~text
 open first
@@ -116,26 +116,26 @@ close first
 
 If `runBusinessLogic()` fails, both `close` calls still run in reverse order. If `close second` also throws an error, Java **still attempts to close `first`**.
 
-### 4.2. What If the Second Resource Fails to Open?
+### 4.2. What If Opening the Second Resource Fails?
 
-Suppose opening `first` succeeds, but the initializer expression for `second` throws an exception:
+Suppose opening `first` succeeds, while initializing `second` throws an exception:
 
 ~~~text
 open first   -> succeeds
 open second  -> throws IOException
-close first  -> runs automatically
-body         -> DOES NOT run
+close first  -> executed automatically
+body         -> NOT executed
 ~~~
 
-This is a mandatory test branch. `try-with-resources` guarantees that resources **already fully initialized earlier** are closed. However, if **a resource's constructor/factory itself allocates a native handle and then throws before returning the object**, the header never receives that resource; the constructor/factory must clean up its own partially opened resource.
+This is a mandatory branch to test. `try-with-resources` guarantees that resources **already initialized earlier in the header** are closed. However, if **a resource's constructor or factory itself allocates a native handle and throws before returning the object**, the `try` header never received that resource; the constructor/factory must clean up its own partially opened state.
 
 ### 4.3. Null Resources
 
-A resource expression may evaluate to `null`. Java does not call `close()` on a `null` resource; however, using `null` to imply "no resource" often obscures contracts and needs explicit testing when permitted by an API.
+A resource expression may evaluate to `null`. Java does not call `close()` on a `null` resource; however, using `null` to signify an absent resource often makes contracts harder to reason about and must be tested explicitly when permitted by an API.
 
-### 4.4. Pre-existing Variables in `try-with-resources`
+### 4.4. Existing Variables in `try-with-resources`
 
-Since Java 9, a `final` or **effectively final** local variable/field can be placed in the header:
+Since Java 9, a `final` or **effectively final** local variable or field can be placed in the header:
 
 ~~~java
 InputStream opened = Files.newInputStream(source);
@@ -144,11 +144,11 @@ try (opened) {
 }
 ~~~
 
-This is illustrative code requiring `consume` to be defined. It fits cases where a step must initialize the resource beforehand while still handing ownership to `try-with-resources`. Never use the resource after the closing scope.
+This is illustrative and requires defining `consume`. It works when initialization must happen one step earlier while still handing ownership of the variable to `try-with-resources`. Never use the resource after the closing scope ends.
 
-## 5. Exception in Body and Exception in `close`: Which Is Thrown?
+## 5. Exception in the Body vs. Exception in `close`: Which Is Thrown?
 
-This is the most critical point when testing error branches.
+This is the single most important detail when testing error paths.
 
 Suppose:
 
@@ -157,9 +157,9 @@ Suppose:
 
 With `try-with-resources`:
 
-- The exception from the processing block (`read-failed`) remains the **primary exception** thrown to the caller.
-- The exception from `close` (`close-failed`) is attached to the primary as a **suppressed exception**.
-- Callers can inspect them via `Throwable.getSuppressed()`.
+- The exception from the body (`read-failed`) remains the **primary exception** thrown to the caller.
+- The exception from `close` (`close-failed`) is attached to the primary exception as a **suppressed exception**.
+- The caller can inspect it via `Throwable.getSuppressed()`.
 
 ~~~java
 try (InputStream in = openFailingStream()) {
@@ -172,25 +172,25 @@ try (InputStream in = openFailingStream()) {
 }
 ~~~
 
-This is an **illustrative code snippet** requiring definitions for `openFailingStream()` and `consume(...)`. Do not confuse `Throwable.getCause()` with `getSuppressed()`:
+This is an **illustrative code snippet** requiring definitions for `openFailingStream()` and `consume(...)`. Never equate `Throwable.getCause()` with `getSuppressed()`:
 
 | API | Represents |
 |---|---|
 | `getCause()` | The underlying cause of a wrapped/chained exception |
-| `getSuppressed()` | Additional exceptions preserved while handling/cleaning up the primary exception |
-| `addSuppressed(...)` | Allows code to attach cleanup exceptions manually, though `try-with-resources` does this automatically |
+| `getSuppressed()` | Additional exceptions captured while cleaning up after a primary exception |
+| `addSuppressed(...)` | Allows manual cleanup-exception attachment, though `try-with-resources` does this automatically |
 
-### What if the block finishes normally, and `close` fails?
+### What If the Body Succeeds and `close` Fails?
 
-When there is no body error, the exception from `close` is thrown directly. If **multiple resource closes fail**, the exception from the resource closed first (the rightmost one in the header) becomes primary, and subsequent close failures become suppressed exceptions.
+When no body exception occurs, the `close` exception is thrown as the primary error. If **multiple resources fail to close**, the exception from the resource closed first (the rightmost one in the header) becomes primary, and subsequent close failures become suppressed exceptions.
 
-### What if both `open` and `close` fail?
+### What If Both Acquisition and `close` Fail?
 
-If resource B fails to initialize after A has already opened, the exception from initializing B is kept as primary; the error from closing A is attached as suppressed. This preserves information about the **original reason the workflow failed**, instead of letting cleanup mask the root cause.
+If resource `B` fails to initialize while `A` is already open, the initialization exception from `B` is kept as primary; any error closing `A` is attached as suppressed. This preserves **the root reason the operation failed** instead of letting cleanup mask it.
 
-### Why is hand-written `finally` error-prone?
+### Why Hand-Written `finally` Blocks Easily Go Wrong
 
-An easy way to lose the original error:
+A pattern that loses the original error:
 
 ~~~java
 InputStream in = open();
@@ -201,48 +201,48 @@ try {
 }
 ~~~
 
-This is an anti-pattern when lacking suppressed-exception handling: the caller may receive only B, while A is swallowed. `try-with-resources` enforces language-spec exception precedence; use it rather than reimplementing this logic from scratch.
+This is an anti-pattern without explicit suppressed-exception handling: the caller receives only `B`, while `A` is masked. `try-with-resources` implements exact language-specified exception priority; use it instead of reimplementing this logic by hand.
 
-## 6. Testing Strategy: Actively Inject Faults at Every Step
+## 6. Testing Strategy: Proactively Inject Faults at Every Step
 
-To verify `close` works under failure, do not wait for the filesystem or network to glitch by chance. Build **test doubles** or fault-injection fixtures simulating failures at every point.
+To guarantee `close` works on failure, do not wait for the filesystem or network to glitch randomly. Build **test doubles** or fault-injection fixtures that simulate failures at each stage.
 
 A minimum test matrix:
 
 | Scenario | What to Verify |
 |---|---|
-| Successful execution | Opened resource is closed under exactly one ownership pass |
-| `read` throws | `close` is called; caller receives the read error |
-| `write` throws | `close` is called; caller receives the write error |
-| Early `return` | `close` runs before the return completes |
-| `break`/`continue` leaving scope | `close` runs upon exiting scope |
+| Successful execution | Opened resource is closed exactly once per ownership |
+| `read` throws an error | `close` is called; caller receives the read error |
+| `write` throws an error | `close` is called; caller receives the write error |
+| Early `return` | `close` executes before the return completes |
+| `break`/`continue` exits scope | `close` executes when leaving scope |
 | Opening second resource fails | First resource is still closed |
-| Two resources active together | Closed in reverse order of opening |
-| `close` itself throws | Error propagates properly; remaining resources are still attempted |
-| Body + `close` both fail | Body error is primary; close error is in `suppressed` |
+| Two active resources | Closed in reverse initialization order |
+| `close` itself throws an error | Error propagates properly; remaining resources still attempt to close |
+| Both body and `close` fail | Body error is primary, close error is in `suppressed` |
 | Wrapper fails while reading | Closing wrapper closes underlying source per ownership |
-| Resource closed twice | Do not rely on luck; define contract and verify call count |
-| Async I/O cancel/timeout | Verify cancellation policy and release once all ops settle |
+| Resource closed twice | Never rely on luck; verify contract and exact call count |
+| Async I/O cancel/timeout | Verify cancellation policy and release once all operations resolve |
 
-Distinguish three levels of testing:
+Distinguish three kinds of tests:
 
-1. **Unit-level contract tests:** fake/spy resources verify `close()` is called and exceptions are preserved.
-2. **Integration tests:** open real files/sockets/ZIPs, run fault scenarios, and check closure via API/OS.
-3. **Diagnostic/soak tests:** repeat failure paths many times to monitor file descriptors, memory, and thread/socket counts over time.
+1. **Unit-level contract tests:** fake/spy resources verify `close()` is called and exceptions behave properly.
+2. **Integration tests:** open real files, sockets, or ZIPs, run fault scenarios, and verify closure via API/OS checks.
+3. **Diagnostic/soak tests:** repeat failure loops many times to monitor file descriptors, memory, and thread/socket counts over time.
 
-Do not rely on an OS-specific "open file cannot be deleted" error as **sole proof**. Linux generally allows unlinking an open file name while handles remain open; Windows has different sharing/locking rules. Portable tests should use spies and verify state via appropriate APIs.
+Do not rely on an OS-specific "cannot delete an open file" failure as **the sole proof**. Linux commonly allows unlinking a file name even while a handle remains open; Windows has different sharing/locking rules. Portable tests should use spies and verify state through proper APIs.
 
 ## 7. Complete Java 17+ Program Testing Four Failure Branches
 
-The example below is self-contained with all fixtures, requiring neither JUnit nor real disk files. It simulates:
+The example below contains all its own fixtures and requires no JUnit or real disk files. It demonstrates:
 
-- Simultaneous body failure and `close` failure.
-- Two resources closed in **reverse** opening order.
+- Simultaneous body and `close` failures.
+- Two resources closed in **reverse** open order.
 - Failure while acquiring the second resource.
-- `BufferedInputStream` throwing during read and still closing the underlying stream.
-- Early `return` from a method where the resource is still closed.
+- `BufferedInputStream` throwing mid-read while still closing its underlying stream.
+- Early `return` from a method still closing the resource.
 
-**Filename: `CloseOnFailureDemo.java`**
+**File name: `CloseOnFailureDemo.java`**
 
 ~~~java
 import java.io.BufferedInputStream;
@@ -378,7 +378,7 @@ javac CloseOnFailureDemo.java
 java CloseOnFailureDemo
 ~~~
 
-**Verified stdout from JDK run:**
+**Verified stdout from JDK:**
 
 ~~~text
 primary=work-failed
@@ -392,33 +392,33 @@ early-return=done
 early-return-closed=true
 ~~~
 
-### Why does each line matter?
+### Why Each Line Matters
 
-**`primary=work-failed`:** the body threw `IOException` first; this is the primary error. Failing `close()` does not overwrite it.
+**`primary=work-failed`:** the body threw `IOException` first; this is the primary error. The failing `close()` does not replace it.
 
-**`suppressed=close-second`:** resource `second` threw `IOException` during `close`; Java preserved the body error and recorded the cleanup error separately.
+**`suppressed=close-second`:** resource `second` threw `IOException` during `close`; Java kept the body error and recorded the cleanup error separately.
 
-**`close-order=...`:** resources opened as `first` then `second`, but closed as `second` then `first`. Both closes were attempted even though `second` threw.
+**`close-order=...`:** resources opened as `first` then `second`, yet closed as `second` then `first`. Both close calls ran even though `second` threw.
 
-**`acquisition=acquire-failed`:** `failAcquire` threw in the header; the body never ran, and the second initialization error is preserved.
+**`acquisition=acquire-failed`:** `failAcquire` threw in the header stage; the body never ran, and the second acquisition error was preserved.
 
-**`acquisition-trace=...close:held`:** even though the second resource could not be created, the previously initialized `held` resource was still closed.
+**`acquisition-trace=...close:held`:** even though the second resource could not be created, the already-initialized `held` resource was still closed.
 
-**`read-failure=read-failed`:** the fake stream threw from `read`. This is fault injection, without having to trigger a real disk error.
+**`read-failure=read-failed`:** the fake stream threw from `read`. This is fault injection, avoiding any need to break real files.
 
-**`wrapped-close-calls=1`:** `try-with-resources` closed `BufferedInputStream`, and the wrapper closed `FailingInput` exactly once. In the example, only the outer wrapper is declared in the resource header so the source isn't closed twice.
+**`wrapped-close-calls=1`:** `try-with-resources` closed `BufferedInputStream`, and the wrapper closed `FailingInput` once. In the example, only the outer wrapper is declared as the owned resource so the underlying source is not closed twice.
 
-**`early-return-closed=true`:** even though `earlyReturn` returns a string, `Tracked.close` is still invoked before the return completes.
+**`early-return-closed=true`:** even though `earlyReturn` returns a string, `Tracked.close` still runs before the return finishes.
 
-### Limits of test doubles
+### Limitations of Test Doubles
 
-In the demo, `Tracked.close()` sets `closed=true` *before* deliberately throwing `IOException`. This merely models a fixture-defined contract. With real resources, a `close()` failure can leave post-close state dependent on the API/provider. Never conclude **every native handle was freed** solely because a spy received `close()`.
+In the demo, `Tracked.close()` sets `closed=true` *before* throwing its simulated `IOException`. This only models a fixture-defined contract. For real resources, a throwing `close()` can leave post-close state dependent on the API or provider. Never conclude **all native handles were freed** solely because a spy recorded `close()`.
 
-Similarly, `wrapped-close-calls=1` verifies this example's wrapper behavior. If production code accidentally holds another reference to the same resource and calls `close` again, a unit test scoped only here cannot detect external owners. Tests must model the application's actual ownership structure.
+Likewise, `wrapped-close-calls=1` verifies wrapper behavior in this example. If production code accidentally holds another reference to the same resource and closes it elsewhere, a unit test scoped to one method cannot automatically detect every external owner. Tests must mirror the application's actual ownership structure.
 
 ## 8. Designing Unit Tests with Spies and Fault Injection
 
-### 8.1. A spy recording close count and order
+### 8.1. A Spy Recording Close Count and Order
 
 A simple fake resource:
 
@@ -437,9 +437,9 @@ final class CloseSpy implements AutoCloseable {
 }
 ~~~
 
-This is an illustrative class importing `java.io.IOException`. If a real class receives resources from callers, inject `CloseSpy` via an interface/factory rather than real OS resources. **Do not merely assert `closeCalls >= 1` when the contract requires one owner**; assert the exact count and check against accidental double-close.
+This is an illustrative class requiring `java.io.IOException`. If real code receives resources from a caller, inject `CloseSpy` via an interface or factory instead of touching real OS resources. **Do not just assert `closeCalls >= 1` when the contract demands a single owner**; assert the exact count and check against accidental double-close.
 
-### 8.2. A method with a clear ownership contract
+### 8.2. Methods with Explicit Ownership Contracts
 
 ~~~java
 static void processOwned(InputStream in) throws IOException {
@@ -452,36 +452,36 @@ static void processOwned(InputStream in) throws IOException {
 }
 ~~~
 
-This illustrates **callee owns**. Tests can pass a fake `InputStream` whose `read(byte[], off, len)` deliberately throws after `n` bytes, then assert `close` was still called.
+This illustrates **callee owns**. A test can pass a fake `InputStream` whose `read(byte[],off,len)` throws after `n` bytes and assert `close` was still called.
 
-If the interface specifies **caller owns**, the method must differ:
+If the interface specifies **caller owns**, the method differs:
 
 ~~~java
 static void processBorrowed(InputStream in) throws IOException {
     byte[] buffer = new byte[4096];
     while (in.read(buffer) != -1) {
-        // Use only; DO NOT close here.
+        // Use only, DO NOT close.
     }
 }
 ~~~
 
-In the borrowed case, unit tests should verify the callee **did not close**, while the caller closes in the outer owning scope. Never mix the two contracts.
+For borrowed resources, unit tests should verify the callee **did not close** the stream, while the caller closes it in the owning outer scope. Never mix the two contracts.
 
-### 8.3. Injecting faults after partial processing
+### 8.3. Injecting Faults After Partial Processing
 
-To catch leaks occurring once processing starts but fails mid-way, a fake can:
+To catch leaks that occur once processing has begun but before it finishes, a fake can:
 
 - Allow `read()` to succeed `N` times and throw `IOException` on call `N+1`.
-- Allow `write(...)` to accept part of the data then throw.
-- Fail parsing after the stream has been opened.
+- Allow `write(...)` to accept some data and then throw an error.
+- Trigger a parse error after the stream is opened.
 - Throw inside a record/file-entry callback.
-- Fail during ZIP/GZIP finalization or flush/close.
+- Fail during ZIP/GZIP finalization or `flush`/`close`.
 
-Tests should assert **preservation of the original exception, close count, and cleanup of all initialized resources**, not merely that the method throws `IOException`.
+Tests should assert **preservation of the original exception, close counts, and cleanup of all initialized resources**, not merely that the method threw `IOException`.
 
-### 8.4. JUnit 5 — `assertThrows` example
+### 8.4. JUnit 5 — `assertThrows` Example
 
-If the project uses JUnit Jupiter, a test can look like:
+If the project uses JUnit Jupiter, a test can be written as:
 
 ~~~java
 @Test
@@ -497,11 +497,11 @@ void closesOwnedInputAfterReadFailure() {
 }
 ~~~
 
-This is **illustrative JUnit 5 code and does not compile standalone**: `FailingInputStream`, `service`, and its method are project-provided fixtures; Jupiter imports/dependencies are required. Clearly label tests to avoid confusing them with standalone Java SE 17 programs. Avoid rigid call-count assertions if a fake caches or alters actual `read` counts.
+This is a **JUnit 5 illustrative snippet and does not compile standalone**: `FailingInputStream`, `service`, and its method are project-supplied fixtures, requiring Jupiter dependencies and imports. Mark tests clearly to avoid confusing them with standalone Java SE 17 examples. Do not assert hardcoded assumptions if a fake or wrapper buffers reads and changes actual `read` call counts.
 
 ## 9. Stream Wrappers and Closing the Underlying Source
 
-Wrappers normally forward `close()` to the underlying stream. For example:
+Wrappers typically forward `close()` to the underlying stream. Example:
 
 ~~~java
 InputStream raw = Files.newInputStream(path);
@@ -510,9 +510,9 @@ try (BufferedInputStream buffered = new BufferedInputStream(raw)) {
 }
 ~~~
 
-This is illustrative code with defined `Path path` and `consume(...)`. The outer wrapper's owner is responsible for closing; when `BufferedInputStream.close()` runs, it closes the underlying input.
+This is an illustrative snippet with defined `Path path` and `consume(...)`. The owner of the outer wrapper is responsible for closing; when `BufferedInputStream.close()` runs, it closes the underlying input.
 
-Many developers write:
+A style many developers write:
 
 ~~~java
 try (InputStream raw = Files.newInputStream(path);
@@ -521,9 +521,9 @@ try (InputStream raw = Files.newInputStream(path);
 }
 ~~~
 
-This can cause **two attempts to close `raw`**: first by `buffered.close()`, then by TWR calling `raw.close()` in reverse order. Standard `Closeable` implementations are usually idempotent, but **never assume every custom wrapper/resource tolerates double-close safely**. In clear ownership designs, typically only the outermost wrapper belongs in the resource header, or use a controlled ownership-transfer pattern.
+This can cause **two attempts to close `raw`**: first via `buffered.close()`, then TWR calls `raw.close()` in reverse order. Standard `Closeable` implementations make `close()` idempotent, yet **never assume every custom wrapper or resource tolerates double-close safely**. When ownership is clear, place only the outermost wrapper in the resource header, or design explicit ownership transfer.
 
-### Readers/Writers and charset bridges
+### `Reader`/`Writer` and Charset Bridges
 
 ~~~java
 try (BufferedReader reader = Files.newBufferedReader(
@@ -532,15 +532,15 @@ try (BufferedReader reader = Files.newBufferedReader(
 }
 ~~~
 
-This is illustrative code inside a method returning `String`, with `Path path`. `readLine` can return `null` or throw `IOException`; both paths close the reader.
+This is an illustrative snippet inside a method returning `String` with `Path path`. `readLine` can return `null` or throw `IOException`; both paths close the reader.
 
-`BufferedWriter` and `OutputStreamWriter` can raise errors during `flush`/`close` due to encoding and writing bytes. Thus testing both **write-time failures** and **close-time failures** matters, especially for formats with trailers/finalization.
+`BufferedWriter` and `OutputStreamWriter` can raise errors during `flush`/`close` because of encoding and byte-writing steps. Testing both **write-time failures** and **close-time failures** is therefore essential, especially for formats with trailers or finalization.
 
-### When a wrapper does not own the underlying stream
+### When a Wrapper Does Not Own the Underlying Stream
 
-Not every wrapper in a framework is automatically allowed to close the underlying stream. Some APIs provide "close shield" wrappers to block `close` from reaching a shared stream. When a stream is **borrowed** from a caller, the wrapper or factory must explicitly state **whether `close` propagates downward**. Test ownership at this boundary to avoid both leaks and prematurely closing a caller's active resource.
+Not every wrapper in a framework is allowed to close the stream beneath it. Some APIs provide a "close shield" wrapper to block `close` from reaching a shared stream. When a stream is **borrowed** from a caller, wrappers and factories must make clear **whether `close` propagates downward**. Test ownership at this boundary to avoid both leaks and prematurely closing a resource the caller still needs.
 
-## 10. Testing Closure Across Different Java NIO Resource APIs
+## 10. Testing Resource Closure Across Java NIO APIs
 
 ### 10.1. `FileChannel` / `SeekableByteChannel`
 
@@ -556,24 +556,24 @@ try (FileChannel channel = FileChannel.open(
 }
 ~~~
 
-This illustrates resource management rather than data parsing; if a buffer has `remaining == 0`, `read` may return `0` and the example's logic must ensure the buffer is `clear()`ed. In production, handle no-progress per channel type rather than busy-looping indefinitely.
+This snippet illustrates resource management rather than data parsing; if a buffer has `remaining == 0`, `read` can return `0`, and the example ensures the buffer is cleared. In production, handle zero-progress reads properly for each channel type rather than busy-looping.
 
-Tests should ensure `channel.close()` runs if reading/parsing throws `IOException`. `Channel.isOpen()` checks API-level state after closing in integration tests. Confirming "no OS handle remains", however, may require independent observation when diagnosing native resource leaks.
+Tests should ensure `channel.close()` is called if reading or parsing throws `IOException`. `Channel.isOpen()` lets integration tests check API state after closing. However, confirming "no OS handle remains" may require separate observation when debugging native resource leaks.
 
 ### 10.2. `SocketChannel` / `ServerSocketChannel`
 
-Sockets can fail on `connect`, `accept`, `read`, `write`, or `close`. Tests must define who owns accepted sockets and the listener:
+Sockets can fail on `connect`, `accept`, `read`, `write`, or `close`. Tests must define who owns accepted sockets and listeners:
 
-- Closing the listener **must not be assumed** to close all already accepted sockets automatically.
-- Once `accept` succeeds, every accepted socket needs its own cleanup path.
-- On an error handling one client, do not accidentally close the entire listener if the server should keep serving.
-- Use loopback + port `0` for integration tests; set deadlines so tests never hang forever.
+- Closing a listener **must not be assumed** to close every already-accepted socket automatically.
+- Once `accept` succeeds, each accepted socket needs its own cleanup path.
+- On an error handling one client, do not accidentally close the entire listener if the server should keep running.
+- Use loopback + port `0` for integration tests; enforce deadlines so tests cannot hang forever.
 
-Measuring `close` with spy channels often requires an abstraction because channel classes carry specific contracts; avoid faking them by arbitrarily overriding non-final methods if that diverges from real implementations.
+Measuring `close` with spy channels often requires an abstraction because channel classes have strict contracts; avoid building fakes by arbitrarily overriding final or native methods in ways that misrepresent the real implementation.
 
 ### 10.3. `ZipFile` and `ZipInputStream`
 
-ZIP is an important example because streams can fail **during decompression** or CRC checks:
+ZIP is an important case because streams can fail **mid-decompression** or during CRC verification:
 
 ~~~java
 try (ZipFile zip = new ZipFile(zipPath.toFile())) {
@@ -588,11 +588,11 @@ try (ZipFile zip = new ZipFile(zipPath.toFile())) {
 }
 ~~~
 
-This is illustrative code with `Path zipPath`. When an exception occurs, TWR closes the entry stream and `ZipFile` per scope. With `ZipInputStream`, place it in TWR and verify the underlying stream closes if the wrapper owns it. With `ZipOutputStream` or `GZIPOutputStream`, `close` finalizes the compressed structure; remember to test error paths during metadata finalization.
+This is an illustrative snippet with `Path zipPath`. When an exception occurs, TWR closes the entry stream and `ZipFile` in scope order. With `ZipInputStream`, place it in TWR and track closing of the underlying stream if the wrapper owns it. With `ZipOutputStream` or `GZIPOutputStream`, `close` finalizes the compressed trailer; remember to test failures during metadata finalization.
 
 ### 10.4. `DirectoryStream`, `Files.list`, `Files.walk`, and `Files.lines`
 
-Not every `Stream<T>` holds OS resources, but **Streams returned by these `Files` APIs can hold file/directory handles**. Close them explicitly:
+Not every `Stream<T>` holds an OS resource, but **streams returned by these `Files` APIs can hold file or directory handles**. Close them explicitly:
 
 ~~~java
 try (Stream<Path> paths = Files.list(directory)) {
@@ -614,29 +614,29 @@ try (Stream<String> lines = Files.lines(
 }
 ~~~
 
-These are illustrative snippets requiring `java.nio.file.*`, `java.nio.charset.*`, `java.util.stream.Stream`, and `directory`/`logFile` variables. They are not standalone methods, and the `count` values are usage examples producing no output.
+These are illustrative snippets requiring `java.nio.file.*`, `java.nio.charset.*`, `java.util.stream.Stream`, and `directory`/`logFile` variables. They are not standalone methods, and `count` values are usage examples without printed output.
 
-**Note:** `Stream.count()`/`findFirst()`/`forEach()` are terminal operations, **not substitutes for `close()`** on a file-backed stream. If the pipeline throws `UncheckedIOException` during iteration, TWR still closes the stream.
+**Note:** `Stream.count()`/`findFirst()`/`forEach()` are terminal operations, yet **they do not replace `close()`** on a file-backed stream. If the pipeline throws `UncheckedIOException` during iteration, TWR still closes the stream.
 
-### 10.5. `Files.copy` and APIs That Do Not Own Caller Streams
+### 10.5. `Files.copy` and APIs That Manage Their Own Sources
 
-If an API accepts an `InputStream` from a caller, do not assume it closes the stream. For example, `Files.copy(InputStream, Path, ...)` does not replace the input stream's owning scope; the caller must place the input in TWR when it owns it.
+If an API accepts an `InputStream` from a caller, do not assume it closes the stream. For example, `Files.copy(InputStream, Path, ...)` does not take over the input stream's ownership scope; the caller must place the input in TWR when the caller is the owner.
 
 Never infer ownership just because a method reads to EOF; **EOF does not mean closed**.
 
 ## 11. Testing Initialization Failures: Where Leaks Hide
 
-A resource factory may involve multiple steps:
+A resource factory can involve multiple steps:
 
 ~~~java
 Resource openResource(Path path) throws IOException {
     InputStream in = Files.newInputStream(path);
-    // Another initialization step may throw here.
+    // Another initialization step may throw an error here.
     return new Resource(in);
 }
 ~~~
 
-This is pseudocode with an application-defined `Resource` type. If the step between those two lines fails before returning the object, the caller never receives `Resource` to close. The factory must clean up what it already opened:
+This is pseudocode where `Resource` is application-defined. If the step between the two lines fails before returning the object, the caller never receives a `Resource` to close. Design the factory to clean up partially opened state:
 
 ~~~java
 Resource openResource(Path path) throws IOException {
@@ -654,61 +654,61 @@ Resource openResource(Path path) throws IOException {
 }
 ~~~
 
-This is **illustrative code** and does not compile standalone because `Resource` and `initializeOwnedResource(...)` are application-defined. It demonstrates ownership transfer, though if both initialization and cleanup fail, the `finally` block above can **mask the initialization error**; production code should use nested try-with-resources or collect suppressed exceptions to preserve the root cause. An even better approach is minimizing manual transfer steps and placing opened resources into a TWR scope as early as possible.
+This is **illustrative code** and does not compile standalone because `Resource` and `initializeOwnedResource(...)` are application-defined. It demonstrates ownership transfer, though if both initialization and cleanup fail, the `finally` block above can **mask the initialization error**; production code should use nested `try-with-resources` or collect suppressed exceptions to preserve the root cause. Even better, minimize manual transfer steps and put opened resources into a TWR scope as early as possible.
 
-Cleaner TWR-based pattern:
+Cleaner example using TWR when possible:
 
 ~~~java
 try (InputStream in = Files.newInputStream(path)) {
-    // Preparation steps consume `in` completely within this scope.
+    // Preparation steps completely consume in within this scope.
     return parseData(in);
 }
 ~~~
 
-This illustrates the case where `parseData` returns a result **without retaining the stream**. If `parseData` must return an object owning `in` itself, you cannot close `in` before returning: design an explicit ownership transfer instead.
+This illustrates the case where `parseData` returns a result **without retaining the stream**. If `parseData` must return an object owning `in` itself, you cannot close `in` before returning and must design explicit ownership transfer.
 
-### Testing partial initialization
+### Testing Partial Initialization
 
-- Error before opening: nothing to close.
+- Failure before opening: nothing to close.
 - Open A succeeds, open B fails: A must close.
-- Factory opens file then fails header parsing: file must close.
-- Wrapper constructor fails after receiving source: factory/caller must agree who owns and cleans up the source.
-- Resource returned successfully but caller rejects it: caller must close per contract.
+- Factory opens file, then header parsing fails: file must close.
+- Wrapper constructor fails after receiving a source: factory/caller must agree on who owns and cleans up the source.
+- Resource returned successfully yet rejected by caller: caller must close per contract.
 
-Do not test exceptions at only one site; the **exact failure point** determines which resources already exist.
+Do not test exceptions at only one point; **the exact point of failure** determines which resources already exist.
 
-## 12. Test Doubles Alone Cannot Verify Real OS Handles
+## 12. Test Doubles Are Not Enough to Verify Real Handles
 
-Spies measuring Java calls are valuable, yet have limits:
+Java call spies are very useful, but have limitations:
 
-- `closeCalls == 1` confirms `close` was invoked on a fake, not that the kernel released a file descriptor.
-- Spies do not exercise kernel buffers, delayed writes, flushes, or corruption.
-- A third-party library wrapper may hold additional resources outside the fake's visibility.
-- Concurrency bugs (another thread reading during `close`) can produce states and exceptions absent from sequential unit tests.
+- `closeCalls==1` confirms `close` was called on the fake, not that the kernel released the file descriptor.
+- Spies do not test kernel buffers, delayed writes, flushes, or corruption.
+- A third-party library wrapper may hold extra resources outside the fake's scope.
+- Concurrency bugs (another thread reading during `close`) can produce states and exceptions unseen in sequential unit tests.
 
-### Where integration tests add value
+### Where Integration Tests Add Value
 
 With real files:
 
 1. Use `Files.createTempFile` or `Files.createTempDirectory` for an isolated test area.
 2. Open real resources through production code.
-3. Inject parsing/processing faults instead of relying on random hardware errors.
+3. Inject parsing/processing failures rather than relying on random hardware errors.
 4. After the method exits with an exception, check `isOpen()` (if supported), reopen/read/write the file via a fresh handle, and clean up temporary files.
-5. Where needed, use OS-level tools to compare descriptor counts before and after repeated runs.
+5. When needed, use OS-level tools to inspect descriptor counts before and after repeated test runs.
 
-**Never use file deletability as a universal cross-platform criterion**. Some operating systems allow unlinking an open file, so `Files.deleteIfExists` succeeding **does not prove** the handle was closed.
+**Never use file deletability as a universal cross-platform proof.** Some operating systems allow unlinking an open file, so a successful `Files.deleteIfExists` **does not prove** the handle was closed.
 
-### Stress/soak tests
+### Stress / Soak Tests
 
-Small leaks rarely show up in a single run. Run 1,000–10,000 cycles of "open → read error → cleanup" in an environment with suitable quotas and observe:
+Small leaks are hard to spot in a single run. Execute 1,000–10,000 cycles of "open → read error → cleanup" in an appropriately bounded environment and monitor:
 
-- File handle/socket counts.
-- Threads/tasks still holding resources.
-- Latency and memory over time.
-- Failed request counts and suppressed exceptions.
-- Remaining open directory streams or ZIP readers.
+- File handle and socket counts.
+- Threads or tasks still holding resources.
+- Execution duration and memory over time.
+- Error counts and suppressed exception counts.
+- Open directory streams and ZIP readers.
 
-Base conclusions on steady-state trends in a controlled environment rather than hardcoded numbers from another OS/JDK. Every test must clean up even if an assertion fails.
+Draw conclusions from stability trends in a controlled environment, not hardcoded counts from another OS or JDK. Every test must clean up its own artifacts even when assertions fail.
 
 ## 13. Close Failures in Asynchronous and Multi-Threaded Systems
 
@@ -727,44 +727,44 @@ OPEN
                 |
          stop new submissions
                 |
-         wait/settle pending I/O per contract
+         wait for/resolve pending I/O per contract
                 |
              close channel
                 |
              CLOSED
 ~~~
 
-Some APIs allow closing a channel while operations are pending; in-flight operations may terminate abnormally with `AsynchronousCloseException`. A unit test checking only "`close` was called immediately when the method threw" is **insufficient** when closing belongs to a background component; verify shutdown state after tasks/handlers have settled.
+Some APIs allow closing a channel while operations are pending, causing those operations to terminate abnormally with `AsynchronousCloseException`. A unit test checking only "close was called immediately when the method threw" is **insufficient** when a background component owns closure; check shutdown state after all tasks and handlers have resolved.
 
-### Avoid flaky tests using `Thread.sleep`
+### Avoiding Flaky Tests with `Thread.sleep`
 
 Do not write:
 
 ~~~java
 startAsyncOperation();
-Thread.sleep(200); // guessing the operation finished
+Thread.sleep(200); // guess operation finished
 assertTrue(isClosed());
 ~~~
 
-This is a non-runnable **anti-pattern**. Use `CountDownLatch`, `CompletableFuture`, `Future.get(timeout, unit)`, or explicit synchronization with a **deadline** to wait for the close event. A timeout bounds the test; it is not proof that the operation finished when time expires.
+This is a non-runnable **anti-pattern**. Use `CountDownLatch`, `CompletableFuture`, `Future.get(timeout, unit)`, or explicit synchronization with a **deadline** to wait for the close event. The timeout bounds the test—it is not proof an operation finished simply because time elapsed.
 
-### Interrupted threads
+### When a Thread Is Interrupted
 
-Java `try-with-resources` still cleans up when exiting via an interrupt-related exception, though the `close` API itself has its own contract and exceptions. For custom `AutoCloseable` types, Javadoc recommends avoiding `InterruptedException` from `close` because suppression can cause unpredictable behavior. When handling `InterruptedException`, decide whether to restore the interrupt flag and stop per application policy.
+Java `try-with-resources` still runs cleanup when exiting scope due to an interrupt-induced exception, though individual `close` APIs have their own contracts and exceptions. For custom `AutoCloseable` types, Javadoc recommends against throwing `InterruptedException` from `close`, as suppression can produce unpredictable behavior. When handling `InterruptedException`, decide explicitly whether to restore the interrupt flag and stop per application policy.
 
-## 14. Designing APIs That Are Easy to Close-Test
+## 14. Designing APIs That Are Easy to Test for Closure
 
-Testable I/O components typically share these traits:
+Testable I/O components share common traits:
 
-- **Injectable resources or resource factories** via constructor/factory, enabling read/write/close fault simulation.
-- **Explicit ownership contracts**: who creates, who uses, who closes, who transfers ownership.
-- **No global singletons for mutable streams** unless sharing is truly required.
-- **Minimal scope**: open resources close to where they are used and close promptly when done.
-- **No swallowed `IOException`**: body errors and cleanup errors propagate/log per policy.
-- **No reliance on GC/finalizers/`Cleaner` as the primary release mechanism**: their timing is non-deterministic.
-- **Testing beyond the happy path**: test acquisition failures, partial reads/writes, parser errors, close errors, and early returns.
+- **Injectable resources** or resource factories via constructors/parameters, enabling read/write/close fault simulation.
+- **Clear ownership contracts**: who creates, who uses, who closes, and who transfers ownership.
+- **No global singletons for mutable streams** unless sharing is genuinely required.
+- **Tight scopes**: open resources right before use and close them as early as possible.
+- **Never swallow `IOException`**: body and cleanup errors propagate or log per policy.
+- **Never rely on GC, finalizers, or `Cleaner` as the primary release mechanism**: they give no deterministic close timing.
+- **Test beyond the happy path**: cover initialization errors, partial reads/writes, parser errors, close errors, and early returns.
 
-A classic split:
+A typical separation:
 
 ~~~java
 // Core logic operating on a caller-borrowed stream:
@@ -781,26 +781,26 @@ static Result parseFile(Path path) throws IOException {
 }
 ~~~
 
-This is **illustrative code**, with `Result` and `decode` application-defined. This design lets unit tests exercise `parse` using fake inputs while verifying `parseFile` manages filesystem resource lifecycles—without mocking static `Files.newInputStream` for every test.
+This is **illustrative code**, where `Result` and `decode` are application-defined. This design lets unit tests test `parse` with fake inputs while testing `parseFile`'s filesystem resource lifecycle separately, without needing to mock static `Files.newInputStream` for every test.
 
-### Testing methods with clear closing responsibilities
+### Testing Methods with Explicit Close Responsibilities
 
-If an API takes an `InputStream stream` under **caller owns**, tests should assert the stream **remains open after the method finishes** (even on error). Conversely, the `parseFile` boundary must assert the file stream is closed on any error. Both opposite assertions can be right because ownership differs.
+If an API takes `InputStream stream` with **caller owns** semantics, tests should assert the stream **remains open after the method finishes** (even on error). Conversely, the `parseFile` boundary must assert the file stream is closed on any error. Two opposite assertions can both be right because ownership differs.
 
-## 15. Why Close Testing Must Also Account for `finally` Errors
+## 15. Why Close Testing Must Also Account for `finally` Failures
 
-When manual `finally` is unavoidable because no suitable `AutoCloseable` exists or ownership is complex:
+When manual `finally` is unavoidable due to non-`AutoCloseable` APIs or complex ownership:
 
 1. Preserve the original exception.
-2. Do not skip remaining resources needing cleanup if one `close` fails.
+2. Do not skip cleaning up remaining resources if one `close` fails.
 3. Never close resources the method does not own.
-4. Handle incomplete initialization cleanly.
-5. Do not hide suppressed exceptions in logging/monitoring.
-6. Avoid double-closing resources with non-idempotent semantics.
+4. Do not skip partially initialized state.
+5. Do not hide suppressed exceptions from logging and monitoring.
+6. Avoid double-closing resources with non-idempotent close semantics.
 
-With multiple resources, hand-coding all these cases is error-prone; **prefer `try-with-resources`** wherever possible. If you must aggregate exceptions manually, attach cleanup errors to the primary via `addSuppressed`, taking care not to self-suppress or pass `null`.
+With multiple resources, writing every case accurately by hand is error-prone; **prefer `try-with-resources`** whenever possible. If you must aggregate exceptions manually, attach cleanup errors to the primary exception with `addSuppressed`, taking care never to suppress an exception onto itself or pass `null`.
 
-### When to catch and when not to catch
+### When to `catch` and When Not To
 
 **Simple and usually sufficient:**
 
@@ -810,7 +810,7 @@ try (InputStream in = Files.newInputStream(path)) {
 }
 ~~~
 
-If the caller understands `IOException`, do not catch just to log and rethrow. If the app needs extra context, preserve the cause:
+If the caller understands `IOException`, do not catch merely to log and rethrow. If the application needs extra context, preserve the cause:
 
 ~~~java
 try (InputStream in = Files.newInputStream(path)) {
@@ -820,7 +820,7 @@ try (InputStream in = Files.newInputStream(path)) {
 }
 ~~~
 
-Both snippets are **illustrative code inside a parser method** where `parse` is defined. On a wrapped exception, suppressed errors remain attached to the cause `ex`; logging tools should traverse both cause chains and suppressed exceptions so close failures are never lost.
+Both snippets are **illustrative code inside a method returning a parser result** where `parse` must be defined. When wrapped, any suppressed close exceptions remain attached to the cause `ex`; logging tools should traverse both causes and suppressed exceptions so close failures are never lost.
 
 **Avoid:**
 
@@ -830,81 +830,81 @@ catch (IOException ex) {
 }
 ~~~
 
-This is an anti-pattern. Swallowing `IOException` may still close the resource, yet leaves output data and control flow untrustworthy. If a product supports a valid fallback, express it via an explicit return type rather than turning errors into ambiguous success.
+This is an anti-pattern. Swallowing `IOException` may still close the resource, yet leaves output data and control flow untrustworthy. If a product defines a valid fallback, express it through an explicit return type rather than turning failure into ambiguous success.
 
 ## 16. Final Checklist for Tests and Code Reviews
 
 Before considering an I/O path properly cleaned up, verify:
 
-- [ ] **Resource owner** is identified for every stream/channel/wrapper.
+- [ ] Identify the **resource owner** for every stream, channel, and wrapper.
 - [ ] All successfully opened resources sit inside `try-with-resources` or equivalent cleanup.
 - [ ] When opening a second resource fails, the first resource still closes.
-- [ ] On `read`, `write`, parse, or callback failure, cleanup still runs.
-- [ ] On `return`/`break` or early exit, cleanup runs properly.
-- [ ] Multiple resources close in **reverse order**, and one failing `close` does not block closing others.
-- [ ] Body exceptions remain primary and `close` errors appear in `getSuppressed()`.
-- [ ] Wrappers close underlying sources per ownership; no double-closing non-idempotent resources.
-- [ ] File-backed streams from `Files.lines/list/walk` close even if the terminal operation throws.
-- [ ] Fakes/spies confirm **`close` was called**; integration tests verify real-world behavior as needed.
+- [ ] When `read`, `write`, parsing, or callbacks fail, cleanup still runs.
+- [ ] On `return`, `break`, or early exit, cleanup runs properly.
+- [ ] Multiple resources close in **reverse order**, and one `close` failure does not prevent closing the others.
+- [ ] Body exceptions remain primary and `close` exceptions appear in `getSuppressed()`.
+- [ ] Wrappers close underlying sources per ownership; non-idempotent resources are never double-closed.
+- [ ] File-backed streams from `Files.lines`/`list`/`walk` close even if a terminal operation throws.
+- [ ] Fakes/spies confirm **`close` was called**; integration tests verify real behavior where needed.
 - [ ] OS handle release is never inferred solely from file deletability.
-- [ ] Async tasks use deadlines and synchronization to verify completion/closure—never fixed sleeps.
-- [ ] Primary and suppressed exceptions are logged/propagated adequately for diagnostics.
-- [ ] Test fixtures release their own resources even when assertions fail.
+- [ ] Async tasks use deadlines and synchronization to verify completion/closure instead of fixed sleeps.
+- [ ] Primary and suppressed exceptions are logged/propagated adequately for diagnosis.
+- [ ] Test fixtures release resources themselves even when assertions fail.
 
 ## 17. Common Mistakes
 
 1. **"Reaching EOF closes the stream automatically."** False: `read() == -1` does not replace `close()`.
-2. **"GC will reclaim file handles promptly."** Timing is non-deterministic; always close explicitly.
-3. **"Only close on the happy path."** False: error paths leak far more often.
-4. **"Resources in TWR close in the order they were opened."** False: they close in **reverse** order.
-5. **"If opening the second resource fails, the first isn't closed."** False if the first initialized successfully in the header.
-6. **"If the second `close` throws, Java skips closing the first."** False: all opened resources are still attempted.
-7. **"A `close` error always overrides a `read` error."** False in TWR; `close` errors are suppressed when a primary exists.
+2. **"GC will reclaim file handles in time."** No deterministic timing exists; always close explicitly.
+3. **"Only close on the happy path."** False: error paths leak much more easily.
+4. **"Resources in TWR close in opening order."** False: they close in **reverse** order.
+5. **"If opening the second resource fails, the first isn't closed."** False for a first resource already initialized in the header.
+6. **"If the second `close` throws, Java skips closing the first."** False: remaining opened resources are still closed.
+7. **"A `close` error always overwrites a `read` error."** False in TWR; the `close` error becomes suppressed when a primary exists.
 8. **"`getCause` and `getSuppressed` are the same."** False: cause chains and suppressed cleanup errors are distinct.
-9. **"`Spy.closeCalls == 1` guarantees no OS descriptor remains."** False: verify with real tests/instrumentation as needed.
-10. **"Calling `close` twice on any `AutoCloseable` is safe."** False: `AutoCloseable` does not mandate idempotency.
-11. **"Closing `BufferedInputStream` leaves the underlying stream open."** Wrappers normally close their source; know ownership.
-12. **"A terminal operation on `Files.lines` closes the stream automatically."** False: file-backed streams must be closed.
-13. **"If a constructor/factory throws before returning, TWR automatically cleans up inside it."** False: partially opened resources not yet handed to TWR must be cleaned up by the factory.
-14. **"Being able to delete the file proves the stream was closed."** False on OSes with open-file unlink semantics.
+9. **"`Spy.closeCalls==1` guarantees zero OS descriptors remain."** False: use real/instrumented tests where required.
+10. **"Calling `close` twice is safe on every `AutoCloseable`."** False: `AutoCloseable` does not mandate idempotence.
+11. **"Closing `BufferedInputStream` doesn't affect the underlying stream."** Wrappers normally close their source; know ownership.
+12. **"A terminal operation on `Files.lines` closes the stream automatically."** False: file-backed streams still require `close()`.
+13. **"A constructor/factory throwing before returning is always cleaned up by TWR."** False: partially opened resources not yet handed to TWR must be cleaned up by the factory.
+14. **"Being able to delete the file proves the stream was closed."** False on OSes with unlink semantics for open files.
 15. **"`Thread.sleep(100)` is enough to test async close."** Non-deterministic; use synchronization and deadlines.
-16. **"`close()` can never throw `IOException`."** False: output flushing/finalization in particular can fail.
-17. **"`catch` and `return null` is a safe way to handle I/O errors."** Usually loses context and produces false success.
-18. **"Closing a listener automatically closes all accepted channels."** Never assume this; every channel needs its own ownership.
+16. **"`close()` cannot throw `IOException`."** False: output flushing and finalization especially can fail.
+17. **"Catching and returning `null` is a safe way to handle I/O errors."** Usually loses context and fakes success.
+18. **"Closing a listener automatically closes all accepted channels."** Never assume this; every channel needs explicit ownership.
 
 ## 18. Self-Check Questions
 
-**Question 1.** In TWR with two resources A and B, the body throws `IOException("read")` and `B.close()` throws `IOException("close")`. What exception does the caller see?
+**Q1.** In TWR with two resources `A` and `B`, the body throws `IOException("read")` and `B.close()` throws `IOException("close")`. What exception does the caller see?
 
-**Answer:** `"read"` is primary; `"close"` is inside `getSuppressed()`. Java still attempts to close A.
+**Answer:** `"read"` is primary; `"close"` is inside `getSuppressed()`. Java still attempts to close `A`.
 
-**Question 2.** Resource A opens successfully, but initializing B throws `IOException`. Does A close?
+**Q2.** Resource `A` opens successfully, but initializing `B` throws `IOException`. Does `A` close?
 
-**Answer:** Yes, if A initialized successfully in the TWR header. The body does not run, and B's initialization exception is primary.
+**Answer:** Yes, if `A` was already initialized in the TWR header. The body does not run, and `B`'s initialization exception is primary.
 
-**Question 3.** If a method executes `return` inside TWR, does `close` run before or after the method finishes returning?
+**Q3.** If a method executes `return` inside TWR, does `close` run before or after the method finishes returning?
 
-**Answer:** `close` runs when exiting the scope before the method finishes returning its value. If `close` throws an exception, the method completes abnormally with that exception instead of returning normally.
+**Answer:** `close` runs upon exiting scope before the method finishes returning. If `close` throws an exception, the method can complete abruptly with that exception instead of returning normally.
 
-**Question 4.** Why do unit tests using `CloseSpy` still need some integration tests?
+**Q4.** Why do unit tests using `CloseSpy` still need some integration tests?
 
-**Answer:** Spies verify `close` calls against a fake's contract; they do not thoroughly test native handles, output finalization, or internal resources of real implementations.
+**Answer:** A spy checks `close` calls against the fake's contract; it does not verify native handles, output finalization, or internal resources of real implementations.
 
-**Question 5.** Why isn't `Files.lines(path).count()` enough to ensure the file is closed?
+**Q5.** Why is `Files.lines(path).count()` not enough to ensure the file is closed?
 
-**Answer:** Terminal operations consume elements without promising to close the file-backed stream. Wrap the returned stream in TWR.
+**Answer:** Terminal operations process elements without guaranteeing closure of the file-backed stream. Wrap the returned stream in TWR.
 
-**Question 6.** A service wraps `System.in` in a `BufferedInputStream`. Should the service close the wrapper by default when done?
+**Q6.** A service wraps `System.in` in `BufferedInputStream`. Should the service close the wrapper by default when done?
 
-**Answer:** Cannot decide without knowing ownership. Closing the wrapper normally closes the underlying stream; for shared `System.in`, design explicit borrowed ownership or a close-shield.
+**Answer:** You cannot decide without knowing ownership. Closing the wrapper typically closes the underlying source; for shared `System.in`, design borrowed ownership or an explicit close shield.
 
-**Question 7.** An object's close handler can throw `IOException`. What should unit tests verify besides `closeCalls`?
+**Q7.** An object's close handler can throw `IOException`. What should unit tests check besides `closeCalls`?
 
-**Answer:** Verify primary/suppressed exceptions, close order of other resources, and that the method propagates errors per contract.
+**Answer:** Check primary vs. suppressed exceptions, close ordering of other resources, and whether the method propagates errors per contract.
 
-**Question 8.** If an async I/O callback is pending and code requests shutdown, when can you conclude cleanup is complete?
+**Q8.** When an async I/O callback is pending and code requests shutdown, when can you conclude cleanup is complete?
 
-**Answer:** Only after cancellation/completion policies and channel/resource closure are confirmed via signals/synchronization with a deadline; you cannot infer it merely because the shutdown-request method returned.
+**Answer:** Only after cancellation/completion policies and channel/resource closure are confirmed via synchronization signals with a deadline—never merely because the shutdown-request method returned.
 
 ### Official Java 17 Documentation
 

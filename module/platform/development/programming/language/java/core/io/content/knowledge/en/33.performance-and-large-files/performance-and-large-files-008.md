@@ -1,10 +1,10 @@
-# Effects of OS Caching When Benchmarking Java I/O
+# The Impact of OS Cache on Java I/O Benchmarks
 
-When measuring large-file read/write performance in Java, results can vary several-fold without **changing a single line of code**. The cause often does not lie solely in `FileInputStream`, `BufferedInputStream`, `FileChannel`, or `MappedByteBuffer`, but also in the **OS page cache**, readahead, write-back mechanisms, storage device caches, activity from other processes, and memory state at the time of measurement.
+When measuring large-file read/write performance in Java, results can differ by several times even **without changing a single line of code**. The cause often lies not only in `FileInputStream`, `BufferedInputStream`, `FileChannel`, or `MappedByteBuffer`, but also in the **OS page cache**, readahead, write-back mechanisms, storage device caches, background processes, and memory state at measurement time.
 
-For example, reading a 2 GiB file from an SSD on the first pass may depend on how much data must actually be fetched from the device. If the data already resides in OS RAM, a subsequent read mainly copies data from the page cache to the application. Comparing those two passes and claiming “API A is faster than API B” is wrong if they were not measured under **comparable cache conditions**.
+For example, reading a 2 GiB file from an SSD the first time may depend on how much data must actually be fetched from the device. If the data already resides in OS RAM, a subsequent read primarily transfers data from the page cache to the application. Comparing those two runs and declaring "API A is faster than API B" is wrong if they were not measured under **equivalent cache conditions**.
 
-This lesson focuses on how OS caching skews benchmarks, distinguishing **cold-cache** from **warm-cache**, characteristics of read/write measurements, designing Java I/O experiments, and interpreting results without mistaking RAM access speed for device throughput.
+This lesson focuses on how OS caching skews benchmarks, distinguishing **cold-cache** from **warm-cache**, read vs. write measurement characteristics, how to design Java I/O experiments, and how to interpret results without mistaking RAM access speed for storage device throughput.
 
 ## 1. Where Does the Page Cache Sit in the I/O Path?
 
@@ -33,36 +33,36 @@ OS page cache (RAM caching file data pages)
 ByteBuffer / byte[] / application
 ```
 
-This is a **conceptual** model, not a fixed path for every filesystem, OS, or provider. The OS may cache metadata, perform readahead, copy or map pages, and coalesce I/O requests; SSD/HDD devices also have their own internal caches.
+This is a **conceptual model**, not a fixed path for every filesystem, OS, or provider. The OS may cache metadata, perform readahead, copy or map pages, and coalesce I/O requests; SSD/HDD hardware also has its own internal caches.
 
-The **page cache** is RAM utilized by the OS to hold file data pages. When a read needs pages already present in cache (*cache hit*), the kernel can serve them without re-reading all data from the storage device. When the needed pages are absent (*cache miss*), the system must fetch data from lower layers, which is usually slower and more variable.
+The **page cache** is RAM used by the OS to store file data pages. When a read needs pages already in cache (*cache hit*), the kernel can serve them without re-reading everything from the storage device. When the needed pages are absent (*cache miss*), the system must fetch them from lower layers, which is typically slower and more variable.
 
-Two concepts to distinguish:
+Distinguish two concepts:
 
-- **Java application cache:** `byte[]`, `ByteBuffer`, `BufferedInputStream`, custom caches, or library caches. Data lives by JVM/application rules.
-- **OS cache:** typically managed by the kernel and shared across processes. Closing `FileChannel` or recreating Java objects does not mean the kernel evicted the file's pages from cache.
+- **Java application cache:** `byte[]`, `ByteBuffer`, `BufferedInputStream`, custom caches, or library caches. Data lives according to JVM/application rules.
+- **OS cache:** typically managed by the kernel and shared across processes. Closing `FileChannel` or recreating Java objects does not mean the kernel evicted those file pages from cache.
 
-Reading a file, closing the stream, and opening a new stream to the same file can still **read from the kernel cache**. Thus, “creating a new `FileChannel` for each benchmark pass” does not guarantee every pass starts cold.
+After reading a file and closing the stream, opening a new stream to the same file can still **read from the kernel cache**. Hence "creating a new `FileChannel` for each benchmark run" is not a way to ensure every run starts cold.
 
 ## 2. Cold Cache and Warm Cache Are Different Problems
 
-| Situation | Practical meaning | What is being measured? |
+| Scenario | Practical Meaning | What Does It Measure? |
 | --- | --- | --- |
 | **Cold-ish read** | Most needed data is not yet in the page cache | Reads may incur device, metadata, and readahead costs |
 | **Warm read** | Most data is already in the page cache | Kernel/cache cost, data copying, Java processing, memory bandwidth |
-| **Mixed read** | Some pages hit cache, some must be fetched | Mix may differ from pass to pass |
+| **Mixed read** | Some pages hit cache, some must be fetched | The mix may vary between runs |
 | **Working set larger than available cache RAM** | Eviction/cache thrashing may occur | Dominated by I/O stream, RAM size, and competing workloads |
-| **Multiple processes reading the same file** | One process warms cache for another | Depends on overall system activity, not just one JVM |
+| **Multiple processes reading the same file** | One process warms cache for another | Depends on system-wide activity, not one JVM alone |
 
-“Cold” must be defined **by data scope and system state**. A file never opened by the program itself is not guaranteed cold: antivirus software, indexers, other processes, or the command that created the file may have placed its pages into cache.
+The term "cold" must be defined **by data scope and system state**. A file never opened by your own program is not necessarily cold: antivirus, indexers, other processes, or the command that created the file earlier may have brought its pages into cache.
 
-Conversely, “warm” does not guarantee every byte stays in RAM forever. The kernel can reclaim pages at any time to free RAM for other tasks. If a file is large or the machine is under memory pressure, even a second read can suffer many cache misses.
+Conversely, "warm" does not mean every byte stays in RAM forever. The kernel may reclaim pages at any time to allocate RAM to other work. If a file is large or the host faces memory pressure, a second read can still suffer many cache misses.
 
-**Never treat one cold measurement and one warm measurement as comparable samples when comparing libraries or APIs.** If production repeatedly reads the same files, warm-cache performance may be the right target. If production scans new files after startup or datasets larger than RAM, test cold/mixed-cache and real storage throughput.
+**Never treat one cold measurement and one warm measurement as equivalent samples to compare libraries or APIs.** If production reads the same files repeatedly, warm-cache performance may be the right metric. If production scans fresh files after boot or reads datasets exceeding RAM, test cold/mixed-cache and real storage throughput.
 
-## 3. Why Is the First Read Not Guaranteed Cold?
+## 3. Why Isn't the First Read Necessarily Cold?
 
-A sequence that sounds logical:
+A seemingly reasonable workflow:
 
 ```java
 Files.write(file, testData);
@@ -70,22 +70,22 @@ long first = timeRead(file);
 long second = timeRead(file);
 ```
 
-still does not produce a true **cold versus warm** comparison. Because `Files.write()` just wrote `testData`, many OSes retain newly written pages in the page cache. Even though `first` is the application's first **read**, the data may **already be warm from the write**.
+yet it does not produce a true **cold versus warm** comparison. When `Files.write()` just wrote `testData`, many operating systems retain the written pages in the page cache. Even though `first` is the application's first **read**, the data may **already be warm from the write**.
 
 Other reasons the first read is not cold:
 
 1. The file was created, copied, or checksummed right before the benchmark.
 2. Another process recently read the file, populating the shared cache.
-3. The OS performs readahead: during a sequential read, **later** pages may be prefetched before code calls `read()` at those offsets.
+3. OS readahead: during sequential reading, **upcoming** pages may be prefetched before your code calls `read()` at those offsets.
 4. Filesystem metadata/inode/dentry caches or storage device caches affect timing even when data pages are not warm.
-5. The benchmark framework ran warm-up iterations, inadvertently warming the very data intended for a cold test.
-6. A new container or JVM shares the same kernel with prior workloads; starting a new container **does not clear the kernel cache**.
+5. The benchmark framework ran warm-up iterations, accidentally warming the exact data meant for the cold test.
+6. A new container or JVM shares the same kernel as earlier workloads; starting a fresh container **does not clear the kernel cache**.
 
-Therefore, an initial measurement should only be called the **first measured pass** unless there is proof that the working set started under controlled cache conditions.
+Therefore, initial measurement results should only be called the **first measured pass**, unless there is proof that the working set began under controlled cache conditions.
 
 ## 4. BufferedInputStream Is Not the Page Cache
 
-`BufferedInputStream` holds a Java-side buffer, reducing calls down to the underlying `InputStream` when the application reads byte by byte or in tiny slices. `FileChannel.read(ByteBuffer)` can read a large block in one call. Yet **both are still typically served through the kernel's page cache** when reading files on a default filesystem.
+`BufferedInputStream` maintains a Java-side buffer to cut down calls to the underlying `InputStream` when reading byte-by-byte or in small chunks. `FileChannel.read(ByteBuffer)` can read a large block in a single call. However, **both are still normally served through the kernel page cache** when reading files on standard filesystems.
 
 Example:
 
@@ -99,73 +99,73 @@ try (InputStream input = new BufferedInputStream(
 }
 ```
 
-This snippet is **not a standalone program**: it requires declaring `file` and `consume`, importing `java.io.*`, `java.nio.file.*`, and handling `IOException`. It illustrates an application-layer buffer, not bypassing kernel caching.
+This snippet is **not a standalone program**: it needs `file` and `consume` defined, imports `java.io.*`, `java.nio.file.*`, and `IOException` handling. It illustrates application-tier buffering, not proof that the kernel skips caching the file.
 
-Adding another buffer layer **does not always make a program faster**. If the application already reads blocks into a `byte[65536]`, wrapping with `BufferedInputStream` may yield no commensurate benefit. If the application calls `read()` byte by byte, buffering can cut overhead. Conclusions require measuring with **comparable buffer sizes, page cache states, workloads, and processing logic**.
+Adding a buffer layer **does not always make a program faster**. If the application already reads blocks into `byte[65536]`, wrapping with `BufferedInputStream` may yield little net benefit. If the application calls byte-by-byte `read()`, buffering can cut overhead. To conclude, measure with **matching buffer size, page cache state, workload, and processing logic**.
 
-### Direct ByteBuffer Does Not Automatically Bypass the OS Cache
+### Direct ByteBuffer Does Not Bypass the OS Cache Automatically
 
-`ByteBuffer.allocateDirect()` creates a direct buffer outside the heap; it can reduce copy costs along some native I/O and JVM paths. However, **a direct buffer is not Linux `O_DIRECT`**, does not guarantee bypassing the OS page cache, and does not guarantee “zero-copy” in every scenario.
+`ByteBuffer.allocateDirect()` allocates a direct buffer in off-heap memory; it can reduce copy costs across some native I/O paths and the JVM. However, **a direct buffer is not Linux `O_DIRECT`**, does not guarantee bypassing the OS page cache, and does not guarantee "zero-copy" in every situation.
 
-Comparing heap `ByteBuffer` and direct `ByteBuffer` requires separating allocation cost, reuse, copy count, cache hit rate, and device read cost. Without controlling page cache state, concluding “direct is faster than disk” may simply be measuring cache/memory rather than the drive.
+Comparing heap `ByteBuffer` and direct `ByteBuffer` requires separating allocation cost, reuse, copy count, cache hit rate, and device read cost. Without controlling the page cache, concluding "direct is faster than the disk" easily mistakes cache/memory measurement for storage hardware speed.
 
 ## 5. Sequential Reads, Random Reads, and Read-Ahead
 
-Operating systems typically optimize sequential reads with **readahead**: upon detecting a suitable access pattern, the kernel can prefetch blocks not yet requested. Thus, two benchmarks reading the same total bytes in different orders can produce vastly different results:
+Operating systems commonly optimize sequential reads with **readahead**: when detecting a sequential access pattern, the kernel can prefetch blocks not yet requested. Thus two benchmarks reading the same total volume in different orders can yield vastly different results:
 
-- **Sequential scan:** proceeds from start to end with relatively large blocks and high locality. Readahead can hide device latency.
-- **Random access:** jumps across widely scattered offsets with low locality. Can reduce readahead effectiveness and trigger many small I/Os.
-- **Repeated hot small region:** repeatedly reads the first few MiB of a multi-GiB file. Data may sit completely in RAM even when the total file exceeds RAM.
-- **Many-file metadata walk:** reads attributes and opens thousands of small files. Metadata caches, path lookup, and syscall counts can outweigh data throughput.
-- **Mixed read/write:** real workloads combine writes, re-reads, RAM contention, and background writeback; cannot be inferred directly from a sequential read-only benchmark.
+- **Sequential scan:** Proceeds from start to end of file, relatively large blocks, high locality. Readahead can hide device latency.
+- **Random access:** Jumps across widely distributed offsets, low locality. Can defeat readahead and trigger many small I/Os.
+- **Repeated hot small region:** Continuously reads the first few MiB of a multi-GiB file. Data can fit completely in RAM even when total file size exceeds RAM.
+- **Many-file metadata walk:** Opens and reads attributes of thousands of small files. Metadata/path caching and syscall counts can outweigh data throughput.
+- **Mixed read/write:** Real workloads involve writing, re-reading, RAM contention, and background writeback; they cannot be extrapolated directly from a sequential read-only benchmark.
 
-To test I/O behavior for large files, define the **working set** as the bytes actually touched within the measurement window, not merely file length on disk. A 100 GiB file where a test touches only 4 MiB has an entirely different accessed working set from scanning the full 100 GiB.
+To test I/O behavior for large files, define the **working set** as the bytes actually touched during the measurement window—not merely how large the file is on disk. A 100 GiB file where a test touches only 4 MiB has a completely different access working set than scanning all 100 GiB.
 
-For random reads, also fix the seed/rule generating offsets so two strategies hit identical data blocks. If each run uses arbitrary differing offsets, cache hit rates cannot be compared directly.
+For random reads, also fix the seed/offset-generation rule so both read strategies hit the same data blocks. If each run picks arbitrary offsets, cache hit rates cannot be compared directly.
 
-## 6. Write-Back Cache: “Finished” Writing Does Not Mean Data Is Durable
+## 6. Write-Back Cache: "Done" Writing Does Not Mean Data Is Durable
 
-When `FileChannel.write()` or `Files.write()` returns successfully, many filesystems have accepted data into OS buffers/caches. That **does not prove the bytes reached durable storage**. The kernel can **write-back** modified pages (*dirty pages*) to the device later.
+When `FileChannel.write()` or `Files.write()` returns successfully, many filesystems have accepted the data into OS buffers/caches. That **does not prove bytes reached durable storage media**. The kernel may **write back** modified pages (*dirty pages*) to the device later.
 
-Consequently, a naive write benchmark may primarily measure how fast bytes copy into the page cache and finish before the kernel completes writing to the device. Reporting that number as “SSD write throughput” easily exaggerates performance.
+Hence a simple write benchmark may mostly measure the speed of copying bytes into the page cache, finishing before the kernel finishes writing to the device. Reporting that number as "SSD write throughput" easily exaggerates hardware speed.
 
-| Measurement type | What is measured | What is not necessarily measured |
+| Measurement Type | What It Measures | What It Does Not Guarantee |
 | --- | --- | --- |
-| `write()` until buffer drained | Time for OS to accept bytes from application | Whether data is stable on the device |
-| `Files.write(...)` then close stream | Completion of API write path and close | Power-loss durability across all filesystems |
-| `FileChannel.force(false)` | Request to sync content (and metadata needed to retrieve it) per API contract | Does not directly mean caches were cleared |
-| `FileChannel.force(true)` | Request to sync content and related metadata | Does not make the file cold for the next read |
-| `StandardOpenOption.SYNC/DSYNC` | Alters sync policy when opening a file for writing | Not free in latency or identical across all filesystems |
+| `write()` until buffer drains | Time until OS accepts bytes from application | Data persisted safely on device |
+| `Files.write(...)` then close stream | API-level write path and close completion | Power-loss durability across every filesystem |
+| `FileChannel.force(false)` | Requests syncing content (and metadata needed to retrieve content) per API contract | Does not directly mean cache was cleared |
+| `FileChannel.force(true)` | Requests syncing content and relevant metadata | Does not make the file cold for the next read |
+| `StandardOpenOption.SYNC/DSYNC` | Alters sync policy when opening file for writing | Not free in latency or identical across all filesystems |
 
-`FileChannel.force(true)` requests **flushing updates to the device within the API's guaranteed scope**, not clearing the page cache. Across different storage/provider types, actual guarantees and costs vary. Calling `force` does not promise syncing all directory changes, renames, or device states across every power-loss scenario.
+`FileChannel.force(true)` requests **flushing updates to the device within the API's contract**, not clearing the page cache. Across different storage/providers, actual guarantees and costs can differ. Calling `force` does not promise syncing all directory updates, renames, or devices under every power-loss scenario.
 
-To benchmark **durable writes**, state explicitly whether `force()`/close timing is included, whether `SYNC/DSYNC` is used, whether the file existed or was newly created, byte count, and error handling. To benchmark API **write acceptance**, you may omit `force`, provided you label the metric accurately.
+To benchmark **durable writes**, state explicitly whether `force()`/close is timed, whether `SYNC/DSYNC` is used, whether the file already existed or was newly created, byte counts, and error handling. To benchmark API **write acceptance**, you may omit `force`, provided you label the metric accurately.
 
-## 7. MappedByteBuffer and Memory Mapping Are Also Affected by Caching
+## 7. MappedByteBuffer and Memory-Mapped Files Are Also Affected by Cache
 
-`FileChannel.map()` maps a file region into the process address space; reading from `MappedByteBuffer` can trigger a **page fault** when the corresponding page is not yet available. Subsequent accesses can use the already mapped/cached pages.
+`FileChannel.map()` can map a file region into the process's address space; reading from `MappedByteBuffer` can trigger a **page fault** when the corresponding page is not yet available. Subsequent accesses may use already mapped/cached pages.
 
 Common measurement mistakes:
 
-1. Mapping the file outside the timer and timing only page reads for memory mapping, while timing file open and buffer allocation inside the timer for `FileChannel.read()`.
-2. One benchmark calls `mapped.load()` before measuring while the other lacks equivalent data warm-up.
-3. Measuring one mapping pass cold and another warm without stating cache state.
-4. Treating `MappedByteBuffer.isLoaded()` as definitive proof that **all pages always reside in RAM**. The API is only advisory; the OS can change residency right after the check.
-5. Calling `mapped.force()` and assuming the mapping was evicted from cache. `force()` on a mapped buffer aims to **synchronize changes**, not evict pages.
+1. Mapping the file outside the timer and timing page reads for memory-mapped I/O, while timing file open and buffer allocation inside the timer for `FileChannel.read()`.
+2. One benchmark calls `mapped.load()` before timing, while the competing benchmark does not warm equivalent data.
+3. Measuring one mapping run cold and another mapping run warm without reporting state.
+4. Treating `MappedByteBuffer.isLoaded()` as an exact verifier that **all pages stay in RAM**. The API is advisory only; the OS can change residency right after the check.
+5. Calling `mapped.force()` and assuming the mapping was evicted from cache. `force()` on a mapped buffer is for **flushing modifications**, not eviction.
 
-Mapping has its own traits: page faults, page granularity, random access behavior, and mapping management overhead. Benchmarks must include mapping time if real workloads pay that cost and compare under equal cache states.
+Memory mapping has distinct traits: page faults, page granularity, random access, and mapping management overhead. Benchmarks must include mapping time if the real workload pays it, and compare under equal cache conditions.
 
-**Mapping is not zero-cost I/O.** For huge files, you must also consider mapped region size, address space limits, available memory, mapping lifecycle, and files being modified/truncated while mapped.
+**Mapping is not zero-cost I/O.** For massive files, also consider mapped region size, address space limits, available memory, mapping lifetimes, and concurrent file modification/truncation while mapped.
 
 ## 8. Complete Java 17+ Example: Measuring Multiple Read Passes Without Calling the First Pass Cold
 
-The example below:
+The following example:
 
-- Creates an **8 MiB** temporary file containing deterministic bytes (without touching user files).
-- Writes using `FileChannel` and calls `force(true)` to illustrate the difference between content sync and cache eviction.
-- Reads the same file sequentially **four times**, opening a new `FileChannel` each pass and reading through a 64 KiB `ByteBuffer`.
-- Times each pass with `System.nanoTime()`, calculates MiB/s throughput, and prints it to **stderr** since timings are machine-dependent.
-- Verifies total bytes and checksums across passes and prints **deterministic** verification results on **stdout**.
+- Creates an **8 MiB** temporary file with deterministic byte data (never touching user files).
+- Writes via `FileChannel` and calls `force(true)` to illustrate the difference between content sync and cache eviction.
+- Sequentially reads the same file **four times**, each time opening a fresh `FileChannel` and reading via a 64 KiB `ByteBuffer`.
+- Times each pass with `System.nanoTime()`, computes throughput in MiB/s, and prints to **stderr** since timings depend on the host machine.
+- Verifies total bytes and checksum across all passes, printing **deterministic** results to **stdout**.
 
 **This is a warm-up/cache observation demo, not a controlled cold-cache test and not proof of which I/O API is faster.**
 
@@ -277,14 +277,14 @@ public final class OsCacheBenchmarkDemo {
 }
 ```
 
-Compile and run with JDK 17 or newer:
+Compile and run on JDK 17 or higher:
 
 ```bash
 javac OsCacheBenchmarkDemo.java
 java OsCacheBenchmarkDemo
 ```
 
-**Stdout** when file creation and reads succeed:
+**Stdout** when the file is created and read successfully:
 
 ```text
 file bytes=8388608
@@ -292,175 +292,175 @@ all passes have full size=true
 all passes have same checksum=true
 ```
 
-**Stderr** will contain four lines `pass=1` through `pass=4`, each showing milliseconds and throughput computed from actual timings; **there is no fixed time or MiB/s value**. When run in a terminal, stderr output may interleave with stdout.
+**Stderr** will contain four lines `pass=1` through `pass=4`, each showing milliseconds and throughput computed from actual measurements; **there are no fixed timing or MiB/s values**. When run from a terminal, stderr may interleave with stdout.
 
-### What Does the Demo Prove and Not Prove?
+### What Does the Demo Prove and What Does It Not Prove?
 
-1. `Files.createTempFile()` creates a new file; `generate()` writes exactly 128 blocks × 65,536 bytes = 8,388,608 bytes. Each block follows a byte pattern from 0 to 255.
-2. `out.force(true)` requests synchronization before read measurements; however, the newly written data **may still sit in the page cache**. `pass=1` **must not be called cold**.
-3. Each `readAndMeasure()` opens a new channel without asking the OS to evict recently read pages from cache. Thus multiple passes may be served from RAM.
-4. The `read()` loop reads blocks up to 64 KiB; the checksum ensures contents are actually consumed instead of merely opening and closing the file.
-5. Elapsed time includes `FileChannel.read()`, `ByteBuffer` operations, and checksum additions, while **excluding** buffer allocation, channel open/close, and file generation time. Hence it **does not measure device throughput in isolation**.
-6. Stdout confirms every pass read the full file with matching checksums. Reading identical data does not tell you what percentage of each pass hit the page cache.
+1. `Files.createTempFile()` creates a new file; `generate()` writes exactly 128 blocks × 65,536 bytes = 8,388,608 bytes. Each block follows a pattern from 0 to 255.
+2. `out.force(true)` requests sync before read measurements; however, the newly written data **may still reside in the page cache**. `pass=1` **must not be called cold**.
+3. Each `readAndMeasure()` opens a fresh channel without telling the OS to evict just-read pages from cache. Thus multiple passes may be served from RAM.
+4. The `read()` loop reads chunks up to 64 KiB; the checksum ensures contents are genuinely consumed rather than merely opening and closing the file.
+5. Elapsed time includes `FileChannel.read()`, `ByteBuffer` operations, and checksum accumulation, yet **excludes** buffer allocation, channel open/close, and file creation time. Thus it **does not isolate device throughput**.
+6. The stdout lines verify every pass read the full file with identical checksums. Identical read data does not indicate what percentage of each pass hit the page cache.
 
-To compare different APIs, enforce identical data generation, cache state, byte counts, verification level, timer boundaries, and repetition counts. Longer measurements, reporting medians/p95/distributions, and observing disk I/O are more informative than an 8 MiB pass.
+To compare other APIs, apply the exact same data generation, cache state, byte volume, verification level, timed boundaries, and iteration counts. Running longer measurements, reporting median/p95/distributions, and observing disk I/O are more informative than an 8 MiB pass.
 
 ## 9. Designing Fair Benchmarks with Cache State in Mind
 
-### Step 1: Define the Question to Answer
+### Step 1: Identify the Question You Want to Answer
 
-Two goals often differ:
+Two goals commonly differ:
 
-**A. Real users repeatedly read a working set of cached files:** Measure a warm-cache workload since it reflects reality. Do not try to eliminate the page cache if production always benefits from it.
+**A. Real users repeatedly read a set of files already sitting in cache:** Measure a warm-cache workload because it reflects reality. Do not try to eliminate the page cache if production always benefits from caching.
 
-**B. The system processes many new/large files exceeding memory and causing disk I/O:** Construct datasets and access cycles that exercise cold/mixed caching, monitor storage metrics outside the JVM, and document reproducibility limits.
+**B. The system must process many new/large files exceeding memory and hitting disk I/O:** Construct datasets and access cycles to measure corresponding cold/mixed-cache behavior, monitor storage metrics outside the JVM, and document reproducibility limits.
 
-Never title a benchmark “measuring disk performance” when it just re-reads one small buffer from RAM.
+Never title a test "measuring disk performance" when it only re-reads a small buffer repeatedly from RAM.
 
 ### Step 2: Control the Working Set
 
-Document:
+Record:
 
-- Total dataset size touched (not just one file's name/size).
-- Physical RAM, available RAM, memory pressure, and cache capacity during measurement.
-- File and filesystem type: local SSD/HDD, network share, tmpfs, virtual filesystem; if testing on **tmpfs/RAM disk**, data already lives in RAM and cannot be extrapolated to SSD/HDD.
-- Sequential vs. random, block size, thread count, concurrency level, and interval between passes.
-- Whether any file was freshly created/copied/written/checksummed, warming the cache right before measuring.
-- Whether other workloads compete for RAM or disk concurrently.
+- Total size of the dataset touched (not just one file's name/size).
+- Physical RAM, available RAM, memory pressure, and cache capacity during the run.
+- File and filesystem type: local SSD/HDD, network share, tmpfs, virtual filesystem; if testing on **tmpfs/RAM disk**, data already lives in RAM and cannot generalize to SSD/HDD.
+- Sequential vs. random, block size, thread count, concurrency, and interval between passes.
+- Whether any files were recently created/copied/written/checksummed, warming the cache before measurement.
+- Whether other workloads simultaneously consume RAM or disk.
 
-A dataset **larger than RAM** lowers page cache hit likelihood in many cases, yet does not guarantee completely cold reads. The OS can still cache frequently touched regions, metadata, or optimize access paths. Do not state “file > RAM ⇒ guaranteed no caching” as a law.
+A dataset **larger than RAM** lowers page cache hit rates in many cases, yet does not guarantee completely cold reads. The OS may still cache repeatedly touched regions, cache metadata, or optimize access paths. Never state "file > RAM ⇒ guaranteed no cache" as an absolute law.
 
-### Step 3: Purpose-Built Warm-Up
+### Step 3: Purposeful Warm-Up
 
 For warm-cache benchmarks:
 
-1. Run enough initial iterations for JIT/JVM, class loading, and I/O data to stabilize.
-2. Separate warm-up measurements from main measurements.
-3. Run multiple measured passes, compute distributions, and verify checksums/byte counts.
-4. For A/B comparisons, alternate execution order (e.g., ABBA or randomized) to avoid always letting B ride on A's warm cache.
+1. Run enough initial passes so JIT/JVM, class loading, and I/O data stabilize.
+2. Exclude warm-up timings from primary statistics.
+3. Run multiple measured passes, compute distributions, and check checksums/byte counts.
+4. When comparing A/B, vary execution order (e.g., ABBA or randomized) to avoid always letting B benefit from A's cache.
 
-For **cold-cache**: warming Java code may still be needed, but warm-ups must not read the exact dataset that must remain cold for measurement. You can warm JIT on a separate equivalent dataset without touching the primary measurement set. Even then, shared caches and non-JVM activity must be monitored.
+For **cold-cache**: Java code warm-up may still be necessary, yet warm-up must not read the exact file set meant to stay cold for measurement. You can warm JIT using a separate equivalent dataset without touching the primary test set. Even then, shared caches and non-JVM activity must be monitored.
 
-### Step 4: Separate Java Measurements from Storage Device Measurements
+### Step 4: Distinguish Java Measurements from Storage Device Measurements
 
-Alongside `System.nanoTime()`, gather appropriate OS-level metrics:
+Alongside `System.nanoTime()`, collect appropriate OS-level metrics:
 
-| Metric group | Why it helps |
+| Metric Group | Why It Helps |
 | --- | --- |
-| Total bytes read/written by application | Verifies equivalent workload volume |
-| Actual disk I/O bytes, request count, queue, latency | Distinguishes device throughput from page-cache hits |
-| Page faults / major faults (when relevant) | Indicates memory-mapping and page-access behavior |
-| User/system CPU, context switches | Shows if benchmark is bottlenecked by Java parsing/copying/syscalls |
-| Page cache/reclaim/memory pressure | Explains why passes exhibit differing cache hit rates |
+| Total application bytes read/written | Verifies equivalent work performed |
+| Actual disk I/O bytes, request counts, queues, latency | Distinguishes hardware throughput from page cache hits |
+| Page faults / major faults (when relevant) | Hints at memory mapping and page access behavior |
+| CPU user/system, context switches | Shows if Java parsing/copy/syscalls bottleneck the run |
+| Page cache/reclaim/memory pressure | Explains why passes exhibit different cache hit rates |
 | Dirty pages and writeback activity | Distinguishes writing to RAM from writing to device |
-| Per-process vs. system-wide I/O | Avoids blaming disk I/O from another process on the benchmark |
+| Per-process vs. system-wide I/O | Avoids attributing another process's disk I/O to your benchmark |
 
-These metrics do not always map each Java page-cache hit to one simple number. On Linux, system monitors like `iostat`, `pidstat`, `vmstat`, and `perf` (if available and permitted) can help; on Windows/macOS use equivalent tools. Record tools, OS version, and collection methods.
+These metrics do not always map each Java page cache hit to one simple number. On Linux, system monitors like `iostat`, `pidstat`, `vmstat`, and `perf` can be used (where available and permitted); on Windows/macOS use equivalent tooling. Document the tools, OS version, and collection method.
 
-## 10. Can Java “Clear the Page Cache” for Cold Tests?
+## 10. Can You "Clear the Page Cache" for Cold Tests from Java?
 
-**Standard Java provides no portable API to clear the OS page cache for a file or the whole machine.** `FileChannel.close()`, `FileChannel.force()`, `Files.delete()`, `MappedByteBuffer.force()`, and `ByteBuffer.allocateDirect()` are not equivalent to dropping the kernel cache.
+**Standard Java provides no portable API to clear the OS page cache for a file or an entire host.** `FileChannel.close()`, `FileChannel.force()`, `Files.delete()`, `MappedByteBuffer.force()`, and `ByteBuffer.allocateDirect()` are not equivalent to evicting the kernel cache.
 
-Some OSes expose native tools or hints to influence the page cache, but they:
+Some operating systems offer native tools/hints to influence the page cache, yet they:
 
 - Differ across Linux, Windows, macOS, and filesystems.
 - May require administrative privileges or kernel/filesystem support.
-- Can affect the entire host, disrupting other processes, altering test conditions, and causing unwanted interference.
+- Can affect the entire host, disrupting other processes, altering test conditions, and causing unintended outages.
 - Do not guarantee absolute cold state due to device caches, metadata, readahead, or other workloads.
 
-**Never run crude host-wide page-cache drops on shared or production environments just for benchmark numbers.** If controlled cold tests are needed, use an isolated test machine, managed data/devices, and documented setup/monitoring procedures; any native actions must be approved by system owners.
+**Never run crude host-wide page-cache drops on shared or production environments just to generate benchmark numbers.** If controlled cold testing is required, use an isolated test machine, managed data/devices, and documented setup/monitoring procedures; native actions must be approved by system owners.
 
-One way to reduce cache reuse is testing across a sufficiently large set of files read in a controlled pattern, varying data order, and monitoring real disk I/O. Even so, call it a **cache-mitigated/mixed-cache test** unless cold conditions are verified.
+One way to reduce cache reuse is testing across a sufficiently large file set read in a designed pattern, varying data order and observing real disk I/O. Even then, label it a **cache-mitigated/mixed-cache test** unless cold conditions are verified.
 
-## 11. Java Benchmark Biases That Often Accompany Page Cache Effects
+## 11. Java Benchmark Biases That Commonly Accompany Page Caching
 
-Page cache is not the only factor. When numbers swing widely, also check:
+Page caching is not the only factor. When numbers swing widely, also check:
 
 | Bias | Example | Mitigation |
 | --- | --- | --- |
-| **JIT warmup** | First pass includes class loading/JIT compilation | Warm up code separately from cold dataset if needed |
-| **GC/heap pressure** | Using `Files.readAllBytes()` on huge files into arrays | Pick appropriate read chunks, log GC/heap, keep tests fair |
-| **Buffer allocation** | A calls `allocateDirect()` inside timer, B reuses heap buffer outside | Include or exclude allocation identically |
-| **Checksum/parsing** | Every byte processed by CPU, masking I/O differences | Measure both full workload and minimal read path separately |
-| **JVM/OS background load** | Antivirus, indexing, cron backups, other builds/tests | Isolate test window and record noise |
-| **Thermal/power behavior** | CPU/SSD throttling, laptop power modes | Record power state, temperature, and steady conditions |
-| **File allocation/compression** | Sparse files, filesystem compression, deduplication, all-zero data | Use realistic data; document filesystem features |
-| **Disk cache/device cache** | First pass hits SSD controller cache | Do not treat page cache as the only cache layer |
+| **JIT warmup** | First run incurs class loading/JIT compilation | Warm up code separately from cold dataset if needed |
+| **GC/heap pressure** | `Files.readAllBytes()` turns a huge file into an array | Pick appropriate chunking, record GC/heap, keep tests fair |
+| **Buffer allocation** | A calls `allocateDirect()` inside timer, B reuses heap buffer outside | Standardize whether allocation is inside or outside timing |
+| **Checksum/parsing** | Every byte uses CPU, masking I/O differences | Measure both total workload and minimal read path separately |
+| **JVM/OS background load** | Antivirus, indexing, backup cron, other builds/tests | Isolate test windows, record noise |
+| **Thermal/power behavior** | CPU/SSD throttling, laptop battery profiles | Record power state, thermals, and steady conditions |
+| **File allocation/compression** | Sparse files, filesystem compression, deduplication, all-zero data | Use realistic data patterns; note filesystem features |
+| **Disk/device cache** | First pass hits SSD controller cache | Do not treat page cache as the only cache layer |
 | **Small sample** | Reading 100 KiB and extrapolating GiB/s | Increase data volume, report variance and error bounds |
-| **Measurement scope** | A times `open()`, B does not | Align timer boundaries |
+| **Measurement scope** | A times `open()`, B does not | Align timer boundaries identically |
 | **Contention** | Multiple benchmark threads reading the same file | Control concurrency and shared bandwidth |
-| **Mixing A/B states** | Running A first to warm the file, then B | Alternate order or place both in equivalent states |
+| **Mixed A/B state** | Running A first to warm the file, then B | Alternate order or put both in equivalent states |
 
-For I/O or buffer microbenchmarks, **JMH** can manage warm-up/measurement/forks and avoid many JIT pitfalls. However, **JMH does not reset the page cache or turn storage benchmarks into cold-cache tests**; environment and working set must be controlled outside the harness.
+For microbenchmarking I/O helpers or buffers, **JMH** can manage warm-up/measurement/forks and prevent many JIT pitfalls. However, **JMH does not reset the page cache or turn a storage benchmark into a cold-cache test**; configure environment/working sets outside the harness.
 
-### Do Not Treat Speed Exceeding Disk Specs as Proof of a “Broken Benchmark”
+### Do Not Use Speed Exceeding Disk Specs as Proof of a "Broken Benchmark"
 
-If a workload is completely warm, observed throughput can exceed an SSD's nominal read speed several times over because most bytes come from RAM. That **can be valid for a warm-cache benchmark**. The mistake is interpreting that number as physical SSD bandwidth or using it to predict an application frequently reading cold data.
+If a workload is fully warm, observed throughput can exceed nominal SSD read speed multiple times because most bytes come from RAM. That **can be accurate for a warm-cache benchmark**. The mistake is interpreting that result as physical SSD bandwidth or using it to predict an application frequently reading cold data.
 
 ### Throughput and Latency Do Not Replace Each Other
 
-Throughput can be computed as `MiB/s = bytes / (1024×1024) / seconds`. Yet per-operation latency and percentiles remain essential when workloads consist of many small requests. A system with high sequential read throughput can still have terrible p99 due to major page faults, long queues, or writeback contention.
+Throughput can be computed via `MiB/s = bytes / (1024×1024) / seconds`. Yet per-operation latency and percentiles are still needed when workloads consist of many small requests. A system with high sequential file throughput can still suffer terrible p99 latency due to major page faults, deep queues, or writeback contention.
 
-## 12. Annotated Example of an A/B Experiment Design
+## 12. Annotated A/B Experiment Design Example
 
-Suppose you want to compare `Files.newInputStream()` + byte array against `FileChannel.read(ByteBuffer)`:
+Suppose you want to compare `Files.newInputStream()` + a byte array against `FileChannel.read(ByteBuffer)`:
 
 **Unfair:**
 
 ```text
-A: read file X right after machine boot
-B: re-read file X right after A
+A: read file X immediately after machine boot
+B: re-read file X after A
 Conclusion: B is always faster than A.
 ```
 
-A suffers more misses than B and may also pay JIT startup costs. The data does not prove API B is better.
+A suffers more misses than B and may pay initial JIT compilation. The data does not prove API B is better.
 
-**A sounder design:**
+**Better design:**
 
-1. State the question: **warm-cache** sequential read speed or cold/mixed-cache? Publish results only for the controlled condition.
-2. Use the same file, byte range, reasonable block size, and checksum/processing.
-3. Warm up Java code and data according to the goal; if cold/mixed, prepare separate datasets and external control procedures outside the JVM.
-4. Run multiple passes in alternating order, e.g. A→B→B→A, never letting one API always go first.
-5. Record bytes, duration, throughput, CPU, disk I/O, GC, and test conditions; report median and distribution rather than best speed alone.
-6. Check whether cache state drifted between passes, consider dropping noisy runs, and publish outlier rejection criteria before running.
-7. If production uses multiple clients, also benchmark contention, file sizes, and concurrency resembling production.
+1. State the question: sequential read speed under **warm-cache** or cold/mixed-cache? Publish results only for the controlled condition.
+2. Choose identical files, byte ranges, sensible block sizes, and checksum/processing logic.
+3. Warm up Java code and data per goal; if testing cold/mixed, design separate datasets and external control procedures.
+4. Run multiple iterations with alternating order—such as A→B→B→A—never letting one API always run first.
+5. Record bytes, duration, throughput, CPU, disk I/O, GC, and test conditions; report median and distribution instead of just best speed.
+6. Check whether cache state drifted across iterations; consider outlier rules defined prior to execution.
+7. When production serves multiple clients, additionally benchmark contention, realistic file sizes, and concurrency.
 
-Never change API, buffer size, random vs. sequential pattern, thread count, and flush timing all in one experiment and attribute the entire difference to the API.
+Never change API, buffer size, random/sequential access, thread count, and flush timing all in one experiment and attribute the entire difference to the API.
 
 ## 13. Common Mistakes and Fixes
 
-| Misconception / mistake | Consequence | Right approach |
+| Misconception / Error | Consequence | Right Approach |
 | --- | --- | --- |
-| Calling the first read cold just because it is Java's first read | File may already be warm from creation/copying | Label as first measured pass, control data, measure disk I/O |
-| Closing `FileChannel` and thinking cache was cleared | Next read is still served from RAM by the kernel | Separate channel lifecycle from page cache |
-| Calling `force(true)` and trusting the next read is cold | Force has no eviction semantics | Use force only when measuring sync/durability |
-| Using `allocateDirect()` to bypass the page cache | Direct buffers are not `O_DIRECT` | Measure copy/alloc separately, state cache path |
-| Running A then B on the same file | B usually enjoys warm cache from A | Alternate order or separate cache states |
-| Timing only `write()` and reporting durable disk write throughput | Measures mostly write-back buffering | Report write acceptance or include `force()` as appropriate |
-| Creating the test file right before a “cold read” | Data may be retained in page cache | Use dedicated cold setup and verify with metrics |
-| Reading a few MiB and extrapolating to multi-GiB files | Small working set fits in RAM | Measure with a production-sized working set |
+| Calling the first read "cold" because it is Java's first read | File may already be warm from creation/copy | Label as first measured pass, control data, and measure disk I/O |
+| Closing `FileChannel` and thinking cache cleared | Subsequent reads still served from RAM by kernel | Separate channel lifecycle from page cache |
+| Calling `force(true)` and believing the next read is cold | Force has no eviction semantics | Use force only when measuring sync/durability |
+| Using `allocateDirect()` to skip page cache | Direct buffer is not O_DIRECT | Measure copy/alloc separately, document cache path |
+| Running A first, then B on the same file | B routinely benefits from A's warm cache | Alternate order or separate cache states |
+| Timing only `write()` and publishing durable disk throughput | Mostly measures write-back buffering | Report write acceptance or include `force()` as appropriate |
+| Creating test file right before a "cold read" | Data may remain in the page cache | Use dedicated cold setup and verify with metrics |
+| Reading a few MiB and extrapolating to multi-GiB files | Small working set fits in RAM | Measure with production-sized working sets |
 | Calling `MappedByteBuffer.load()` for only one strategy | Unfair warm-up advantage | Keep warm-up scope equivalent |
-| Using JMH assuming cache resets per fork | Forking the JVM does not reset kernel cache | Control cache outside JMH |
-| Not reading fully / skipping content verification | Approaches do unequal amounts of work | Count bytes, use checksums or appropriate blackholes |
+| Using JMH and assuming cache resets per fork | Forking the JVM does not reset kernel cache | Control cache outside JMH |
+| Not reading completely / not verifying contents | Competing approaches do unequal work | Count bytes, use checksums or proper blackholes |
 | Using compressed/sparse/all-zero files unlike production | Distorts filesystem/storage speed | Generate realistic workload data |
-| Reporting only one best MiB/s figure | Hides variance, cold/warm state, and noise | Report distribution and environment configuration |
-| Dropping page cache across an active shared host | Disrupts other workloads and skews readings | Use an isolated test host and approved procedures |
+| Publishing only one pretty peak MiB/s number | Hides variance, cold/warm state, and noise | Report distribution and environment configuration |
+| Trying to drop page cache on a live shared host | Disrupts other workloads and skews measurements | Use an isolated test environment with approved procedures |
 
-## 14. Checklist for a Reproducible Benchmark Report
+## 14. Reproducible Benchmark Reporting Checklist
 
-A trustworthy file read/write report should answer:
+A credible file read/write report should answer:
 
-1. **Goal:** Sequential read, random read, metadata, or durable write? Testing API or device?
-2. **Dataset:** Total bytes actually read/written, file count, per-file size, entropy/compression level, newly created or pre-existing files.
+1. **Goal:** Sequential read, random read, metadata, or durable write? Testing an API or storage hardware?
+2. **Dataset:** Total bytes actually read/written, file count, size per file, entropy/compressibility, freshly created or pre-existing files.
 3. **Cache condition:** Warm, verified cold, or mixed/unknown? How was the state prepared and verified?
-4. **Environment:** OS/kernel, JVM/vendor/version, CPU, RAM, filesystem, storage device, container/VM or bare metal.
-5. **Java config:** API, heap/direct buffer, block size, thread count, GC/heap size, open/close handling.
+4. **Environment:** OS/kernel, JDK/vendor/version, CPU, RAM, filesystem, storage device, container/VM or bare metal.
+5. **Java configuration:** API, heap/direct buffer, block size, thread count, GC/heap size, file open/close strategy.
 6. **Timer:** Does it include open, allocation, read/write, parsing/checksum, force, close, and cleanup?
-7. **Methodology:** Warm-up pass count, measured pass count, A/B ordering alternation, random access seed.
+7. **Methodology:** Warm-up pass count, measured pass count, A/B ordering scheme, random access seed.
 8. **Metrics:** Bytes, MiB/s, latency, median/p95, GC/CPU, disk I/O, memory, and variance.
-9. **Correctness:** Checksum/byte-count checks, EOF handling, partial read/write handling, `IOException` handling.
-10. **Limitations:** Uncontrolled assumptions, device caches, or background tasks that could cause variance.
-11. **Test safety:** Never drop caches on production hosts; never run destructive benchmarks on real data.
-12. **Interpretation:** Scope conclusions to the measured workload and cache state; do not generalize into an absolute speed of “Java I/O.”
+9. **Correctness:** Checksum/byte-count verification, EOF handling, partial reads/writes, `IOException` handling.
+10. **Limitations:** Uncontrolled assumptions, device caches, or background tasks that could sway results.
+11. **Test safety:** Never drop caches host-wide in production; never run destructive benchmarks on real data.
+12. **Interpretation:** Scope conclusions to the measured workload and cache state; never generalize into an absolute speed for "Java I/O".
 
-**Remember:** The OS page cache can turn a file-read test into a RAM-access measurement, while write-back can let a write test finish before data rests durably on the device. **Closing files, calling `force()`, starting a new JVM/container, or using direct `ByteBuffer` does not clear the page cache.** Sound benchmarks define cold/warm goals, control working sets, run fair multi-pass comparisons, verify byte volumes, and cross-check OS-level I/O counters before concluding anything about file or device performance.
+**Key Takeaway:** The OS page cache can turn a file read test into a RAM access measurement, while write-back caching can let a write test finish before data reaches durable storage. **Closing a file, calling `force()`, launching a new JVM/container, or using a direct `ByteBuffer` does not clear the page cache.** Sound benchmarking defines cold/warm goals, controls working sets, runs fair multi-pass comparisons, verifies byte counts, and cross-checks OS-level I/O metrics before drawing conclusions about file or hardware performance.

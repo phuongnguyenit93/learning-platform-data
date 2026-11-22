@@ -2,15 +2,15 @@
 
 ## 1. Objectives and Completion Criteria
 
-This exercise integrates the Java I/O and NIO.2 components covered so far into a runnable, testable pipeline: **read bytes → decode UTF-8 → read line by line → validate data → aggregate → write temporary file → move result into destination**. Alongside the happy path, every potential failure point must have a test showing the error is caught, resources are closed, and any prior valid output remains intact if execution never reaches commit.
+This exercise integrates the Java I/O/NIO.2 components covered so far into a runnable, testable pipeline: **read bytes → decode UTF-8 → read line by line → validate data → compute → write temp file → move result to target location**. Alongside the happy path, every potential failure point must have a test showing that the error is caught, resources are closed, and any previous valid output remains intact before the commit step.
 
-After this lesson, you should be able to explain the difference between data-format errors and I/O errors, the role of `try-with-resources`, why you must not overwrite an existing report directly, how to inject controlled failures, and how to test **both the exception and the post-failure file state**.
+After this lesson, you should be able to explain the difference between data-format errors and I/O errors, the role of `try-with-resources`, why you should never overwrite an old report directly, how to inject controlled faults, and how to test **both the exception and post-exception file state**.
 
-**Sample problem:** Read a UTF-8 file `orders.csv` with two columns `id,quantity`, compute record count and total quantity, and output `report.txt` containing `records=...` and `totalQuantity=...`. This exercise uses a **simple CSV with exactly one comma per line**, without quoted fields or commas inside values; real-world CSV systems need a dedicated parser.
+**Sample problem:** Read a UTF-8 `orders.csv` file with two columns `id,quantity`, compute record count and total quantity, and write `report.txt` containing `records=...` and `totalQuantity=...`. This exercise uses **simple CSV with exactly one comma per line**, without supporting quoted fields or commas inside values; production CSV systems require a dedicated parser.
 
-Data rules: the first line must be exactly `id,quantity` (no BOM); each subsequent line must have an ID matching `[A-Za-z][A-Za-z0-9_-]{0,31}`, no duplicate IDs, and `quantity` as a positive `long` integer. Blank lines, invalid numbers, non-positive values, duplicate IDs, malformed UTF-8 data, or total overflow all fail the operation. A header-only file is valid and produces a report with 0 records and total 0.
+Data rules: the first line must strictly be `id,quantity` (no BOM); each subsequent line must have an ID matching `[A-Za-z][A-Za-z0-9_-]{0,31}`, no duplicate IDs, and `quantity` as a positive `long` integer. Blank lines, invalid numbers, negative/zero numbers, duplicate IDs, malformed UTF-8 data, or sum overflow all fail the operation. A header-only file is valid and produces a report with 0 records and total 0.
 
-Sample input:
+Example input:
 
 ```csv
 id,quantity
@@ -27,17 +27,17 @@ totalQuantity=9
 
 ## 2. Pipeline Design and Responsibility Boundaries
 
-1. `generate` accepts input/output `Path`s, disallows pointing to the same file, and coordinates two phases.
-2. `parse` uses `Files.newInputStream`, `InputStreamReader` with a UTF-8 decoder in `REPORT` mode, and `BufferedReader` for sequential processing. All parsing and validation complete **before creating the new report**.
-3. `writeSafely` writes results to a temporary file in the **same directory** as the destination, closing the writer before moving; it calls `Files.move(..., ATOMIC_MOVE, REPLACE_EXISTING)` to request an atomic rename where supported by the filesystem. If atomic move is unsupported, it throws a clear error rather than silently falling back to a weaker operation.
-4. `finally` deletes the temporary file if it still exists. `BeforeCommit` is a test fault-injection hook allowing an error right after writing the temp file without depending on OS file permissions.
-5. The test suite uses an isolated temporary directory per test case and cleans up afterward. Assertions verify output values, **expected exception types**, and effects on old output and temp files.
+1. `generate` accepts input/output `Path`s, forbids using the same file for both, and orchestrates two phases.
+2. `parse` uses `Files.newInputStream`, `InputStreamReader` with a UTF-8 decoder in `REPORT` mode, and `BufferedReader` for sequential processing. All parsing and validation happen **before creating any new report**.
+3. `writeSafely` writes the result to a temp file in the **same directory** as the target, closing the writer before moving; it calls `Files.move(..., ATOMIC_MOVE, REPLACE_EXISTING)` to request atomic rename when supported by the filesystem. If atomic move is unsupported, it throws a clear error rather than silently downgrading to a weaker operation.
+4. `finally` deletes the temp file if it still exists. `BeforeCommit` is a test-only fault-injection hook allowing failure right after writing the temp file without depending on OS or file permissions.
+5. The test suite uses an isolated temporary directory per test case and cleans up afterward. Assertions verify output values, **expected exception types**, and side effects on old/temp files.
 
-In this single-threaded example, "safe" means **never intentionally replacing the old report before new data has been fully read, validated, and written**; atomicity of the rename step itself must be provided by the filesystem. This is not a multi-file transaction mechanism, concurrent-write guard, or guarantee that data has been physically synced to storage hardware.
+In this single-threaded example, "safely" means **avoiding intentionally replacing the old report before new data is read, validated, and fully written**; rename atomicity must be provided by the filesystem. This is not a multi-file transaction mechanism, concurrent-write defense, or guarantee that data has been physically synced to storage hardware.
 
-## 3. Complete Code: Java 17 or Later
+## 3. Complete Code: Java 17 or Newer
 
-Save the full program below in **`IntegratedIoDemo.java`** (single file, no third-party libraries). `Summary` uses a `record`, and test helpers live in the same class to run directly with the JDK.
+Save the entire program below in **`IntegratedIoDemo.java`** (single file, no third-party libraries). `Summary` uses a `record`, and test methods live in the same class so it runs directly with the JDK.
 
 ```java
 import java.io.BufferedReader;
@@ -298,7 +298,7 @@ public class IntegratedIoDemo {
 }
 ```
 
-## 4. Compiling, Running, and Observing Results
+## 4. Compile, Run, and Observe Results
 
 In the directory containing the Java file, run:
 
@@ -307,7 +307,7 @@ javac -encoding UTF-8 IntegratedIoDemo.java
 java IntegratedIoDemo
 ```
 
-On a filesystem supporting atomic rename, the program prints these exact 11 lines (verified on JDK 21 with Java 17 compatible code):
+On a filesystem supporting atomic rename, the program prints these exact 11 lines (verified on JDK 21 with Java 17-compatible source):
 
 ```text
 PASS success
@@ -323,46 +323,46 @@ PASS failure-before-commit
 PASS same-input-and-output
 ```
 
-To run as an actual tool, create `orders.csv` from the section 1 example, then run:
+To run as an actual CLI tool, create `orders.csv` from section 1, then execute:
 
 ```bash
 java IntegratedIoDemo orders.csv report.txt
 ```
 
-This prints `Created report: report.txt` on success. The report file content matches the example; file line endings depend on the platform, while `Files.readAllLines` checks content line by line to avoid tying tests to CRLF/LF.
+This prints `Created report: report.txt` on success. The report file's content matches the example; file line endings depend on the platform, while `Files.readAllLines` verifies content line by line so tests avoid coupling to CRLF/LF.
 
-## 5. Test Matrix for Success and Failure Branches
+## 5. Success and Failure Test Matrix
 
 | Test Case | Trigger | Outcome to Prove |
 |---|---|---|
 | `success` | Valid data, two records | Produces report `records=2`, `totalQuantity=9` |
 | `missing-input` | Source path has no file | `NoSuchFileException`; no output created |
-| `bad-header` | Incorrect header | `DataFormatException` referencing first line |
-| `bad-row` | Quantity `nope` | `DataFormatException` instead of skipping the line |
+| `bad-header` | Incorrect header | `DataFormatException` citing line 1 |
+| `bad-row` | Quantity `nope` | `DataFormatException` instead of skipping the row |
 | `duplicate-id` | ID `a` appears twice | Detects duplicate ID and stops |
 | `sum-overflow` | Total exceeds `Long.MAX_VALUE` | `Math.addExact` catches overflow, prevents wrong report |
 | `malformed-utf8` | Bytes `C3 28` do not form valid UTF-8 | `MalformedInputException` from decoder in `REPORT` mode |
-| `output-is-directory` | Destination path is a directory | Throws `IOException`; directory stays intact |
-| `old-report-survives-bad-input` | Existing report is `KEEP`, new input is invalid | Existing report stays intact character-for-character |
-| `failure-before-commit` | Hook throws `IOException` after closing writer | Existing report remains `KEEP`; no `.report-*.tmp` leftover |
-| `same-input-and-output` | Input and output point to the same file | Rejects processing; input is not overwritten |
+| `output-is-directory` | Target path is a directory | Throws `IOException`; directory remains intact |
+| `old-report-survives-bad-input` | Old report is `KEEP`, new input invalid | Old report remains character-for-character intact |
+| `failure-before-commit` | Hook throws `IOException` after writer closes | Old report remains `KEEP`; zero `.report-*.tmp` files left |
+| `same-input-and-output` | Source and target point to the same file | Rejects processing; source is not overwritten |
 
-**Why verify post-failure state?** Checking `expect(IOException.class, ...)` alone is not enough: a program can still throw an exception *after already corrupting the output*. Both `old-report-survives-bad-input` and `failure-before-commit` directly verify old-data immutability; the latter also checks temp cleanup. Creating a fresh temporary directory per test keeps results free from leftover state from other runs.
+**Why verify post-error state?** Checking `expect(IOException.class, ...)` alone is insufficient: a program can still throw an exception *after already corrupting the output*. Both `old-report-survives-bad-input` and `failure-before-commit` directly verify immutability of the old data; the latter additionally verifies cleanup. Creating a dedicated temporary directory per test prevents results from depending on leftover state from prior runs.
 
-## 6. Error Handling and Resource Lifecycle
+## 6. Error Handling Mechanics and Resource Lifecycle
 
-**Read path:** `Files.newInputStream` can throw `NoSuchFileException`, `AccessDeniedException`, or other `IOException`s. `InputStreamReader` turns bytes into characters using the specified decoder; `REPORT` mode guarantees invalid UTF-8 bytes are reported rather than silently replaced with ``. `BufferedReader.readLine()` is convenient for line-oriented data, though unsuitable when line terminators must be preserved verbatim or when handling multiline records. Closing `BufferedReader` in `try-with-resources` also closes the inner reader and input stream, even if the parser throws.
+**Read path:** `Files.newInputStream` can throw `NoSuchFileException`, `AccessDeniedException`, or other `IOException`s. `InputStreamReader` converts bytes to characters using the specified decoder; `REPORT` mode ensures invalid UTF-8 bytes are reported rather than silently replaced with `�`. `BufferedReader.readLine()` is convenient for line-oriented data, though unsuitable when exact line endings must be preserved or multi-line records parsed. Closing `BufferedReader` in `try-with-resources` also closes the underlying reader and input stream, even when the parser throws.
 
-**Validation path:** `DataFormatException extends IOException` represents input contents violating the contract, with line numbers available for diagnostics. `Long.parseLong` rejects non-numeric text or out-of-range numbers; `Math.addExact` and `Math.incrementExact` prevent silent overflow during accumulation. `Set` detects duplicate IDs. The exercise adopts a **fail-fast** policy: a single invalid line fails the whole run without emitting a partial report. If business requirements demand collecting multiple errors at once, design a dedicated validation-result structure.
+**Validation path:** `DataFormatException extends IOException` represents input content failing the contract, with line numbers for diagnostics. `Long.parseLong` catches non-numeric text and out-of-range numbers; `Math.addExact` and `Math.incrementExact` prevent overflow during accumulation. `Set` catches duplicate IDs. This exercise chooses a **fail-fast** policy: a single invalid row fails the entire run without generating a partial report. If business logic requires collecting multiple errors to return together, design a separate validation-result model.
 
-**Write path:** Writing directly to `output` with `TRUNCATE_EXISTING` can wipe existing content before an error occurs. Using a temp file in the same directory reduces the chance of cross-filesystem renames. The writer closes before `move`; if the hook throws, `finally` deletes the temp file. If atomic rename is unsupported, the method throws an `IOException` wrapping `AtomicMoveNotSupportedException`. With `ATOMIC_MOVE`, existing-target handling varies by provider; verify on the deployment filesystem, and never swallow access/write permission errors as success.
+**Write path:** writing directly to `output` with `TRUNCATE_EXISTING` can wipe old content before an error strikes. A temp file in the same directory reduces the risk of cross-filesystem renames. The writer closes before `move`; if the hook throws, `finally` cleans up the temp file. If atomic rename is unsupported, the method throws an `IOException` wrapping `AtomicMoveNotSupportedException`. Under `ATOMIC_MOVE`, existing-target handling varies by provider; verify on your deployment filesystem, and never swallow access/write-permission errors as if they succeeded.
 
-**Practical limitations to note:** The example does not monitor disk space/quotas, does not call `FileChannel.force` to strengthen power-loss durability, does not coordinate multiple concurrent processes updating the report, and does not defend against concurrent path/symlink swaps between check and write. In a real service, add file size caps, path/permission policies, contextual logging, and locking/coordination where needed. Never write `catch (Exception) { }`, and never discard root causes when wrapping into `DataFormatException`.
+**Practical limitations note:** The example does not track disk space/quotas, does not call `FileChannel.force` to strengthen power-loss durability, does not solve concurrent updates to the report by multiple processes, and does not guard against path/symlink swaps between check and write. In a real service, add file-size limits, path/permission policies, contextual logging, and locking/coordination where required. Never write `catch (Exception) { }`, and never lose the underlying cause when wrapping into `DataFormatException`.
 
 ## 7. Self-Evaluating Results and Controlled Extensions
 
-A complete solution must simultaneously achieve: all valid cases pass; every invalid branch fails with the right exception class/group; prior valid content remains intact when validation or hooks fail; zero leaked temp files; distinct input/output; closed file handles; and no output published before commit.
+A complete submission must pass all of these together: the valid case runs green; each failure branch fails with the right exception type/group; existing valid content remains intact when validation or hooks fail; zero temp files leak; input and output are distinct; file handles close cleanly; and output is never published prior to the commit step.
 
-To test deeper understanding, deliberately alter one test case to quantity `0` or `-1`, a line missing a comma, a second comma, an empty header, an invalid ID, and a non-existent output parent: determine whether each error comes from the parse phase or the write phase, and why. Try switching the decoder to `REPLACE` mode to observe why strict mode matters when data quality counts. When moving to CI, you can convert the tests to JUnit 5 with `@TempDir`, `assertThrows`, and `assertEquals`, keeping all data and cleanup assertions intact.
+To test deeper understanding, deliberately alter a test case to quantity `0` or `-1`, a row missing a comma, add a second comma, an empty header, an invalid ID, and a non-existent output parent: identify whether the failure occurs in the parse phase or write phase, and why. Try switching the decoder to `REPLACE` mode to see why strict mode is vital when data quality matters. When moving to CI, convert the tests into JUnit 5 using `@TempDir`, `assertThrows`, and `assertEquals`, keeping all data and cleanup assertions intact.
 
 The core lesson of this exercise is **proving behavior under failure**, not merely proving one happy path works.

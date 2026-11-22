@@ -1,50 +1,50 @@
-# Diagnosing Unflushed Data, Open File Handles, and Misconfigured Buffers in Java I/O / NIO.2
+# Diagnosing Unflushed Data, Open File Handles, and Misconfigured Buffer State in Java I/O / NIO.2
 
-An application may call `write()` while the file remains empty; fail to delete or rename a file because a resource is still open; or have `FileChannel` write 0 bytes even though `ByteBuffer` holds data. These three symptoms are often lumped together as "I/O hasn't finished writing yet", yet they stem from **three different state layers**:
+An application may call `write()` while the file remains empty; a file may refuse to be deleted or renamed because a resource is still open; or `FileChannel` may write 0 bytes even though `ByteBuffer` holds data. These three symptoms are often lumped together as "I/O didn't finish writing," yet they stem from **three distinct state layers**:
 
-1. **Unflushed output buffers**: data is still sitting inside `BufferedWriter`, `BufferedOutputStream`, or the character-encoding layer, not yet pushed down to the underlying I/O layer.
-2. **Unclosed OS resources**: an `InputStream`, `OutputStream`, `Reader`, `Writer`, `FileChannel`, `DirectoryStream`, or file-backed `Stream` is still holding a resource; file descriptors/handles or file locks can accumulate.
-3. **`Buffer` with wrong `position`/`limit`**: data sits in memory, yet the NIO API sees zero "remaining" bytes to read/write, or stale data gets written repeatedly or mixed with invalid bytes.
+1. **Unflushed output buffer**: data still sits inside `BufferedWriter`, `BufferedOutputStream`, or the character-encoding layer and has not been pushed down to the underlying I/O layer.
+2. **Unclosed OS resource**: an `InputStream`, `OutputStream`, `Reader`, `Writer`, `FileChannel`, `DirectoryStream`, or file-backed `Stream` is still holding a resource; file descriptors/handles or file locks can accumulate.
+3. **Incorrect `Buffer` `position`/`limit`**: data is in memory, yet NIO APIs see zero `remaining` bytes to read/write, or stale data gets written repeatedly or mixed with invalid bytes.
 
-To fix the issue properly, determine which layers the data has passed through, who owns the resource, and what state the buffer holds at the API call site.
+To fix these properly, first identify which layers the data has passed through, who owns the resource, and the buffer's state at the moment the API is called.
 
-## 1. Data Transfer Chain: `write`, `flush`, `close`, and Disk Durability
+## 1. The Data Path: `write`, `flush`, `close`, and Disk Durability
 
 A typical write path has several layers:
 
 ```text
 Application data
    └─ BufferedWriter (character buffer)
-        └─ OutputStreamWriter (encodes chars to bytes)
+        └─ OutputStreamWriter (encodes characters to bytes)
              └─ BufferedOutputStream (byte buffer, if present)
                   └─ FileOutputStream / FileChannel
-                       └─ OS / filesystem page cache
+                       └─ OS / filesystem cache
                             └─ storage device
 ```
 
-Not every program uses all layers. For example, `Files.newBufferedWriter(path, UTF_8)` returns a buffered writer; `Files.writeString` is a convenience write API that leaves no writer for the caller to close.
+Not every program includes all layers. For example, `Files.newBufferedWriter(path, UTF_8)` returns a buffered writer; `Files.writeString` is a convenience write API that leaves no writer for the caller to close manually.
 
-| Action | Guaranteed Under Standard Contract | **Not** Guaranteed |
+| Action | Guaranteed Under Normal Contract | **Not** Guaranteed |
 | --- | --- | --- |
-| `writer.write(...)` | Places data into writer state; may still sit solely in a buffer | File immediately reflects all data |
-| `writer.flush()` | Pushes buffered data to the underlying destination and flushes nested writers/streams per contract | Bytes are durably persisted on physical storage |
-| `writer.close()` | On standard writers like `BufferedWriter`, flushes before closing and releasing resources; may throw I/O errors | Business transaction completion or absolute `fsync` |
-| `FileChannel.force(true)` | Requests forcing content and metadata changes through the channel to the device per provider guarantees | Turning every filesystem, NFS/remote mount, or hardware cache into durable transactions |
-| `FileDescriptor.sync()` | Requests OS synchronization of data associated with the descriptor | Replacing flushing of Java-layer buffers that haven't pushed bytes to the descriptor |
+| `writer.write(...)` | Feeds data into the writer's state; may still sit solely in memory | That the file immediately observes all data |
+| `writer.flush()` | Requests pushing buffered data to the underlying destination and flushing chained writers/streams per contract | That bytes are durably persisted on physical storage |
+| `writer.close()` | On standard writers like `BufferedWriter`, flushes before closing and releasing resources; may throw I/O errors | That a business transaction is complete or the file was strictly `fsync`'d |
+| `FileChannel.force(true)` | Requests forcing content and metadata changes through the channel to the device per provider guarantees | Turning every filesystem, NFS/remote mount, or hardware cache into a durable transaction |
+| `FileDescriptor.sync()` | Requests the OS to synchronize data associated with the descriptor | Replacing flushing of Java-layer buffers that haven't pushed bytes to the descriptor yet |
 
-**Distinguish three questions:** "Did `write` run?" differs from "Was it `flush`ed to the OS?" and from "Was `force`/`sync` called to reduce crash data-loss risk?". If a writer still buffers characters in RAM, calling `force` on the underlying file channel without flushing the writer **cannot sync bytes that never reached the channel**.
+**Distinguish three questions:** "Was `write` called?" differs from "Was it `flush`ed to the OS?" and differs from "Was `force`/`sync` called to reduce crash data-loss risk?" If a writer still buffers characters in RAM, calling `force` on the underlying file channel without flushing the writer **cannot sync bytes that never reached the channel**.
 
-For everyday file handling, `try-with-resources` and checking `close` exceptions suffice to drain Java buffers and release resources. For high-durability requirements (transaction logs, checkpoints), add explicit sync contracts, temp files, safe atomic renames, and filesystem support verification.
+For ordinary file handling, `try-with-resources` and checking close exceptions usually suffice to ensure Java-layer buffers drain and resources release. For high-durability requirements (transaction logs, checkpoints), add explicit sync contracts, temporary files, proper atomic renames, and filesystem support checks.
 
 ## 2. Signs of Unflushed Data
 
-Familiar scenarios:
+Familiar situations:
 
-- Calling `write("hello")` on `BufferedWriter`, after which another process reads the file and does not see `"hello"` yet. The writer may still hold the string in its buffer.
-- Calling `PrintWriter.print(...)` and expecting output immediately. `PrintWriter`'s `autoFlush=true` flag flushes automatically on `println`, `printf`, or `format`, **not** after every `print`/`write`.
-- Multiple buffering layers where only an inner layer is flushed manually by a non-owner. In standard designs, flushing the **outermost wrapper** pushes data through the underlying layers.
-- The process terminates abnormally before closing the writer. `try-with-resources` handles normal Java control flow and exceptions, but does not run on immediate process kill or OS-level JVM crashes.
-- Logging "saved" before the write/flush/close path actually finishes, when those steps can still throw exceptions. Publish success only after the entire write path returns normally.
+- Calling `write("hello")` on a `BufferedWriter`, then another process reads the file and does not see `"hello"` yet. The writer may still hold that string in its buffer.
+- Using `PrintWriter.print(...)` and expecting data to appear immediately. `PrintWriter`'s `autoFlush=true` flag flushes automatically on `println`, `printf`, or `format`, **not** after every `print` or `write`.
+- Multiple buffering layers exist, yet only one layer is flushed manually by the wrong owner. In a normal design, flushing the **outermost wrapper** pushes data through the layers beneath.
+- The process terminates abnormally before closing the writer. `try-with-resources` handles normal Java control flow and exceptions, but does not run if the process is killed immediately or the JVM/OS crashes.
+- Logging "saved" before the write/flush/close sequence finishes, when those steps can still throw an exception. Report success only after the entire write path returns normally.
 
 Correct pattern:
 
@@ -60,29 +60,29 @@ try (BufferedWriter writer =
     writer.write("hello");
     writer.newLine();
     writer.flush(); // Needed only if data must be visible before closing.
-} // close flushes and closes on the normal execution path.
+} // close will flush and close on the normal execution path.
 ```
 
-This is **illustrative code inside a method**; class and `main` are omitted. If nothing needs to observe the file before closing, calling `flush()` right before `close()` is usually unnecessary. On interactive protocols such as sockets, however, flush whenever a response must be sent rather than waiting for connection close.
+The snippet above is **illustrative code inside a method**; class and `main` are omitted. If there is no need to observe the file before closing, calling `flush()` manually right before `close()` is usually unnecessary. However, if the output is an interactive protocol like a socket, flush at every response boundary instead of waiting for connection close.
 
-**Never use `Thread.sleep(...)` as a flush workaround.** Waiting does not make `BufferedWriter` drain its buffer. Conversely, avoid calling `flush` after *every single byte* on large files, as excessive small syscalls degrade performance.
+**Never use `Thread.sleep(...)` as a flushing workaround.** Waiting does not guarantee `BufferedWriter` will drain its buffer on its own. Likewise, avoid calling `flush` after *every single byte* when writing large files, because frequent small syscalls degrade performance.
 
-### `PrintWriter` hides I/O errors
+### `PrintWriter` Swallows I/O Errors
 
-Unlike most writers, `PrintWriter` does not throw `IOException` directly from common write methods; `checkError()` reports error status and flushes if the stream is still open. Thus calling `println` without an exception **does not prove** the file write succeeded. When explicit error reporting is needed, prefer `BufferedWriter` or APIs with transparent exceptions; if using `PrintWriter`, check errors at an appropriate boundary.
+Unlike most writers, `PrintWriter` does not throw `IOException` directly from standard write methods; `checkError()` reports error status and flushes if the stream is still open. Therefore, calling `println` without an exception **does not prove** the file was written successfully. When explicit error reporting is needed, prefer `BufferedWriter` or exception-throwing APIs; if using `PrintWriter`, call `checkError()` at appropriate checkpoints.
 
-## 3. Open File Handles: Who Owns Closing Them?
+## 3. Open File Handles: Who Is Responsible for Closing?
 
-A "file handle" on Windows and a "file descriptor" on Unix-like systems are OS resources. Any Java object holding an open stream or channel keeps this resource alive, directly or through a wrapper. Common symptoms:
+A "file handle" on Windows and a "file descriptor" on Unix-like systems are OS resources. A Java object keeping a stream or channel open can continue holding this resource, directly or through a wrapper. Common symptoms:
 
-- `Too many open files` / `EMFILE` when opening resources repeatedly without closing, especially in long-running servers.
-- On Windows, `AccessDeniedException`, move/delete failures, or external apps unable to rename a file while a process holds a handle with incompatible share modes. On Unix, unlinking an open filename generally succeeds, while data/resources persist until the last handle closes. Exact behavior depends on filesystem and OS permissions.
-- File locks held longer than needed, blocking other workers or exclusive operations.
-- Descriptor counts creeping upward over requests; restarting temporarily "cures" the symptom before the failure returns.
+- `Too many open files` / `EMFILE` when opening resources without closing them, especially in long-running servers.
+- On Windows, `AccessDeniedException`, move/delete failures, or another application failing to rename a file while a process holds a handle with an incompatible sharing mode. On Unix, unlinking an open file name usually succeeds; the underlying data/resource persists until the final handle closes. Exact behavior depends on the filesystem and OS permissions.
+- File locks held longer than necessary, blocking other workers from acquiring locks or exclusive access.
+- After a series of requests, descriptor counts climb over time; restarting temporarily "fixes" the symptom until the error recurs.
 
-**Ownership principle:** whoever creates a stream/channel normally owns closing it. Returning a stream from a method without documenting that the caller must close it invites leaks. When an API returns a lazy file-reading `Stream<String>`, wrap it in `try-with-resources` at the consumption site.
+**Ownership principle:** whoever creates a stream or channel is normally responsible for closing it. Returning a stream from a method without specifying that the caller must close it is a classic leak source. If an API returns a lazy file-backed `Stream<String>`, wrap it in `try-with-resources` at the consumption site.
 
-Example reading a file and closing the source automatically:
+Example of reading a file and closing the source properly:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -98,9 +98,9 @@ try (Stream<String> lines =
 }
 ```
 
-This is a **snippet inside a method that `throws IOException` or handles errors**, not a standalone Java program. `Files.lines`, `Files.list`, `Files.walk`, and `Files.find` can hold filesystem handles open; always close the returned `Stream`. Terminal commands like `cat` or `grep` do not manage Java stream lifecycles.
+This is a **snippet inside a method declaring `throws IOException` or handling errors**, not a standalone Java program. `Files.lines`, `Files.list`, `Files.walk`, and `Files.find` can hold filesystem resources open; always close the returned `Stream`. Terminal commands like `cat` or `grep` do not manage a Java stream's lifecycle.
 
-For channels or file locks, close in proper order:
+For channels or file locks, close in proper scope:
 
 ```java
 import java.nio.channels.FileChannel;
@@ -112,37 +112,37 @@ try (FileChannel channel = FileChannel.open(
          Path.of("state.bin"), StandardOpenOption.CREATE,
          StandardOpenOption.READ, StandardOpenOption.WRITE);
      FileLock lock = channel.lock()) {
-    // Work requiring the lock executes inside this try block.
-} // Lock releases, then channel closes (reverse creation order).
+    // Work requiring lock, performed within this try scope.
+} // Lock is released, then channel is closed (reverse creation order).
 ```
 
-This is an illustrative snippet. `FileLock` also depends on OS and filesystem support/semantics. Closing a wrapper can close the underlying stream/channel; never keep using that resource after its owning wrapper has closed. Conversely, `ByteArrayOutputStream` is an in-memory buffer with no file descriptor; do not equate every `close()` with releasing an OS file.
+This is an illustrative snippet. `FileLock` also depends on OS and filesystem semantics and support. Closing a wrapper can also close the underlying stream or channel; never continue using that resource after its owning wrapper has closed. Conversely, `ByteArrayOutputStream` is an in-RAM buffer and opens no file descriptors; do not conflate every `close()` with releasing OS file resources.
 
-### How to hunt down leaked file descriptors
+### How to Track Down Leaked File Descriptors
 
-| Environment | Useful Observation Tools | Notes |
+| Environment | Useful Inspection Tools | Notes |
 | --- | --- | --- |
-| Linux | `lsof -p <PID>`; `ls -l /proc/<PID>/fd` | `lsof` may require separate install/permissions; `/proc` may be restricted in containers |
-| Windows | Resource Monitor → CPU → Associated Handles; Sysinternals Process Explorer/Handle | Search by filename/process; watch share modes and access rights |
-| JVM on Unix | `com.sun.management.UnixOperatingSystemMXBean.getOpenFileDescriptorCount()` | Platform-specific extension API; gives **total count** only, not which file leaked |
-| In-application | Descriptor/handle metrics; log creation site, path, close events; repeated stress tests | Never log sensitive filenames, user info, or file contents to public monitoring |
+| Linux | `lsof -p <PID>`; `ls -l /proc/<PID>/fd` | `lsof` may require separate installation/privileges; `/proc` access may be restricted in containers |
+| Windows | Resource Monitor → CPU → Associated Handles; Sysinternals Process Explorer/Handle | Search by file name or process; note handle sharing and access privileges |
+| JVM on Unix | `com.sun.management.UnixOperatingSystemMXBean.getOpenFileDescriptorCount()` | Platform-specific extension API; reports **total count** only, not which file leaked |
+| In-application | Open descriptor/handle count metrics; log paths, creation sites, close events; repeated stress tests | Never log full sensitive file names, user details, or file contents to public monitoring systems |
 
-For leaks, observe **trends under load and after workload completion**. Rising counts during active connections are not necessarily a leak; suspect a leak when counts keep climbing across identical load cycles without returning to baseline.
+For leaks, observe **trends under load and again after the workload finishes**. Rising counts while many connections are active do not prove a leak; suspicion is warranted when counts keep climbing across identical load cycles without returning to baseline.
 
-Never assume a JVM thread dump shows every open file: thread dumps show stacks/threads, not full descriptor tables. Nor are GC or `System.gc()` reliable handle-release mechanisms; always close explicitly.
+Never assume a JVM thread dump reveals every open file: thread dumps show stacks and threads, not a complete descriptor list. Likewise, GC or `System.gc()` is **not** a reliable handle-release mechanism; close explicitly.
 
 ## 4. `ByteBuffer`: `capacity`, `position`, `limit`, and `remaining`
 
 `ByteBuffer` is a stateful buffer. Four key numbers:
 
 - `capacity`: fixed capacity in bytes.
-- `position`: index of the next element to read or write via relative operations.
-- `limit`: *exclusive* boundary of the region currently readable/writable.
-- `remaining() = limit - position`: bytes left for relative methods to process.
+- `position`: index of the next element to read or write in relative operations.
+- `limit`: *exclusive* boundary of the readable/writable region.
+- `remaining() = limit - position`: number of bytes relative operations can still process.
 
 The invariant is `0 <= position <= limit <= capacity`.
 
-Example `ByteBuffer.allocate(8)` after putting bytes `A B C` with `put`:
+Example `ByteBuffer.allocate(8)` after writing bytes `A B C` with `put`:
 
 ```text
 Index:       0  1  2  3  4  5  6  7
@@ -150,7 +150,7 @@ Bytes:       A  B  C  ?  ?  ?  ?  ?
 State:       position=3, limit=8, capacity=8
 ```
 
-The `?` marks bytes outside valid example data. After `flip()`:
+`?` marks bytes outside the example's valid data. After `flip()`:
 
 ```text
 Index:       0  1  2  3  4  5  6  7
@@ -159,24 +159,24 @@ State:       position=0, limit=3, capacity=8
 Remaining:   A  B  C
 ```
 
-Calling `FileChannel.write(buffer)` **before `flip`** makes the channel read from `position=3` to `limit=8`—not the 3 bytes just inserted. In another case, if `position == limit`, `write` returns 0 because `!hasRemaining()`, even though the backing array still holds old data.
+Calling `FileChannel.write(buffer)` **before `flip`** makes the channel read from `position=3` to `limit=8`—not the 3 bytes just inserted. In another case, if `position == limit`, `write` returns `0` because `!hasRemaining()`, even though the backing array still holds old data.
 
-### Four essential state transitions
+### Four State Transitions to Remember
 
-| API | State Change | When to Use | Common Misuse |
+| API | State Change | When to Use | Common Misconceptions |
 | --- | --- | --- | --- |
-| `flip()` | `limit = position; position = 0` | Finished **writing into buffer**, preparing to read from buffer | Omitting before channel write; or calling twice, setting limit to 0 |
-| `clear()` | `position = 0; limit = capacity` | Preparing to overwrite buffer once old data is fully consumed | **Does not erase physical bytes**; loses track of unread bytes |
-| `rewind()` | `position = 0`, keeps `limit` | Re-reading the same valid byte region | Confusing with `clear` and reading invalid bytes |
-| `compact()` | Copies `remaining` bytes to start; sets `position` after them; `limit = capacity` | Consumed **part** of buffer, keeping unread bytes to receive more | Confusing with `clear` and losing unused data |
+| `flip()` | `limit = position; position = 0` | Finish **writing data into the buffer**, prepare to read from it | Forgetting to call before channel write; or calling twice, setting `limit` to 0 |
+| `clear()` | `position = 0; limit = capacity` | Prepare to overwrite buffer once old data is fully processed | **Does not zero physical bytes**; loses track of unread pending data |
+| `rewind()` | `position = 0`, keeps `limit` | Re-read the same valid byte range | Confusing with `clear` and reading invalid bytes |
+| `compact()` | Moves `remaining` bytes to the front; sets `position` after them; `limit = capacity` | Consumed **part** of the buffer, keeping unprocessed bytes to receive more | Confusing with `clear` and losing unused bytes |
 
-`mark`/`reset` are also buffer state; `flip`/`clear`/`rewind`/`compact` discard marks per `Buffer` contract. When debugging, printing `position`, `limit`, `capacity`, and `remaining()` before and after each channel read/write reveals issues faster than printing the buffer object reference.
+`mark`/`reset` is also part of buffer state; `flip`/`clear`/`rewind`/`compact` discard the mark per `Buffer`'s contract. When debugging, printing `position`, `limit`, `capacity`, and `remaining()` before and after each channel read/write is far faster than printing the buffer object itself.
 
-**`buffer.array()` is not synonymous with "valid data in the buffer".** On heap buffers, it includes already-consumed bytes, empty slots, or bytes outside `[position, limit)`; on direct/read-only buffers, the backing array may be inaccessible. To extract exact remaining bytes, use `byte[] result = new byte[buffer.remaining()]; buffer.get(result);` or use `slice()`.
+**`buffer.array()` is not synonymous with "valid data in the buffer."** On heap buffers, it can contain already-consumed bytes, empty slots, or bytes outside `[position, limit)`; on direct or read-only buffers, the backing array may be inaccessible. To read exact remaining bytes, use `byte[] result = new byte[buffer.remaining()]; buffer.get(result);` or use `slice()` as needed.
 
-## 5. Java 17+ Example With Deterministic Stdout
+## 5. Java 17+ Example with Deterministic Stdout
 
-This example uses a text file with `BufferedWriter` and a binary file with `ByteBuffer`/`FileChannel`. Files are created in a temporary directory to avoid external filename dependencies, with no concurrent modifiers.
+This example uses a text file with `BufferedWriter` and a binary file with `ByteBuffer`/`FileChannel`. Files are created inside a temporary directory so nothing depends on external file names, and no concurrent task modifies them.
 
 Create `IoDiagnosticsDemo.java`:
 
@@ -251,7 +251,7 @@ javac -encoding UTF-8 IoDiagnosticsDemo.java
 java IoDiagnosticsDemo
 ```
 
-Stdout on JDK 17+ on a standard filesystem with no interfering tasks:
+Stdout on JDK 17+ on an ordinary filesystem with no interference from other tasks:
 
 ```text
 after flush=hello
@@ -263,30 +263,30 @@ after read: n=3 pos=3 limit=8
 decoded=ABC
 ```
 
-Each `try-with-resources` manages its specific resource and surfaces close exceptions if any occur. The `flush()` in the example allows inspecting `notes.txt` **before the writer closes**; it does not mean every program must flush twice.
+Each `try-with-resources` manages its own resource while surfacing any `close` failure as an exception. The `flush()` call in the example allows inspecting `notes.txt` **before the writer closes**; it does not mean every program needs to flush twice.
 
-File `data.bin` holds exactly the three bytes `ABC` because `flip` bounds the write region to `[0, 3)`; the `while (buffer.hasRemaining())` loop handles the possibility of a channel writing fewer bytes than remain in a single call. On non-blocking channels, if `write` repeatedly returns 0, use `Selector` or an appropriate wait strategy instead of spinning; this example uses `FileChannel` opened for standard file writes.
+`data.bin` contains exactly the three bytes `ABC` because `flip` bounds the write range to `[0,3)`; the `while (buffer.hasRemaining())` loop handles the possibility that a channel writes fewer than `remaining` bytes in a single call. On non-blocking channels, if `write` repeatedly returns `0`, use `Selector` or a proper wait strategy rather than spinning infinitely; this example uses a standard blocking `FileChannel`.
 
-## 6. Debugging Workflow When a File Is Empty, Short, or Updates Late
+## 6. Debugging Checklist When a File Is Empty, Missing Bytes, or Delayed
 
-When facing a file that "was written yet has no data", check in order:
+When encountering a "written yet still empty" file, check in this order:
 
-1. **Right file and right path?** Print/log the normalized path and actual runtime location (working directory, file path, mount/container). Confusing relative paths is very common. Never expose sensitive paths in public logs.
-2. **Which open options were used?** `TRUNCATE_EXISTING` wipes existing content; `APPEND` appends at the end; `CREATE_NEW` refuses to overwrite existing files. If another thread opens with truncate, a reader can see an empty file even after an earlier writer succeeded.
-3. **Is there a buffering wrapper?** `BufferedWriter`, `BufferedOutputStream`, or `OutputStreamWriter` may still hold bytes; flush/close the owning layer. Only verify visibility *after flushing*, rather than concluding from file size while buffers are unflushed.
-4. **Were exceptions swallowed?** Check `IOException` on write, flush, and close; with `PrintWriter`, check `checkError()`.
-5. **Does `ByteBuffer` still have `remaining`?** Log `position`/`limit`/`capacity`, `n = channel.write(buffer)`, and updates after each call. Distinguish the returned byte count from intended bytes.
-6. **Is `force`/`sync` needed for durability?** Consider only after Java buffers are flushed; remember `force` and `flush` solve different layers.
-7. **Who else writes to the file?** Coordinate workers so nothing mutates data between check and re-read. Avoid blaming "flush failed" when the real cause is a race or reading a different file.
+1. **Right file and right path?** Print/log the normalized path and actual runtime context (working directory, file path, mount/container). Mixing up relative paths is a very common cause. Never include sensitive paths in public logs.
+2. **Which open options were used?** `TRUNCATE_EXISTING` erases prior content; `APPEND` writes at the end; `CREATE_NEW` refuses to overwrite existing files. If another thread opens the file with truncate, the file can appear empty even after an earlier writer succeeded.
+3. **Is there a buffering wrapper?** `BufferedWriter`, `BufferedOutputStream`, and `OutputStreamWriter` can retain data; flush/close the owning outer layer. Read back only *after flushing* to verify visibility—never draw conclusions from file size before buffers are flushed.
+4. **Was an exception swallowed?** Check for `IOException` on write, flush, and close; with `PrintWriter`, check `checkError()`.
+5. **Does `ByteBuffer` still have `remaining`?** Log `position`/`limit`/`capacity` and `n = channel.write(buffer)` updates after each call. Compare returned byte counts against intended byte counts.
+6. **Were `force`/`sync` called if durability is required?** Only evaluate after Java buffers have flushed; remember `force` and `flush` operate at different layers.
+7. **Who else is writing to the file?** Synchronize workers and prevent concurrent writers from modifying the file between inspection and re-reading. Never claim "flush failed" when the real cause is a race or reading a different file.
 
-Instead of printing `System.out.println("saved")` right after pushing bytes into a buffer, observe milestones like `write completed`, `flush completed`, `close completed`, and `file published` as needed. Do not log every byte on production hot paths; use metrics/targeted traces during reproduction.
+Instead of printing `System.out.println("saved")` right after placing data into a buffer, observe distinct milestones such as `write completed`, `flush completed`, `close completed`, and `file published` as needed. Never log every byte on production hot paths; use metrics or targeted trace points when reproducing bugs.
 
-## 7. Debugging Workflow When File Handles Climb Continuously
+## 7. Debugging Checklist When Open File Handles Keep Increasing
 
 A leak scenario:
 
 ```java
-// Bug: every call opens a filesystem Stream without closing it.
+// Wrong: every call opens a Stream from the filesystem without closing it.
 long countErrors(Path file) throws java.io.IOException {
     return java.nio.file.Files.lines(file)
             .filter(s -> s.contains("ERROR"))
@@ -305,112 +305,112 @@ long countErrors(Path file) throws java.io.IOException {
 }
 ```
 
-These are two **standalone illustrative methods** inside a class; they won't compile together in one file with identical signatures. In a real project, keep only the fixed version.
+These are two **standalone illustrative methods** for inside a class; they will not compile in the same file with identical signatures. Keep only the fixed version in real projects.
 
-How to reproduce/leak-test:
+How to reproduce and leak-test:
 
-1. Measure descriptor/handle count before running a workload covering representative requests.
-2. Loop over **success, exception, cancellation, and timeout** paths. Error paths are exactly where manual end-of-method `close()` calls get skipped.
-3. After the workload stops, compare against baseline, inspect open handles/paths with OS tools, and trace back to stream/channel/reader/writer creation sites.
-4. Refactor to `try-with-resources`; for multiple resources, declare them in ownership order. Verify `return` and `throw` paths close everything properly.
+1. Measure open descriptors/handles before running a representative workload cycle.
+2. Repeatedly exercise **success, exception, cancellation, and timeout** branches. Error paths are the ones most often skipping manual `close()` calls at the end of a method.
+3. After the workload stops, compare against baseline, list open handles/paths using OS tools, and trace them back to stream/channel/reader/writer creation sites.
+4. Convert to `try-with-resources`; for multiple resources, declare them in proper ownership order. Ensure all `return` and `throw` paths close owned resources.
 5. Re-run the same workload; confirm descriptor counts stay bounded and required move/delete/lock operations succeed normally.
 
-If ownership transfers to a caller or async job, transfer it explicitly and ensure `close` runs **after** the task finishes. Closing a channel too early while workers still perform I/O triggers `ClosedChannelException` or `AsynchronousCloseException`; closing too late leaks handles. Cancelling a `Future` does not guarantee I/O stopped immediately.
+If a resource is handed to a caller or an async job, transfer ownership explicitly and guarantee closure **after** the task finishes. Closing a channel too early while a worker is still doing I/O causes `ClosedChannelException` or `AsynchronousCloseException`; closing too late leaks handles. Canceling a `Future` does not prove I/O has stopped immediately.
 
-## 8. Common `ByteBuffer` Bugs and Tests
+## 8. Common `ByteBuffer` Bugs and How to Test Them
 
-### Forgetting `flip` before writing to a channel
+### Forgetting `flip` Before Writing to a Channel
 
 ```java
 ByteBuffer buffer = ByteBuffer.allocate(8);
 buffer.put(new byte[] {65, 66, 67});
-// Bug: not flipped; remaining is 5, not the 3 bytes "ABC".
+// Wrong: not flipped; remaining is 5, not the 3 bytes "ABC".
 channel.write(buffer);
 ```
 
-This snippet sits in a method with a `WritableByteChannel channel`. Fix by calling `buffer.flip()` before reading data out of the buffer. When using `ByteBuffer.wrap(byte[])`, initial `position` is 0 and `limit` equals array length, so **do not blindly call `flip` right after `wrap`** unless `put` occurred; otherwise `limit` becomes 0.
+This illustrative snippet sits inside a method with `WritableByteChannel channel`. Fix by calling `buffer.flip()` before reading from the buffer. When using `ByteBuffer.wrap(byte[])`, `position` starts at `0` and `limit` equals the array length, so **do not call `flip` unconditionally** right after `wrap` if no `put` occurred; doing so sets `limit` to `0`.
 
-### Forgetting `flip` after `channel.read`
+### Forgetting `flip` After `channel.read`
 
 ```java
 ByteBuffer dst = ByteBuffer.allocate(1024);
 int n = channel.read(dst);
 if (n > 0) {
     dst.flip();
-    // Process exact dst.remaining() bytes, not capacity.
+    // Process the exact dst.remaining() bytes, not capacity.
 }
 ```
 
-Omitting `flip` causes `get` to read unfilled slots or miss the newly received bytes depending on `position`/`limit`. At end-of-stream, `read()` typically returns `-1`; on non-blocking channels, `0` means no data right now—**not** EOF.
+If you forget `flip`, `get` calls read unfilled regions or miss the newly received data depending on `position`/`limit`. At end-of-stream, `read()` typically returns `-1`; on non-blocking channels, `0` can mean no data is currently available, **not** EOF.
 
-### Calling `clear` while an incomplete frame remains
+### Calling `clear` While an Incomplete Frame Remains
 
-In protocol parsers, one `read` may deliver only half a message. After `flip` and consuming complete frames, call `compact()` to shift incomplete frame bytes to the front before reading more:
+In a protocol parser, one `read` may deliver only half a message. After `flip` and consuming complete frames, call `compact()` to move bytes of the incomplete frame to the front of the buffer before reading more:
 
 ```java
-// Illustrative code inside a protocol loop, not a standalone main.
+// Illustrative code inside a protocol processing loop, not a standalone main.
 buffer.flip();
 consumeCompleteFrames(buffer); // Advances position past processed bytes.
-buffer.compact();              // Keeps remaining bytes for next read.
+buffer.compact();              // Keeps remaining bytes for the next read.
 ```
 
-Calling `clear()` here treats remaining data as gone even though physical bytes still sit in the array. Calling `rewind()` after processing half the buffer re-processes the already consumed prefix.
+Calling `clear()` here marks the remaining data as nonexistent even though physical bytes still sit in the array. Calling `rewind()` after consuming half the buffer causes the already-processed prefix to be consumed again.
 
-### Sharing a buffer across multiple threads
+### Sharing a Buffer Across Multiple Threads
 
-`ByteBuffer` is not thread-safe for concurrent mutations of `position`/`limit` on one instance. If multiple workers invoke relative `get`/`put` on one buffer, bytes get dropped or reordered even though `FileChannel` supports concurrent positional use. Give each task its own buffer, or synchronize and slice explicitly; never share a mutable `ByteBuffer` without clear ownership.
+`ByteBuffer` is not thread-safe for concurrent mutations of `position`/`limit` on one instance. If multiple workers invoke relative `get`/`put` on the same buffer, bytes can be lost or reordered even if `FileChannel` itself supports concurrent positional access. Use per-task buffers, or synchronize and slice explicitly; never share a mutable `ByteBuffer` without clear ownership.
 
-### Partial writes and post-write state
+### Partial Writes and Post-Write State
 
-`FileChannel.write(buffer)` returns the actual bytes written. Only close/publish the file when the buffer has no remaining bytes or errors are handled. `write` does not auto-`clear` or auto-`flip` the buffer; it advances `position` by bytes transferred. For multi-buffer file writes, track actual bytes written and file position, avoiding `buffer.array().length` as bytes emitted.
+`FileChannel.write(buffer)` returns the number of bytes actually written. Only close or publish a file once the buffer has no remaining bytes or errors are handled properly. `write` does not automatically `clear` or `flip` the buffer; it advances `position` by the bytes transferred. When writing with multiple buffers, inspect actual bytes written and file position rather than assuming `buffer.array().length` was written.
 
 ## 9. Automated Testing and Diagnostics
 
-Build separate tests for the three failure layers so you know which layer broke.
+Write dedicated tests for each of the three failure classes so you immediately know where a defect lives.
 
-| Test Scenario | Required Evidence | Bug Caught |
+| Test Scenario | Evidence Required | Defect Caught |
 | --- | --- | --- |
-| Write a few chars to `BufferedWriter`, call `flush`, read while writer stays open | Read-back matches content | Missing `flush` where visibility is needed |
-| Exit `try-with-resources` and read back | Complete data; `close` exceptions handled | Missing `close` / swallowed end-of-write error |
-| Repeatedly invoke `Files.lines`, `Files.walk`, `FileChannel` | Descriptor count stays bounded after workload | Resource leak |
-| Exercise exception, cancellation, early return paths | Resources still closed, no lingering file locks | Closing only on happy path |
-| `ByteBuffer.put` → `flip` → channel write | Bytes written equals valid byte count | Wrong `position`/`limit` |
-| Read file with buffer smaller than file | Loops until EOF, zero lost bytes | Assuming one `read` captures all data |
-| Parser receives half a frame in one read | `compact` preserves unconsumed bytes | Dropping frames across buffer boundaries |
-| Output requires crash durability | `flush` → `force`/`sync` → commit sequence defined and verified per filesystem | Confusing visibility with durability |
+| Write characters to `BufferedWriter`, call `flush`, read immediately while writer stays open | Read-back content matches | Missing `flush` where visibility is required |
+| Exit `try-with-resources` and read back | Complete data; close exceptions handled | Missing `close` / swallowed end-of-write errors |
+| Repeat operations on `Files.lines`, `Files.walk`, `FileChannel` | Descriptor count stays bounded after workload | Resource leak |
+| Trigger exceptions, cancellations, early returns | Resources still close; no stray file locks remain | Closing only on the happy path |
+| `ByteBuffer.put` → `flip` → channel write | Bytes written equal valid byte count | Wrong `position`/`limit` |
+| Read file using a buffer smaller than the file | Loops to EOF without losing bytes | Assuming a single `read` fetches everything |
+| Parser receives half a frame in one read | `compact` retains unconsumed bytes | Dropping frames at buffer boundaries |
+| Output requiring crash durability | Sequence `flush` → `force`/`sync` → commit defined and tested per filesystem | Confusing visibility with durability |
 
-**Never write a test asserting "file size must stay 0 before `flush`" as an absolute guarantee**: depending on data size, buffer capacity, and implementation, writers may auto-flush when full. Tests should prove visibility after explicit flush/close, not demand pre-flush invisibility.
+**Never rely on "file size is still 0 right after an unflushed write" as a strict guarantee**: depending on data size, buffer size, and implementation, a writer may auto-flush when full. Tests should assert results after explicit `flush`/`close`, not demand pre-flush invisibility.
 
-For parser unit tests, `ByteBuffer.allocate(4)` forces frames to split across multiple reads. For resource integration tests, use temp files and measure descriptors where possible; avoid relying solely on file deletion succeeding on Unix since open files can still be unlinked.
+For parser unit tests, `ByteBuffer.allocate(4)` forces frames to split across multiple reads. For resource integration tests, use temporary files and measure descriptors where supported; avoid relying solely on file deletion succeeding on Unix because open files can still be unlinked.
 
-## 10. Distinguishing the Three Symptom Classes in Practice
+## 10. Distinguishing the Three Symptoms in Practice
 
-| Symptom | First Suspect to Check | Resolution |
+| Symptom | First Possibility to Check | Resolution |
 | --- | --- | --- |
-| File empty while writer open, valid after close | Buffered output not flushed | Flush at required visibility boundaries |
-| File intact after flush, lost on power/OS crash | Missing durability requirement or storage/filesystem limits | Check `FileChannel.force`/`FileDescriptor.sync` and durable save protocol |
-| `Too many open files` | Unclosed stream/channel; unclear worker ownership | `try-with-resources`, test error paths, monitor descriptors |
-| Cannot rename/delete file on Windows | Open handle/lock or OS share permissions | Find handle-holding process; ensure `close`/lock release |
-| NIO `write` writes 0 bytes | `!buffer.hasRemaining()` or non-blocking output not writable | Print `position`/`limit`, check channel and readiness |
-| File has garbage bytes or wrong length | Missing `flip`, reading whole `array()`, or unhandled partial write | Maintain buffer state and write-loop properly |
-| Parser loses data at block ends | Calling `clear` instead of `compact`, treating chunks as whole frames | Retain pending bytes, test split inputs |
-| File succeeds once, corrupts under load | Uncoordinated concurrent read/write, shared mutable buffer, premature close | Per-task buffers, locking/ordering, clear ownership |
+| File empty while writer open, valid after close | Buffered output not flushed | Flush at boundaries requiring visibility |
+| File valid after flush yet lost on power/OS crash | Missing durability steps or filesystem/storage limits | Check `FileChannel.force`/`FileDescriptor.sync` and durable save protocols |
+| `Too many open files` | Unclosed streams/channels; unclear worker ownership | `try-with-resources`, check error paths, monitor descriptors |
+| Cannot rename/delete file on Windows | Open handle/lock or OS sharing permissions | Identify process holding handle; ensure proper close/unlock |
+| NIO `write` transfers 0 bytes | `!buffer.hasRemaining()` or non-blocking output not writable | Print `position`/`limit`, check channel and readiness |
+| File contains garbage bytes or wrong length | Missing `flip`, using full `array()`, or unhandled partial write | Manage buffer state and write loop properly |
+| Parser drops data at block end | Using `clear` instead of `compact`, or treating chunks as whole frames | Retain pending bytes; test split inputs |
+| Works once, fails under load | Uncoordinated concurrent read/write, shared mutable buffer, premature close | Per-task buffers, locking/ordering, clear ownership |
 
-## 11. Code Review Checklist for I/O
+## 11. Checklist for Reviewing I/O Code
 
-1. Locate every resource acquisition: `Files.newBufferedWriter`, `Files.newInputStream`, `FileChannel.open`, `Files.lines/list/walk/find`, `ZipFile`, `RandomAccessFile`. Verify who closes it on every path.
-2. For buffered outputs, define **when external readers are allowed to see the data**. If before `close`, insert intentional `flush` calls; if durability is required, add `force`/`sync` after data reaches the file layer.
-3. Never report success before writing and closing/committing complete; capture write/flush/close errors. For `PrintWriter`, call `checkError()` or switch to exception-throwing APIs.
-4. For NIO, track buffer state before/after `put`/`read`/`flip`/`write`/`clear`/`compact`. Use `remaining` for valid bytes and loop on partial channel reads/writes.
-5. Add repeated-load and failure-path tests to catch handle leaks; test on the target deployment platform, especially when behavior depends on Windows file sharing, remote filesystems, or cloud storage.
-6. Minimize resource scope: avoid holding channels/streams across unrelated network calls or async tasks. For async workers, never close sources while work still needs them.
+1. Locate every resource acquisition: `Files.newBufferedWriter`, `Files.newInputStream`, `FileChannel.open`, `Files.lines`/`list`/`walk`/`find`, `ZipFile`, `RandomAccessFile`. Identify who closes each along every path.
+2. For buffered outputs, define **when external observers may see the data**. If before close, place intentional `flush` calls; if durability is needed, add `force`/`sync` after data reaches the file layer.
+3. Never report success before writing and closing/committing complete; capture errors from `write`, `flush`, and `close`. With `PrintWriter`, call `checkError()` or switch to exception-throwing APIs.
+4. With NIO, make buffer state clear before/after `put`/`read`/`flip`/`write`/`clear`/`compact`. Use `remaining` for valid bytes and loop on partial channel reads/writes.
+5. Add tests for repeated loops and error branches to catch handle leaks; test on the target deployment platform, especially if behavior depends on Windows file sharing, remote filesystems, or cloud storage.
+6. Keep resource scopes minimal: never hold channels or streams across unrelated network calls or async tasks unnecessarily. For async workers, never close sources while work still needs them.
 
-Key distinction: **`flush` drains bytes buffered in the Java layer; `close` ends resource ownership; `ByteBuffer.flip/clear/compact` manages read/write cursor state; `force/sync` addresses syncing to storage.** None substitutes for another.
+Key rule to remember: **`flush` drains Java-layer buffers; `close` ends resource ownership; `ByteBuffer.flip`/`clear`/`compact` manage read/write cursor state; `force`/`sync` address storage synchronization.** None of them substitutes for another.
 
-### Official Documentation
+### Official Reference Documentation
 
 - Java SE 17 `BufferedWriter`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/BufferedWriter.html
-- Java SE 17 `Writer` and `OutputStream` (flush/close): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Writer.html
+- Java SE 17 `Writer` and `OutputStream` (`flush`/`close`): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Writer.html
 - Java SE 17 `ByteBuffer` / `Buffer`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html
-- Java SE 17 `FileChannel` (write/force/close): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/FileChannel.html
+- Java SE 17 `FileChannel` (`write`/`force`/`close`): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/FileChannel.html
 - Java SE 17 `Files` (resource management): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html

@@ -1,32 +1,32 @@
 # Diagnosing Wrong Working Directory, Charset, and Resource Paths in Java I/O
 
-## 1. Three Distinct Causes That Are Easily Conflated
+## 1. Three Causes of Errors Easily Conflated
 
 A Java program that reads data inside an IDE yet fails when run from a terminal, JAR, container, or server typically hits one of three problem categories:
 
-1. **Wrong working directory (CWD)**: relative file paths resolve against the process's working directory, not the directory containing `.java` source files, `.class` files, or the JAR.
-2. **Wrong charset**: the right file/resource was opened, yet bytes are decoded into characters using the wrong encoding, causing garbled Vietnamese diacritics, strange symbols, or decoding exceptions.
-3. **Wrong resource path**: confusing a filesystem path with a classpath/module resource, or confusing a path relative to a class's package with a path from the classpath root.
+1. **Wrong working directory (CWD)**: relative file paths resolve against the process's working directory, not where `.java` source files, `.class` files, or the JAR reside.
+2. **Wrong charset**: the right file or resource was opened, yet bytes were converted to characters using a different encoding, causing lost Vietnamese diacritics, garbled symbols, or decoding exceptions.
+3. **Wrong resource path**: confusing a filesystem path with a classpath/module resource, or confusing a path relative to a class's package with a path relative to the classpath root.
 
-Accurate diagnosis must separate **where the file is searched**, **the lookup mechanism**, and **how bytes are interpreted**. Fixing one category does not automatically fix the others.
+Accurate diagnosis requires separating **where the file is searched**, **how it is looked up**, and **how bytes are interpreted**. Fixing one category does not automatically fix the others.
 
-Java 17+ guide in the I/O module: recognize CWD and `user.dir`, use `Path`/`Files` with an explicit base directory, resolve classpath resources across IDEs and JARs, choose the right charset, reproduce errors with a standalone program, and write environment-independent tests.
+This Java 17+ knowledge guide in the I/O module covers: recognizing CWD and `user.dir`, using `Path`/`Files` with an explicit base directory, looking up classpath resources in an IDE/JAR, selecting the right charset, reproducing bugs with standalone programs, and building environment-resilient tests.
 
-## 2. The Working Directory Is Neither the Source Directory Nor the JAR Directory
+## 2. The Working Directory Is Not the Source or JAR Directory
 
-Example:
+An example:
 
 ~~~java
 Path path = Path.of("data/customers.csv");
 String csv = Files.readString(path, StandardCharsets.UTF_8);
 ~~~
 
-This is an illustrative snippet meant to sit inside a method with imports and `IOException` handling. The string `data/customers.csv` is a **relative filesystem path**. On the default filesystem, it resolves relative to the runtime's current working directory. Java does not automatically search:
+This is an illustrative snippet to place inside a method with imports and `IOException` handling. The string `data/customers.csv` is a **relative filesystem path**. On the default filesystem, it resolves against the working directory currently used by the runtime. Java does not automatically search:
 
-- The directory currently holding `.java` source files.
-- The build output directory holding `.class` files.
+- The directory containing `.java` source files.
+- The build directory containing `.class` files.
 - The directory where the JAR is installed.
-- `src/main/resources` inside the source tree.
+- `src/main/resources` in the source tree.
 - JARs or dependencies on the classpath.
 
 Example layout:
@@ -38,11 +38,11 @@ Example layout:
   app.jar
 ~~~
 
-If the command runs from `/work/app`, the relative path resolves to `/work/app/data/customers.csv`. If the same JAR runs when the CWD is `/srv/service`, Java looks for `/srv/service/data/customers.csv`, where the file does not exist.
+If the command runs from `/work/app`, the relative path points to `/work/app/data/customers.csv`. If the same JAR runs when CWD is `/srv/service`, Java looks for `/srv/service/data/customers.csv`, where the file does not exist.
 
-Running `java -jar /work/app/app.jar` **does not automatically switch CWD to the JAR's directory**. The launcher, shell, IDE, service manager, or container determines the CWD.
+Running `java -jar /work/app/app.jar` **does not automatically switch CWD to the JAR's directory**. The launcher, shell, IDE, service manager, or container determines CWD.
 
-### How to inspect CWD in Java
+### How to Inspect CWD in Java
 
 ~~~java
 System.out.println(System.getProperty("user.dir"));
@@ -50,26 +50,26 @@ System.out.println(Path.of("").toAbsolutePath().normalize());
 System.out.println(Path.of("data/customers.csv").toAbsolutePath().normalize());
 ~~~
 
-This snippet is illustrative, not a standalone program. Printing these values at failure time confirms **where Java is actually looking for the file**.
+The snippet above is illustrative, not a standalone program. Printing these values when an error occurs confirms **where Java is looking for the file**.
 
-`System.getProperty("user.dir")` typically reflects the working directory set by the runtime at startup. Never call `System.setProperty("user.dir", "...")` as a portable way to change the OS CWD mid-program: mutating a Java property does not mean every API or filesystem provider will treat the process as having changed directories. To change where data is read, **pass an explicit base `Path`** or launch a child process with the desired working directory.
+`System.getProperty("user.dir")` normally reflects the working directory configured by the runtime at startup. Never use `System.setProperty("user.dir", "...")` as a portable way to change the OS CWD mid-program: mutating a Java property does not guarantee all APIs or filesystem providers treat the process as having changed directories. To change where data is read from, **pass an explicit base `Path`** or launch a child process with the desired working directory.
 
-### Absolute path, `normalize`, and `toRealPath`
+### Absolute Path, `normalize`, and `toRealPath`
 
-| Method | Purpose | Notes |
+| Method | Function | Notes |
 | --- | --- | --- |
-| `Path.of("x/y")` | Creates a path via the default provider | Usually relative if lacking a root |
-| `path.isAbsolute()` | Checks if path is absolute per provider | Unix and Windows syntaxes differ |
-| `path.toAbsolutePath()` | Produces an absolute representation from current context | Does not prove the file exists |
-| `path.normalize()` | Resolves `.` and `..` segments syntactically | Does not resolve symbolic links |
+| `Path.of("x/y")` | Creates a path on the default provider | Usually relative if there is no root |
+| `path.isAbsolute()` | Checks if the path is absolute per provider | Unix and Windows syntax differ |
+| `path.toAbsolutePath()` | Builds an absolute representation from current context | Does not prove the file exists |
+| `path.normalize()` | Resolves `.` and `..` syntactically | Does not resolve symbolic links |
 | `path.toRealPath()` | Resolves to the real path and checks existence per options | Can throw `IOException`; symlink semantics depend on options |
-| `base.resolve(relative)` | Joins paths according to `Path` rules | If `relative` is absolute, behavior must be validated |
+| `base.resolve(relative)` | Joins paths per `Path` rules | If `relative` is absolute, behavior must be validated |
 
-If paths come from user input, `normalize()` and `startsWith(base)` alone are insufficient for all security requirements: symbolic links can point outside `base`, and a race can occur between check and open.
+When a path comes from user input, `normalize()` and `startsWith(base)` alone do not satisfy all security requirements: symbolic links can escape `base`, and races exist between checking and opening the file.
 
-## 3. Specify an Explicit Base Directory to Avoid Execution-Context Coupling
+## 3. Specify a Base Directory to Avoid Runtime Context Dependence
 
-When resources are **external application data** such as customer files, logs, output directories, or deployment-specific configs, accept the location via args/config/env and build paths from that base.
+If the resource is **external application data** such as customer files, logs, output directories, or deployment-specific configs, accept the location via CLI args, config, or environment variables and construct paths from that base.
 
 ~~~java
 static Path resolveUnderBase(Path baseDirectory, String relativeName)
@@ -83,21 +83,21 @@ static Path resolveUnderBase(Path baseDirectory, String relativeName)
 }
 ~~~
 
-This is an illustrative method; import `Path` and `IOException`. For untrusted paths, this example checks only lexical traversal and does not address symlinks or TOCTOU races. Apply explicit permissions and filesystem isolation.
+This is an illustrative method; import `Path` and `IOException`. For untrusted paths, the example only checks lexical traversal and does not fully handle symlinks or TOCTOU races. Enforce concrete permissions and filesystem isolation policies.
 
 Prefer options with clear contracts:
 
 - `--data-dir=/var/lib/example` passed at startup.
-- An environment variable/config entry holding a validated absolute path.
-- `Files.createTempDirectory(...)` for temporary test/job data.
+- An environment variable or config containing a validated absolute path.
+- `Files.createTempDirectory(...)` for temporary test or job data.
 - User home when data truly belongs to a user account.
-- A data volume mounted at a documented container path.
+- A data volume mounted at a documented location inside a container.
 
-Do not keep trying `../data`, `../../data` until one happens to work in your IDE: that breaks as soon as build layouts or service CWDs change.
+Do not keep guessing `../data`, `../../data` until one happens to work in the IDE: that breaks as soon as build layouts or service CWDs change.
 
 ## 4. Classpath Resources Are a Different Mechanism from the Filesystem
 
-Packaged assets such as templates, static images, schemas, or default files might live in:
+Packaged assets such as templates, static images, schemas, or default configs may live at:
 
 ~~~text
 src/main/java/example/App.java
@@ -105,7 +105,7 @@ src/main/resources/config/defaults.properties
 src/main/resources/templates/message.txt
 ~~~
 
-Build tools typically copy them into the classpath root or JAR:
+Build tools normally copy them into the classpath root or JAR:
 
 ~~~text
 classes/
@@ -114,9 +114,9 @@ classes/
   templates/message.txt
 ~~~
 
-**Never hardcode `src/main/resources/config/defaults.properties` in production.** The source tree might not exist inside a container or after packaging into a JAR.
+**Never hardcode the path `src/main/resources/config/defaults.properties` in production.** The source tree need not exist inside a container or after packaging a JAR.
 
-Reading a resource properly:
+Read resources properly:
 
 ~~~java
 try (InputStream in = App.class
@@ -126,29 +126,29 @@ try (InputStream in = App.class
 }
 ~~~
 
-This snippet requires imports for `InputStream`, `FileNotFoundException`, and `StandardCharsets`, with `App` on the classpath inside a method. `getResourceAsStream` returns `null` if the lookup finds no resource; always check for `null` before reading.
+This snippet requires importing `InputStream`, `FileNotFoundException`, and `StandardCharsets`, having `App` on the classpath, and placing it inside a method. `getResourceAsStream` returns `null` if the lookup fails to find the resource; always check for `null` before reading.
 
-Resources should generally be treated as **read-only assets**. Do not try to write runtime state into `src/main/resources` or into a runtime JAR. To let users customize a default template, copy the resource to a user/application-owned data directory and edit the copy.
+Resources should generally be treated as **read-only assets**. Never try to write runtime state into `src/main/resources` or into a runtime JAR. To let users customize a default template, copy the resource into an application- or user-owned data directory and edit the copy.
 
-## 5. Slash and Package Rules When Resolving Resources
+## 5. Slash and Package Rules When Looking Up Resources
 
-Assume class `com.example.io.Demo` and resource `config/defaults.properties` at the classpath root:
+Given class `com.example.io.Demo` and resource `config/defaults.properties` at the classpath root:
 
 | Expression | Location Searched |
 | --- | --- |
 | `Demo.class.getResourceAsStream("/config/defaults.properties")` | From resource root |
 | `Demo.class.getResourceAsStream("defaults.properties")` | Relative to package `com/example/io/` |
 | `Demo.class.getResourceAsStream("config/defaults.properties")` | `com/example/io/config/defaults.properties` |
-| `Demo.class.getClassLoader().getResourceAsStream("config/defaults.properties")` | Root of the classloader |
-| `Demo.class.getClassLoader().getResourceAsStream("/config/defaults.properties")` | Usually fails due to leading slash |
+| `Demo.class.getClassLoader().getResourceAsStream("config/defaults.properties")` | Classloader root |
+| `Demo.class.getClassLoader().getResourceAsStream("/config/defaults.properties")` | Usually wrong due to leading slash |
 
-`Class.getResourceAsStream` supports a leading slash to indicate the root. `ClassLoader.getResourceAsStream` takes a resource name per classloader rules, normally without a leading slash.
+`Class.getResourceAsStream` accepts a leading slash to indicate the root. `ClassLoader.getResourceAsStream` takes resource names according to classloader rules, typically without a leading slash.
 
-Not every classloader is the same instance: app servers, plugins, modules, or test runners may use distinct classloaders. Bootstrap-loaded classes can have `getClassLoader() == null`. If a resource exists yet lookup fails, check which class/classloader performs the lookup.
+Not every classloader is the same instance: application servers, plugins, modules, or test runners may use separate classloaders. Bootstrap-loaded classes can have `getClassLoader()==null`. If a resource exists yet lookup fails, identify which class and classloader perform the lookup.
 
-### When multiple JARs contain resources with the same name
+### When Multiple JARs Contain a Resource with the Same Name
 
-Two dependencies both shipping `config/defaults.properties` can cause a "right name, wrong content" resource to load. To diagnose:
+Two dependencies both containing `config/defaults.properties` can cause a resource with "the right name but wrong content" to be loaded. To diagnose:
 
 ~~~java
 Enumeration<URL> found =
@@ -158,42 +158,42 @@ while (found.hasMoreElements()) {
 }
 ~~~
 
-This is a snippet importing `Enumeration`, `URL`, and handling `IOException`; not a complete program. Classloader lookup order can vary by environment. Consider namespacing resource paths by module/library or defining an explicit config override mechanism.
+This snippet requires imports for `Enumeration` and `URL` plus `IOException` handling; it is not a complete program. Classloader lookup order can vary by environment. Consider namespacing resource paths by module/library or defining an explicit config override mechanism.
 
-## 6. Resources Inside a JAR Are Not Ordinary File Paths
+## 6. A Resource Inside a JAR Is Not an Ordinary File Path
 
-Once packaged, a resource can have a URL like:
+After packaging, a resource may have a URL like:
 
 ~~~text
 jar:file:/opt/app/app.jar!/config/defaults.properties
 ~~~
 
-Do not treat it as a local file at path `/opt/app/app.jar!/config/defaults.properties`. Code may pass in an IDE where the URL is `file:/.../classes/config/defaults.properties`, yet fail when the URL becomes `jar:...`.
+Do not treat it as a local file at path `/opt/app/app.jar!/config/defaults.properties`. Code can succeed in an IDE where the URL is `file:/.../classes/config/defaults.properties` and fail when the URL becomes `jar:...`.
 
-Example **not to use as a general solution**:
+Example **not recommended as a general solution**:
 
 ~~~java
 URL url = Demo.class.getResource("/config/defaults.properties");
 Path path = Path.of(url.toURI());
 ~~~
 
-This is illustrative code missing imports and exception handling; on a JAR URI, converting to `Path` can fail if the corresponding filesystem provider has not been created or is unsupported. To simply **read** a resource, use `getResourceAsStream` and `try-with-resources`.
+This is illustrative code lacking imports and exception handling; on a `jar:` URI, converting to `Path` can fail if the corresponding filesystem provider has not been created or is unsupported. To simply **read** a resource, use `getResourceAsStream` and `try-with-resources`.
 
-If a library strictly requires a `Path`, copy the resource to a size-bounded temp file and manage cleanup, or explicitly open/close a ZIP `FileSystem` when appropriate. Never force every URL into a local file.
+If a library strictly requires a `Path`, copy the resource to a size-bounded temporary file and manage cleanup, or explicitly open and close a ZIP `FileSystem` where appropriate. Never force every URL into a local file.
 
-With named modules (JPMS), module-level resource visibility and encapsulation rules also apply. If an application runs on the module path instead of the traditional classpath, verify `Module.getResourceAsStream` and `opens` directives where applicable.
+With named modules (JPMS), module-level resource access scope and encapsulation rules also apply. If the application runs on the module path instead of the traditional classpath, check `Module.getResourceAsStream` and `opens` directives where applicable.
 
-## 7. Wrong Charset: Reading the Right Bytes Yet Producing the Wrong `String`
+## 7. Wrong Charset: Reading the Right Bytes Yet Creating the Wrong `String`
 
-A `Charset` defines how characters map to bytes and bytes decode back to characters. If a file was written as UTF-8 but the app reads it with another charset, Vietnamese diacritics turn into mojibake.
+`Charset` defines the rules for encoding characters into bytes and decoding bytes into characters. If a file was written in UTF-8 yet read using a different charset, Vietnamese diacritics turn into mojibake.
 
-For example, `Café` encoded in UTF-8 is:
+For example, `Café` encoded in UTF-8 becomes:
 
 ~~~text
 43 61 66 C3 A9
 ~~~
 
-Here `C3 A9` are the two bytes representing `é`. Decoding the same bytes as ISO-8859-1 produces two different characters instead of `é`.
+Here `C3 A9` are the two bytes representing `é`. Reading the same bytes as ISO-8859-1 produces two different characters instead of `é`.
 
 ~~~java
 String text = "Caf\u00e9";
@@ -204,11 +204,11 @@ System.out.println(text.equals(good));  // true
 System.out.println(text.equals(wrong)); // false
 ~~~
 
-This is an illustrative snippet inside a method importing `StandardCharsets`. Using a Unicode escape in source keeps the test independent of whether a terminal or source editor displays `é`.
+This is an illustrative snippet inside a method importing `StandardCharsets`. Using a Unicode escape in source keeps a test independent of whether a terminal or source editor displays `é`.
 
-### Defaults are inconsistent across APIs
+### Defaults Are Not Consistent Across All APIs
 
-Some APIs take an explicit charset, while some overloads use the JVM default charset:
+Some APIs accept an explicit charset, while some overloads use the JVM's default charset:
 
 - `Files.readString(path, StandardCharsets.UTF_8)`: explicit UTF-8.
 - `Files.readString(path)` since Java 11: the no-charset overload **is specified to use UTF-8**.
@@ -217,13 +217,13 @@ Some APIs take an explicit charset, while some overloads use the JVM default cha
 - `new FileReader(file)` without charset: uses the default charset.
 - `new OutputStreamWriter(output)` without charset: uses the default charset.
 - `text.getBytes()` without charset: uses the default charset.
-- `text.getBytes(StandardCharsets.UTF_8)`: independent of the default.
+- `text.getBytes(StandardCharsets.UTF_8)`: independent of default.
 
-In Java 17, the default charset varies with environment, locale, and system configuration. JEP 400 makes UTF-8 the default starting in JDK 18 under standard configurations, yet does not make every byte encoding or console behavior identical.
+On Java 17, the default charset can vary by environment, locale, and system configuration. JEP 400 made UTF-8 the default starting in JDK 18 in standard configurations, but did not make all byte encoding or console behaviors identical.
 
-**Do not try to fix this mid-program by calling `System.setProperty("file.encoding", "UTF-8")`.** Changing the property at runtime is not guaranteed to change already-initialized decoders or I/O APIs. Always specify the charset at the data boundary.
+**Never try to fix this by calling `System.setProperty("file.encoding", "UTF-8")` mid-program.** Mutating that property at runtime is not guaranteed to change already-initialized decoders or I/O APIs. Specify the charset at every data boundary.
 
-## 8. File Charset vs Console Charset
+## 8. File Charset Differs from Console Charset
 
 Terminal rendering involves at least three layers:
 
@@ -236,35 +236,35 @@ File bytes
                                                └── displayed characters
 ~~~
 
-If the Java `String` is already correct while the terminal renders garbage, changing the file reader's charset will corrupt the data. Conversely, if the `String` was decoded wrongly, changing the terminal font cannot fix the data.
+If the Java `String` is already correct while the terminal displays garbage, changing the file reader's charset will corrupt the data. Conversely, if the `String` was already corrupted during decoding, changing the terminal font cannot fix the data.
 
 How to check:
 
-1. Compare the decoded `String` against an expected literal using `equals`.
-2. Print hex of a small slice of source bytes, if logging the data is permitted.
-3. Print `String` code points when needed instead of trusting terminal output alone.
+1. Compare the decoded `String` against an expected literal with `equals`.
+2. Print hex bytes of a small source slice if the data is safe to log.
+3. Print the `String`'s code points when needed instead of relying solely on terminal appearance.
 4. Check the upstream writer's charset; the file may have been encoded wrongly at the source.
-5. Distinguish JVM default charset, API-specified encoding, console encoding, and OS encoding.
-6. For sensitive data, log size/hash or synthetic samples instead of full contents.
+5. Distinguish JVM default charset, API-mandated encoding, console encoding, and OS encoding.
+6. For sensitive data, log size/hash or synthetic samples rather than full contents.
 
-A decoding failure may throw `MalformedInputException` or emit replacement characters, depending on the API/decoder policy. `NoSuchFileException` is a path-lookup problem; switching to UTF-8 will not cure it.
+A decoding failure may throw `MalformedInputException` or emit replacement characters, depending on the API and decoder policy. `NoSuchFileException` is a path-lookup problem; switching to UTF-8 will never fix it.
 
-### UTF-8 BOM and newlines
+### UTF-8 BOM and Newlines
 
-Some UTF-8 files begin with BOM `EF BB BF`, which can appear in a Java `String` as a leading `U+FEFF`. Do not assume every parser strips BOMs automatically; applications need an explicit accept/strip BOM contract.
+Some UTF-8 files start with BOM `EF BB BF`, which can appear in a Java `String` as a leading `U+FEFF`. Never assume every parser strips the BOM; applications should define an explicit BOM acceptance/stripping contract.
 
-CRLF/LF differs across environments and authoring tools. If a parser needs byte-for-byte reproduction, `BufferedReader.readLine()` strips newline characters, so choose byte-preserving APIs instead.
+CRLF vs. LF varies across environments and tools. If a parser requires byte-for-byte reproduction, `BufferedReader.readLine()` strips newline terminators, so pick byte-preserving APIs instead.
 
-When you need to reject invalid UTF-8 bytes instead of silently substituting replacement characters, use `CharsetDecoder` with `CodingErrorAction.REPORT` and catch `CharacterCodingException`.
+If you need to reject invalid UTF-8 bytes instead of silently substituting replacement characters, use a `CharsetDecoder` with `CodingErrorAction.REPORT` and catch `CharacterCodingException`.
 
 ## 9. Standalone Java 17+ Example: Running from a Different CWD
 
-This program tests three data-lookup paths plus a wrong-charset scenario:
+The program below tests three data lookup paths and one charset-mismatch scenario:
 
-1. Relative file `input.txt` **is absent from the runtime CWD**.
+1. Relative file `input.txt` **does not exist in the runtime CWD**.
 2. Input file passed by **absolute path** succeeds.
 3. Resource `/sample/message.txt` on the classpath root succeeds.
-4. `Café` encodes/decodes accurately in UTF-8, while decoding as ISO-8859-1 yields a different `String`.
+4. `Café` encoded/decoded in UTF-8 round-trips cleanly, while decoding in ISO-8859-1 yields a different `String`.
 
 Test layout:
 
@@ -275,7 +275,7 @@ demo/
     ResourcePathsDemo.class
     sample/message.txt           (RESOURCE_OK)
   input/input.txt                (FILE_OK)
-  runtime/                       (working directory for running, no input.txt)
+  runtime/                       (directory where program runs, without input.txt)
 ~~~
 
 Save as **`ResourcePathsDemo.java`**:
@@ -322,9 +322,9 @@ public class ResourcePathsDemo {
 }
 ~~~
 
-### Prepare and run from a Linux/macOS terminal
+### Prepare and Run from a Linux/macOS Terminal
 
-From `demo/`:
+From the `demo/` directory:
 
 ~~~bash
 mkdir -p classes/sample input runtime
@@ -340,7 +340,7 @@ java -cp "$CLASSES" ResourcePathsDemo "$INPUT"
 
 ### Prepare on Windows PowerShell
 
-From `demo/`:
+From the `demo/` directory:
 
 ~~~powershell
 New-Item -ItemType Directory -Force classes/sample, input, runtime | Out-Null
@@ -358,9 +358,9 @@ try {
 }
 ~~~
 
-Sample files use ASCII only so the data-creation scripts do not depend on PowerShell's default encoding. Real files containing Vietnamese should be saved/read as UTF-8 per contract; the program tests `é` via a Java Unicode escape.
+Sample files contain ASCII only so the data-creation scripts do not depend on PowerShell's default encoding. Real files with Vietnamese text should be saved and read in UTF-8 per contract; the program tests `é` via Java's Unicode escape.
 
-**Stdout verified by compiling and running on JDK 17 from an isolated runtime directory:**
+**Verified stdout from compiling and running on JDK 17 from a separate runtime directory:**
 
 ~~~text
 Relative input found: false
@@ -372,27 +372,27 @@ Wrong decoding changes value: true
 Default charset inspected: true
 ~~~
 
-**Interpreting the results:**
+**Result explanation:**
 
-- `Path.of("input.txt")` checks the CWD `runtime/`, where no file exists, returning `false` in this test.
-- `args[0]` points to `input/input.txt` by absolute path and `Files.readString(..., UTF_8)` returns `FILE_OK`.
-- `ResourcePathsDemo.class.getResourceAsStream("/sample/message.txt")` searches from the root of the classpath containing `classes/`, without needing the file in CWD.
-- `String.getBytes(UTF_8)` of `Café` produces bytes `43 61 66 C3 A9`; decoding with UTF-8 restores the `String`, while decoding with ISO-8859-1 produces a different value.
-- The default-charset check does not depend on whether the runtime default is Windows-1252 or UTF-8. Code can inspect the name via `Charset.defaultCharset().name()` during real diagnostics.
-- The resource stream closes via `try-with-resources`; the data input succeeds because both location and charset are explicit.
+- `Path.of("input.txt")` is resolved against the CWD `runtime/`, where no file exists, returning `false` in this test.
+- `args[0]` points to `input/input.txt` by absolute path, and `Files.readString(..., UTF_8)` returns `FILE_OK`.
+- `ResourcePathsDemo.class.getResourceAsStream("/sample/message.txt")` searches from the classpath root containing `classes/`, requiring no file in CWD.
+- `String.getBytes(UTF_8)` on `Café` yields `43 61 66 C3 A9`; decoding with UTF-8 restores the `String`, while decoding with ISO-8859-1 produces a different value.
+- The default-charset check does not depend on whether the runtime default is Windows-1252 or UTF-8. Real diagnostic code can inspect `Charset.defaultCharset().name()`.
+- The resource stream is closed via `try-with-resources`; the input data reads cleanly because both location and charset are explicit.
 
-**Note:** `Files.exists` can return `false` when existence cannot be determined due to I/O or permission errors, so never use it as absolute proof a path never existed. In this setup, `runtime/input.txt` was deliberately omitted.
+**Note:** `Files.exists` can return `false` when existence is indeterminate due to I/O or permission errors, so never treat it as absolute proof a path never existed. In this dedicated test, `runtime/input.txt` was deliberately not created.
 
 ## 10. Testing After Packaging a JAR
 
-Once compiled with `classes/sample/message.txt` copied as above, package a JAR:
+Once compiled and `classes/sample/message.txt` is in place as above, package the JAR:
 
 ~~~bash
 jar --create --file demo.jar --main-class ResourcePathsDemo -C classes .
 jar --list --file demo.jar
 ~~~
 
-The entry list must contain `ResourcePathsDemo.class` and `sample/message.txt`. Resource paths inside the archive must not accidentally carry a `classes/` or `src/main/resources/` prefix.
+The entry listing must include `ResourcePathsDemo.class` and `sample/message.txt`. Resource paths inside the archive must not accidentally carry a `classes/` or `src/main/resources/` prefix.
 
 Then run the JAR from a different working directory:
 
@@ -400,18 +400,18 @@ Then run the JAR from a different working directory:
 java -jar /absolute/path/to/demo.jar /absolute/path/to/input/input.txt
 ~~~
 
-Replace both paths in the example with real absolute paths. If the JAR resource is packaged correctly, `getResourceAsStream("/sample/message.txt")` still reads it even when CWD is another directory.
+Replace both example paths with real absolute paths. If the JAR resource is packaged properly, `getResourceAsStream("/sample/message.txt")` still reads it even from another CWD.
 
-If code runs under `java -cp classes ...` yet fails under `java -jar ...`, check:
+If code worked with `java -cp classes ...` yet failed with `java -jar ...`, check:
 
-- Was the resource packaged inside the JAR?
-- Does entry name casing differ from the code?
-- Did packaging/resource filtering alter paths or bytes?
-- Did it rely on `src/test/resources`, which exists only on the test classpath?
-- Did code call `new File(getResource(...).toURI())`, failing because a JAR resource is not an ordinary file?
-- Did the runtime classloader/module configuration change?
+- Was the resource file packaged into the JAR?
+- Does the entry name differ in letter case from what the code requests?
+- Did resource filtering/packaging alter the path or bytes?
+- Did code depend on `src/test/resources`, which is only on the test classpath?
+- Did code call `new File(getResource(...).toURI())`, which fails when the resource inside a JAR is not a plain file?
+- Did the classloader or module setup change in the packaged run?
 
-## 11. Maven/Gradle: Resources Have Separate Lifecycles
+## 11. Maven/Gradle: Resources Have Their Own Lifecycle
 
 In a standard Maven/Gradle project:
 
@@ -422,13 +422,13 @@ src/test/java/...
 src/test/resources/fixtures/data.txt
 ~~~
 
-`src/main/resources` is copied into runtime/JAR outputs under standard build configs. `src/test/resources` belongs to the test runtime; it is **not packaged into production JARs by default**.
+`src/main/resources` is copied to the runtime/JAR output under normal build configurations. `src/test/resources` belongs to the test runtime; it **is not packaged into the production JAR by default**.
 
-If a feature relies only on a test fixture and later runs a classpath lookup in production, it will get `null` because the resource is absent.
+If a feature works against a test fixture and later runs classpath lookup in production, it may return `null` because the resource is absent.
 
-Resource filtering can modify contents (such as placeholder expressions, charsets, and line endings). For binary assets like images, JKS/PKCS12 keystores, ZIPs, or certificates, never enable text filtering blindly. When exact content matters, verify checksums before and after packaging.
+Resource filtering can modify contents (such as placeholder expressions, charsets, and line endings). For binary assets like images, JKS/PKCS12 keystores, ZIPs, or certificates, never enable text filtering indiscriminately. When exact bytes matter, verify checksums before and after packaging.
 
-In Gradle/Maven IDEs, a Run Configuration's working directory defaults to the project root, yet **you must never treat that as a production contract**. Pass explicit absolute paths or use CWD-independent resource lookups.
+In Gradle/Maven IDE configurations, the Run Configuration's working directory is typically the project root, **but never treat that as a production contract**. Pass explicit absolute paths or use CWD-independent resource lookups.
 
 ## 12. Making Tests Independent of a Fixed CWD
 
@@ -448,13 +448,13 @@ try {
 }
 ~~~
 
-This is an illustrative snippet inside a method with imports and `throws`/exception handling. Real tests can use JUnit `@TempDir` and verify automatic cleanup.
+This is an illustrative snippet inside a method with imports and exception handling. Real tests can use JUnit `@TempDir` for automatic cleanup.
 
-For resources, place fixtures in test resources and read via `TestClass.class.getResourceAsStream("/fixtures/data.txt")`. To catch packaging bugs, run integration tests against the actual built JAR, not solely against the compiled classes directory.
+For resources, place fixtures in test resources and read via `TestClass.class.getResourceAsStream("/fixtures/data.txt")`. To catch packaging bugs, include an integration test that runs the real JAR rather than running tests only against the classes directory.
 
-### Reproducing a different CWD in a test harness
+### Reproducing a Different CWD in a Test Harness
 
-Java offers no portable API to change a running JVM's OS working directory per thread. Instead of mutating `user.dir`, launch a **child Java process** via `ProcessBuilder.directory(...)`:
+Java does not provide a portable API to change the running JVM's OS working directory per thread. Instead of mutating `user.dir`, launch a **child Java process** via `ProcessBuilder.directory(...)`:
 
 ~~~java
 ProcessBuilder pb = new ProcessBuilder(
@@ -464,30 +464,30 @@ Process child = pb.start();
 int exitCode = child.waitFor();
 ~~~
 
-This is a non-standalone illustrative snippet: `absoluteClasspath`, `absoluteInput`, and `otherWorkingDir` must be declared, and `IOException`/`InterruptedException` handled. In real integration tests, drain stdout/stderr (to prevent pipe deadlocks), enforce timeouts, and verify exit code and expected output. Prefer the toolchain's Java executable rather than assuming `java` is on `PATH`.
+This is an illustrative snippet, not standalone: `absoluteClasspath`, `absoluteInput`, and `otherWorkingDir` must be declared, with `IOException`/`InterruptedException` handling. In a real integration test, drain stdout/stderr (to avoid blocked pipes), enforce a timeout, and assert exit code and expected output. Resolve the Java executable from the toolchain instead of assuming `java` is always on `PATH`.
 
-**Test goal:** expose broken paths that silently depend on the project root and confirm resource lookup and explicit inputs work under any CWD.
+**Goal of the test:** expose hidden dependencies on the project root and confirm resource lookups and explicit inputs work from a different CWD.
 
 ## 13. Common Errors and How to Classify Them
 
-| Symptom | Error Category | Check / Resolution |
+| Symptom | Error Category | What to Check / How to Fix |
 | --- | --- | --- |
-| `NoSuchFileException` | Path does not exist at opened location | Log normalized absolute target and CWD |
-| `FileNotFoundException` | File stream could not open path | Check path, entry type, permissions |
-| `AccessDeniedException` | Missing access permissions | Check account, ACL, mount mode |
-| `InvalidPathException` | Invalid path syntax | Validate input path against OS/provider |
+| `NoSuchFileException` | Path does not exist at opened location | Log absolute target and CWD |
+| `FileNotFoundException` | File stream could not open path | Check path, file type, and permissions |
+| `AccessDeniedException` | Insufficient access permissions | Check account, ACLs, mount mode |
+| `InvalidPathException` | Invalid path syntax | Validate path input per OS/provider |
 | `getResourceAsStream()==null` | Resource lookup failed | Check leading slash, package, JAR/classloader |
-| `FileSystemNotFoundException` when converting resource URI to `Path` | Wrong filesystem provider mechanism | Read via `InputStream` or open proper filesystem provider |
-| `MalformedInputException` | Bytes invalid for decoder | Inspect original bytes and charset |
-| `UnmappableCharacterException` | Character unrepresentable under policy | Choose explicit charset and error strategy |
-| Garbled accents with no exception | Mojibake or decoder replacement | Compare Unicode code points and hex bytes |
-| Right resource name, wrong content | Duplicate resource in dependencies | Enumerate resource URLs and control classloader |
+| `FileSystemNotFoundException` converting resource URI to `Path` | Wrong filesystem provider handling | Read via `InputStream` or open proper filesystem provider |
+| `MalformedInputException` | Invalid bytes for decoder | Inspect original bytes and charset |
+| `UnmappableCharacterException` | Character cannot be represented under policy | Choose explicit charset and error strategy |
+| Garbled accents with no exception | Mojibake or decoder replacement | Compare Unicode code points and hex |
+| Right resource name, wrong content | Duplicate resource across dependencies | Enumerate resource URLs and check classloader |
 
-Never catch broad `IOException` and report every case as "File not found". Doing so masks permission, disk, encoding, provider, and network errors.
+Never catch `IOException` broadly and report every failure as "File not found." Doing so hides permission, disk, encoding, provider, and network errors.
 
 ## 14. Large Files, Resource Streams, and Other Limits
 
-`Files.readString` and `InputStream.readAllBytes()` load all data into memory; suitable for small configs or resources, poor defaults for multi-GB logs.
+`Files.readString` and `InputStream.readAllBytes()` load all data into memory; suitable for small configs or resources, but a poor default for multi-GB logs.
 
 For large text files, stream line by line:
 
@@ -501,98 +501,98 @@ try (BufferedReader reader =
 }
 ~~~
 
-This is an illustrative snippet; `handle` is application-provided, with full imports/exception handling needed. `readLine()` strips newline terminators, so if byte-exact preservation is needed for checksums or signatures, work with raw bytes rather than reconstructing text.
+This is an illustrative snippet; `handle` is application-provided, and imports/exception handling are needed. `readLine()` strips newline terminators, so when byte-exact preservation is needed for checksums or signatures, work with bytes instead of reconstructing text.
 
-For binary files such as ZIPs, images, keystores, or compressed resources, avoid decoding to a `String` and re-encoding; that corrupts bytes. Use `InputStream` and an appropriate binary parser.
+For binary files such as ZIPs, images, keystores, or compressed resources, avoid decoding into a `String` and re-encoding; that can irreversibly corrupt bytes. Use `InputStream` and proper binary parsers.
 
-When processing untrusted input configurations, bound size, allowed paths, nesting depth, and I/O timeouts. Normalizing a resource path does not protect against symlinks/races; choose defenses suited to the threat model.
+When reading untrusted input configurations, bound sizes, allowed paths, nesting depth, and I/O timeouts. Normalizing a resource path does not protect against symlinks or races; choose defenses appropriate to your threat model.
 
-## 15. Diagnostic Checklists by Error Category
+## 15. Diagnostic Checklists by Failure Category
 
-### A. Relative file path does not work
+### A. Relative File Path Fails
 
 1. Print/log `Path.of("").toAbsolutePath()`, `user.dir`, and `path.toAbsolutePath().normalize()`.
-2. Verify the file exists at the real location, plus permissions and file type.
-3. Compare CWDs of the IDE, terminal, service manager, Docker `WORKDIR`, or container process.
-4. Pass a base directory via args/config instead of assuming project root.
-5. Run from a different CWD using a child process.
+2. Verify file existence at the real target, permissions, and file type.
+3. Compare CWD across IDE, terminal, service manager, Docker `WORKDIR`, or container process.
+4. Pass a base directory via args/config instead of assuming the project root.
+5. Test running from a different CWD using a child process.
 
-### B. Classpath resource returns `null`
+### B. Classpath Resource Returns `null`
 
-1. Check the resource path **inside build output/JAR**, not just in the source tree.
-2. Check the leading slash on `Class.getResourceAsStream` and omit it on `ClassLoader.getResourceAsStream`.
+1. Check the resource path **inside the build output/JAR**, not just in the source tree.
+2. Check the leading slash in `Class.getResourceAsStream` and omit leading slashes in `ClassLoader.getResourceAsStream`.
 3. Check package-relative paths, case sensitivity, and classloader/module boundaries.
-4. Confirm main resources rather than test-only resources.
-5. If duplicate resources exist, enumerate URL matches.
-6. For JAR resources, use `InputStream`—never force them into filesystem `File` objects.
+4. Confirm the file is in main resources rather than test-only resources.
+5. If multiple matching resources exist, enumerate URL matches.
+6. For resources inside a JAR, use `InputStream` rather than converting to a filesystem `File`.
 
-### C. Garbled Vietnamese characters
+### C. Vietnamese Text Is Corrupted
 
-1. Confirm the right file/resource was opened.
-2. Inspect original bytes, the producer's charset, and the current decoder charset.
-3. Pass explicit `StandardCharsets.UTF_8` when the contract specifies UTF-8.
-4. Check BOMs, malformed sequences, and decoder replacement policies.
-5. Distinguish a corrupted Java `String` from a terminal display issue.
-6. Add a regression test checking `String` equality, code points, and expected bytes.
+1. Confirm the right file or resource was opened.
+2. Inspect raw bytes, the producer's charset, and the current decoder's charset.
+3. Use explicit `StandardCharsets.UTF_8` when the contract specifies UTF-8.
+4. Check for BOMs, malformed sequences, and decoder replacement policies.
+5. Distinguish a corrupted Java `String` from terminal rendering issues.
+6. Write regression tests verifying `String` equality, code points, and expected bytes.
 
-### D. Works in IDE, fails in production
+### D. Works in IDE, Fails in Production
 
 1. Compare CWD, JVM version, default charset, locale, classpath, and module path.
 2. Inspect JAR contents and packaged resources.
 3. Check environment variables, system properties, and service-account permissions.
-4. Verify case-sensitive filenames on the target OS.
-5. Run integration tests from a different CWD and against the actual build artifact.
-6. Log necessary path/charset diagnostics without exposing secrets.
+4. Verify case-sensitive file names on the target OS.
+5. Run integration tests from a different CWD and against the real build artifact.
+6. Log all necessary path/charset diagnostics without exposing secrets.
 
 ## 16. Characteristic Anti-Patterns
 
-| Wrong Approach | Why It Fails | Use Instead |
+| Anti-Pattern | Why It Fails | Replace With |
 | --- | --- | --- |
 | `Path.of("src/main/resources/template.txt")` in production | Source tree may not exist | `getResourceAsStream("/template.txt")` |
 | Assuming `java -jar` changes CWD | JAR location differs from process CWD | Explicit base directory |
-| Calling `getResourceAsStream("config/x.txt")` from a packaged class | Relative to class's package | Use leading root slash when needed |
-| Calling `ClassLoader.getResourceAsStream("/config/x.txt")` | Violates classloader resource naming | Drop leading slash |
-| Forcing a `jar:` URL into a local `File` | JAR resource is not a standalone local file | Read via stream |
-| Saving runtime data into JAR/classpath | Usually read-only / non-writable | Separate data directory |
+| Calling `getResourceAsStream("config/x.txt")` from a class in another package | Name resolves relative to package | Use leading slash if root-relative |
+| Calling `ClassLoader.getResourceAsStream("/config/x.txt")` | Violates classloader resource naming | Remove leading slash |
+| Converting a `jar:` URL into a local `File` | JAR entries are not standalone local files | Read via stream |
+| Writing runtime data into JAR/classpath | Usually read-only / non-writable | Separate data directory |
 | `InputStreamReader(in)` without charset on UTF-8 files | Default charset may differ | `InputStreamReader(in, UTF_8)` |
 | `String.getBytes()` for fixed formats | Depends on default charset | `getBytes(UTF_8)` |
-| Mutating `user.dir` to "fix" CWD | Not portable across OS/process | Pass base `Path` or `ProcessBuilder.directory` |
-| Checking only `Files.exists` and assuming safety | Races / permission failures | Open/read directly and handle exceptions |
-| Reporting every `IOException` as file missing | Hides the actual root cause | Classify by exception and operation |
-| Changing file decoder because terminal prints wrong accents | Console may be wrong while `String` is right | Verify `String` and terminal separately |
-| Reading binary bytes as text | Irreversibly corrupts bytes | Use byte streams |
-| Using `readAllBytes` on huge files | Heap exhaustion / `OutOfMemoryError` | Streaming and bounded memory |
+| Mutating `user.dir` to "fix" CWD | Not portable across OS/processes | Pass base `Path` or `ProcessBuilder.directory` |
+| Checking only `Files.exists` and assuming success | Race and permission errors | Actually open/read and handle exceptions |
+| Reporting every `IOException` as "file missing" | Masks the real root cause | Classify by exception and operation |
+| Changing file decoder because terminal prints wrong accents | Console may be wrong while `String` is right | Inspect `String` and terminal separately |
+| Reading binary bytes as text | Can irreversibly corrupt data | Use byte streams |
+| Calling `readAllBytes` on huge files | Risks heap exhaustion / OOME | Streaming and bounded memory |
 
 ## 17. Self-Check Questions
 
 1. Does `Path.of("data.txt")` search next to the `.class` file or in CWD? **In the process's CWD**, not the class directory.
 2. Does `java -jar /opt/app/app.jar` automatically change CWD to `/opt/app`? **No**.
-3. How do you check the absolute path an application is actually resolving? `path.toAbsolutePath().normalize()`.
-4. Should `System.setProperty("user.dir", ...)` be used to change OS working directory at runtime? **No**, it is not portable.
+3. How do you inspect the absolute path an application is actually resolving to? `path.toAbsolutePath().normalize()`.
+4. Should you call `System.setProperty("user.dir", ...)` to change the OS working directory at runtime? **No**, it is not portable.
 5. Does `src/main/resources` always exist on the server after building? **No**.
 6. In `Class.getResourceAsStream("/config/x.txt")`, what does the leading slash mean? **Search from the resource root**.
 7. Where does `Class.getResourceAsStream("x.txt")` without a slash search? **Relative to the class's package**.
-8. Should `ClassLoader.getResourceAsStream` normally start with a slash? **Usually no**.
-9. Can a JAR resource always be converted directly to a `File`? **No**; prefer streams.
+8. Should `ClassLoader.getResourceAsStream` normally start with a slash? **Normally no**.
+9. Can a resource inside a JAR always be converted directly to a `File`? **No**; prefer streaming.
 10. Does `Files.readString(path)` in JDK 17 use the default charset? **No**, that overload uses UTF-8.
-11. What about `new InputStreamReader(in)` with no charset argument? **It uses the JVM default charset**.
-12. What are the UTF-8 bytes of `Café`? **43 61 66 C3 A9**.
-13. Can decoding UTF-8 bytes as ISO-8859-1 corrupt characters without throwing an exception? **Yes**.
-14. If a Java `String` is right yet the terminal displays wrong accents, does that prove the file is corrupted? **No**; it may be console encoding/font.
-15. Which bytes form the UTF-8 BOM? **EF BB BF**.
-16. Does `Files.exists(path) == false` prove with certainty the file does not exist? **Not absolutely**, due to races and permission/I/O errors.
-17. How do you catch an app implicitly relying on the IDE working directory? **Launch from a different CWD in an integration test**.
-18. Are files only in `src/test/resources` packaged into production JARs automatically? **Normally no**.
-19. If the classpath holds two resources with the same name, is there a risk of reading the wrong one? **Yes**, namespace them and control the classloader.
-20. Should runtime data be written into `src/main/resources` or the JAR? **No**, use an explicit writable data directory.
+11. What about `new InputStreamReader(in)` without a charset argument? **Uses the JVM default charset**.
+12. What are the UTF-8 bytes of `Café`? **`43 61 66 C3 A9`**.
+13. Can decoding UTF-8 bytes as ISO-8859-1 corrupt text without throwing an exception? **Yes**.
+14. If a Java `String` is right yet the terminal displays wrong accents, does that prove the file is corrupted? **No**; it may be console encoding or font rendering.
+15. Which bytes make up a UTF-8 BOM? **`EF BB BF`**.
+16. Does `Files.exists(path)==false` prove with certainty that the file does not exist? **Not absolutely**, due to races and permission/I/O errors.
+17. How do you catch an app implicitly depending on the IDE working directory? **Launch from a different CWD in an integration test**.
+18. Does a file present only in `src/test/resources` automatically go into the production JAR? **Normally no**.
+19. If the classpath has two resources with the same name, is there a risk of reading the wrong one? **Yes**; namespace paths or control the classloader.
+20. Should runtime data be written into `src/main/resources` or the JAR? **No**; use an explicit writable data directory.
 
-## API Reference Documentation
+## Official API Reference
 
-- [Java SE 17 — Path](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html): relative/absolute paths, normalize, toRealPath.
-- [Java SE 17 — Files](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): readString, newBufferedReader, newInputStream, and I/O errors.
-- [Java SE 17 — Class](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): getResource/getResourceAsStream and package-relative lookup.
+- [Java SE 17 — Path](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html): relative/absolute paths, `normalize`, `toRealPath`.
+- [Java SE 17 — Files](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): `readString`, `newBufferedReader`, `newInputStream`, and I/O errors.
+- [Java SE 17 — Class](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): `getResource`/`getResourceAsStream` and package-relative lookup.
 - [Java SE 17 — ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html): looking up and enumerating resources.
 - [Java SE 17 — Charset](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/Charset.html) and [StandardCharsets](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/StandardCharsets.html): default charset, UTF-8, and standard charsets.
 - [Java SE 17 — CharsetDecoder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetDecoder.html): malformed bytes and decoder policies.
-- [Java SE 17 — ProcessBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ProcessBuilder.html): running a child process with a specified working directory.
-- [JEP 400 — UTF-8 by Default](https://openjdk.org/jeps/400): JDK 18 change and compatibility considerations.
+- [Java SE 17 — ProcessBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ProcessBuilder.html): launching a child process with a specified working directory.
+- [JEP 400 — UTF-8 by Default](https://openjdk.org/jeps/400): the JDK 18 change and compatibility considerations.

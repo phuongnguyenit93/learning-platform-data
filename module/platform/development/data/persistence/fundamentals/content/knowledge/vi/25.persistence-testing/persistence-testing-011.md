@@ -371,7 +371,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public record Money(BigDecimal amount, String currency) {}
+record Money(BigDecimal amount, String currency) {}
 
 public final class MoneyMapper {
     public Money read(ResultSet row) throws SQLException {
@@ -682,6 +682,428 @@ FROM orders GROUP BY currency;
 ~~~
 
 Sau khi dữ liệu hợp lệ và writer sẵn sàng, mới thêm constraint. Trên PostgreSQL, `NOT VALID`/`VALIDATE CONSTRAINT` có hỗ trợ tùy loại ràng buộc và phiên bản, nhưng việc `SET NOT NULL` vẫn có yêu cầu lock/validation riêng. Rehearsal phải đo trên DB có quy mô gần thực tế.
+## 14. DDL có thể để lại trạng thái trung gian
+
+Một giả định sai là “migration thất bại thì DB tự quay lại y nguyên trước đó”. Điều này phụ thuộc DBMS, lệnh DDL và transaction manager.
+
+### 14.1. PostgreSQL tạo index concurrently
+
+~~~sql
+CREATE INDEX CONCURRENTLY idx_orders_created_at
+ON orders (created_at);
+~~~
+
+Trong PostgreSQL, lệnh này **không chạy bên trong transaction block tường minh**. Nếu bị hủy, có thể để lại index không hợp lệ. Test cần xem catalog sau failure:
+
+~~~sql
+SELECT c.relname, i.indisvalid, i.indisready
+FROM pg_index AS i
+JOIN pg_class AS c ON c.oid = i.indexrelid
+WHERE c.relname = 'idx_orders_created_at';
+~~~
+
+Không mặc định một index tồn tại theo tên là đã sẵn sàng để query planner sử dụng. Cần quy trình cleanup/tạo lại và xem trạng thái migration history trước khi retry.
+
+### 14.2. Engine và driver không đồng nhất
+
+PostgreSQL, MySQL/InnoDB, SQL Server và Oracle có cơ chế DDL, implicit commit, lock và online migration khác nhau. Không dùng bài test H2 để kết luận cách PostgreSQL rollback DDL. Không dùng script `ON CONFLICT` hoặc `SKIP LOCKED` trên DBMS khác mà không xác minh khả năng công nghệ.
+
+### 14.3. Kiểm thử schema drift và checksum
+
+Với Flyway/Liquibase, thử:
+
+1. Migration mới chạy thành công trên DB sạch.
+2. Migration áp dụng tiếp từ schema đã có history.
+3. File migration versioned từng được áp dụng bị đổi nội dung → phải phát hiện checksum mismatch.
+4. Có DDL thủ công ngoài tool → thực tế schema khác expected.
+5. Migration thất bại một phần → bảng history và đối tượng vật lý còn trạng thái gì?
+6. Một repeatable migration chạy lại có an toàn với dữ liệu cũ không?
+
+Không xóa bảng history hoặc chạy `repair` vô điều kiện chỉ để làm CI xanh. Cần điều tra nguyên nhân, lưu bằng chứng và đưa ra migration/repair được review.
+
+## 15. Phục hồi sau sự cố và đường nâng cấp từ backup cũ
+
+Một job migration có thể crash khi đọc batch, sau UPDATE trước COMMIT hoặc sau commit nhưng trước checkpoint.
+
+### 15.1. Phân loại lỗi
+
+| Lỗi | Chính sách kiểm thử |
+|---|---|
+| Deadlock/serialization failure | Rollback, retry toàn transaction có giới hạn nếu an toàn |
+| DB tạm thời không sẵn sàng | Retry có backoff, không gây bão tải |
+| Mất mạng quanh COMMIT | Đối soát, không suy ra rollback từ exception |
+| Dữ liệu legacy không thể parse | Cách ly và sửa dữ liệu, không retry mù |
+| Unique/FK violation | Xác định lỗi business hay migration order |
+| DDL bị dừng giữa chừng | Inspect schema/history, chọn cách sửa an toàn |
+| Backfill crash sau commit | Resume idempotent và checkpoint nhất quán |
+
+### 15.2. Restore có schema version cũ
+
+~~~text
+Backup V2 + dữ liệu + migration history
+     -> restore trong database cách ly
+     -> inspect DBMS/schema/history/backfill
+     -> dùng đúng artifact V3/V4 đã phát hành
+     -> migrate hoặc tiếp tục backfill
+     -> kiểm tra invariant + reader Java
+     -> quyết định cutover / đối soát
+~~~
+
+Với PostgreSQL PITR, WAL có thể đã replay cả migration DDL tới recovery target. Không chạy lại migration chỉ dựa vào version của **base backup**; kiểm tra database **sau recovery**.
+
+### 15.3. Schema tương thích chưa đảm bảo dữ liệu mới được phục hồi
+
+Đưa backup ba tháng trước từ V10 lên V15 không tạo lại những đơn hàng ghi trong ba tháng đó. RPO cần chiến lược backup/WAL, còn event broker, payment và search index có thể cần reconciliation riêng.
+
+**Rollback code khác rollback dữ liệu.** Sau khi app v3 ghi đơn USD, app v1 chỉ hiểu VND không an toàn dù vẫn đọc SQL thành công.
+
+### 15.4. Restore drill phải đạt mức ứng dụng
+
+Một buổi rehearsal cần kiểm tra:
+
+- Backup set, WAL, khóa giải mã và metadata đầy đủ.
+- Engine major version, extensions, roles, collations phù hợp.
+- Migration history và schema thực khớp.
+- Backfill có thể chạy/tiếp tục an toàn.
+- Repository, JDBC/JPA, ràng buộc và business use case chạy.
+- RPO/RTO được đo thực.
+- Side effects ngoài hệ thống (email, webhook, payment) không bị phát nhầm.
+- Outbox, search projection, object store và broker có kế hoạch đối soát.
+
+`pg_restore --list` đọc được archive không chứng minh một service Java đã phục hồi hoàn toàn.
+
+## 16. Dữ liệu phiên bản cũ còn nằm ngoài SQL
+
+Một database có thể phát sinh outbox events, JSON payload, Redis cache, search documents và data exports.
+
+~~~text
+PostgreSQL -> outbox -> broker -> consumer
+          -> search / reporting projection
+          -> Redis / file export / backup
+~~~
+
+Thay đổi schema bảng không tự chuyển đổi mọi bản sao.
+
+### 16.1. Sự kiện JSON v1 và v2
+
+~~~json
+{
+  "schemaVersion": 1,
+  "eventId": "evt-101",
+  "orderId": 101,
+  "totalCents": 120000
+}
+~~~
+
+~~~json
+{
+  "schemaVersion": 2,
+  "eventId": "evt-102",
+  "orderId": 102,
+  "totalMinorUnits": 120000,
+  "currency": "VND"
+}
+~~~
+
+Kiểm thử:
+
+- Consumer mới đọc/replay event v1 đúng ngữ nghĩa.
+- Consumer cũ còn được hỗ trợ không gặp message không hiểu.
+- Thay tên field không tự biến missing field thành số 0.
+- Đơn vị của `totalMinorUnits` được định nghĩa theo currency; không mặc định mọi currency có hai chữ số thập phân.
+- Idempotency key và event ID giữ nguyên khi replay.
+
+JSON syntax hợp lệ chưa đủ; serializer Java có thể strict hoặc lenient về unknown fields. Với Protobuf, không tái sử dụng field number cũ cho nghĩa mới. Với Avro, kiểm tra writer-reader schemas và default theo chiều tương thích thực sự cần.
+
+### 16.2. Search index, cache và delete
+
+Test projection khi:
+
+1. Index mới đang backfill và nguồn vẫn cập nhật.
+2. Event version 9 đến trước version 8.
+3. Một event được gửi lại sau ack thất bại.
+4. Delete/tombstone version mới đến trước một upsert cũ.
+5. Search accepted nhưng query chưa thấy thay đổi do refresh lag.
+6. Chuyển alias sang index mới sau khi catch-up/reconciliation.
+
+Redis cache chứa serialized object format cũ cũng cần test versioned key, fallback hoặc invalidation. Xóa toàn cache một lúc có thể đẩy tải lớn về DB, cần benchmark và giới hạn concurrency.
+
+## 17. Test rollback, roll-forward và khả năng đảo ngược
+
+| Thay đổi | Có thể đảo ngược? | Test |
+|---|---|---|
+| Thêm cột nullable chưa sử dụng | Thường dễ | App cũ hoạt động với schema expand |
+| Giữ cả tên cột cũ và mới | Có điều kiện | Dual-write và version conflict |
+| Siết NOT NULL | Có thể nới constraint, nhưng phải xét dữ liệu | Backfill và writer compatibility |
+| Chuyển đơn vị tiền/làm tròn | Có thể mất thông tin | Golden totals, precision, business rules |
+| Xóa cột gốc | Có thể mất giá trị lịch sử | Backup/mapping/restore |
+| Bật USD | App chỉ hiểu VND không còn an toàn | Feature gate/roll-forward |
+| Đổi event format | Consumer lịch sử có thể hỏng | Replay/contract tests |
+
+Script “down” có thể tạo lại tên cột, nhưng không thể tự khôi phục giá trị đã bị xóa hoặc làm tròn mất precision.
+
+### 17.1. Test trước và sau điểm không thể quay lui
+
+Trước khi ghi USD, một số phiên bản cũ còn có thể rollback theo hợp đồng đã kiểm chứng. Sau khi ghi USD, rollback về app v1 phải bị chặn hoặc dùng bản v1 đã sửa để hiểu currency mới. Test nên chứng minh điều kiện này qua feature flag và contract, không chỉ qua migration table.
+
+### 17.2. Roll-forward có kiểm chứng
+
+Nếu dữ liệu mới đã tồn tại, một migration bù có thể an toàn hơn restore đè backup cũ. Cần test:
+
+- Chỉ đụng những hàng cần sửa.
+- Có điều kiện/version và có thể chạy lại.
+- Có cách đối soát dữ liệu/row counts.
+- Không phát side effect hai lần.
+- Thất bại có thể dừng và điều tra, không để cấu trúc nửa hợp lệ bị công bố.
+
+## 18. Đo migration dưới tải và dữ liệu đại diện
+
+Một ALTER hoặc backfill chạy 2 giây trên 100 hàng có thể giữ khóa lâu, gây WAL lớn hoặc replica lag trên 100 triệu hàng.
+
+### 18.1. Những tín hiệu cần đo
+
+- Thời gian chờ/giữ DDL lock và row locks.
+- Table rewrite/index build duration.
+- Backfill throughput, số hàng còn lại, lỗi dữ liệu.
+- WAL/redo, replication lag, DB CPU/I/O, memory.
+- Connection pool active/pending, transaction duration.
+- Deadlocks, lock timeouts và retry.
+- Query latency p95/p99 của API nghiệp vụ.
+- Search/consumer lag và lỗi deserialization sau schema change.
+- Thời gian rollback, resume hoặc restore.
+
+Một job tăng tốc độ lên 30.000 rows/s nhưng làm checkout p99 tăng mạnh có thể không đạt mục tiêu hệ thống. Test dưới concurrency và resource budget có ý nghĩa.
+
+### 18.2. Dữ liệu tổng hợp cho hiệu năng
+
+Fixture synthetic có thể giữ số hàng, skew theo tenant/ngày, độ dài JSON, tỷ lệ null, hot keys, số item mỗi order và selectivity index. Không cần danh tính khách hàng thật để đo phần lớn chi phí DB.
+
+Nếu bắt buộc dùng dữ liệu thật, rehearsal phải ở vùng được bảo vệ, chỉ cung cấp kết quả đo đã được phê duyệt cho người không có quyền đọc PII.
+
+### 18.3. Ngưỡng dừng
+
+Runbook phải có điều kiện stop khi DDL lock, replica lag hoặc p99 vượt ngân sách; khi phát hiện dữ liệu không thể chuyển; khi index không hợp lệ; hoặc khi thiếu đường khôi phục đã xác minh. Không được tiếp tục chỉ vì migration đã chạy được 90%.
+## 19. Đưa kiểm thử vào CI/CD theo nhiều cấp
+
+Một pipeline hữu ích không nhất thiết chạy toàn bộ bài test nặng trên mỗi commit. Nhưng các kiểm tra tương thích dữ liệu cũ phải được thực hiện theo lịch và release policy rõ ràng.
+
+| Cấp kiểm thử | Dữ liệu / môi trường | Điều được chứng minh |
+|---|---|---|
+| Unit | Fixture nhỏ, mapper Java | Đúng semantic conversion/rounding/null/enum |
+| Fresh migration | PostgreSQL container trống | Bộ migrations tạo schema cuối |
+| Upgrade-path | DB V1 + fixture legacy | Toàn chuỗi V2–V4 chuyển dữ liệu đúng |
+| Rolling compatibility | Reader/writer hai phiên bản | Có thể đọc/ghi khi cùng tồn tại |
+| Concurrency | Hai session có barrier | Không lost update/deadlock retry sai |
+| Failure injection | Crash job, timeout, commit mơ hồ | Restart/checkpoint/idempotency |
+| Contract/event | Event JSON v1/v2, consumer thật | Replay và mapping đúng |
+| Restore rehearsal | Backup ở môi trường cách ly | Engine/schema/app và RPO/RTO |
+| Performance | Synthetic data quy mô đại diện | Lock, I/O, replica lag, p95/p99 |
+
+Đề xuất tổ chức:
+
+- Pull request: unit + fresh migration + upgrade-path test và một số invariant tests.
+- Release candidate: thêm rolling compatibility, concurrency và failure injection.
+- Theo lịch/đợt thay đổi lớn: restore drill, performance rehearsal và event replay nhiều phiên bản.
+- Trước contract hoặc đổi ngữ nghĩa: chạy toàn bộ những bài test liên quan, bao gồm chứng minh không còn consumer cũ.
+
+### 19.1. Tối thiểu phải thử những version nào?
+
+Ưu tiên:
+
+1. Version schema production đang chạy trước nâng cấp.
+2. Version cũ nhất còn được cam kết restore từ backup.
+3. Một trạng thái expand/backfill dở dang.
+4. Một format event lịch sử vẫn có thể replay.
+5. App/worker cũ còn sống trong rolling deployment.
+
+Không nhất thiết hỗ trợ mọi version từng tồn tại. Nhưng nếu bỏ một đường nâng cấp hoặc restore, cần công bố điều kiện giới hạn và runbook thay thế, tránh silently loại khỏi test.
+
+### 19.2. Quản lý trạng thái test độc lập
+
+Đừng để hai test cùng dùng một DB đã chạy migration mà không reset; test cần V1 có thể nhận nhầm schema V4 từ test trước và cho kết quả phụ thuộc thứ tự chạy.
+
+Có thể dùng container/database riêng, tạo schema mới hoặc restore snapshot sạch. Mọi thay đổi DDL/transaction cần cleanup và timeout phù hợp.
+
+### 19.3. Bản backup lịch sử là test artifact có kiểm soát
+
+Một backup cũ có thể chứa Flyway history, schema, dữ liệu và phiên bản DBMS tương ứng. Khi test restore không được xóa history để migration tool “bắt đầu từ đầu”. Phải inspect thực trạng và áp **chỉ** migrations phù hợp từ recovery point.
+
+Các artifact cần giữ ít nhất đủ vòng đời backup phải phục hồi:
+
+- Migration versioned và checksums.
+- Backfill logic/runner có version.
+- App release hoặc compatibility contract.
+- Schema/serializer cũ cho replay.
+- Thông tin DBMS/extension cần thiết.
+- Kịch bản kiểm tra dữ liệu và runbook.
+
+## 20. Runbook kiểm thử trước khi phát hành
+
+### 20.1. Trước khi chạy
+
+1. Mô tả yêu cầu đổi schema/format và lý do.
+2. Xác định nguồn sự thật, bất biến và khả năng mất thông tin.
+3. Liệt kê app, batch job, report, event consumer, cache, search và đường backup phụ thuộc schema.
+4. Lập ma trận schema/app/writer/reader còn được hỗ trợ.
+5. Chuẩn bị legacy fixture, golden values và data quality checks.
+6. Chọn DBMS/driver version phù hợp, artifact migration bất biến.
+7. Đánh giá lock, transaction, WAL và kế hoạch rollback/roll-forward.
+8. Đặt ngưỡng cảnh báo và có thủ tục dừng.
+
+### 20.2. Trong quá trình kiểm thử
+
+1. Chạy migration trên DB rỗng để phát hiện DDL cơ bản.
+2. Dựng DB cũ, chèn fixture theo schema cũ rồi nâng cấp thật.
+3. Kiểm tra ID, số lượng, FK, currency, số tiền, enum, timezone.
+4. Chạy reader/writer cũ và mới trong giai đoạn expand.
+5. Cho backfill chạy một phần và thử restart ở các điểm lỗi.
+6. Tạo race hai transaction và kiểm tra lost update/retry.
+7. Kiểm tra sự kiện v1/v2, projection và cache nếu thay đổi hợp đồng.
+8. Rehearsal dưới tải và đo ảnh hưởng lên query nghiệp vụ.
+9. Thử restore từ backup và ứng dụng có thể chạy lại.
+10. Đối chiếu kết quả với bất biến/golden outcome độc lập.
+
+### 20.3. Trước khi quyết định PASS
+
+- Mọi invariant bắt buộc đều đạt, không chỉ migration exit code bằng 0.
+- Không có hàng lỗi chưa được phân loại hoặc đã được chấp nhận bằng quyết định rõ.
+- Writer/consumer cũ đã rời khỏi đường ghi không tương thích.
+- Ràng buộc DB mới được validate và truy vấn quan trọng còn hoạt động.
+- Backfill có thể tiếp tục khi gặp crash/timeout, không nhân đôi.
+- Cấu hình rollback/roll-forward hợp lệ cho trạng thái dữ liệu hiện tại.
+- Có backup, restore path và kế hoạch phục hồi theo RPO/RTO.
+- Không đưa dữ liệu raw production ra ngoài vùng bảo vệ khi thử nghiệm.
+- Hiệu năng/độ trễ/lock/replication lag trong ngân sách được chấp nhận.
+- Report ghi phiên bản, dữ liệu đầu vào, số hàng, bất biến, kết quả và những giới hạn đã biết.
+
+## 21. Sai lầm thường gặp
+
+| Sai lầm | Hậu quả | Cách làm tốt hơn |
+|---|---|---|
+| Chỉ tạo schema cuối trên DB rỗng | Không gặp dữ liệu legacy | Test từ schema cũ có fixture |
+| Chỉ tin migration version | Backfill có thể đang chạy dở | Kiểm tra trạng thái data riêng |
+| SQL chạy không lỗi là coi đúng | Có thể sai tiền tệ/timezone | Semantic golden outputs |
+| Test reader mà quên writer | App cũ có thể ghi đè trường mới | Read/write crossover + concurrency |
+| Backfill UPDATE mù | Mất thay đổi mới | Conditional/version check |
+| Chạy job lại không có idempotency | Dữ liệu nhân đôi hoặc chuyển đổi hai lần | Data version, checkpoint, operation ID |
+| Chạy H2 thay cho engine thật | Sai khác DDL/isolation/locking | PostgreSQL/Testcontainers |
+| Tự sửa migration đã áp dụng | History checksum lệch, khó restore | Thêm migration versioned mới |
+| Bỏ qua invalid index sau lỗi | Hệ thống thiếu index dù tool đã báo | Inspect catalog và repair có kiểm soát |
+| Không thử event/schema cũ | Replay làm consumer lỗi | Contract tests cho serializer |
+| Cho rằng down migration khôi phục dữ liệu | Mất giá trị gốc/precision | Roll-forward và restore rehearsal |
+| Chỉ đo tốc độ migration | Ảnh hưởng p99 người dùng | Đo toàn hệ thống và lock budgets |
+| Dùng raw production trong CI | Phơi bày dữ liệu nhạy cảm | Synthetic/sanitized fixtures |
+| So số hàng nhưng không so khóa/giá trị | Có thể mất/nhân đôi dữ liệu | ID/FK/amount/content reconciliation |
+| Bỏ qua backup cũ | Không biết đường nâng cấp khi cần restore | Retained migrations và restore drill |
+
+## 22. Bài tập tự kiểm tra
+
+### Bài 1. Vì sao fresh-install test chưa đủ?
+
+Schema v2 thêm currency, code mới tạo các hàng có currency đầy đủ. Production có một triệu đơn cũ không có currency. Test nào còn thiếu?
+
+**Gợi ý:** Dựng schema v1 với hàng legacy, chạy migration và xác minh từng bất biến, kể cả giá trị thiếu và dữ liệu biên.
+
+### Bài 2. Tương thích cấu trúc và ngữ nghĩa
+
+App v1 luôn hiểu amount là VND nhưng app v3 bắt đầu ghi USD. V1 vẫn SELECT được mọi hàng. Có thể coi tương thích không?
+
+**Gợi ý:** Không, vì nghĩa dữ liệu sai dù câu SQL thành công.
+
+### Bài 3. Backfill chạy lại
+
+Job nhân một số dư với 100, crash sau commit rồi chạy lại. Điều gì phải thay đổi?
+
+**Gợi ý:** Cần data format version/điều kiện hoặc operation ID, và test restart sau commit để ngăn nhân hai lần.
+
+### Bài 4. Writer cập nhật đồng thời
+
+Backfill đọc currency NULL; API mới ghi USD; backfill tiếp tục gán VND. Cần test và cơ chế bảo vệ nào?
+
+**Gợi ý:** Hai connection với barrier/latch, `WHERE currency IS NULL` hoặc optimistic version check theo quy tắc.
+
+### Bài 5. Expected output dùng cùng hàm
+
+Expected value và actual value đều được tính bởi cùng converter mới. Test có mạnh không?
+
+**Gợi ý:** Không nếu converter sai, cả hai có thể sai như nhau. Cần golden business outcome độc lập.
+
+### Bài 6. Dữ liệu mồ côi
+
+Một FK mới không tạo được vì dữ liệu cũ có order item thiếu order. Có nên tự xóa các item để pass migration?
+
+**Gợi ý:** Không mặc định; cần chính sách sửa/xử lý được chấp thuận, bảo vệ audit và dữ liệu có liên quan.
+
+### Bài 7. NOT NULL và default
+
+Schema có `currency NOT NULL DEFAULT 'VND'`, INSERT bỏ currency thành công. Có phải NOT NULL không hoạt động?
+
+**Gợi ý:** Không. Default cung cấp giá trị; muốn test constraint, cố ghi NULL tường minh trong transaction test.
+
+### Bài 8. Index concurrently
+
+Migration xây index concurrently bị hủy. Có thể retry mù không?
+
+**Gợi ý:** Không. Cần inspect trạng thái index invalid và history rồi mới xử lý/tạo lại.
+
+### Bài 9. Consumer sự kiện v1
+
+Broker còn event v1 không có currency, consumer mới chỉ parse v2. Cần kiểm tra gì?
+
+**Gợi ý:** Replay v1 qua serializer/adapter thật, xử lý missing fields và bảo toàn ngữ nghĩa tiền.
+
+### Bài 10. PITR
+
+Base backup ở schema V2; WAL replay tới sau migration V3. Có phải chạy lại V3?
+
+**Gợi ý:** Không mặc định. Kiểm tra schema/history tại recovery target.
+
+### Bài 11. Tải thực tế
+
+DDL chạy 2 giây trên 100 hàng, nhưng production có 80 triệu hàng. Test nào chưa đủ?
+
+**Gợi ý:** Rehearsal với dữ liệu/khóa/concurrency đại diện, đo WAL, locks, p99 và lag.
+
+### Bài 12. Contract quá sớm
+
+Flyway đã đến V4 nhưng một batch worker còn ghi format cũ. Có thể bỏ fallback không?
+
+**Gợi ý:** Chưa; cần chứng minh tất cả writer/reader liên quan đã sẵn sàng.
+
+### Bài 13. Rollback code
+
+App mới đã ghi đơn USD. Nhóm muốn quay về app cũ chỉ hiểu VND. Có an toàn?
+
+**Gợi ý:** Không về ngữ nghĩa; cần roll-forward hoặc app cũ được vá tương thích.
+
+### Bài 14. Restore từ backup cũ
+
+Một backup V10 được migrate lên V15 có làm xuất hiện tự động dữ liệu đã ghi sau thời điểm backup không?
+
+**Gợi ý:** Không. Schema compatibility khác RPO; cần backup/WAL và đối soát nguồn.
+
+### Bài 15. Dữ liệu production cho CI
+
+Nhóm tải raw production dump lên CI rồi mới mask PII. Có được coi là quy trình an toàn mặc định?
+
+**Gợi ý:** Không; sanitize trong vùng cách ly trước khi cấp quyền rộng, ưu tiên synthetic data.
+
+## 23. Ghi nhớ
+
+- **Kiểm thử phải bắt đầu từ dữ liệu phiên bản cũ**, không chỉ schema cuối và entity mới.
+- **Tương thích bao gồm ngữ nghĩa.** Có thể đọc được SQL mà vẫn hiểu sai currency, timezone, enum hoặc trạng thái.
+- **Expand, backfill, contract là các trạng thái riêng** cần được test, đặc biệt khi ứng dụng cũ/mới cùng chạy.
+- **Backfill là một writer có cạnh tranh.** Test idempotency, checkpoint, lost update, rollback, commit mơ hồ và quét bù.
+- **Đối chiếu bất biến thay vì tin exit code.** Row IDs, FK, giá tiền, constraints và business outcomes là tiêu chí chính.
+- **Dùng DBMS thật cho hành vi DBMS.** H2 không thay được PostgreSQL khi test DDL, khóa, transaction và migration errors.
+- **Giữ artifact và lịch sử để nâng cấp từ backup cũ.** Migration đã chạy cần tái lập được và có đường xử lý dữ liệu chuyển tiếp.
+- **Đừng quên dữ liệu ngoài DB.** Event JSON, outbox, search, cache và file có version cần kiểm thử.
+- **Rollback code không đồng nghĩa rollback dữ liệu.** Sau khi ghi định dạng mới, có thể phải roll-forward.
+- **Release gate cần bằng chứng đo được**, gồm correctness, tính tương thích, hiệu năng và restore rehearsal.
+
+Kiểm thử migration và khả năng đọc dữ liệu phiên bản cũ biến lời hứa “nâng cấp không mất dữ liệu” thành một tập tiêu chí có thể kiểm tra và lặp lại. Một lớp persistence Java bền vững không chỉ tạo được schema mới: nó còn phải **đọc đúng dữ liệu lịch sử, chuyển đổi an toàn dưới tải và lỗi thực tế, và phục hồi được khi quá trình nâng cấp không diễn ra như dự kiến**.
+
+
 
 
 

@@ -847,7 +847,7 @@ menu:
   childs:
   - slug: querying-and-pagination-001
     title: Xây dựng truy vấn từ nhu cầu đọc của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -874,7 +874,7 @@ menu:
     summary: ''
   - slug: querying-and-pagination-004
     title: Kết hợp dữ liệu và tổng hợp ở mức khái niệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -910,7 +910,7 @@ menu:
     summary: ''
   - slug: querying-and-pagination-008
     title: Phân trang theo khóa hoặc con trỏ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2605,7 +2605,7 @@ menu:
     summary: ''
   - slug: persistence-testing-003
     title: Kiểm thử tạo, đọc, cập nhật và xóa theo hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2677,7 +2677,7 @@ menu:
     summary: ''
   - slug: persistence-testing-011
     title: Kiểm thử migration và khả năng đọc dữ liệu phiên bản cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2686,7 +2686,7 @@ menu:
     summary: ''
   - slug: persistence-testing-012
     title: Mô phỏng gián đoạn kết nối, ghi dở dang và kết quả commit chưa rõ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2695,7 +2695,7 @@ menu:
     summary: ''
   - slug: persistence-testing-013
     title: Kiểm thử phục hồi và đối soát sau sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2707,7 +2707,7 @@ menu:
   childs:
   - slug: observability-and-operations-001
     title: Theo dõi độ trễ, lỗi và thông lượng thao tác dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2716,7 +2716,7 @@ menu:
     summary: ''
   - slug: observability-and-operations-002
     title: Quan sát kết nối đang dùng, thời gian chờ và độ dài hàng đợi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2725,7 +2725,7 @@ menu:
     summary: ''
   - slug: observability-and-operations-003
     title: Phát hiện truy vấn chậm, giao dịch dài và chờ khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2734,7 +2734,7 @@ menu:
     summary: ''
   - slug: observability-and-operations-004
     title: Theo dõi dung lượng, tốc độ tăng trưởng và tài nguyên còn lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2743,7 +2743,7 @@ menu:
     summary: ''
   - slug: observability-and-operations-005
     title: Đo độ trễ nhân bản và tình trạng sao lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2752,7 +2752,7 @@ menu:
     summary: ''
   - slug: observability-and-operations-006
     title: Liên kết trace ứng dụng với thao tác lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2761,7 +2761,7 @@ menu:
     summary: ''
   - slug: observability-and-operations-007
     title: Giới hạn dữ liệu nhạy cảm trong log và nhãn đo lường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2770,7 +2770,7 @@ menu:
     summary: ''
   - slug: observability-and-operations-008
     title: Cảnh báo theo tác động tới nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2779,7 +2779,7 @@ menu:
     summary: ''
   - slug: observability-and-operations-009
     title: Lập hướng dẫn xử lý hết kết nối, hết dung lượng và dữ liệu sai lệch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2788,7 +2788,7 @@ menu:
     summary: ''
   - slug: observability-and-operations-010
     title: Quản lý thay đổi cấu hình và xác minh sau triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2797,7 +2797,7 @@ menu:
     summary: ''
   - slug: observability-and-operations-011
     title: Kiểm tra năng lực phục hồi bằng các lần diễn tập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2809,7 +2809,7 @@ menu:
   childs:
   - slug: persistence-design-pitfalls-001
     title: Xem dữ liệu trong đối tượng là dữ liệu đã được lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2818,7 +2818,7 @@ menu:
     summary: ''
   - slug: persistence-design-pitfalls-002
     title: Đồng nhất flush với commit hoặc với độ bền trên thiết bị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2827,7 +2827,7 @@ menu:
     summary: ''
   - slug: persistence-design-pitfalls-003
     title: Giữ giao dịch mở trong lúc gọi dịch vụ ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2836,7 +2836,7 @@ menu:
     summary: ''
   - slug: persistence-design-pitfalls-004
     title: Dùng kiểm tra trước khi ghi thay cho ràng buộc duy nhất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2845,7 +2845,7 @@ menu:
     summary: ''
   - slug: persistence-design-pitfalls-005
     title: Đọc rồi ghi lại giá trị mà không kiểm soát đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2854,7 +2854,7 @@ menu:
     summary: ''
   - slug: persistence-design-pitfalls-006
     title: Thử lại thao tác ghi không lũy đẳng sau mọi timeout
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2863,7 +2863,7 @@ menu:
     summary: ''
   - slug: persistence-design-pitfalls-007
     title: Tải toàn bộ dữ liệu để lọc hoặc phân trang trong bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2872,7 +2872,7 @@ menu:
     summary: ''
   - slug: persistence-design-pitfalls-008
     title: Giả định ORM loại bỏ nhu cầu hiểu truy vấn và giao dịch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2881,7 +2881,7 @@ menu:
     summary: ''
   - slug: persistence-design-pitfalls-009
     title: Dùng cache hoặc bản sao truy cập thay cho bản sao lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2890,7 +2890,7 @@ menu:
     summary: ''
   - slug: persistence-design-pitfalls-010
     title: Thay đổi lược đồ mà không xét nhiều phiên bản ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2899,7 +2899,7 @@ menu:
     summary: ''
   - slug: persistence-design-pitfalls-011
     title: Chỉ kiểm thử đường thành công và bỏ qua khả năng khôi phục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2908,7 +2908,7 @@ menu:
     summary: ''
   - slug: persistence-design-pitfalls-012
     title: Lựa chọn kho dữ liệu theo trào lưu thay vì yêu cầu truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2920,7 +2920,7 @@ menu:
   childs:
   - slug: integrated-persistence-practice-001
     title: So sánh dữ liệu mất khi dừng tiến trình với dữ liệu đã lưu bền vững
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2929,7 +2929,7 @@ menu:
     summary: ''
   - slug: integrated-persistence-practice-002
     title: Thiết kế hợp đồng lưu trữ cho một danh mục có định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2938,7 +2938,7 @@ menu:
     summary: ''
   - slug: integrated-persistence-practice-003
     title: Lưu và đọc cùng dữ liệu qua tệp và cơ sở dữ liệu để đối chiếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2947,7 +2947,7 @@ menu:
     summary: ''
   - slug: integrated-persistence-practice-004
     title: Kiểm chứng ràng buộc duy nhất trước các yêu cầu đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2956,7 +2956,7 @@ menu:
     summary: ''
   - slug: integrated-persistence-practice-005
     title: Dựng một thao tác nghiệp vụ nhiều bước có commit và rollback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2965,7 +2965,7 @@ menu:
     summary: ''
   - slug: integrated-persistence-practice-006
     title: Tái hiện mất cập nhật rồi áp dụng cập nhật có điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2974,7 +2974,7 @@ menu:
     summary: ''
   - slug: integrated-persistence-practice-007
     title: So sánh phân trang offset với phân trang theo khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2983,7 +2983,7 @@ menu:
     summary: ''
   - slug: integrated-persistence-practice-008
     title: Quan sát kế hoạch truy vấn trước và sau khi thêm chỉ mục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2992,7 +2992,7 @@ menu:
     summary: ''
   - slug: integrated-persistence-practice-009
     title: Mô phỏng timeout khi ghi và thiết kế cơ chế thử lại lũy đẳng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3001,7 +3001,7 @@ menu:
     summary: ''
   - slug: integrated-persistence-practice-010
     title: Thực hiện migration có backfill và kiểm chứng tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3010,7 +3010,7 @@ menu:
     summary: ''
   - slug: integrated-persistence-practice-011
     title: Khôi phục dữ liệu từ bản sao lưu trong môi trường cô lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3019,7 +3019,7 @@ menu:
     summary: ''
   - slug: integrated-persistence-practice-012
     title: Hoàn thiện tiêu chí lựa chọn công nghệ, bộ kiểm thử và hướng dẫn vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
